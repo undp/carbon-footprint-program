@@ -85,7 +85,9 @@ Los destinos posibles son:
 - **Relleno sanitario:** sitio con manejo sanitario e infraestructura de control de lixiviados y gases.
 - **Incineración**
 - **Reciclaje**
-- **Otro:** solo si el destino no corresponde a ninguno de los anteriores. **Escribe un comentario en la línea explicando cuál fue el destino real**, para que después se pueda reclasificar. Se le aplica el factor más alto disponible para ese material mientras no esté clasificado.
+- **Otro:** solo si el destino no corresponde a ninguno de los anteriores. **Escribe un comentario en la línea explicando cuál fue el destino real**, para que después se pueda reclasificar.
+
+> **Relleno sanitario, incineración y reciclaje tienen factor cargado; los dos tipos de vertedero y `Otro`, no.** Para esos tendrás que ingresar tú el factor: selecciona `Otro` en **Fuente factor** y usa el valor que corresponda. La diferencia entre un vertedero y un relleno sanitario es grande, y la plataforma prefiere pedirte el dato antes que suponerlo.
 
 💡 Si no sabes con certeza a qué tipo de sitio llegan tus residuos, consulta al gestor o al ayuntamiento que los retira. La diferencia entre un vertedero y un relleno sanitario cambia el resultado de forma significativa.
 

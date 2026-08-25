@@ -2378,26 +2378,6 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "SENI",
                 "value": 0.5915
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Electricidad_Sistema eléctrico",
-                  "valueName": "Sistema aislado"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kWh",
-                "source": "SENI",
-                "value": 0.76217
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Electricidad_Sistema eléctrico",
-                  "valueName": "Otro"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kWh",
-                "source": "SENI",
-                "value": 0.76217
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"],
@@ -2847,36 +2827,10 @@
                 },
                 "dimensionValue2": {
                   "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 0.75803
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Materiales de construcción"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 1.0107
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Materiales de construcción"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 1.26338
               },
               {
@@ -2889,7 +2843,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -2902,51 +2856,12 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 1.00835
               },
               {
                 "dimensionValue1": {
                   "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Materiales de construcción"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Items electrónicos"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 5.38987
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Items electrónicos"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 7.18649
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
                   "valueName": "Items electrónicos"
                 },
                 "dimensionValue2": {
@@ -2954,7 +2869,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 8.98311
               },
               {
@@ -2967,7 +2882,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -2980,47 +2895,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Items electrónicos"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 8.98311
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Metal"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 5.38987
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Metal"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 7.18649
               },
               {
                 "dimensionValue1": {
@@ -3032,7 +2908,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 8.98311
               },
               {
@@ -3045,7 +2921,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3058,47 +2934,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Metal"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 8.98311
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Madera"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 555.20609
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Madera"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 740.27478
               },
               {
                 "dimensionValue1": {
@@ -3110,7 +2947,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 925.34348
               },
               {
@@ -3123,7 +2960,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3136,47 +2973,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Madera"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 925.34348
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Papel"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 698.69364
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Papel"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 931.59152
               },
               {
                 "dimensionValue1": {
@@ -3188,7 +2986,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 1164.4894
               },
               {
@@ -3201,7 +2999,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3214,47 +3012,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Papel"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 1164.4894
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Plástico"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 5.38987
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Plástico"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 7.18649
               },
               {
                 "dimensionValue1": {
@@ -3266,7 +3025,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 8.98311
               },
               {
@@ -3279,7 +3038,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3292,47 +3051,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Plástico"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 8.98311
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Vidrio"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 5.38987
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Vidrio"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 7.18649
               },
               {
                 "dimensionValue1": {
@@ -3344,7 +3064,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 8.98311
               },
               {
@@ -3357,7 +3077,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3370,47 +3090,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Vidrio"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 8.98311
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Ropa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 298.06937
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Ropa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 397.42582
               },
               {
                 "dimensionValue1": {
@@ -3422,7 +3103,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 496.78228
               },
               {
@@ -3435,7 +3116,7 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
               },
               {
@@ -3448,47 +3129,8 @@
                   "valueName": "Reciclaje"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Ropa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 496.78228
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos general de la casa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 298.34546
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos general de la casa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 397.79395
               },
               {
                 "dimensionValue1": {
@@ -3500,7 +3142,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 497.24244
               },
               {
@@ -3513,47 +3155,8 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos general de la casa"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 497.24244
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos comerciales o industriales"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero a cielo abierto"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 312.31962
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos comerciales o industriales"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Vertedero controlado"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 416.42616
               },
               {
                 "dimensionValue1": {
@@ -3565,7 +3168,7 @@
                   "valueName": "Relleno sanitario"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 520.5327
               },
               {
@@ -3578,21 +3181,8 @@
                   "valueName": "Incineración"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 4.68568
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Disposición de residuos sólidos_Material",
-                  "valueName": "Residuos comerciales o industriales"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Disposición de residuos sólidos_Destino",
-                  "valueName": "Otro"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "DEFRA 2025 ajustado por los factores de corrección de metano (MCF) de IPCC 2006 Vol. 5 Cap. 3 según el tipo de sitio de disposición (propuesta pendiente de validación MMARN)",
-                "value": 520.5327
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],

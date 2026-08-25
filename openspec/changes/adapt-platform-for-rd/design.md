@@ -73,11 +73,15 @@ _Alternatives considered._ A dedicated boolean column on the dimension value sur
 
 _Consequence._ Nothing stops an inventory from resolving several lines to `Otro` with no explanation. The conservative factor is what keeps that from understating; auditing which inventories lean on the catch-all is a reporting question, not a validation one.
 
-### 7. `Otro` carries the most conservative factor in its dimension
+### 7. The new dimension values ship without factors
 
-Page 4 requires that "cada alternativa corresponda a un tratamiento metodológico y factor de emisión definido", so `Otro` needs a factor, not an exemption. It takes the highest factor of its dimension, which never understates emissions, so a line MMARN later reclassifies moves down rather than up.
+Page 4 requires that "cada alternativa corresponda a un tratamiento metodológico y factor de emisión definido". A first pass read that as an obligation on this branch and derived one for every new value — a diesel efficiency for isolated systems, IPCC methane correction factors for the dump types, the dimension's highest factor for each `Otro`. The values ship; the numbers do not. Dominican factors are MMARN's to set, and a figure derived here is a foreign estimate wearing a national badge: once seeded it stops travelling with the reasoning that produced it, and an auditor reading the inventory cannot tell it apart from a measured one.
 
-_Alternatives considered._ Leaving `Otro` without a catalog factor and requiring `manualFactor` plus `manualFactorSource` is the most rigorous option and needs no new code, but blocks any user without a documented factor at hand. A dimension average is unbiased in aggregate yet understates individual cases, which is the error hardest to defend in a national registry.
+The one exception is the SENI grid factor, which replaces a UK figure that priced Scope 2 for the whole country roughly threefold low. Leaving that in place was worse than replacing it with an order-of-magnitude-correct national number, flagged for confirmation.
+
+_Alternatives considered._ Seeding the derived numbers and marking them provisional in the `source` string is what the first pass did; the caveat lives in a field nothing reads back, and the number outlives it. Leaving `Otro` without a factor but requiring `manualFactor` plus `manualFactorSource` is what now happens naturally, since a value with no seeded factor already falls through to the manual source.
+
+_Consequence._ A registrant selecting one of the new values has to supply a factor to close the line. That is friction, and it is the intended reading of the gap: an empty factor asks a question, and a derived one answers it wrongly. Each becomes a data change the day MMARN publishes the figure.
 
 ### 8. Ride-hailing is not split until the factors differ
 
