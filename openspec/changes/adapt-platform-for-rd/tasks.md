@@ -2,7 +2,7 @@
 
 - [ ] 1.1 Send MMARN one consolidated message with the two blocking questions from `design.md` → Open Questions: whether primary/secondary are two selections or three hierarchical levels, and validation of the 66-activity mapping (attach the mapping workbook)
 - [ ] 1.2 In the same message, propose the emission-factor sources for the new dimension values (IPCC 2006 Vol. 5 Ch. 3 methane correction factors by disposal-site type; grid factor per passenger-km for cable cars; diesel generation for isolated systems) and ask MMARN to endorse or replace them
-- [ ] 1.3 Obtain the ONE territorial catalog (planning region, province, municipality, municipal district, sector/paraje) in a machine-readable form
+- [~] 1.3 Obtain the ONE territorial catalog (planning region, province, municipality, municipal district, sector/paraje) in a machine-readable form — the top three levels turned out not to need it: article 7 of the Ley Orgánica de Regiones Únicas de Planificación (núm. 345-22) enumerates the ten regions, the thirty-two provinces and the 157 municipios, and the ONE's División Territorial 2021 corroborates the counts. See `docs/development/rd-territories-sources.md`. Still open for the municipal district and the sector/paraje: the Geoportal IDE-RD layers `RD_DM` and `RD_BPARAJES` carry them in CSV/GeoJSON but are not served anonymously — they need a portal account or an institutional request
 - [~] 1.4 Obtain the DGII activity list and diff it against the catalog to confirm the 66-activity granularity holds — done against `CIIU.DR 2009` (DGII, 166 pp): structure confirmed (17 sections, 60 divisions, 2,839 activity codes), 28 rows renamed to the official wording, and the document turns out not to name 19 of its 60 divisions at all. See `docs/development/rd-activity-catalog-sources.md`. The mapping itself still needs MMARN
 - [ ] 1.5 Agree with MMARN on a database reset window: `seed.ts` skips entirely when `country.count() > 0`, so the catalog replacement requires `pnpm db:reset` and discards inventories captured in the test environment
 
@@ -32,7 +32,7 @@
 - [x] 4.1 Add `secondarySubsectorId BigInt?` to `OrganizationData` with its relation to `CountrySubsector`, named so it does not collide with the existing `subsector` relation
 - [x] 4.2 Add the self-referencing `Territory` model (name, level, `parentId`) and `territoryId BigInt?` on `OrganizationData`, both foreign keys `onDelete: Restrict`
 - [x] 4.3 Write the single migration directory with a timestamp preceding every later migration in the stack, and confirm both columns are nullable so it applies to a populated database
-- [x] 4.4 Insert the ten planning regions and thirty-two provinces in the same migration, guarded on an empty table, because `seed.ts` skips a populated deployment
+- [x] 4.4 Insert the ten planning regions, the thirty-two provinces and the 157 municipios in the same migration, guarded on an empty table, because `seed.ts` skips a populated deployment
 - [x] 4.5 Extend the Zod schemas in `packages/types` for the new organization fields
 - [ ] 4.6 Apply the migration against a populated database and verify existing rows survive with `NULL`, and that the forty-two territories load
 - [x] 4.7 Run `pnpm format && pnpm lint && pnpm type-check`
@@ -100,11 +100,12 @@ task 10.3. What was **not** done, and why:
   what can be done from the repository. Everything downstream of them was built
   under the assumptions `design.md` states.
 - **PR 7 (organization form + territorial seed)** — built, with the territorial
-  catalog partial: the ten planning regions and the 32 provinces are authored,
-  and the three levels below them wait on the ONE catalog (task 1.3). The seeder
-  is level-agnostic, so loading them is a data change. The form renders one
-  selector per level that has rows, so the missing levels are invisible rather
-  than broken.
+  catalog partial: the ten planning regions, the 32 provinces and the 157
+  municipios are authored from article 7 of Ley 345-22, and the two levels below
+  them wait on the IDE-RD layers (task 1.3). The seeder is level-agnostic, so
+  loading them is a data change. The form asks the catalog which levels have rows
+  and renders one selector each, so the missing levels are invisible rather than
+  broken, and a level that lands later appears without a code change.
 - **PR 8 (methodology)** — see the note at the end of section 9.
 - **Every `pnpm db:reset` / seed / API-test task** (2.4, 4.6, 5.3, 7.7, 7.8) —
   no Postgres or Docker in the authoring environment. `format`, `lint`,
