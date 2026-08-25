@@ -55,4 +55,33 @@ describe("sortDimensionValuesWithOtherLast", () => {
   it("returns an empty list unchanged", () => {
     expect(sortDimensionValuesWithOtherLast([])).toEqual([]);
   });
+
+  // A methodology maintainer types variable names by hand, so a catalog curated
+  // after the seed can spell the escape hatch differently.
+  it.each(["Otros", "Otra", "Otras", "otros", "OTRO", "  Otro  "])(
+    "pins the hand-typed variant %j last",
+    (other) => {
+      const values: DimensionValue[] = [
+        { id: "1", value: "Avión" },
+        { id: "2", value: other },
+        { id: "3", value: "Tren" },
+      ];
+
+      expect(
+        sortDimensionValuesWithOtherLast(values).map((v) => v.value)
+      ).toEqual(["Avión", "Tren", other]);
+    }
+  );
+
+  it("keeps the relative order of several escape-hatch wordings", () => {
+    const values: DimensionValue[] = [
+      { id: "1", value: "Otros" },
+      { id: "2", value: "Camión" },
+      { id: "3", value: "Otro" },
+    ];
+
+    expect(
+      sortDimensionValuesWithOtherLast(values).map((v) => v.value)
+    ).toEqual(["Camión", "Otros", "Otro"]);
+  });
 });

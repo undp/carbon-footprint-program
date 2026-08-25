@@ -157,5 +157,24 @@ export const CARBON_INVENTORY_ZIP_README_ENTRY_NAME = "LEEME.txt";
  */
 export const EMISSION_FACTOR_DIMENSION_OTHER_VALUE = "Otro";
 
+/**
+ * Every wording that names that same escape hatch. The dimensions maintainer
+ * accepts any variable name, so a catalog curated after the seed — or by a
+ * country deployment — can carry "Otros", or the feminine forms when the
+ * dimension reads that way, instead of the seeded "Otro". All of them are
+ * pinned last in the capture dropdown.
+ *
+ * Matching ignores case and surrounding spaces, so only whole-word wordings
+ * belong here — never a prefix such as "Otro proceso" or
+ * "Otro país", which are real catalog values with their own emission factor
+ * and keep their alphabetical position.
+ */
+export const EMISSION_FACTOR_DIMENSION_OTHER_VALUES = [
+  EMISSION_FACTOR_DIMENSION_OTHER_VALUE,
+  "Otros",
+  "Otra",
+  "Otras",
+];
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";
