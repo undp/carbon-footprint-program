@@ -24,6 +24,7 @@ import { ORGANIZATION_DISPLAY_STATUS_CONFIG } from "@/labels/chips/organization"
 import { SUBMISSION_STATUS_CONFIG } from "@/labels/chips/submission";
 import { VOCAB } from "@/config/vocab";
 import { TERRITORY_LEVEL_LABELS } from "../constants";
+import { getTerritoryChain } from "../mappers";
 
 type OrganizationProfileViewProps = {
   profile: GetOrganizationByIdResponse;
@@ -51,15 +52,7 @@ export const OrganizationProfileView: FC<OrganizationProfileViewProps> = ({
 
   const orgHistory = useGetOrganizationHistory(profile.id);
 
-  // The declared node plus its ancestors, outermost first — the same order the
-  // form's selectors present, so the profile reads back the way it was filled in.
-  const territoryChain = useMemo(
-    () => [
-      ...profile.territoryAncestors,
-      ...(profile.territory ? [profile.territory] : []),
-    ],
-    [profile.territoryAncestors, profile.territory]
-  );
+  const territoryChain = useMemo(() => getTerritoryChain(profile), [profile]);
 
   const lastSubmission = useMemo(
     () => orgHistory.data?.[0] ?? null,
