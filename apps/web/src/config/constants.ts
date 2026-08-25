@@ -148,5 +148,37 @@ export const CARBON_INVENTORY_ZIP_METHODOLOGY_ENTRY_NAME = "metodologia.xlsx";
 /** Filename of the human-readable README at the ZIP root. */
 export const CARBON_INVENTORY_ZIP_README_ENTRY_NAME = "LEEME.txt";
 
+/**
+ * The escape hatch of an open-ended emission-factor dimension: the value a user
+ * picks when no listed option matches their real-world item, declaring the line
+ * with a custom factor source instead of abandoning it.
+ *
+ * `masculineSingular` is the wording the seed writes. The other three are
+ * recognised, not written: the dimensions maintainer accepts any variable name,
+ * so a catalog curated after the seed — or by a country deployment — can spell
+ * it in the plural, or in the feminine when the dimension reads that way.
+ * Add a wording here and every screen that asks "is this the escape hatch?"
+ * follows.
+ */
+export const EMISSION_FACTOR_DIMENSION_OTHER = {
+  masculineSingular: "Otro",
+  masculinePlural: "Otros",
+  feminineSingular: "Otra",
+  femininePlural: "Otras",
+} as const;
+
+/**
+ * Every wording above, as the list the capture dropdown pins last. Derived, so
+ * it cannot drift from the object.
+ *
+ * Matching ignores case and surrounding spaces and covers the whole value, so
+ * only standalone wordings belong here — never a prefix such as "Otro proceso"
+ * or "Otro país", which are real catalog values with their own emission factor
+ * and keep their alphabetical position.
+ */
+export const EMISSION_FACTOR_DIMENSION_OTHER_VALUES = Object.values(
+  EMISSION_FACTOR_DIMENSION_OTHER
+);
+
 // Re-exported from shared package
 export { CUSTOM_FACTOR_SOURCES } from "@repo/utils";

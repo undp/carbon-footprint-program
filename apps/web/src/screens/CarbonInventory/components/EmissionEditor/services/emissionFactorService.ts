@@ -1,4 +1,5 @@
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import { isOtherDimensionValue } from "@/utils/emissionFactorDimensions";
 import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 const isCustomFactorSource = (
@@ -49,3 +50,17 @@ export const getAvailableSources = (
 ): string[] => {
   return [...new Set(availableFactors.map((f) => f.source))];
 };
+
+/**
+ * Keeps every value in EMISSION_FACTOR_DIMENSION_OTHER_VALUES at the bottom of
+ * a dimension dropdown. The API returns dimension values alphabetically, which
+ * would otherwise bury the escape hatch in the middle of long catalogs (e.g.
+ * the mobile-combustion machinery list). Several of them keep their relative
+ * order among themselves.
+ */
+export const sortDimensionValuesWithOtherLast = <T extends { value: string }>(
+  values: T[]
+): T[] =>
+  values
+    .filter((v) => !isOtherDimensionValue(v.value))
+    .concat(values.filter((v) => isOtherDimensionValue(v.value)));

@@ -13,6 +13,7 @@ import {
   Typography,
 } from "@mui/material";
 import { AddCircleOutline, DeleteOutlined } from "@mui/icons-material";
+import { isOtherDimensionValue } from "@/utils/emissionFactorDimensions";
 
 interface DimensionVariable {
   id: string;
@@ -61,6 +62,16 @@ const DimensionVariablesModalContent: FC<
     return dupes;
   }, [localVars]);
 
+  // "Otro", "Otros", "Otra" and "Otras" all read as the same escape hatch to the
+  // user, and the capture dropdown shows every one of them last. Nothing stops
+  // a dimension from holding several — the duplicate check compares whole
+  // names — so warn instead: two escape hatches split the same captures across
+  // two values.
+  const otherVariableCount = useMemo(
+    () => localVars.filter((v) => isOtherDimensionValue(v.value)).length,
+    [localVars]
+  );
+
   const hasEmptyValues = localVars.some((v) => v.value.trim() === "");
   const hasDuplicates = duplicateIndices.size > 0;
   const canClose = !hasDuplicates && !hasEmptyValues && localVars.length > 0;
@@ -93,6 +104,15 @@ const DimensionVariablesModalContent: FC<
           <Alert severity="info" sx={{ mb: 2 }}>
             Esta dimensión tiene factores de emisión activos. Puedes agregar
             nuevas variables y renombrar las existentes, pero no eliminarlas.
+          </Alert>
+        )}
+
+        {otherVariableCount > 1 && !readOnly && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            Esta dimensión tiene más de una variable que funciona como
+            &quot;Otro&quot;. Todas se muestran juntas al final de la lista en
+            la captura de emisiones, y el usuario repartirá sus registros entre
+            ellas: conviene dejar solo una.
           </Alert>
         )}
 
