@@ -253,7 +253,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                 />
               </Box>
 
-              {/* Row 4: Secondary Economic Activity */}
+              {/* Row 4: Secondary Economic Activity + Activity Unit */}
               <Box className="flex gap-6">
                 <FormAutocompleteField
                   name="secondarySubsectorId"
@@ -267,10 +267,19 @@ export const OrganizationFormDialog: FC<Props> = ({
                   }
                   className="flex-1"
                 />
-                <Box className="flex-1" />
+                <FormAutocompleteField
+                  name="mainActivityId"
+                  control={control}
+                  label={`Unidad de actividad de ${VOCAB.organization.article.singular}`}
+                  labelId="activity-label"
+                  options={activityOptions}
+                  loading={activitiesLoading}
+                  disabled={activitiesLoading || activityOptions.length === 0}
+                  className="flex-1"
+                />
               </Box>
 
-              {/* Row 5: Employee Count + Main Activity */}
+              {/* Row 5: Employee Count */}
               <Box className="flex gap-6">
                 <FormNumericField
                   name="employeesCount"
@@ -283,16 +292,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   onlyInteger
                   onlyIntegerMessage="La cantidad debe ser un número entero"
                 />
-                <FormAutocompleteField
-                  name="mainActivityId"
-                  control={control}
-                  label={`Unidad de actividad de ${VOCAB.organization.article.singular}`}
-                  labelId="activity-label"
-                  options={activityOptions}
-                  loading={activitiesLoading}
-                  disabled={activitiesLoading || activityOptions.length === 0}
-                  className="flex-1"
-                />
+                <Box className="flex-1" />
               </Box>
             </Box>
           </Box>
