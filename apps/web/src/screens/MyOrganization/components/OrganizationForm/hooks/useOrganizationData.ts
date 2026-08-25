@@ -12,7 +12,6 @@ import type { GetOrganizationByIdResponse } from "@repo/types";
 type Params = {
   selectedSectorId?: string;
   selectedSubsectorId?: string;
-  selectedActivityId?: string;
   /**
    * Currently-persisted catalog references on the organization. Used to merge into the
    * option list so a DELETED catalog row whose id is still referenced renders by name —
@@ -32,7 +31,6 @@ type Params = {
 export const useOrganizationData = ({
   selectedSectorId,
   selectedSubsectorId,
-  selectedActivityId,
   initialSector,
   initialSubsector,
   initialSecondarySubsector,
@@ -97,12 +95,6 @@ export const useOrganizationData = ({
     return mergeSelectedOption(baseSubsectors, initialSubsector);
   }, [selectedSector, initialSubsector, initialSector, selectedSectorId]);
 
-  const selectedActivity = useMemo(
-    () =>
-      mergedActivities.find((activity) => activity.id === selectedActivityId),
-    [mergedActivities, selectedActivityId]
-  );
-
   // The secondary economic activity is picked from the whole catalog rather than
   // from the selected sector: a hotel with an agricultural operation declares a
   // secondary activity in another sector entirely. Each option is qualified with
@@ -148,7 +140,6 @@ export const useOrganizationData = ({
     subsectorOptions,
     // Selected items
     selectedSector,
-    selectedActivity,
     // Formatted options for selectors
     sectorOptions,
     subsectorSelectOptions,
