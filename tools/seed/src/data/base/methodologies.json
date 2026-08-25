@@ -1974,7 +1974,7 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
-                "source": "Factor de emisión de la red del SENI y generación diésel según IPCC 2006 Vol. 2 (propuesta pendiente de validación MMARN)",
+                "source": "SENI",
                 "value": 0.5915
               },
               {
@@ -1984,7 +1984,7 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
-                "source": "Factor de emisión de la red del SENI y generación diésel según IPCC 2006 Vol. 2 (propuesta pendiente de validación MMARN)",
+                "source": "SENI",
                 "value": 0.76217
               },
               {
@@ -1994,7 +1994,7 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
-                "source": "Factor de emisión de la red del SENI y generación diésel según IPCC 2006 Vol. 2 (propuesta pendiente de validación MMARN)",
+                "source": "SENI",
                 "value": 0.76217
               }
             ],
