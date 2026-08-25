@@ -22,7 +22,16 @@ What lives on the branch:
   provinces and 157 municipios;
 - Dominican terminology (`Actividad económica` instead of `rubro`, `RNC` as the
   tax identifier, `Datos generales` as step 1);
-- the methodology's Dominican dimension values and emission factors.
+- the methodology's Dominican dimension values and emission factors;
+- the Dominican identity of the web app: the `Huella de Carbono República
+Dominicana` name and mark (`apps/web/src/config/brand.ts`), the institutional
+  navy palette (`apps/web/src/theme/palette.ts`), the landing and the "Sobre la
+  iniciativa" copy MMARN reviewed, and the Gobierno de la República Dominicana
+  footer.
+
+The identity is deployment data too, and it is likewise edited in place. See
+[Editing Public-Page Content](../development/public-pages-content.md#brand-and-palette)
+for which file holds what.
 
 ## Upstream policy: frozen, not tracked
 

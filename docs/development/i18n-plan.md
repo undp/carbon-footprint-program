@@ -12,12 +12,12 @@ Before planning the migration, it's important to understand where translatable t
 
 All user-facing strings in `apps/web/src/` are hardcoded in Spanish. Examples:
 
-| File                                                | String                                              |
-| --------------------------------------------------- | --------------------------------------------------- |
-| `apps/web/src/components/CreateInventoryCard.tsx`   | `"No se pudo crear la huella"`                      |
-| `apps/web/src/components/form/FormTextField.tsx`    | `"Este campo es obligatorio"`                       |
-| `apps/web/src/components/form/FormNumericField.tsx` | `"El valor es demasiado bajo"` / `"demasiado alto"` |
-| `apps/web/src/screens/CarbonInventories/...`        | `"No se pudo duplicar la huella"`                   |
+| File                                                         | String                                              |
+| ------------------------------------------------------------ | --------------------------------------------------- |
+| `apps/web/src/screens/Landing/components/LandingOptions.tsx` | `"No se pudo crear la huella"`                      |
+| `apps/web/src/components/form/FormTextField.tsx`             | `"Este campo es obligatorio"`                       |
+| `apps/web/src/components/form/FormNumericField.tsx`          | `"El valor es demasiado bajo"` / `"demasiado alto"` |
+| `apps/web/src/screens/CarbonInventories/...`                 | `"No se pudo duplicar la huella"`                   |
 
 ### Frontend: No i18n Library Installed
 
