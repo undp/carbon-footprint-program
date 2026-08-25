@@ -30,13 +30,13 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
   return (
     <Box
       className="flex items-center justify-between rounded-lg px-4 py-3"
-      sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
+      sx={{ backgroundColor: alpha(theme.palette.common.deepNavy, 0.1) }}
     >
       <Box>
         <Typography
           variant="subtitle1"
           fontWeight="fontWeightMedium"
-          sx={{ color: theme.palette.common.deepForest }}
+          sx={{ color: theme.palette.common.deepNavy }}
         >
           Total emisiones
         </Typography>
@@ -45,14 +45,14 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
         <Typography
           variant="h6"
           fontWeight="fontWeightBold"
-          sx={{ color: theme.palette.common.deepForest }}
+          sx={{ color: theme.palette.common.deepNavy }}
         >
           {formatter.emissions(totalEmissions)}
         </Typography>
         {equivalence?.rate != null && !!equivalence?.activityName && (
           <Typography
             variant="caption"
-            sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
+            sx={{ color: theme.palette.common.deepNavy, opacity: 0.7 }}
           >
             Equivalencia: {formatter.rate(equivalence.rate)} tCO₂e/
             {equivalence.activityName}

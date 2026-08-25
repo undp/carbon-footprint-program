@@ -46,7 +46,7 @@ export const CreateInventoryCard: FC<Props> = ({
   const { enqueueSnackbar } = useSnackbar();
   const createInventory = useCreateCarbonInventory();
 
-  const textColor = theme.palette.common.deepForestDark;
+  const textColor = theme.palette.common.deepNavyDark;
 
   const handleCreateInventory = useCallback(async () => {
     try {
@@ -84,7 +84,7 @@ export const CreateInventoryCard: FC<Props> = ({
         pt: 3.75,
         pb: 3.25,
         backdropFilter: "blur(4px) saturate(1.2)",
-        boxShadow: `0 10px 34px ${alpha(theme.palette.common.deepForest, 0.1)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.45)}`,
+        boxShadow: `0 10px 34px ${alpha(theme.palette.common.deepNavy, 0.1)}, inset 0 1px 0 ${alpha(theme.palette.common.white, 0.45)}`,
       }}
     >
       <CardHeader
@@ -98,7 +98,7 @@ export const CreateInventoryCard: FC<Props> = ({
               border: `1px solid ${alpha(theme.palette.common.white, 0.55)}`,
             }}
           >
-            <AvatarIcon sx={{ color: theme.palette.common.deepForest }} />
+            <AvatarIcon sx={{ color: theme.palette.common.deepNavy }} />
           </Avatar>
         }
         title={
@@ -125,7 +125,7 @@ export const CreateInventoryCard: FC<Props> = ({
           disabled={createInventory.isPending}
           loading={createInventory.isPending}
           sx={{
-            backgroundColor: theme.palette.common.deepForest,
+            backgroundColor: theme.palette.common.deepNavy,
             borderRadius: 1.25,
             px: 2.5,
             py: 1.375,

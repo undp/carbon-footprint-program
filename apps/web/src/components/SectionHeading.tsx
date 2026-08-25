@@ -28,7 +28,7 @@ export const SectionHeading: FC<Props> = ({ Icon, title, badge }) => {
         variant="h5"
         component="h2"
         fontWeight="fontWeightBold"
-        sx={{ color: theme.palette.common.deepForestDark }}
+        sx={{ color: theme.palette.common.deepNavyDark }}
       >
         {title}
       </Typography>

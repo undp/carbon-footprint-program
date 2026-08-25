@@ -63,14 +63,14 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
     <>
       <Box
         className="flex flex-1 shrink-0 items-center justify-between rounded-lg px-3 py-2"
-        sx={{ backgroundColor: alpha(theme.palette.common.deepForest, 0.1) }}
+        sx={{ backgroundColor: alpha(theme.palette.common.deepNavy, 0.1) }}
       >
         <Box className="flex items-center gap-2">
           <Avatar
             sx={{
               width: 32,
               height: 32,
-              backgroundColor: alpha(theme.palette.common.deepForest, 0.1),
+              backgroundColor: alpha(theme.palette.common.deepNavy, 0.1),
             }}
           >
             <BarChartOutlined color="disabled" />
@@ -78,14 +78,14 @@ export const EmissionCategorySummary: FC<EmissionCategorySummaryProps> = ({
           <Typography
             variant="body1"
             fontWeight="fontWeightSemiBold"
-            sx={{ color: theme.palette.common.deepForest }}
+            sx={{ color: theme.palette.common.deepNavy }}
           >
             Total emisiones
           </Typography>
         </Box>
         <EmissionPercentageBadge
           emissions={totalEmissions}
-          categoryColor={theme.palette.common.deepForest}
+          categoryColor={theme.palette.common.deepNavy}
         />
       </Box>
 

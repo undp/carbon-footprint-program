@@ -21,7 +21,7 @@ export const PlatformPillarCard: FC<Props> = ({
     ? theme.palette.common.sunflower
     : theme.palette.primary.main;
   const stepTextColor = isHighlighted
-    ? theme.palette.common.deepForestDark
+    ? theme.palette.common.deepNavyDark
     : theme.palette.common.white;
 
   return (
@@ -68,7 +68,7 @@ export const PlatformPillarCard: FC<Props> = ({
         variant="h6"
         component="h3"
         fontWeight="fontWeightBold"
-        sx={{ fontSize: 18, color: theme.palette.common.deepForestDark }}
+        sx={{ fontSize: 18, color: theme.palette.common.deepNavyDark }}
       >
         {pillar.title}
       </Typography>
@@ -102,7 +102,7 @@ export const PlatformPillarCard: FC<Props> = ({
                 fontSize: 13,
                 fontWeight: "fontWeightMedium",
                 lineHeight: 1.45,
-                color: theme.palette.common.deepForestDark,
+                color: theme.palette.common.deepNavyDark,
               }}
             >
               {pillar.callout}

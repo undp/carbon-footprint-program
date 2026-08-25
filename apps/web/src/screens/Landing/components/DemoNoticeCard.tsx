@@ -43,9 +43,9 @@ export const DemoNoticeCard: FC = () => {
         borderRadius: 3,
         border: `1px solid ${alpha(theme.palette.common.white, 0.18)}`,
         borderLeft: `5px solid ${theme.palette.common.sunflower}`,
-        backgroundColor: alpha(theme.palette.common.deepForestDark, 0.55),
+        backgroundColor: alpha(theme.palette.common.deepNavyDark, 0.55),
         backdropFilter: "blur(14px)",
-        boxShadow: `0 10px 30px ${alpha(theme.palette.common.deepForestDark, 0.22)}`,
+        boxShadow: `0 10px 30px ${alpha(theme.palette.common.deepNavyDark, 0.22)}`,
       }}
     >
       <WarningAmberRounded

@@ -24,7 +24,7 @@ export const AboutHero: FC = () => {
             fontWeight: "fontWeightBold",
             letterSpacing: "1.8px",
             textTransform: "uppercase",
-            color: theme.palette.common.deepForestDark,
+            color: theme.palette.common.deepNavyDark,
           }}
         >
           {ABOUT_HERO.badge}

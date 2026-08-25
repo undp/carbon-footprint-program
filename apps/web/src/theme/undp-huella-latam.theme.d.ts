@@ -8,11 +8,11 @@ declare module "@mui/material/styles" {
   }
 
   interface CommonColors {
-    deepForest: string;
-    deepForestDark: string;
-    brightGreen: string;
-    mint: string;
-    glossyTeal: string;
+    deepNavy: string;
+    deepNavyDark: string;
+    leafGreen: string;
+    softLeaf: string;
+    oceanTeal: string;
     sunflower: string;
   }
 
@@ -23,7 +23,7 @@ declare module "@mui/material/styles" {
       tooltip: string;
       snackbar: string;
       ratingFull: string;
-      fluor: string;
+      accent: string;
       gradient: string;
       gradient20: string;
     };
@@ -40,7 +40,7 @@ declare module "@mui/material/styles" {
       tooltip?: string;
       snackbar?: string;
       ratingFull?: string;
-      fluor?: string;
+      accent?: string;
       gradient?: string;
       gradient20?: string;
     };

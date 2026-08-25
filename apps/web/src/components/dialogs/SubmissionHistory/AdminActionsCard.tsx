@@ -142,7 +142,7 @@ export const AdminActionsCard: FC<Props> = ({
       {/* Header */}
       <Box
         sx={{
-          bgcolor: theme.palette.common.glossyTeal,
+          bgcolor: theme.palette.common.oceanTeal,
           borderRadius: "10px 10px 0 0",
           px: 2,
           py: 1.25,
@@ -363,9 +363,9 @@ export const AdminActionsCard: FC<Props> = ({
             }
             onClick={handleSubmit}
             sx={{
-              bgcolor: theme.palette.common.glossyTeal,
+              bgcolor: theme.palette.common.oceanTeal,
               "&:hover": {
-                bgcolor: alpha(theme.palette.common.glossyTeal, 0.8),
+                bgcolor: alpha(theme.palette.common.oceanTeal, 0.8),
               },
               borderRadius: "8px",
               textTransform: "uppercase",

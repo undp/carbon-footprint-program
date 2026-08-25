@@ -44,7 +44,7 @@ export const ParticipantCard: FC<Props> = ({ participant, Icon }) => {
             fontSize: 14.5,
             fontWeight: "fontWeightMedium",
             lineHeight: 1.35,
-            color: theme.palette.common.deepForestDark,
+            color: theme.palette.common.deepNavyDark,
           }}
         >
           {participant.name}

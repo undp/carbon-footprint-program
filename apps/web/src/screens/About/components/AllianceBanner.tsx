@@ -17,7 +17,7 @@ export const AllianceBanner: FC = () => {
         py: 4,
         mb: 2.25,
         background: brandGradient(theme),
-        boxShadow: `0 16px 38px ${alpha(theme.palette.common.deepForestDark, 0.14)}`,
+        boxShadow: `0 16px 38px ${alpha(theme.palette.common.deepNavyDark, 0.14)}`,
       }}
     >
       <Box

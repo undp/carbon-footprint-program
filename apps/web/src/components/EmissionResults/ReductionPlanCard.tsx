@@ -90,7 +90,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                 onClick={onViewFullPlan}
                 disabled={isViewFullPlanDisabled}
                 endIcon={
-                  <AutoAwesome sx={{ color: theme.palette.other.fluor }} />
+                  <AutoAwesome sx={{ color: theme.palette.other.accent }} />
                 }
                 className="shrink-0 gap-4 self-center"
                 sx={{ textTransform: "none" }}
@@ -100,7 +100,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                   fontWeight="fontWeightSemiBold"
                   className="py-4 underline"
                   sx={{
-                    background: `linear-gradient(90deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
+                    background: `linear-gradient(90deg, ${theme.palette.common.leafGreen} 0%, ${theme.palette.secondary.main} 100%)`,
                     WebkitBackgroundClip: "text",
                     WebkitTextFillColor: "transparent",
                   }}
