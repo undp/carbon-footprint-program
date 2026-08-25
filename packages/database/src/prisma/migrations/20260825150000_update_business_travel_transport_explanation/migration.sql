@@ -1,4 +1,31 @@
-# ✈️ Viajes de negocios — Traslado
+-- Refresh the "Viajes de negocios - Traslado" guide on databases that were
+-- already seeded.
+--
+-- The seed cannot do this. seed.ts aborts the whole run when the database already
+-- contains data (the country-count gate), so seedExplanations never re-inlines a
+-- markdown file that changed after the first seed: an installed deployment keeps
+-- serving the text it was seeded with. This migration writes the current file
+-- content onto the row, so the (i) panel matches the repository and a later
+-- reseed is a no-op.
+--
+-- What changed in the text (see the accompanying seed data commit): the guide now
+-- says whether to enter one person's kilometres or people x kilometres (air, bus
+-- and rail factors are per passenger-km, car and taxi per vehicle-km), that both
+-- legs of a round trip count, and it lists the ten Transporte options actually
+-- seeded with their DEFRA 2025 values instead of an invented factor table.
+--
+-- Same shape as the guide updates in
+-- 20260825140000_add_machinery_catalog_and_otro_values: the row is matched
+-- through the demo country's base methodology, so a country deployment that
+-- maintains its own methodology decides for itself, and the write is guarded by
+-- IS DISTINCT FROM, so re-running the migration touches zero rows. It carries a
+-- later timestamp than that migration on purpose -- that one rewrites this same
+-- row with the previous revision of the guide, so it has to run first.
+--
+-- Guide text only: no factor, no captured inventory line and no computed total is
+-- touched here.
+
+WITH guide AS (SELECT $md$# ✈️ Viajes de negocios — Traslado
 
 Esta sub-categoría incluye todo el **transporte asociado a viajes laborales** de empleados, distinto del desplazamiento diario casa-trabajo: vuelos, buses, trenes, taxis, vehículos arrendados u otros medios utilizados para viajes de negocios.
 
@@ -238,3 +265,13 @@ Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
 > - **No dupliques con Estadía:** el alojamiento del viaje va en la sub-categoría _Viajes de negocios — Estadía_
 > - **Reducciones efectivas:** videoconferencias en lugar de viajes, agrupación de viajes a una región, enviar menos personas al mismo destino, viajar en clase economy en vez de business
 > - Guarda **boarding passes, itinerarios, recibos y reportes de booking corporativo** como respaldo
+$md$::text AS "content")
+UPDATE "subcategory" s
+SET "explanation" = guide."content"
+FROM guide, "category" c
+JOIN "methodology_version" mv ON mv."id" = c."methodology_version_id"
+JOIN "country" co ON co."id" = mv."country_id"
+WHERE s."category_id" = c."id"
+  AND c."name" = 'Otras emisiones indirectas' AND mv."name" = 'Metodología inicial' AND co."iso_code" = 'PD'
+  AND s."name" = 'Viajes de negocios - Traslado' AND s."status" <> 'DELETED'
+  AND s."explanation" IS DISTINCT FROM guide."content";
