@@ -46,7 +46,9 @@ Debes seleccionar el sistema eléctrico al cual estás conectado:
 
 - **SENI (Sistema Eléctrico Nacional Interconectado):** la red que abastece a la mayor parte del país. Si recibes factura de una empresa distribuidora, este es tu caso.
 - **Sistema aislado:** redes locales que no están conectadas al SENI y que normalmente se abastecen con generación diésel, por lo que su factor de emisión es bastante mayor.
-- **Otro:** solo si tu suministro no corresponde a ninguno de los anteriores. **Escribe un comentario en la línea explicando de qué se trata**, para que después se pueda reclasificar. Se le aplica el factor más alto de la lista mientras no esté clasificado.
+- **Otro:** solo si tu suministro no corresponde a ninguno de los anteriores. **Escribe un comentario en la línea explicando de qué se trata**, para que después se pueda reclasificar.
+
+> **El SENI es el único con factor cargado.** Para el sistema aislado y para `Otro` tendrás que ingresar tú el factor: selecciona `Otro` en **Fuente factor** y usa el valor que te entregue tu proveedor. La plataforma no asume un número por ti.
 
 Si no estás seguro, puedes:
 

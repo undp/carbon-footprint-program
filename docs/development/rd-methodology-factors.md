@@ -1,93 +1,101 @@
 # RD Methodology Factors
 
-Where the Dominican dimension values and emission factors in
-`tools/seed/src/data/base/methodologies.json` come from, and exactly what each
-number was derived from.
+What the Dominican methodology changed in
+`tools/seed/src/data/base/methodologies.json`, and which of those changes carry a
+number.
 
-**Every factor here is a proposal pending MMARN validation.** Corrections are
-edits to one JSON file, not code changes. The `source` string of each touched
-subcategory says the same thing, because all active factors of a subcategory
-must share one source — a rule the maintainer API enforces.
+**The branch adds options, not factors.** The observations asked for dimension
+values the country actually has — dumps rather than only sanitary landfills, a
+cable car, isolated grids — and those values ship. Pricing them is MMARN's:
+Dominican factors come from the Dominican authority, and a number derived here
+would be a foreign estimate wearing a national badge. Every value this branch
+adds is therefore an option with **no seeded factor**, with one exception.
 
-## The number that most needs confirming
+## The exception: the SENI grid factor
 
-The **SENI grid factor** (`0.5915 kgCO₂e/kWh`) prices Scope 2 for every
-organization in the country, so it is the single most consequential value on the
-branch. It replaces `0.177`, a UK figure inherited from the demo dataset that
-understated Dominican grid emissions roughly threefold. The replacement is an
-order-of-magnitude-correct national grid factor, not an official one: confirm it
-against the figure the CNE / MEM publishes before the first reporting cycle
-closes.
+`0.5915 kgCO₂e/kWh` replaces `0.177`, a UK figure inherited from the demo dataset
+that understated Dominican grid emissions roughly threefold. It is the one factor
+the branch changes, because it prices Scope 2 for every organization in the
+country and leaving a UK number there is worse than replacing it with an
+order-of-magnitude-correct national one.
+
+It is still not an official figure. **Confirm it against what the CNE / MEM
+publishes before the first reporting cycle closes.**
+
+## What happens to an option with no factor
+
+The capture line finds nothing seeded, so **Fuente factor** offers only `Otro`,
+where the registrant enters the value they hold — the operator's, the ministry's,
+their own metering — and it is stored with the line. The option is usable and the
+gap is visible, which is the point: an empty factor reads as a question, and a
+plausible-looking derived number does not.
+
+Every one of these becomes a data change the day MMARN supplies the figure. No
+code is involved.
 
 ## Scope 2 — Electricidad
 
-| Value           | Factor (kg/kWh) | Basis                                                                             |
-| --------------- | --------------- | --------------------------------------------------------------------------------- |
-| SENI            | 0.5915          | National interconnected grid factor (see above)                                   |
-| Sistema aislado | 0.76217         | IPCC 2006 diesel EF, 74.1 kgCO₂/GJ, at 35 % net generating efficiency             |
-| Otro            | 0.76217         | Highest factor of the dimension, per the conservative rule for the escape hatches |
+| Value           | Factor        | Note                                                                                          |
+| --------------- | ------------- | --------------------------------------------------------------------------------------------- |
+| SENI            | 0.5915 kg/kWh | The one replacement — see above                                                               |
+| Sistema aislado | none          | Typically diesel generation, so above the interconnected grid — by how much is MMARN's to say |
+| Otro            | none          | Escape hatch                                                                                  |
 
-Isolated systems are above the interconnected grid because they are typically
-diesel generation with no thermal cogeneration.
+The demo dataset's single `Sistema nacional` value is gone: the country has an
+interconnected grid and isolated systems, and the observation asks for both.
 
 ## Scope 3 — Disposición de residuos sólidos
 
-The destinations Dominican waste actually reaches, priced from the existing
-landfill figure per material and the IPCC 2006 Vol. 5 Ch. 3 methane correction
-factor (MCF) for the site type:
+The `Destino` dimension gains `Vertedero a cielo abierto`, `Vertedero controlado`
+and `Otro`, alongside the `Relleno sanitario`, `Incineración` and `Reciclaje` the
+platform already carried. **The three pre-existing destinations keep the
+platform's DEFRA 2025 factors, unchanged. The three new ones carry none.**
 
-| Destination               | Multiplier on the landfill factor | IPCC site type                      |
-| ------------------------- | --------------------------------- | ----------------------------------- |
-| Relleno sanitario         | 1.0 (unchanged)                   | Managed, anaerobic                  |
-| Vertedero controlado      | 0.8                               | Unmanaged, deep (≥ 5 m of waste)    |
-| Vertedero a cielo abierto | 0.6                               | Uncategorised                       |
-| Otro                      | the material's highest factor     | — (conservative, never understates) |
+A first pass derived them, scaling the landfill factor per material by the IPCC
+2006 Vol. 5 Ch. 3 methane correction factor for the site type. It was dropped —
+and the reason is worth keeping, because it is the question MMARN has to answer
+before any number goes in: that derivation treats the DEFRA landfill figure as
+the MCF = 1.0 reference, and DEFRA's figure is net of the landfill-gas capture
+typical of a managed UK site. Model the _absence_ of capture at unmanaged
+Dominican sites instead and the ranking inverts — dumps come out **above** the
+sanitary landfill rather than below it.
 
-**Stated limitation.** This treats the DEFRA landfill factor as the MCF = 1.0
-reference. DEFRA's figure is net of the landfill-gas capture typical of a managed
-UK site, so if MMARN prefers to model the _absence_ of capture at unmanaged
-Dominican sites, the multipliers move the other way — unmanaged sites would come
-out above the sanitary landfill rather than below it. That is precisely the
-question to put to MMARN: **is the disposal-route ranking driven by methane
-generation (MCF) or by net emissions after capture?** The answer changes three
-multipliers and nothing else.
-
-`Otro` takes the highest factor available for its material rather than a
-multiplier, so an unclassified disposal route never understates emissions.
+**Is the disposal-route ranking driven by methane generation, or by net emissions
+after capture?** Until that is answered, a derived multiplier is a coin flip
+dressed as a factor.
 
 ## Scope 3 — Desplazamiento diario de empleados
 
 | Change                                                       | Basis                                                                                                 |
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `Teleférico` added, **no factor**                            | The option the observation asks for, with nothing to calculate from — see below                       |
+| `Teleférico` added, **no factor**                            | The option the observation asks for — see below                                                       |
 | `Tren cercanías` and `Tren larga distancia` removed          | The country has no passenger rail network; the Santo Domingo metro stays as `Metro`                   |
 | `Taxi/Ride-share` → `Taxi/vehículo de transporte individual` | One value, not three. Taxi, motoconcho and platform vehicles are split only once their factors differ |
 | `Bici` → `Bicicleta`                                         | Wording                                                                                               |
 
-**The cable car ships as an option with no factor.** A figure was drafted — 0.04
-kWh per passenger-kilometre times the SENI factor, on the reasoning that the
-traction is electric — and then dropped: 0.04 kWh is a plausible mid-range for an
-urban aerial cableway anywhere, not a measured value for the Santo Domingo
-system. Publishing it would have put a number nobody measured into a national
-inventory, where its provenance stops travelling with it.
+Both renames keep the platform's existing factors: the numbers are the same rows
+under new names, not new values.
 
-The option remains, because the observation asks for it. A line that selects it
-finds no seeded factor and falls through to `Otro` in **Fuente factor**, where the
-registrant enters the operator's own value. That reads as a gap, which it is,
-rather than as an answer. Ask the operator for the consumption per
-passenger-kilometre and this becomes a data change.
+**The cable car.** A figure was drafted — 0.04 kWh per passenger-kilometre times
+the SENI factor, on the reasoning that the traction is electric — and dropped:
+0.04 kWh is a plausible mid-range for an urban aerial cableway anywhere, not a
+measured value for the Santo Domingo system. Ask the operator for the consumption
+per passenger-kilometre.
 
 ## What `Otro` carries, and what it does not
 
-Every `Otro` takes the highest factor of its dimension, so the escape hatch never
-understates. The line's comment is where a registrant says what the emission
-actually was — and it is optional, like every other comment in capture.
+Nothing. `Otro` is an option with no factor, like every other value this branch
+adds, and its comment is optional like every other comment in capture.
 
-An earlier draft made it mandatory on the two dimensions whose catch-all is named
-exactly `Otro`. It was dropped: the rule matched by value name, which meant it
-could not be scoped to one dimension without becoming a per-dimension rule, and
-two `Otro` options behaving differently from every other value is harder to
-explain than the traceability it bought. Observations 4 and 6 say _especifique_;
-the subcategory explanations say so too, and the conservative factor is what
-keeps the hatch from becoming a hole. An inventory leaning on `Otro` is worth
-reviewing rather than trusting.
+Two drafts tried to make the escape hatch self-defending — a mandatory comment,
+and the highest factor of its dimension so it could never understate — and both
+are gone. The mandatory comment matched values by name, so it could not be scoped
+to one dimension without becoming a per-dimension rule, and two `Otro` options
+behaving unlike every other value cost more in explanation than the traceability
+bought. The conservative factor went with the rest of the derived numbers.
+
+What is left is honest rather than protective: selecting `Otro` obliges the
+registrant to supply a factor, because there is none to fall back on. Observations
+4 and 6 say _especifique_, and the subcategory explanations ask for the comment;
+neither is enforced. An inventory leaning on `Otro` is worth reviewing rather than
+trusting.

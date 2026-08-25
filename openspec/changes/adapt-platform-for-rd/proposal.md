@@ -31,7 +31,7 @@ This change adapts the platform for the RD deployment. It lands on a long-lived 
 - Employee commuting: add `Teleférico` and `Taxi/vehículo de transporte individual`, spell out `Bicicleta`, and drop commuter and long-distance rail, which do not exist in the country.
 - Solid-waste disposal: replace the destination options with open dump, controlled dump and sanitary landfill, plus `Otro (especifique)`.
 - Scope 2 electricity: add isolated systems and `Otro (especifique)` alongside the national grid, and correct the explanation text that promises options the dimension does not offer.
-- Assign every new dimension value a documented Dominican emission factor, giving each `Otro` the highest of its dimension so the escape hatch never understates.
+- Ship the new dimension values without factors — Dominican factors are MMARN's to set — except the SENI grid factor, which replaces a UK figure that priced Scope 2 for the whole country roughly threefold low.
 
 **BREAKING** — for the RD deployment only: the activity catalog, organization-size tiers and methodology dimension values are replaced, not extended. Any inventory captured in the test environment against the demo catalog will not resolve.
 
