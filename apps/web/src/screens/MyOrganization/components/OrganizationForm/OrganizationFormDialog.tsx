@@ -276,6 +276,7 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="employeesCount"
                   control={control}
                   label="Cantidad de trabajadores"
+                  className="flex-1"
                   disabled={organizationSizesLoading}
                   min={0}
                   minMessage="La cantidad no puede ser negativa"
@@ -382,8 +383,10 @@ export const OrganizationFormDialog: FC<Props> = ({
                   name="representativeEmail"
                   control={control}
                   label="Correo"
+                  className="flex-1"
                   required={!LOCAL_BYPASS_REQUIRED_FIELDS}
                 />
+                <Box className="flex-1" />
               </Box>
             </Box>
           </Box>
