@@ -59,14 +59,23 @@ multiplier, so an unclassified disposal route never understates emissions.
 
 | Change                                                       | Basis                                                                                                 |
 | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `Teleférico` added, 0.02366 kg/km                            | 0.04 kWh per passenger-km of aerial cableway × the SENI factor — electric traction                    |
+| `Teleférico` added, **no factor**                            | The option the observation asks for, with nothing to calculate from — see below                       |
 | `Tren cercanías` and `Tren larga distancia` removed          | The country has no passenger rail network; the Santo Domingo metro stays as `Metro`                   |
 | `Taxi/Ride-share` → `Taxi/vehículo de transporte individual` | One value, not three. Taxi, motoconcho and platform vehicles are split only once their factors differ |
 | `Bici` → `Bicicleta`                                         | Wording                                                                                               |
 
-The cable-car figure is the least established of the three: 0.04 kWh per
-passenger-kilometre is a plausible mid-range for an urban aerial cableway, not a
-measured value for the Santo Domingo system. Ask the operator.
+**The cable car ships as an option with no factor.** A figure was drafted — 0.04
+kWh per passenger-kilometre times the SENI factor, on the reasoning that the
+traction is electric — and then dropped: 0.04 kWh is a plausible mid-range for an
+urban aerial cableway anywhere, not a measured value for the Santo Domingo
+system. Publishing it would have put a number nobody measured into a national
+inventory, where its provenance stops travelling with it.
+
+The option remains, because the observation asks for it. A line that selects it
+finds no seeded factor and falls through to `Otro` in **Fuente factor**, where the
+registrant enters the operator's own value. That reads as a gap, which it is,
+rather than as an answer. Ask the operator for the consumption per
+passenger-kilometre and this becomes a data change.
 
 ## The mandatory comment on `Otro`
 

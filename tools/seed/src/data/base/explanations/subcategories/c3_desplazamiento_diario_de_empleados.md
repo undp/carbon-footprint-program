@@ -52,14 +52,17 @@ Factores referenciales:
 | Bus urbano                             | No aplica   |               0.117 |
 | Bus interurbano                        | No aplica   |               0.027 |
 | Metro                                  | No aplica   |               0.041 |
-| Teleférico                             | No aplica   |             0.02366 |
 | Taxi/vehículo de transporte individual | Gasolina    |               0.149 |
 | Taxi/vehículo de transporte individual | Eléctrico   |               0.060 |
 | Taxi/vehículo de transporte individual | Híbrido     |               0.110 |
 | Bicicleta                              | No aplica   |               0.000 |
 | Caminata                               | No aplica   |               0.000 |
 
-> El teleférico funciona con tracción eléctrica, por lo que su factor corresponde a la electricidad consumida por pasajero-kilómetro.
+> **El teleférico no tiene factor asignado.** La plataforma no cuenta con una
+> medición del consumo por pasajero-kilómetro del sistema dominicano, y un
+> promedio internacional daría un número que no representa a este teleférico. Si
+> tus empleados lo usan, selecciona `Otro` en **Fuente factor** e ingresa el
+> valor que te entregue el operador.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 

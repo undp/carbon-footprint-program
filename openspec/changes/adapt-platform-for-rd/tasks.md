@@ -77,7 +77,7 @@
 - [x] 9.1 Define the commuting `Tipo` dimension for the RD methodology: add `Teleférico`, rename the ride-hailing option to `Taxi/vehículo de transporte individual` without splitting it, spell out `Bicicleta`, and omit both rail options
 - [x] 9.2 Define the solid-waste `Destino` dimension as open dump, controlled dump, sanitary landfill, incineration, recycling and `Otro`
 - [x] 9.3 Define the Scope 2 `Sistema eléctrico` dimension as SENI, isolated systems and `Otro`
-- [x] 9.4 Assign every new dimension value its Dominican emission factor from the sources agreed in task 1.2, giving each `Otro` the highest factor in its dimension
+- [~] 9.4 Assign every new dimension value its Dominican emission factor from the sources agreed in task 1.2, giving each `Otro` the highest factor in its dimension — done except `Teleférico`, which ships as an option with no factor: the only figure available was an international mid-range for aerial cableways, not a measurement of the Santo Domingo system, and a line that selects it falls through to `Otro` in the factor-source selector. Ask the operator for the consumption per passenger-kilometre
 - [x] 9.5 Enforce the comment requirement in the capture form: reject a line selecting an escape-hatch value whose comment is empty or whitespace-only, surfacing the error against the comment field
 - [x] 9.6 Declare the escape-hatch value names in `COMMENT_REQUIRED_DIMENSION_VALUES`, matched exactly so `Otro país` and `Otro proceso` are unaffected
 - [x] 9.7 Update the three affected subcategory explanation markdowns, including the Scope 2 text that currently promises options the dimension does not offer

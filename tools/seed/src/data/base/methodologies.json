@@ -3736,7 +3736,7 @@
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.173
               },
               {
@@ -3749,7 +3749,7 @@
                   "valueName": "Diésel"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.166
               },
               {
@@ -3762,7 +3762,7 @@
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.047
               },
               {
@@ -3775,7 +3775,7 @@
                   "valueName": "Híbrido"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.11
               },
               {
@@ -3788,7 +3788,7 @@
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.114
               },
               {
@@ -3801,7 +3801,7 @@
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.03
               },
               {
@@ -3814,7 +3814,7 @@
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.117
               },
               {
@@ -3827,7 +3827,7 @@
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.027
               },
               {
@@ -3840,7 +3840,7 @@
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.041
               },
               {
@@ -3853,7 +3853,7 @@
                   "valueName": "Gasolina"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.149
               },
               {
@@ -3866,7 +3866,7 @@
                   "valueName": "Eléctrico"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.06
               },
               {
@@ -3879,7 +3879,7 @@
                   "valueName": "Híbrido"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.11
               },
               {
@@ -3892,7 +3892,7 @@
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.0
               },
               {
@@ -3905,21 +3905,8 @@
                   "valueName": "No aplica"
                 },
                 "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
+                "source": "DEFRA 2025",
                 "value": 0.0
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
-                  "valueName": "Teleférico"
-                },
-                "dimensionValue2": {
-                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
-                  "valueName": "No aplica"
-                },
-                "rateMeasurementUnitAbbreviation": "kg/km",
-                "source": "DEFRA 2025 · Teleférico: IPCC 2006 Vol. 2 y factor de red del SENI (propuesta pendiente de validación MMARN)",
-                "value": 0.02366
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["km"],
