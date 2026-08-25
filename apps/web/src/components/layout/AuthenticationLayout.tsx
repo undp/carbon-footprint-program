@@ -1,10 +1,9 @@
 import { FC, PropsWithChildren } from "react";
-import { Box, AppBar, Toolbar, IconButton, useTheme } from "@mui/material";
-import { HuellaLatamLogo, LatamFootprintIcon } from "@/icons";
+import { Box, AppBar, Toolbar, IconButton } from "@mui/material";
+import { BrandLockup } from "@/components/BrandLockup";
+import { BRAND } from "@/config/brand";
 
 export const AuthenticationLayout: FC<PropsWithChildren> = ({ children }) => {
-  const theme = useTheme();
-
   return (
     <Box className="flex min-h-screen">
       <Box className="flex w-1/2 flex-col items-center">
@@ -18,11 +17,10 @@ export const AuthenticationLayout: FC<PropsWithChildren> = ({ children }) => {
               disableTouchRipple
               disableFocusRipple
             >
-              <HuellaLatamLogo
-                sx={{
-                  width: 116,
-                  height: 50,
-                }}
+              <BrandLockup
+                markHeight={44}
+                nameFontSize={17}
+                territoryFontSize={8.5}
               />
             </IconButton>
           </Toolbar>
@@ -32,12 +30,15 @@ export const AuthenticationLayout: FC<PropsWithChildren> = ({ children }) => {
       </Box>
 
       <Box className="flex w-1/2 flex-col items-center gap-6 bg-[url(@assets/mountains.webp)] bg-cover">
-        <LatamFootprintIcon
+        <Box
+          aria-hidden
+          component="img"
+          src={BRAND.markContrastSrc}
+          alt=""
           sx={{
             position: "fixed",
-            width: "100%",
-            height: "100%",
-            fill: theme.palette.common.white,
+            height: "70%",
+            width: "auto",
             opacity: 0.25,
             pointerEvents: "none",
           }}

@@ -1,9 +1,10 @@
 import { FC } from "react";
 import { Box, Typography } from "@mui/material";
+import { BRAND } from "@/config/brand";
 import { VOCAB } from "@/config/vocab";
 
 const PREREQUISITES = [
-  "Tener un cálculo de huella de carbono autodeclarado en la plataforma Huella Latam",
+  `Tener un cálculo de huella de carbono autodeclarado en la plataforma ${BRAND.shortName}`,
   "Contar con una verificación externa realizada por un organismo acreditado",
   `Validar que los datos de contacto de tu ${VOCAB.organization.noun.singular} estén actualizados en el sistema`,
 ];

@@ -21,6 +21,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
+import { BRAND } from "@/config/brand";
 import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
 import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
@@ -225,7 +226,7 @@ export function ChatbotWidget() {
           color: theme.palette.primary.contrastText,
         }}
       >
-        <Typography variant="subtitle1">Asistente Huella Latam</Typography>
+        <Typography variant="subtitle1">{`Asistente ${BRAND.shortName}`}</Typography>
         <Box sx={{ color: "inherit" }}>
           {isBusy ? (
             <BaseActionButton

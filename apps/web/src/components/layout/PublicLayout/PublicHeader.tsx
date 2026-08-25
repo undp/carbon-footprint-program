@@ -1,22 +1,21 @@
 import { FC } from "react";
-import { alpha, AppBar, Box, Divider, Toolbar, useTheme } from "@mui/material";
+import { alpha, AppBar, Box, Toolbar, useTheme } from "@mui/material";
 import { Link } from "@tanstack/react-router";
-import { HuellaLatamLogo } from "@/icons";
+import { BrandLockup } from "@/components/BrandLockup";
+import { BRAND } from "@/config/brand";
 import { Routes } from "@/interfaces";
-import { brandGradient } from "@/utils/brandGradient";
-import { PartnerLockupStrip } from "./PartnerLockupStrip";
+import { PublicHeaderAccess } from "./PublicHeaderAccess";
 import { PublicHeaderNav } from "./PublicHeaderNav";
-import { PublicHeaderSessionButton } from "./PublicHeaderSessionButton";
 import {
-  PUBLIC_HEADER_ACCENT_BAR_HEIGHT,
-  PUBLIC_HEADER_LOGO_HEIGHT,
-  PUBLIC_HEADER_LOGO_WIDTH,
-  PUBLIC_HEADER_PARTNERS,
+  PUBLIC_CONTENT_MAX_WIDTH,
+  PUBLIC_HEADER_MARK_HEIGHT,
+  PUBLIC_HEADER_NAME_FONT_SIZE,
+  PUBLIC_HEADER_TERRITORY_FONT_SIZE,
 } from "./constants";
 
 /**
- * Header shared by all public screens: brand band, wordmark, institutional
- * navigation, partners and session access.
+ * Header shared by all public screens: brand lockup, institutional navigation
+ * and the doors into the platform.
  */
 export const PublicHeader: FC = () => {
   const theme = useTheme();
@@ -26,60 +25,45 @@ export const PublicHeader: FC = () => {
       position="sticky"
       color="transparent"
       elevation={0}
-      sx={{ backgroundColor: theme.palette.common.white }}
+      sx={{
+        backgroundColor: theme.palette.common.white,
+        boxShadow: `0 1px 4px ${alpha(theme.palette.common.deepNavyDark, 0.12)}`,
+      }}
     >
-      <Box
-        sx={{
-          height: PUBLIC_HEADER_ACCENT_BAR_HEIGHT,
-          background: brandGradient(theme),
-        }}
-      />
       <Toolbar
         sx={{
           display: "flex",
           flexWrap: "wrap",
           alignItems: "center",
           gap: { xs: 2, md: 3, lg: 4 },
+          width: "100%",
+          maxWidth: PUBLIC_CONTENT_MAX_WIDTH,
+          mx: "auto",
           px: { xs: 2.5, md: 4, lg: 7 },
           py: 1.5,
-          backgroundColor: theme.palette.common.white,
-          borderBottom: `1px solid ${theme.palette.divider}`,
-          boxShadow: `0 2px 14px ${alpha(theme.palette.common.deepNavyDark, 0.1)}`,
         }}
       >
         <Link
           to={Routes.LANDING}
-          aria-label="Ir al inicio de Huella Latam"
+          aria-label={`Ir al inicio de ${BRAND.name}`}
           className="flex shrink-0 items-center"
         >
-          <HuellaLatamLogo
-            sx={{
-              width: PUBLIC_HEADER_LOGO_WIDTH,
-              height: PUBLIC_HEADER_LOGO_HEIGHT,
-            }}
+          <BrandLockup
+            markHeight={PUBLIC_HEADER_MARK_HEIGHT}
+            nameFontSize={PUBLIC_HEADER_NAME_FONT_SIZE}
+            territoryFontSize={PUBLIC_HEADER_TERRITORY_FONT_SIZE}
           />
         </Link>
 
-        {/* `mr-auto` pushes the partners block to the far right while they
-            fit on the same row; when they don't fit, the Toolbar drops them
-            all to a second row instead of breaking the navigation. */}
+        {/* `mr-auto` pushes the access buttons to the far right while they fit
+            on the same row; when they don't fit, the Toolbar drops them to a
+            second row instead of breaking the navigation. */}
         <Box className="mr-auto flex min-w-0 shrink md:shrink-0">
           <PublicHeaderNav />
         </Box>
 
-        <Box className="flex flex-wrap items-center gap-4 md:shrink-0 lg:gap-5">
-          <PartnerLockupStrip
-            items={PUBLIC_HEADER_PARTNERS}
-            captionColor={theme.palette.text.secondary}
-            dividerHeight={32}
-            gap={1.75}
-          />
-          <Divider
-            orientation="vertical"
-            flexItem
-            sx={{ height: 32, alignSelf: "center" }}
-          />
-          <PublicHeaderSessionButton />
+        <Box className="flex flex-wrap items-center gap-2.5 md:shrink-0">
+          <PublicHeaderAccess />
         </Box>
       </Toolbar>
     </AppBar>

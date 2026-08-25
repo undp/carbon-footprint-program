@@ -1,6 +1,6 @@
 import React, { FC, PropsWithChildren } from "react";
 import { AppBar, AppBarProps, Box, Toolbar } from "@mui/material";
-import { HuellaLatamLogo } from "@/icons";
+import { BrandLockup } from "@/components/BrandLockup";
 
 interface Props extends AppBarProps {
   showLogo?: boolean;
@@ -32,13 +32,13 @@ export const BaseHeader: FC<PropsWithChildren<Props>> = ({
             className="flex items-center"
             onClick={onLogoClick}
           >
-            <HuellaLatamLogo
-              sx={{
-                width: 116,
-                height: 50,
-                mr: 5,
-              }}
-            />
+            <Box sx={{ mr: 5 }}>
+              <BrandLockup
+                markHeight={40}
+                nameFontSize={15.5}
+                territoryFontSize={7.5}
+              />
+            </Box>
           </Box>
         )}
         <Box className="flex min-w-0 flex-1 gap-12">{titleComponent}</Box>

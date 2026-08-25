@@ -4,6 +4,7 @@ import { ArrowForwardRounded, CelebrationRounded } from "@mui/icons-material";
 import { useNavigate } from "@tanstack/react-router";
 import { SubmissionStatus } from "@repo/types";
 import { Routes } from "@/interfaces";
+import { BRAND } from "@/config/brand";
 import { VOCAB } from "@/config/vocab";
 import { CalculatorIcon } from "@/icons";
 import { useUserStore } from "@/stores/userStore";
@@ -117,7 +118,7 @@ export const WelcomeHome: FC<Props> = ({
       : {
           eyebrow: "Te damos la bienvenida",
           title: `¡Hola${namePart}! 👋`,
-          subtitle: `En Huella Latam mides, reportas y reduces ${huellaFullArticle} de tu ${orgNoun}. Completa estos pasos para empezar.`,
+          subtitle: `En ${BRAND.shortName} mides, reportas y reduces ${huellaFullArticle} de tu ${orgNoun}. Completa estos pasos para empezar.`,
         };
 
   return (
@@ -155,7 +156,7 @@ export const WelcomeHome: FC<Props> = ({
         <Typography variant="h6" fontWeight={700}>
           {hasOrganization && !isComplete
             ? "Continúa donde quedaste"
-            : "Tu camino en Huella Latam"}
+            : `Tu camino en ${BRAND.shortName}`}
         </Typography>
 
         {/* Escape hatch — always available while onboarding; navigates directly

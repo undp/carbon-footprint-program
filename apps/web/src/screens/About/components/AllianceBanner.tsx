@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
-import { HuellaLatamLogo } from "@/icons";
+import { BrandLockup } from "@/components/BrandLockup";
 import { brandGradient } from "@/utils/brandGradient";
 import { ALLIANCE_BANNER_TEXT } from "../constants";
 
@@ -32,16 +32,14 @@ export const AllianceBanner: FC = () => {
           background: `radial-gradient(circle, ${alpha(theme.palette.common.white, 0.34)} 0%, ${alpha(theme.palette.common.white, 0)} 70%)`,
         }}
       />
-      <HuellaLatamLogo
-        contrast
-        sx={{
-          position: "relative",
-          zIndex: 2,
-          flexShrink: 0,
-          width: 122,
-          height: 52,
-        }}
-      />
+      <Box sx={{ position: "relative", zIndex: 2, flexShrink: 0 }}>
+        <BrandLockup
+          contrast
+          markHeight={48}
+          nameFontSize={18}
+          territoryFontSize={9}
+        />
+      </Box>
       <Typography
         component="p"
         fontWeight="fontWeightLight"

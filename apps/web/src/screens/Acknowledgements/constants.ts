@@ -5,6 +5,7 @@ import {
   PublicOutlined,
   type SvgIconComponent,
 } from "@mui/icons-material";
+import { BRAND } from "@/config/brand";
 import { TOTAL_PARTICIPANTS } from "./participants";
 
 /**
@@ -21,7 +22,7 @@ export const RESEARCH_STATS_OVERLAP = 116;
 
 export const ACKNOWLEDGEMENTS_HERO = {
   title: "Agradecimientos",
-  lead: "Huella Latam fue diseñada escuchando a quienes viven la medición de huella de carbono día a día. Gracias a las personas de gobiernos, programas nacionales, empresas, consultoras y oficinas del PNUD que participaron en entrevistas, sesiones de trabajo, pruebas de usuario y validaciones. Esta plataforma también es suya.",
+  lead: `${BRAND.name} se construye sobre Huella Latam, diseñada escuchando a quienes viven la medición de huella de carbono día a día. Gracias a las personas de gobiernos, programas nacionales, empresas, consultoras y oficinas del PNUD que participaron en entrevistas, sesiones de trabajo, pruebas de usuario y validaciones. Esta plataforma también es suya.`,
 } as const;
 
 /**

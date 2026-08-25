@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { Check, GppGoodOutlined } from "@mui/icons-material";
+import { BRAND } from "@/config/brand";
 import { VOCAB } from "@/config/vocab";
 
 export const VerificationSealInfoSection: FC = () => {
@@ -31,9 +32,9 @@ export const VerificationSealInfoSection: FC = () => {
             variant="body2"
           >
             El Reconocimiento de Verificación es el reconocimiento oficial
-            mediante el cual Huella Latam valida que el cálculo de emisiones de
-            tu {VOCAB.organization.noun.singular} cumple con los estándares
-            gubernamentales establecidos.
+            mediante el cual {BRAND.shortName} valida que el cálculo de
+            emisiones de tu {VOCAB.organization.noun.singular} cumple con los
+            estándares gubernamentales establecidos.
           </Typography>
 
           <Box className="mt-3 rounded p-3" sx={gradientCardSx}>

@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, useTheme } from "@mui/material";
 import {
-  HeroFootprintWatermark,
+  BrandWatermark,
   PublicHeader,
   PUBLIC_CONTENT_MAX_WIDTH,
 } from "@/components/layout";
@@ -24,7 +24,7 @@ export const LandingScreen: FC = () => {
         component="main"
         className="relative flex flex-1 items-center overflow-hidden"
       >
-        <HeroFootprintWatermark width="min(1000px, 68%)" right="-4%" />
+        <BrandWatermark width="min(1000px, 68%)" right="-4%" />
 
         <Box
           sx={{

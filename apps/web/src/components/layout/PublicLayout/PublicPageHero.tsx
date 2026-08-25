@@ -1,7 +1,7 @@
 import { FC, PropsWithChildren } from "react";
 import { Box, useTheme } from "@mui/material";
 import { brandGradient } from "@/utils/brandGradient";
-import { HeroFootprintWatermark } from "./HeroFootprintWatermark";
+import { BrandWatermark } from "./BrandWatermark";
 import {
   HERO_OVERLAP_BREATHING_ROOM,
   PUBLIC_CONTENT_MAX_WIDTH,
@@ -45,7 +45,7 @@ export const PublicPageHero: FC<PropsWithChildren<Props>> = ({
         background: brandGradient(theme),
       }}
     >
-      <HeroFootprintWatermark width="min(820px, 54%)" right="-3%" />
+      <BrandWatermark width="min(440px, 34%)" right="-2%" />
       <Box
         sx={{
           position: "relative",

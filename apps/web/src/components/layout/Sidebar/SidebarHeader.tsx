@@ -1,7 +1,7 @@
 import { FC } from "react";
 import { Box, Chip, IconButton, Toolbar, Tooltip, alpha } from "@mui/material";
 import { MenuRounded, PushPinRounded } from "@mui/icons-material";
-import { HuellaLatamLogo } from "@icons/HuellaLatamLogo";
+import { BrandLockup } from "@/components/BrandLockup";
 import { sidebarTransition } from "@/theme";
 
 interface SidebarHeaderProps {
@@ -59,15 +59,21 @@ export const SidebarHeader: FC<SidebarHeaderProps> = ({
             transition: sidebarTransition(theme, "opacity"),
           })}
         >
-          <HuellaLatamLogo
+          <Box
+            onClick={onLogoClick}
             sx={{
-              width: 80,
-              height: 36,
               flexShrink: 0,
               ...(onLogoClick ? { cursor: "pointer" } : {}),
             }}
-            onClick={onLogoClick}
-          />
+          >
+            <BrandLockup
+              markHeight={30}
+              nameFontSize={12.5}
+              territoryFontSize={7}
+              showTerritory={false}
+              gap={1}
+            />
+          </Box>
           <Chip
             label={areaLabel}
             size="small"
