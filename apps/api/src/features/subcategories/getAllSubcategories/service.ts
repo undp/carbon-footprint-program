@@ -45,6 +45,7 @@ export const getAllSubcategoriesService = async (
       icon: IconNameSchema.parse(subcategory.icon),
       description: subcategory.description,
       explanation: subcategory.explanation,
+      position: subcategory.position,
       category: {
         id: category.id.toString(),
         name: category.name,

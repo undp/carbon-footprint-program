@@ -20,6 +20,11 @@ export const SubcategoryBaseSchema = z.object({
     .string()
     .nullable()
     .describe("Inline markdown explanation content, if any"),
+  position: z
+    .number()
+    .int()
+    .min(1)
+    .describe("The display position within the category"),
   status: z.enum(SubcategoryStatus).describe("The status of the subcategory"),
   createdAt: z.iso.datetime().describe("The creation date"),
   updatedAt: z.iso.datetime().nullable().describe("The update date"),

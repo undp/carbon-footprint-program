@@ -43,6 +43,9 @@ export const SubcategoryFormSchema = z.strictObject({
     .nullable()
     .transform((v) => (v === "" ? null : v)),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
+  // Rows added in the grid carry 0 until the server assigns the real position
+  // on create, so this cannot reuse the base schema's `min(1)`.
+  position: z.number().int().min(0),
 });
 
 // Response Schema
@@ -52,6 +55,7 @@ export const CreateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   icon: true,
   description: true,
   explanation: true,
+  position: true,
 }).extend({
   category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
   measurementUnits: z.array(
