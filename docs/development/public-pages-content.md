@@ -79,14 +79,44 @@ here as plain strings.
 
 Every other public screen follows the same "edit a typed data file" pattern:
 
-| Page                                           | Content lives in                                                                                         | Notable exports                                                            |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| Institutional partners (header, footer, About) | [`apps/web/src/config/partners.ts`](../../apps/web/src/config/partners.ts)                               | `PARTNERS` (names, roles, brand colors)                                    |
-| Partner logos                                  | [`apps/web/src/assets/logos/`](../../apps/web/src/assets/logos)                                          | SVGs — replace the placeholders per deployment                             |
-| Sobre la iniciativa (About)                    | [`apps/web/src/screens/About/constants.ts`](../../apps/web/src/screens/About/constants.ts)               | stats, challenge, platform pillars, alliance actors, roadmap, org profiles |
-| Material complementario (Resources)            | [`apps/web/src/screens/Resources/constants.ts`](../../apps/web/src/screens/Resources/constants.ts)       | `SUPPORTING_RESOURCES`                                                     |
-| Landing footer (replication contact, T&C)      | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)                             | `REPLICATION_CONTACT_EMAIL`, `TERMS_CONDITIONS_FILE_URL`                   |
-| Public header navigation (links + labels)      | [`apps/web/src/interfaces/routes/publicRoutes.ts`](../../apps/web/src/interfaces/routes/publicRoutes.ts) | `PublicHeaderRoutes`, `PublicHeaderRoutesTranslations`                     |
+| Page                                      | Content lives in                                                                                         | Notable exports                                                                                     |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| Platform name, wordmark and administrator | [`apps/web/src/config/brand.ts`](../../apps/web/src/config/brand.ts)                                     | `BRAND` (full and clipped names, the two-line wordmark, the ministry statement, the artwork)        |
+| Landing (welcome, the two doors)          | [`apps/web/src/screens/Landing/constants.ts`](../../apps/web/src/screens/Landing/constants.ts)           | `LANDING_COPY`                                                                                      |
+| Institutional partners (About)            | [`apps/web/src/config/partners.ts`](../../apps/web/src/config/partners.ts)                               | `PARTNERS` (names and logos; what each contributes is editorial copy in the About constants)        |
+| Brand and partner logos                   | [`apps/web/src/assets/logos/`](../../apps/web/src/assets/logos)                                          | the Huella de Carbono RD mark, the government lockup and the partner logos — replace per deployment |
+| Sobre la iniciativa (About)               | [`apps/web/src/screens/About/constants.ts`](../../apps/web/src/screens/About/constants.ts)               | `ABOUT_HERO`, `ABOUT_BENEFITS`, `ABOUT_SUPPORTERS`, `ABOUT_FOUNDATION_NOTE`                         |
+| Material complementario (Resources)       | [`apps/web/src/screens/Resources/constants.ts`](../../apps/web/src/screens/Resources/constants.ts)       | `SUPPORTING_RESOURCES`                                                                              |
+| Terms and conditions link (public footer) | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)                             | `TERMS_CONDITIONS_FILE_URL`                                                                         |
+| Public header navigation (links + labels) | [`apps/web/src/interfaces/routes/publicRoutes.ts`](../../apps/web/src/interfaces/routes/publicRoutes.ts) | `PublicHeaderRoutes`, `PublicHeaderRoutesTranslations`                                              |
+
+## Brand and palette
+
+The public screens are dressed by two files, not by the components:
+
+- [`apps/web/src/config/brand.ts`](../../apps/web/src/config/brand.ts) — the
+  `BRAND` object: how the platform names itself (full name, the two lines of the
+  wordmark, the clipped form used in running text), who administers it, and the
+  three pieces of artwork under `src/assets/logos/` (the full-color mark for
+  light surfaces, the white mark for the brand gradient and the dark surfaces,
+  and the government lockup that signs the footer).
+- [`apps/web/src/theme/palette.ts`](../../apps/web/src/theme/palette.ts) — the
+  colors. `primary` is the institutional navy, `secondary` the green of the leaf
+  inside the mark, and `common.sunflower` the attention yellow. The brand
+  gradient that backs the landing and the institutional heros is derived from
+  them in [`apps/web/src/utils/brandGradient.ts`](../../apps/web/src/utils/brandGradient.ts).
+
+Both are shared by the whole app, not just the public pages: the sidebar, the
+app header and the authentication screens read the same `BRAND` lockup and the
+same palette, so a deployment that retunes either gets a consistent platform
+rather than a repainted landing.
+
+Retuning a color is not free: `apps/web/src/theme/palette.test.ts` pins each
+brand pairing to the WCAG AA floor it has to clear (white on navy, dark text on
+the yellow, the pale green figures on the dark cards). Change a token and that
+test tells you which pairing you broke.
+
+---
 
 > **Why TS and not JSON?** These files reference React icon components and
 > derive values (counters, totals) at import time, which a plain JSON file
