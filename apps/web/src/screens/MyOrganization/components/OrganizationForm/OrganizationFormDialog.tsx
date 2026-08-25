@@ -25,7 +25,7 @@ import {
   useOrganizationData,
   useTerritorySelectors,
 } from "./hooks";
-import { TerritorySelectors } from "./TerritorySelectors";
+import { LocationFields } from "./LocationFields";
 import { DialogMode } from "../../types";
 import {
   FormTextField,
@@ -312,17 +312,7 @@ export const OrganizationFormDialog: FC<Props> = ({
             </Box>
 
             <Box className="flex flex-col gap-4">
-              <TerritorySelectors control={control} levels={territoryLevels} />
-
-              <Box className="flex gap-6">
-                <FormTextField
-                  name="address"
-                  control={control}
-                  label="Dirección física"
-                  className="flex-1"
-                />
-                <Box className="flex-1" />
-              </Box>
+              <LocationFields control={control} levels={territoryLevels} />
             </Box>
           </Box>
 
