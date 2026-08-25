@@ -53,13 +53,18 @@ Debes seleccionar el tipo de vidrio que represente el **mayor porcentaje en la c
 
 - Contenedores (Recipientes de color transparente)
 - Contenedores de color (Recipientes de color verde u otros)
-- Fibra de vidrio
-- Vidrio de iluminaria (Ampolletas, bombillas, etc)
+- Fibra de vidrio (E-glass)
+- Fibra de vidrio (lana de aislación)
+- Vidrio de iluminación (Ampolletas, bombillas, etc)
 - Vidrio general
 - Vidrio plano (ventanas, mesas, etc)
 - Vidrios de vajilla (Vasos, copas, platos, etc)
 
 ⚠️ Si produces distintos tipos en proporciones relevantes, debes declararlos por separado.
+
+💡 **Fibra de vidrio:** la fibra de refuerzo (E-glass) y la lana de aislación tienen factores distintos —190 y 250 kg CO₂e por tonelada— porque usan mezclas de materias primas diferentes. Elige la que corresponda a tu producto.
+
+💡 **Vidrio general** es el factor genérico, pensado para cuando no puedes distinguir el tipo de vidrio producido. Si conoces el tipo, el factor específico es más preciso.
 
 ---
 
@@ -154,17 +159,17 @@ Primero calculamos el vidrio nuevo:
 
 > **Vidrio nuevo producido** = $100.000 \times (1 - 0,30)$ = **70.000 t**
 
-Si el factor de emisión es (ejemplo referencial):
+El factor del vidrio plano es:
 
-- **600 kg CO₂e por tonelada de vidrio nuevo** (equivalente a 0,60 t CO₂e/t)
+- **210 kg CO₂e por tonelada de vidrio nuevo** (equivalente a 0,21 t CO₂e/t)
 
 Entonces:
 
-> $CO₂e$ = $70.000\ t \times 600\ kg\ CO₂e/t$ = $42.000.000\ kg\ CO₂e$ → **42.000 t CO₂e**
+> $CO₂e$ = $70.000\ t \times 210\ kg\ CO₂e/t$ = $14.700.000\ kg\ CO₂e$ → **14.700 t CO₂e**
 
 Es decir, el proceso productivo habría generado:
 
-- **42.000 toneladas de CO₂e en el año**
+- **14.700 toneladas de CO₂e en el año**
 
 ⚠️ Es importante que las **unidades coincidan**.
 El campo "Factor kgCO₂e/unidad" espera el factor en **kilogramos** de CO₂e por unidad. Si tu fuente expresa el factor en toneladas, multiplícalo por 1.000 para convertirlo a kg.
