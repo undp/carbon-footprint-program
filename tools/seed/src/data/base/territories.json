@@ -5,15 +5,117 @@
     "children": [
       {
         "name": "Espaillat",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Cayetano Germosén",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Gaspar Hernández",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jamao al Norte",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Moca",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Víctor",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Puerto Plata",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Altamira",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Guananico",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Imbert",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Los Hidalgos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Luperón",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Puerto Plata",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sosúa",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Isabela",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Montellano",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Santiago",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Baitoa",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Bisonó",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jánico",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Licey al Medio",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Puñal",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana Iglesia",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San José de las Matas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Santiago",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Tamboril",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa González",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -23,15 +125,65 @@
     "children": [
       {
         "name": "La Vega",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Constanza",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jarabacoa",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jima Abajo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "La Vega",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Monseñor Nouel",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Bonao",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Maimón",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Piedra Blanca",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Sánchez Ramírez",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Cevicos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Cotuí",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Fantino",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa La Mata",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -41,19 +193,95 @@
     "children": [
       {
         "name": "Duarte",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Arenoso",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Castillo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Eugenio María de Hostos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Guáranas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pimentel",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Francisco de Macorís",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Riva",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Hermanas Mirabal",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Salcedo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Tenares",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Tapia",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "María Trinidad Sánchez",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Cabrera",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "El Factor",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Nagua",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Rio San Juan",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Samaná",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Las Terrenas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Samaná",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sánchez",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -63,19 +291,95 @@
     "children": [
       {
         "name": "Dajabón",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Dajabón",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "El Pino",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Loma de Cabrera",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Partido",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Restauración",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Montecristi",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Castañuelas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Guayubín",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Matas de Santa Cruz",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Montecristi",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pepillo Salcedo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Vásquez",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Santiago Rodríguez",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Monción",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Ignacio de Sabaneta",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa los Almácigos",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Valverde",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Esperanza",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Laguna Salada",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Mao",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -85,15 +389,77 @@
     "children": [
       {
         "name": "Peravia",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Baní",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Matanzas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Nizao",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "San Cristóbal",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Bajos de Haina",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Cambita Garabitos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Los Cacaos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana Grande de Palenque",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Cristóbal",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Gregorio de Nigua",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Altagracia",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Yaguate",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "San José de Ocoa",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Rancho Arriba",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana Larga",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San José de Ocoa",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -103,19 +469,123 @@
     "children": [
       {
         "name": "Bahoruco",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Galván",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Los Ríos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Neiba",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Tamayo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Jaragua",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Barahona",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Barahona",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Cabral",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "El Peñón",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Enriquillo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Fundación",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jaquimeyes",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "La Ciénaga",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Salinas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Paraíso",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Polo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Vicente Noble",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Independencia",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Cristóbal",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Duvergé",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Jimaní",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "La Descubierta",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Mella",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Postrer Río",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Pedernales",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Oviedo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pedernales",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -125,15 +595,109 @@
     "children": [
       {
         "name": "Azua",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Azua",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Estebanía",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Guayabal",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Charcas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Yayas de Viajama",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Padre las Casas",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Peralta",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pueblo Viejo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana Yegua",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Tábara Arriba",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Elías Piña",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Bánica",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Comendador",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "El Llano",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Hondo Valle",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Juan Santiago",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pedro Santana",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "San Juan",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Bohechío",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "El Cercado",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Juan de Herrera",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Las Matas de Farfán",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Juan",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Vallejuelo",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -143,15 +707,49 @@
     "children": [
       {
         "name": "El Seibo",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "El Seibo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Miches",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "La Altagracia",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Higüey",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Rafael del Yuma",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "La Romana",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Guaymate",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "La Romana",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Villa Hermosa",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -161,15 +759,77 @@
     "children": [
       {
         "name": "Hato Mayor",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "El Valle",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Hato Mayor",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana de la Mar",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "Monte Plata",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Bayaguana",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Monte Plata",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Peralvillo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Sabana Grande de Boyá",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Yamasá",
+            "level": "MUNICIPALITY"
+          }
+        ]
       },
       {
         "name": "San Pedro de Macorís",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Consuelo",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Guayacanes",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Los Llanos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Quisqueya",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Ramón Santana",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Pedro de Macorís",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   },
@@ -183,7 +843,37 @@
       },
       {
         "name": "Santo Domingo",
-        "level": "PROVINCE"
+        "level": "PROVINCE",
+        "children": [
+          {
+            "name": "Boca Chica",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Los Alcarrizos",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Pedro Brand",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "San Antonio de Guerra",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Santo Domingo Este",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Santo Domingo Norte",
+            "level": "MUNICIPALITY"
+          },
+          {
+            "name": "Santo Domingo Oeste",
+            "level": "MUNICIPALITY"
+          }
+        ]
       }
     ]
   }

@@ -11,7 +11,8 @@ import type { GetAllTerritoriesResponse } from "@repo/types";
  *
  * Assertions are structural wherever they can be. The catalog is real Dominican
  * data pending MMARN validation, so a renamed province must not break the suite;
- * only the two names checked below are load-bearing.
+ * only the four names checked below are load-bearing, and each is fixed by
+ * article 7 of Ley 345-22 rather than by a ministry decision.
  */
 describe("GET /api/territories - Integration Tests", () => {
   let app: FastifyInstance;
@@ -72,12 +73,44 @@ describe("GET /api/territories - Integration Tests", () => {
     expect(body.map((t) => t.name)).toContain("Santiago");
   });
 
-  it("returns an empty list for a leaf instead of a 404", async () => {
-    // Provinces are the innermost level authored so far: the three below them
-    // wait on the ONE catalog, and the endpoint must not treat that as an error.
-    const leafId = await findByName("Santiago", TerritoryLevel.PROVINCE);
+  it("returns the municipios of a province", async () => {
+    const provinceId = await findByName("Santiago", TerritoryLevel.PROVINCE);
 
-    const { statusCode, body } = await getTerritories(leafId);
+    const { statusCode, body } = await getTerritories(provinceId);
+
+    expect(statusCode).toBe(200);
+    expect(body.length).toBeGreaterThan(0);
+    expect(body.every((t) => t.level === TerritoryLevel.MUNICIPALITY)).toBe(
+      true
+    );
+    expect(body.map((t) => t.name)).toContain("Tamboril");
+  });
+
+  it("returns an empty list for a leaf instead of a 404", async () => {
+    // Municipios are the innermost level authored so far: the two below them
+    // wait on the IDE-RD layers, and the endpoint must not treat that as an
+    // error. Resolved structurally so a municipio MMARN renames does not break
+    // the assertion.
+    const leaf = await prisma.territory.findFirstOrThrow({
+      where: { level: TerritoryLevel.MUNICIPALITY },
+    });
+
+    const { statusCode, body } = await getTerritories(leaf.id.toString());
+
+    expect(statusCode).toBe(200);
+    expect(body).toEqual([]);
+  });
+
+  it("returns an empty list for a province the law gives no municipios", async () => {
+    // The Distrito Nacional is itself the municipal level, so it branches no
+    // further. The form has to render its municipio selector empty rather than
+    // treat the province as unanswered.
+    const districtId = await findByName(
+      "Distrito Nacional",
+      TerritoryLevel.PROVINCE
+    );
+
+    const { statusCode, body } = await getTerritories(districtId);
 
     expect(statusCode).toBe(200);
     expect(body).toEqual([]);
