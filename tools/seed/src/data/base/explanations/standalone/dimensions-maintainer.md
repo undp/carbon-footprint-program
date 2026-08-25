@@ -50,6 +50,7 @@ Ten presente al nombrar variables:
 - No es necesario agregar prefijos ni numeración para forzar el orden: basta con nombrar la variable "Otro" u "Otros".
 - El reordenamiento aplica solo cuando el nombre completo es una de esas palabras. Nombres como **"Otro proceso"** u **"Otro país"**, que representan un caso concreto con su propio factor de emisión, conservan su posición alfabética.
 - Si una dimensión no tiene ninguna variable de este tipo, la lista se muestra tal como está.
+- Deja **una sola** salida por dimensión. Si agregas más de una (por ejemplo "Otros" y "Otra"), el modal de variables lo advierte: las dos se muestran juntas al final y el usuario repartirá sus registros entre ambas, lo que divide los datos de un mismo caso en dos variables distintas.
 
 ## Consideraciones
 
