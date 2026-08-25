@@ -1,31 +1,23 @@
 import { FC } from "react";
 import { PublicPageHero, PublicPageLayout } from "@/components/layout";
-import { ABOUT_STATS_OVERLAP } from "./constants";
-import { AboutDisclaimer } from "./components/AboutDisclaimer";
+import { AboutBenefits } from "./components/AboutBenefits";
+import { AboutFoundationNote } from "./components/AboutFoundationNote";
 import { AboutHero } from "./components/AboutHero";
-import { AboutStatsBand } from "./components/AboutStatsBand";
-import { AllianceSection } from "./components/AllianceSection";
-import { ChallengeSection } from "./components/ChallengeSection";
-import { FundingHighlightCard } from "./components/FundingHighlightCard";
-import { OrganizationsSection } from "./components/OrganizationsSection";
-import { PlatformSection } from "./components/PlatformSection";
-import { RoadmapSection } from "./components/RoadmapSection";
+import { AboutIntro } from "./components/AboutIntro";
+import { AboutSupporters } from "./components/AboutSupporters";
 
 export const AboutScreen: FC = () => (
   <PublicPageLayout
     hero={
-      <PublicPageHero overlappingContentOffset={ABOUT_STATS_OVERLAP}>
+      <PublicPageHero>
         <AboutHero />
       </PublicPageHero>
     }
+    contentGap={6}
   >
-    <AboutStatsBand />
-    <ChallengeSection />
-    <PlatformSection />
-    <AllianceSection />
-    <RoadmapSection />
-    <FundingHighlightCard />
-    <OrganizationsSection />
-    <AboutDisclaimer />
+    <AboutIntro />
+    <AboutBenefits />
+    <AboutSupporters />
+    <AboutFoundationNote />
   </PublicPageLayout>
 );

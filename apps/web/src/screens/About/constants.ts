@@ -1,322 +1,92 @@
 import {
-  AccountBalanceOutlined,
-  CheckCircleOutlined,
-  CodeOutlined,
-  GroupsOutlined,
-  PublicOutlined,
+  InsertChartOutlined,
+  SpeedOutlined,
+  TrendingDownOutlined,
   type SvgIconComponent,
 } from "@mui/icons-material";
-import { CalculatorIcon } from "@/icons";
 import { PartnerId } from "@/config/partners";
-import type { FC } from "react";
-import type { SvgIconProps } from "@mui/material";
+import { BRAND } from "@/config/brand";
+import { VOCAB } from "@/config/vocab";
 
 /**
- * Editorial content for the "Sobre la iniciativa" screen.
+ * Editorial content of the "Sobre la iniciativa" screen, as the Ministerio de
+ * Medio Ambiente y Recursos Naturales worded it.
  *
- * Everything a country deployment might want to rewrite —figures, countries,
- * milestones, partners and copy— lives here, not scattered across the
- * components.
+ * Everything a country deployment rewrites —what the initiative is, what the
+ * platform does for an organization and who supports it— lives here and not
+ * scattered across the components.
  */
 
-/** Countries in the region with a national carbon-footprint program under way. */
-export const ACTIVE_PROGRAM_COUNTRIES: readonly string[] = [
-  "Chile",
-  "Perú",
-  "Ecuador",
-  "Panamá",
-];
-
-export interface AboutStat {
-  value: string;
-  label: string;
-}
-
-/** Pixels the stats band rises to mount over the hero. */
-export const ABOUT_STATS_OVERLAP = 72;
-
-/**
- * Figures for the top band. The number of national programs is derived from
- * `ACTIVE_PROGRAM_COUNTRIES` so it doesn't fall out of sync with the list.
- */
-export const ABOUT_STATS: readonly AboutStat[] = [
-  {
-    value: String(ACTIVE_PROGRAM_COUNTRIES.length),
-    label: "programas nacionales ya en marcha en la región",
-  },
-  { value: "+70", label: "entrevistas de investigación en la región" },
-  {
-    value: "1,5 °C",
-    label: "la meta del Acuerdo de París que orienta el trabajo",
-  },
-  { value: "100%", label: "código abierto, adaptable por cualquier país" },
-];
-
-/**
- * Visual tone of a warming scenario. It selects the bar gradient and the
- * figure color in the chart, so a new scenario declares its tone here instead
- * of relying on its position in the list.
- */
-export type WarmingScenarioTone = "current" | "target";
-
-/** Scenarios for the projected-warming chart in "El desafío". */
-export interface WarmingScenario {
-  value: string;
-  caption: string;
-  /** The bar's relative height, between 0 and 1. */
-  barRatio: number;
-  tone: WarmingScenarioTone;
-}
-
-export const WARMING_CHART = {
-  overline: "Calentamiento proyectado",
-  title: "La meta de 1,5 °C exige actuar ya",
-  footnote:
-    "Con los compromisos actuales de mitigación, el mundo se dirige a un calentamiento de 2,4 °C. Contener el calentamiento a 1,5 °C, como plantea el Acuerdo de París, requiere una transición acelerada hacia economías descarbonizadas.",
-  scenarios: [
-    {
-      value: "2,4 °C",
-      caption: "Con los compromisos actuales",
-      barRatio: 1,
-      tone: "current",
-    },
-    {
-      value: "1,5 °C",
-      caption: "Meta del Acuerdo de París",
-      barRatio: 0.62,
-      tone: "target",
-    },
-  ] as readonly WarmingScenario[],
-} as const;
-
-export const PRIVATE_SECTOR_CARD = {
-  title: "El sector privado es clave",
-  body: "Las NDC son la principal herramienta de política climática de los países. Movilizar al sector privado —desde pymes hasta grandes empresas— es esencial para alinear inversiones y modelos de negocio con las metas del Acuerdo de París.",
-  tags: ["Pymes", "Grandes empresas", "Sector público"] as readonly string[],
-} as const;
-
-export const REGIONAL_OPPORTUNITY_CARD = {
-  overline: "Una oportunidad regional",
-  countryStatusLabel: "Programa activo",
-  footnote:
-    "Una solución regional de código abierto genera economías de escala y reduce los costos de cálculo, verificación y reconocimiento.",
-} as const;
-
-export interface PlatformPillar {
-  step: string;
-  Icon: FC<SvgIconProps>;
-  title: string;
-  body: string;
-  tags: readonly string[];
-  /** Call to action that replaces the tags on the last pillar. */
-  callout?: string;
-}
-
-export const PLATFORM_PILLARS: readonly PlatformPillar[] = [
-  {
-    step: "01",
-    Icon: CalculatorIcon,
-    title: "Medir — con la metodología de cada país",
-    body: "Cada país configura la metodología que ha adoptado —ISO 14064, GHG Protocol o una combinación— junto con sus propios factores de emisión. Esa flexibilidad es lo que permite adaptarse a cada programa nacional.",
-    tags: ["ISO 14064", "GHG Protocol", "Factores locales"],
-  },
-  {
-    step: "02",
-    Icon: CheckCircleOutlined,
-    title: "Reportar y verificar",
-    body: "Las organizaciones gestionan sus huellas, someten sus mediciones a evaluación y verificación, y acceden a reconocimientos oficiales otorgados por los programas nacionales.",
-    tags: ["Evaluación", "Verificación", "Reconocimientos"],
-  },
-  {
-    step: "03",
-    Icon: CodeOutlined,
-    title: "Bien público digital",
-    body: "Software de código abierto alineado con los estándares de la Digital Public Goods Alliance y adaptable a cada país de la región.",
-    tags: [],
-    callout: "¿Te interesa implementarlo en tu país? Contacta al PNUD",
-  },
-];
-
-export const ALLIANCE_BANNER_TEXT =
-  "Una plataforma construida entre quienes financian, diseñan, operan y usan los programas nacionales de huella de carbono.";
-
-export interface AllianceActor {
-  role: string;
-  name: string;
-  description: string;
-  /** Partner whose logo heads the card. */
-  partnerId?: PartnerId;
-  /** Icon that replaces the logo for actors without their own brand. */
-  Icon?: SvgIconComponent;
-}
-
-export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
-  {
-    role: "Lidera e implementa",
-    name: "PNUD",
-    partnerId: PartnerId.UNDP,
-    description:
-      "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la Climate Promise, junto a sus oficinas de país.",
-  },
-  {
-    role: "Financia",
-    name: "Suecia",
-    partnerId: PartnerId.SWEDEN,
-    description:
-      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
-  },
-  {
-    role: "Diseña y desarrolla",
-    name: "Inventures",
-    partnerId: PartnerId.INVENTURES,
-    description:
-      "Inventures, consultora de tecnología e innovación con base en Chile, está a cargo de la investigación, el diseño UX/UI y el desarrollo de la plataforma de código abierto.",
-  },
-  {
-    role: "Operan los programas",
-    name: "Gobiernos de la región",
-    Icon: AccountBalanceOutlined,
-    description:
-      "Los programas nacionales de huella de carbono y los gobiernos que desarrollan nuevos programas operan la plataforma en sus países.",
-  },
-  {
-    role: "Miden y reducen",
-    name: "Organizaciones y empresas",
-    Icon: GroupsOutlined,
-    description:
-      "Empresas de todos los tamaños, instituciones públicas y organizaciones de la sociedad civil miden, reportan y reducen su huella de carbono.",
-  },
-];
-
-export interface RoadmapMilestone {
-  period: string;
-  stage: string;
-  title: string;
-  description: string;
-  /** Milestones in progress are painted amber; completed ones, green. */
-  isInProgress: boolean;
-}
-
-export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
-  {
-    period: "2024",
-    stage: "Origen",
-    title: "Del aprendizaje regional a un producto común",
-    description:
-      "Tras acompañar los programas de Chile, Perú, Ecuador y Panamá, el PNUD consolidó las lecciones aprendidas en una guía regional y un curso e-learning, y decidió impulsar un software común de código abierto.",
-    isInProgress: false,
-  },
-  {
-    period: "2025",
-    stage: "Investigación y diseño",
-    title: "Más de 70 entrevistas en toda la región",
-    description:
-      "Se entrevistó a coordinadores de programas nacionales, gobiernos, empresas usuarias, consultores expertos y equipos del PNUD para diseñar una plataforma centrada en necesidades reales.",
-    isInProgress: false,
-  },
-  {
-    period: "2025 – 2026",
-    stage: "Desarrollo",
-    title: "Construcción del MVP de código abierto",
-    description:
-      "Desarrollo ágil y centrado en usuarios: calculadora de emisiones, gestión de huellas, procesos de verificación, reconocimientos y vistas públicas de transparencia.",
-    isInProgress: false,
-  },
-  {
-    period: "2026",
-    stage: "Piloto · En curso",
-    title: "Piloto con un país seleccionado de la región",
-    description:
-      "La plataforma está probando el ciclo completo de medición, verificación y reconocimiento en condiciones reales junto a contrapartes nacionales.",
-    isInProgress: true,
-  },
-  {
-    period: "2026",
-    stage: "Validación DPG · En curso",
-    title: "Validación como Bien Público Digital",
-    description:
-      "La solución está siendo validada como Bien Público Digital (DPG), asegurando que se mantenga abierta, reutilizable y valiosa para toda la región. Si te interesa implementarla en tu país, contacta al PNUD.",
-    isInProgress: true,
-  },
-];
-
-/**
- * Acknowledgement block for the funding partner. The project name is
- * italicized and quoted, which is why the paragraph is split in two.
- */
-export const FUNDING_HIGHLIGHT = {
-  badge: "Con el apoyo de",
-  title: "Financiada por el Gobierno de Suecia",
-  bodyBeforeProject:
-    "Posible gracias al financiamiento de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), en el marco de la iniciativa del PNUD",
-  projectName:
-    "Innovación para las Finanzas Verdes en América Latina y el Caribe",
-  bodyAfterProject:
-    ", que busca acelerar la implementación de las Contribuciones Determinadas a Nivel Nacional (NDC). El apoyo de Suecia hace posible que esta plataforma sea un bien público digital, gratuito y abierto para toda la región.",
-} as const;
-
-export interface OrganizationProfile {
-  title: string;
-  body: string;
-  /** Logo of the partner that heads the card. */
-  partnerId?: PartnerId;
-  /** Icon that replaces the logo when the card doesn't represent a partner. */
-  Icon?: SvgIconComponent;
-  /** Figures that accompany the logo. */
-  figures: readonly AboutStat[];
-  /** Badge that replaces the figures. */
-  badge?: string;
-  /** Link embedded at the end of `body`, followed by `bodyAfterLink`. */
-  link?: { label: string; href: string };
-  bodyAfterLink?: string;
-}
-
-export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
-  {
-    title: "Acerca del PNUD",
-    partnerId: PartnerId.UNDP,
-    figures: [{ value: "170", label: "países" }],
-    body: "El PNUD es la principal agencia de las Naciones Unidas que lucha contra la injusticia de la pobreza, las desigualdades y el cambio climático. Trabajando con una amplia red de expertos y socios en 170 países, el PNUD ayuda a las naciones a desarrollar soluciones integradas y sostenibles por las personas y el planeta. Para obtener más información, visita",
-    link: { label: "undp.org/es", href: "https://www.undp.org/es" },
-    bodyAfterLink: " o síguenos en las redes sociales vía @PNUD.",
-  },
-  {
-    title: "Acerca de la iniciativa Climate Promise: Forward del PNUD",
-    Icon: PublicOutlined,
-    figures: [
-      { value: "+140", label: "países" },
-      { value: "37 M", label: "personas" },
-    ],
-    body: "A través de la iniciativa Climate Promise, la mayor cartera de apoyo a la acción climática del sistema de las Naciones Unidas, el PNUD trabaja con más de 140 países y territorios y beneficia directamente a 37 millones de personas. La cartera permite ejecutar más de 2.450 millones de dólares de los Estados Unidos en financiación basada en subvenciones y aprovechar la experiencia del PNUD en materia de adaptación, mitigación, mercados de carbono, clima y bosques, riesgo y seguridad climáticos y estrategias y políticas climáticas. Visite nuestro sitio web",
-    link: {
-      label: "climatepromise.undp.org/es",
-      href: "https://climatepromise.undp.org/es",
-    },
-    bodyAfterLink: " y síganos en @UNDPplanet.",
-  },
-  {
-    title: "Acerca de IFV LAC",
-    partnerId: PartnerId.SWEDEN,
-    figures: [],
-    badge: "Financiado por ASDI",
-    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional.",
-  },
-];
-
-/** Legal closing of the page, required by the funding agreement. */
-export const ABOUT_DISCLAIMER =
-  "Esta iniciativa es financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional e implementada por el Programa de las Naciones Unidas para el Desarrollo (PNUD). Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";
+const ORGANIZATION = VOCAB.organization.noun.plural;
 
 export const ABOUT_HERO = {
-  badge: "Bien público digital · América Latina y el Caribe",
+  badge: "Iniciativa nacional",
   title: "Sobre la iniciativa",
-  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
+  lead: `${BRAND.name} es una iniciativa del ${BRAND.administrator} que facilita a las ${ORGANIZATION} la medición, el reporte y la gestión de sus emisiones de gases de efecto invernadero.`,
 } as const;
 
+export const ABOUT_METHODOLOGY_PARAGRAPH = `Mediante una metodología estandarizada, la plataforma permite estimar la ${VOCAB.carbonInventory.noun.singular} ${VOCAB.organization.relationalAdjective}, generar reportes y orientar la identificación de oportunidades para reducir emisiones.`;
+
+export interface AboutBenefit {
+  Icon: SvgIconComponent;
+  title: string;
+  body: string;
+}
+
+/** What an organization gets out of the platform, in the order it happens. */
+export const ABOUT_BENEFITS: readonly AboutBenefit[] = [
+  {
+    Icon: SpeedOutlined,
+    title: "Mide",
+    body: `Calcula las emisiones de tu ${VOCAB.organization.noun.singular} con fuentes y factores de emisión relevantes para tu actividad.`,
+  },
+  {
+    Icon: InsertChartOutlined,
+    title: "Reporta",
+    body: "Genera reportes claros y comparables para comunicar tus resultados y dar seguimiento a tu desempeño.",
+  },
+  {
+    Icon: TrendingDownOutlined,
+    title: "Toma acción",
+    body: `Conoce recomendaciones para orientar la reducción de las emisiones de tu ${VOCAB.organization.noun.singular}.`,
+  },
+];
+
 export const ABOUT_SECTION_TITLES = {
-  challenge: "El desafío",
-  platform: "Qué hace la plataforma",
-  alliance: "Una alianza regional",
-  roadmap: "El camino — dónde estamos",
-  organizations: "Quiénes están detrás",
+  benefits: "Qué hace la plataforma",
+  supporters: "Con el apoyo de",
 } as const;
+
+export interface AboutSupporter {
+  partnerId: PartnerId;
+  /** Logo height in pixels; the width adjusts to keep the proportion. */
+  logoHeight: number;
+  description: string;
+}
+
+/** Who backs the initiative, beyond the ministry that administers it. */
+export const ABOUT_SUPPORTERS: readonly AboutSupporter[] = [
+  {
+    partnerId: PartnerId.SWEDEN,
+    logoHeight: 34,
+    description:
+      "La iniciativa cuenta con el apoyo del Gobierno de Suecia, a través de su cooperación internacional para el desarrollo.",
+  },
+  {
+    partnerId: PartnerId.UNDP,
+    logoHeight: 58,
+    description:
+      "El PNUD impulsa esta iniciativa como parte de su trabajo de acompañamiento a los países en la acción climática y el desarrollo sostenible.",
+  },
+];
+
+/**
+ * Where the software comes from. The ministry asked for this note to be read,
+ * not skimmed past, so it closes the screen as a framed block instead of the
+ * fine print it used to be.
+ */
+export const ABOUT_FOUNDATION_NOTE = `${BRAND.name} se construye sobre Huella Latam, un Bien Público Digital impulsado por el PNUD con el apoyo del Gobierno de Suecia y el desarrollo tecnológico de Inventures.`;
+
+/** Donor clause that has to accompany the attribution above. */
+export const ABOUT_RESPONSIBILITY_NOTE =
+  "Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";

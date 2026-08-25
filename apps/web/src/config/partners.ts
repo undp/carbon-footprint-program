@@ -3,12 +3,13 @@ import swedenLogo from "@/assets/logos/sweden.svg";
 import undpLogo from "@/assets/logos/undp.png";
 
 /**
- * Institutional partners shown on the public surfaces (header, footer and the
- * "Sobre la iniciativa" screen).
+ * Institutional partners of the initiative, shown on the "Sobre la iniciativa"
+ * screen.
  *
  * Each country deployment has its own set of partners: who funds, who leads
- * and who develops the platform can change. That is why the names, roles and
- * artwork live here and are not embedded in the components.
+ * and who develops the platform can change. That is why the names and artwork
+ * live here and are not embedded in the components; what each partner
+ * contributes is editorial copy and lives with the screen that tells it.
  *
  * The UNDP and Inventures artwork under `src/assets/logos/` is the partners'
  * official lockup. The remaining files are placeholders; each deployment must
@@ -27,36 +28,19 @@ export interface Partner {
   name: string;
   /** Logo file URL resolved by Vite. */
   logoSrc: string;
-  /**
-   * Partner role in two lines, as it accompanies the logo in the header and
-   * the footer (e.g. "Financiada por el" / "Gobierno de Suecia").
-   */
-  roleCaption: readonly [string, string];
-  /**
-   * Partner's corporate color. Only used to accent blocks that speak about
-   * that particular partner (borders, titles), never for elements of the
-   * Huella Latam brand.
-   */
-  brandColor: string;
 }
 
 export const PARTNERS: Record<PartnerId, Partner> = {
   [PartnerId.SWEDEN]: {
     name: "Gobierno de Suecia",
     logoSrc: swedenLogo,
-    roleCaption: ["Con el apoyo de", "Suecia"],
-    brandColor: "#005293",
   },
   [PartnerId.UNDP]: {
     name: "PNUD",
     logoSrc: undpLogo,
-    roleCaption: ["Una iniciativa", "de"],
-    brandColor: "#0468B1",
   },
   [PartnerId.INVENTURES]: {
     name: "Inventures",
     logoSrc: inventuresLogo,
-    roleCaption: ["Diseño y", "desarrollo"],
-    brandColor: "#113E56",
   },
 };
