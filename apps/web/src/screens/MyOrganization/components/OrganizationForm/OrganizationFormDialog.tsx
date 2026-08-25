@@ -23,7 +23,7 @@ import {
   useOrganizationForm,
   useOrganizationSubmit,
   useOrganizationData,
-  useTerritoryLevels,
+  useTerritorySelectors,
 } from "./hooks";
 import { TerritorySelectors } from "./TerritorySelectors";
 import { DialogMode } from "../../types";
@@ -106,7 +106,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     initialOrganizationSize: organization?.countryOrganizationSize,
   });
 
-  const territoryLevels = useTerritoryLevels(territoryIds);
+  const territoryLevels = useTerritorySelectors(territoryIds);
 
   const confirmDialog = useConfirmDialog();
 
