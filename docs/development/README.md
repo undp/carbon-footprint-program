@@ -33,6 +33,7 @@ Everything a developer needs to work on the Huella Latam codebase: environment s
 | [System Parameters Reference](./system-parameters.md)           | Database-backed configuration parameters and their effects on platform behaviour                                                |
 | [Country Onboarding Guide](./country-onboarding.md)             | How to deploy the platform in a new country: seed data, methodology, Entra ID, and infrastructure                               |
 | [RD Activity Catalog Sources](./rd-activity-catalog-sources.md) | Where the Dominican activity catalog comes from, how far it was checked against the official classifier, and what is still ours |
+| [RD Territorial Catalog Sources](./rd-territories-sources.md)   | Where the Dominican territorial hierarchy comes from, which levels are loaded, and why two are deliberately empty               |
 | [Internationalization Plan](./i18n-plan.md)                     | Forward-looking plan for adding i18n (not yet implemented)                                                                      |
 
 ## Quality and CI
