@@ -18,9 +18,13 @@ export const REPRESENTATIVE_DOCUMENT_HELPER_TEXT =
   "Cédula de identidad y electoral para personas dominicanas; pasaporte para personas extranjeras que no posean cédula dominicana.";
 
 /**
- * The territorial hierarchy from outermost to innermost. The organization form
- * renders one selector per entry, and only stores the innermost node the
- * registrant actually reaches — the rest of the chain is derived from it.
+ * The territorial hierarchy from outermost to innermost, as the observations
+ * define it. The form only renders the levels the catalog actually holds rows
+ * for, which today stops at the municipality; the order is what maps a level
+ * onto its position in the form's `territoryIds`.
+ *
+ * Only the innermost node the registrant actually reaches is stored — the rest
+ * of the chain is derived from it.
  */
 export const TERRITORY_LEVEL_ORDER = [
   "PLANNING_REGION",
@@ -38,4 +42,17 @@ export const TERRITORY_LEVEL_LABELS: Record<TerritoryLevel, string> = {
   MUNICIPALITY: "Municipio",
   MUNICIPAL_DISTRICT: "Distrito municipal",
   SECTOR: "Sector o paraje",
+};
+
+/**
+ * What a locked selector shows instead of its own name: the level below stays on
+ * screen and says which answer unlocks it, the way the economic activity does
+ * while its sector is unanswered.
+ */
+export const TERRITORY_LEVEL_PROMPTS: Record<TerritoryLevel, string> = {
+  PLANNING_REGION: "Selecciona la región de planificación",
+  PROVINCE: "Selecciona la provincia",
+  MUNICIPALITY: "Selecciona el municipio",
+  MUNICIPAL_DISTRICT: "Selecciona el distrito municipal",
+  SECTOR: "Selecciona el sector o paraje",
 };
