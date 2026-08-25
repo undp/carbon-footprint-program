@@ -1,6 +1,17 @@
 /**
- * Color Palette for Material UI Theme
- * Based on Figma Design System
+ * Color palette for the Material UI theme.
+ *
+ * The Dominican deployment dresses the platform in the institutional identity
+ * of the Ministerio de Medio Ambiente y Recursos Naturales: the navy of the
+ * Gobierno de la República Dominicana as the primary color, the green of the
+ * leaf inside the Huella de Carbono RD fingerprint as the secondary one, and a
+ * warm yellow reserved for attention accents.
+ *
+ * Every pairing shipped here clears WCAG AA (4.5:1 for body text, 3:1 for large
+ * text and UI outlines): white on `primary.main` is 11.5:1, white on
+ * `secondary.main` 4.7:1, and `softLeaf` / `sunflower` over `deepNavyDark`
+ * clear 10:1. Keep new pairings above those floors — the yellow in particular
+ * is 1.6:1 against white and only ever carries dark text.
  */
 
 import { alpha } from "@mui/material/styles";
@@ -12,7 +23,7 @@ import {
 import { StatusFamily } from "@/labels/chips/types";
 
 const recognitionTypeColors: Record<CarbonInventoryRecognitionsType, string> = {
-  [RequestType.CARBON_INVENTORY_CALCULATION]: `#89F8AF`,
+  [RequestType.CARBON_INVENTORY_CALCULATION]: `#C4E39B`,
   [RequestType.CARBON_INVENTORY_VERIFICATION]: "#DFDFDF",
   [RequestType.REDUCTION_PROJECT_VERIFICATION]: "#F7D634",
   [RequestType.NEUTRALIZATION_PLAN_VERIFICATION]: "#89D5CB",
@@ -42,18 +53,21 @@ const statusFamilyColors: Record<StatusFamily, string> = {
 
 export const palette: PaletteOptions = {
   mode: "light",
-  // Primary colors - Main brand colors (Green)
+  // Primary colors - institutional navy of the Gobierno de la República
+  // Dominicana. `light` doubles as the hover / link blue.
   primary: {
-    main: "#006E4D",
-    light: "#338B70",
-    dark: "#004D35",
+    main: "#003876",
+    light: "#0A4A96",
+    dark: "#002550",
     contrastText: "#FFFFFF",
   },
-  // Secondary colors - Accent and complementary (Aqua)
+  // Secondary colors - the leaf inside the Huella de Carbono RD fingerprint.
+  // `main` is darkened from the artwork so it can carry white text and be read
+  // as a figure color; `light` is the leaf as it appears in the logo.
   secondary: {
-    main: "#63E4CF",
-    light: "#82E9D8",
-    dark: "#459F90",
+    main: "#557F22",
+    light: "#ADCD6C",
+    dark: "#3C5C15",
     contrastText: "#FFFFFF",
   },
   // Error colors
@@ -86,15 +100,15 @@ export const palette: PaletteOptions = {
   },
   // Background colors
   background: {
-    default: "#F9F9F9",
+    default: "#F5F7FA",
     paper: "#FFFFFF",
   },
   // Text colors
   text: {
-    primary: "#414046",
-    secondary: alpha("#414046", 0.6),
-    disabled: alpha("#414046", 0.38),
-    hint: alpha("#414046", 0.38),
+    primary: "#233043",
+    secondary: alpha("#233043", 0.68),
+    disabled: alpha("#233043", 0.38),
+    hint: alpha("#233043", 0.38),
   },
   // Other utility colors
   other: {
@@ -103,12 +117,12 @@ export const palette: PaletteOptions = {
     tooltip: alpha("#616161", 0.9),
     snackbar: "#323232",
     ratingFull: "#FFB400",
-    fluor: "#63E4CF",
-    gradient: `linear-gradient(90deg, #56F58D 0%, #63E4CF 100%)`,
+    accent: "#ADCD6C",
+    gradient: `linear-gradient(90deg, #003876 0%, #ADCD6C 100%)`,
     gradient20: `linear-gradient(90deg, ${alpha(
-      "#56F58D",
+      "#003876",
       0.2
-    )} 0%, ${alpha("#63E4CF", 0.2)} 100%)`,
+    )} 0%, ${alpha("#ADCD6C", 0.2)} 100%)`,
   },
   // Grey scale (Material Design standard)
   grey: {
@@ -144,18 +158,23 @@ export const palette: PaletteOptions = {
   common: {
     black: "#000000",
     white: "#FFFFFF",
-    deepForest: "#1C403A",
-    // Near-black green of the titles and the dark cards of the public
-    // institutional pages.
-    deepForestDark: "#0F2B24",
-    brightGreen: "#56F58D",
-    // High-contrast mint green over a `deepForestDark` background (highlight
+    // Navy of the dark surfaces: the institutional footer, the solid buttons
+    // over the brand gradient and the dark cards.
+    deepNavy: "#0C2E5C",
+    // Near-black navy of the titles and the deep end of the dark cards.
+    deepNavyDark: "#071E3C",
+    // The leaf of the Huella de Carbono RD fingerprint, as decoration over a
+    // navy surface.
+    leafGreen: "#ADCD6C",
+    // High-contrast pale green over a `deepNavyDark` background (highlight
     // figures and details of the dark cards).
-    mint: "#86D8C4",
-    glossyTeal: "#009689",
-    // UNDP's institutional yellow: demo-environment badge and attention
-    // accents over green backgrounds.
-    sunflower: "#FECB00",
+    softLeaf: "#C9E29B",
+    // Teal that marks the administration surfaces apart from the navy of the
+    // public ones.
+    oceanTeal: "#0F6E8F",
+    // Attention yellow: the pilot-environment badge and the accents over navy
+    // backgrounds. It only ever carries dark text.
+    sunflower: "#F5C844",
   },
   // Divider
   divider: alpha("#000000", 0.12),

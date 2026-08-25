@@ -44,7 +44,7 @@ export const PublicHeader: FC = () => {
           py: 1.5,
           backgroundColor: theme.palette.common.white,
           borderBottom: `1px solid ${theme.palette.divider}`,
-          boxShadow: `0 2px 14px ${alpha(theme.palette.common.deepForestDark, 0.1)}`,
+          boxShadow: `0 2px 14px ${alpha(theme.palette.common.deepNavyDark, 0.1)}`,
         }}
       >
         <Link

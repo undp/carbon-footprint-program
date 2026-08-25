@@ -52,7 +52,7 @@ export const ResourceCard: FC<Props> = ({ resource }) => {
           sx={{
             fontSize: 18,
             lineHeight: 1.35,
-            color: theme.palette.common.deepForestDark,
+            color: theme.palette.common.deepNavyDark,
             mb: 1.25,
           }}
         >
@@ -73,7 +73,7 @@ export const ResourceCard: FC<Props> = ({ resource }) => {
           endIcon={<ArrowRightAltRounded />}
           sx={{
             mt: "auto",
-            backgroundColor: theme.palette.common.deepForest,
+            backgroundColor: theme.palette.common.deepNavy,
             borderRadius: 1.25,
             px: 2.5,
             py: 1.375,

@@ -78,7 +78,7 @@ export const FilesSection: FC<Props> = ({ files, sx, variant = "files" }) => {
               }}
             >
               <InsertDriveFileOutlined
-                sx={{ fontSize: 16, color: theme.palette.common.glossyTeal }}
+                sx={{ fontSize: 16, color: theme.palette.common.oceanTeal }}
               />
 
               <Stack sx={{ flex: 1, minWidth: 0 }}>
@@ -105,7 +105,7 @@ export const FilesSection: FC<Props> = ({ files, sx, variant = "files" }) => {
 
               <FileDownloadOutlined
                 sx={{
-                  color: theme.palette.common.glossyTeal,
+                  color: theme.palette.common.oceanTeal,
                 }}
               />
             </Box>

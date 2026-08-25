@@ -19,7 +19,7 @@ export const ResourceCover: FC<Props> = ({ resource }) => {
 
   const isCourse = resource.kind === ResourceKind.COURSE;
   const background = isCourse
-    ? `linear-gradient(165deg, ${theme.palette.common.deepForest} 0%, ${theme.palette.primary.light} 100%)`
+    ? `linear-gradient(165deg, ${theme.palette.common.deepNavy} 0%, ${theme.palette.primary.light} 100%)`
     : `linear-gradient(165deg, ${theme.palette.info.dark} 0%, ${theme.palette.info.main} 100%)`;
 
   return (
@@ -33,7 +33,7 @@ export const ResourceCover: FC<Props> = ({ resource }) => {
         px: 1.75,
         py: 2,
         background,
-        boxShadow: `0 8px 20px ${alpha(theme.palette.common.deepForestDark, 0.25)}`,
+        boxShadow: `0 8px 20px ${alpha(theme.palette.common.deepNavyDark, 0.25)}`,
       }}
     >
       <Typography

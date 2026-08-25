@@ -76,7 +76,7 @@ export const OrganizationProfileCard: FC<Props> = ({ profile }) => {
                   fontWeight: "fontWeightBold",
                   letterSpacing: "-0.8px",
                   lineHeight: 1,
-                  color: theme.palette.common.deepForestDark,
+                  color: theme.palette.common.deepNavyDark,
                 }}
               >
                 {figure.value}
@@ -121,7 +121,7 @@ export const OrganizationProfileCard: FC<Props> = ({ profile }) => {
         fontWeight="fontWeightBold"
         sx={{
           fontSize: 16,
-          color: theme.palette.common.deepForestDark,
+          color: theme.palette.common.deepNavyDark,
           mb: 1.25,
         }}
       >

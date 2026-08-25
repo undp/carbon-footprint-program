@@ -28,7 +28,7 @@ export const PublicNavLink: FC<Props> = ({ to, label }) => {
       activeProps={{
         style: {
           fontWeight: theme.typography.fontWeightMedium,
-          color: theme.palette.common.deepForestDark,
+          color: theme.palette.common.deepNavyDark,
           borderBottom: `2.5px solid ${theme.palette.primary.main}`,
         },
       }}

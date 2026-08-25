@@ -31,7 +31,7 @@ export const RegionalOpportunityCard: FC = () => {
           fontWeight: "fontWeightBold",
           letterSpacing: "1.4px",
           textTransform: "uppercase",
-          color: theme.palette.common.mint,
+          color: theme.palette.common.softLeaf,
           mb: 1.75,
         }}
       >
@@ -47,8 +47,8 @@ export const RegionalOpportunityCard: FC = () => {
               px: 1.75,
               py: 1.25,
               borderRadius: 2.25,
-              backgroundColor: alpha(theme.palette.common.mint, 0.13),
-              border: `1px solid ${alpha(theme.palette.common.mint, 0.24)}`,
+              backgroundColor: alpha(theme.palette.common.softLeaf, 0.13),
+              border: `1px solid ${alpha(theme.palette.common.softLeaf, 0.24)}`,
             }}
           >
             <Typography
@@ -69,7 +69,7 @@ export const RegionalOpportunityCard: FC = () => {
                 letterSpacing: "1px",
                 textTransform: "uppercase",
                 whiteSpace: "nowrap",
-                color: theme.palette.common.mint,
+                color: theme.palette.common.softLeaf,
               }}
             >
               {REGIONAL_OPPORTUNITY_CARD.countryStatusLabel}

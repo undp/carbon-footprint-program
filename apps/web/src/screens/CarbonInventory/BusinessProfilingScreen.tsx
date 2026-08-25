@@ -67,7 +67,7 @@ export const BusinessProfilingScreen: FC = () => {
   });
 
   const gradient = `linear-gradient(90deg, ${alpha(
-    theme.palette.common.brightGreen,
+    theme.palette.common.leafGreen,
     0.2
   )} 0%, ${alpha(theme.palette.secondary.main, 0.2)} 100%)`;
 

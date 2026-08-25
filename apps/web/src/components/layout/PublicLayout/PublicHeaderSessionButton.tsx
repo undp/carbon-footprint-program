@@ -36,7 +36,7 @@ export const PublicHeaderSessionButton: FC = () => {
       variant="contained"
       onClick={handleClick}
       sx={{
-        backgroundColor: theme.palette.common.deepForest,
+        backgroundColor: theme.palette.common.deepNavy,
         borderRadius: 1.25,
         px: 2.5,
         py: 1.25,

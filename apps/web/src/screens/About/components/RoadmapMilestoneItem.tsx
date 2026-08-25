@@ -81,7 +81,7 @@ export const RoadmapMilestoneItem: FC<Props> = ({ milestone, isLast }) => {
         sx={{
           fontSize: 15,
           lineHeight: 1.35,
-          color: theme.palette.common.deepForestDark,
+          color: theme.palette.common.deepNavyDark,
           mb: 0.75,
         }}
       >

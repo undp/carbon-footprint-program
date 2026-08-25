@@ -178,7 +178,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                           )
                         }
                         sx={{
-                          color: theme.palette.common.glossyTeal,
+                          color: theme.palette.common.oceanTeal,
                           px: 1,
                           fontSize: "0.75rem",
                           fontWeight: 500,
@@ -205,7 +205,7 @@ export const ViewSubmissionDialog: FC<Props> = ({
                         handleNavigateToReductionProject(reductionProjectId)
                       }
                       sx={{
-                        color: theme.palette.common.glossyTeal,
+                        color: theme.palette.common.oceanTeal,
                         px: 1,
                         fontSize: "0.75rem",
                         fontWeight: 500,

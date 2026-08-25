@@ -70,7 +70,7 @@ export const AllianceActorCard: FC<Props> = ({ actor }) => {
         variant="subtitle1"
         component="h3"
         fontWeight="fontWeightBold"
-        sx={{ fontSize: 16, color: theme.palette.common.deepForestDark }}
+        sx={{ fontSize: 16, color: theme.palette.common.deepNavyDark }}
       >
         {actor.name}
       </Typography>

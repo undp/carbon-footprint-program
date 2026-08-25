@@ -12,7 +12,7 @@ export const HuellaLatamLogo: FC<Props> = (props) => {
 
   const fillColor = contrast
     ? theme.palette.common.white
-    : theme.palette.common.deepForest;
+    : theme.palette.common.deepNavy;
 
   return (
     <SvgIcon

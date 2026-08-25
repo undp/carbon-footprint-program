@@ -23,8 +23,8 @@ export const WarmingChartCard: FC = () => {
       valueColor: theme.palette.warning.dark,
     },
     target: {
-      barGradient: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.common.mint} 100%)`,
-      valueColor: theme.palette.common.deepForest,
+      barGradient: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.common.softLeaf} 100%)`,
+      valueColor: theme.palette.common.deepNavy,
     },
   };
 
@@ -58,7 +58,7 @@ export const WarmingChartCard: FC = () => {
         fontWeight="fontWeightBold"
         sx={{
           fontSize: 17,
-          color: theme.palette.common.deepForestDark,
+          color: theme.palette.common.deepNavyDark,
           mb: 2.75,
         }}
       >

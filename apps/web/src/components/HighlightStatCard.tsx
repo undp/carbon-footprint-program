@@ -27,11 +27,11 @@ export const HighlightStatCard: FC<Props> = ({
         position: "relative",
         overflow: "hidden",
         background: darkCardGradient(theme),
-        border: `1px solid ${alpha(theme.palette.common.mint, 0.28)}`,
+        border: `1px solid ${alpha(theme.palette.common.softLeaf, 0.28)}`,
         borderRadius: 4,
         px: 3.25,
         py: 3,
-        boxShadow: `0 14px 34px ${alpha(theme.palette.common.deepForestDark, 0.24)}`,
+        boxShadow: `0 14px 34px ${alpha(theme.palette.common.deepNavyDark, 0.24)}`,
       }}
     >
       {WatermarkIcon && (
@@ -42,7 +42,7 @@ export const HighlightStatCard: FC<Props> = ({
             right: -16,
             bottom: -16,
             fontSize: 104,
-            color: theme.palette.common.mint,
+            color: theme.palette.common.softLeaf,
             opacity: 0.16,
           }}
         />
@@ -56,7 +56,7 @@ export const HighlightStatCard: FC<Props> = ({
             fontWeight: "fontWeightBold",
             lineHeight: 1,
             letterSpacing: "-1.8px",
-            color: theme.palette.common.mint,
+            color: theme.palette.common.softLeaf,
             mb: 1,
           }}
         >

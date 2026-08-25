@@ -36,7 +36,7 @@ export const PrivateSectorCard: FC = () => {
         fontWeight="fontWeightBold"
         sx={{
           fontSize: 17,
-          color: theme.palette.common.deepForestDark,
+          color: theme.palette.common.deepNavyDark,
           mb: 1.5,
         }}
       >
