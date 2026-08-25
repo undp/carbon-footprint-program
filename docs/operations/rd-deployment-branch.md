@@ -18,7 +18,8 @@ What lives on the branch:
 - the country record and its ISO code (`República Dominicana` / `DO`);
 - the national economic-activity catalog;
 - the four Ley 187-17 organization-size tiers;
-- the territorial hierarchy from the ONE;
+- the territorial hierarchy of Ley 345-22 — its ten planning regions, thirty-two
+  provinces and 157 municipios;
 - Dominican terminology (`Actividad económica` instead of `rubro`, `RNC` as the
   tax identifier, `Datos generales` as step 1);
 - the methodology's Dominican dimension values and emission factors.
