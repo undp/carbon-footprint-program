@@ -75,6 +75,7 @@ export const OrganizationFormDialog: FC<Props> = ({
     handleSubmit,
     reset,
     selectedSectorId,
+    selectedSubsectorId,
     territoryIds,
     formState,
   } = useOrganizationForm({ organization });
@@ -258,12 +259,18 @@ export const OrganizationFormDialog: FC<Props> = ({
                 <FormAutocompleteField
                   name="secondarySubsectorId"
                   control={control}
-                  label="Actividad económica secundaria (Opcional)"
+                  label={
+                    selectedSubsectorId
+                      ? "Actividad económica secundaria (Opcional)"
+                      : "Selecciona la actividad económica principal"
+                  }
                   labelId="secondary-subsector-label"
                   options={secondarySubsectorOptions}
                   loading={sectorsLoading}
                   disabled={
-                    sectorsLoading || secondarySubsectorOptions.length === 0
+                    sectorsLoading ||
+                    !selectedSubsectorId ||
+                    secondarySubsectorOptions.length === 0
                   }
                   className="flex-1"
                 />
