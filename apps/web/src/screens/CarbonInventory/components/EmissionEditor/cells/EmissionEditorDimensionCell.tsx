@@ -36,7 +36,8 @@ export const EmissionEditorDimensionCell: FC<
     disabled: !parentField,
   }) as string | null;
 
-  // Filter values based on parent dimension if provided, keeping "Otro" last
+  // Filter values based on parent dimension if provided, keeping any value in
+  // EMISSION_FACTOR_DIMENSION_OTHER_VALUES last
   const values = useMemo(() => {
     const visibleValues =
       !parentField || !parentValue

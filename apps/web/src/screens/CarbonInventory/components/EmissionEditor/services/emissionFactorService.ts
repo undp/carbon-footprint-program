@@ -52,9 +52,11 @@ export const getAvailableSources = (
 };
 
 /**
- * Keeps the "Otro" escape hatch at the bottom of a dimension dropdown. The API
- * returns dimension values alphabetically, which would otherwise bury it in the
- * middle of long catalogs (e.g. the mobile-combustion machinery list).
+ * Keeps every value in EMISSION_FACTOR_DIMENSION_OTHER_VALUES at the bottom of
+ * a dimension dropdown. The API returns dimension values alphabetically, which
+ * would otherwise bury the escape hatch in the middle of long catalogs (e.g.
+ * the mobile-combustion machinery list). Several of them keep their relative
+ * order among themselves.
  */
 export const sortDimensionValuesWithOtherLast = <T extends { value: string }>(
   values: T[]
