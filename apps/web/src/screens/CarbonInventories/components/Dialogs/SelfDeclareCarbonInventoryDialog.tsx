@@ -12,6 +12,7 @@ import {
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { AutoAwesome, Close, InfoOutlined } from "@mui/icons-material";
+import { BRAND } from "@/config/brand";
 import { FormSwornDeclarationField } from "@/components/form";
 import { VOCAB } from "@/config/vocab";
 
@@ -183,7 +184,7 @@ export const SelfDeclareCarbonInventoryDialog: FC<Props> = ({
                 corresponden a la {VOCAB.organization.noun.singular} mencionada
                 y comprendo que este es un reconocimiento por realizar la
                 medición, y no constituye una certificación oficial ni
-                verificación por parte de Huella Latam.
+                verificación por parte de {BRAND.shortName}.
               </Typography>
             }
           />

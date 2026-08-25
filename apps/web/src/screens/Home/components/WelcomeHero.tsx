@@ -1,6 +1,6 @@
 import { FC } from "react";
 import { Box, Typography, useTheme } from "@mui/material";
-import { LatamFootprintIcon } from "@/icons";
+import { BRAND } from "@/config/brand";
 
 interface Props {
   eyebrow: string;
@@ -15,15 +15,19 @@ export const WelcomeHero: FC<Props> = ({ eyebrow, title, subtitle }) => {
     <Box
       className="relative overflow-hidden rounded-2xl p-6 md:p-8"
       sx={{
-        // Solid brand green on the left (where the copy sits, for strong
-        // contrast) easing into the aqua accent on the right.
+        // Solid institutional navy on the left (where the copy sits, for
+        // strong contrast) easing into the leaf green on the right.
         background: `linear-gradient(90deg, ${theme.palette.primary.dark} 0%, ${theme.palette.primary.main} 62%, ${theme.palette.secondary.main} 100%)`,
         color: "common.white",
       }}
     >
-      <LatamFootprintIcon
-        className="pointer-events-none absolute top-1/2 right-[-40px] -translate-y-1/2"
-        sx={{ width: 360, height: 314, opacity: 0.12, color: "common.white" }}
+      <Box
+        aria-hidden
+        component="img"
+        src={BRAND.markContrastSrc}
+        alt=""
+        className="pointer-events-none absolute top-1/2 right-[-30px] -translate-y-1/2"
+        sx={{ height: 260, width: "auto", opacity: 0.14 }}
       />
 
       <Box

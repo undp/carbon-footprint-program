@@ -36,6 +36,7 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   signInRedirect: (returnTo?: string) => Promise<void>;
+  signUpRedirect: (returnTo?: string) => Promise<void>;
   signOut: () => Promise<void>;
   user?: GetMeResponse;
   refetchUser: (
@@ -46,6 +47,23 @@ export interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | undefined>(
   undefined
 );
+
+/** Which of the two provider screens a redirect asks for. */
+type AuthIntent = "signIn" | "signUp";
+
+const AUTH_INTENT_COPY: Record<
+  AuthIntent,
+  { subject: string; failure: string }
+> = {
+  signIn: {
+    subject: "El inicio de sesión",
+    failure: "Ocurrió un problema al iniciar sesión",
+  },
+  signUp: {
+    subject: "El registro",
+    failure: "Ocurrió un problema al crear la cuenta",
+  },
+};
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const oidc = useOidcAuth();
@@ -119,28 +137,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * `returnTo` (a generic internal path) rides the OIDC `state` param and is
    * resolved in `/auth/callback` on the way back.
    */
-  const signInRedirect = useCallback(
-    async (returnTo?: string) => {
+  const redirectToIdp = useCallback(
+    async (returnTo: string | undefined, intent: AuthIntent) => {
       if (!IS_OIDC_CONFIGURED) {
-        enqueueSnackbar("El inicio de sesión no está configurado", {
-          variant: "error",
-        });
+        enqueueSnackbar(
+          `${AUTH_INTENT_COPY[intent].subject} no está configurado`,
+          {
+            variant: "error",
+          }
+        );
         return;
       }
       try {
         const state: OidcSignInState | undefined = returnTo
           ? { returnTo }
           : undefined;
-        await oidc.signinRedirect(state ? { state } : undefined);
+        await oidc.signinRedirect({
+          ...(state ? { state } : {}),
+          // `prompt=create` is the OpenID Connect "Initiating User
+          // Registration" parameter: it lands the user on the provider's
+          // sign-up form instead of its sign-in form. Providers that do not
+          // implement it reject the request, so a deployment whose IdP lacks
+          // it should hide the sign-up action rather than let it fail.
+          ...(intent === "signUp"
+            ? { extraQueryParams: { prompt: "create" } }
+            : {}),
+        });
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Login redirect failed:", error);
-        enqueueSnackbar("Ocurrió un problema al iniciar sesión", {
-          variant: "error",
-        });
+        console.error(`${intent} redirect failed:`, error);
+        enqueueSnackbar(AUTH_INTENT_COPY[intent].failure, { variant: "error" });
       }
     },
     [oidc]
+  );
+
+  const signInRedirect = useCallback(
+    (returnTo?: string) => redirectToIdp(returnTo, "signIn"),
+    [redirectToIdp]
+  );
+
+  /**
+   * Send a first-time organization to the identity provider's registration
+   * form. Same redirect flow as `signInRedirect` — it only differs in the
+   * screen the provider shows — so the account lands back on `returnTo` with a
+   * session already open.
+   */
+  const signUpRedirect = useCallback(
+    (returnTo?: string) => redirectToIdp(returnTo, "signUp"),
+    [redirectToIdp]
   );
 
   /**
@@ -164,6 +209,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     refetchUser,
     signInRedirect,
+    signUpRedirect,
     signOut,
   };
 
