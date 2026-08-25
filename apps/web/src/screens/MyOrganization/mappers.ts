@@ -7,21 +7,33 @@ import { TERRITORY_LEVEL_COUNT } from "./constants";
 import { OrganizationFormValues } from "./types";
 
 /**
- * Spreads the persisted territorial chain over the form's fixed set of selectors,
- * outermost first, padding the levels the organization left unanswered. The API
- * returns the ancestors already ordered outermost first, so appending the node
- * itself completes the chain.
+ * The declared node plus its ancestors, outermost first — the same order the
+ * form's selectors present, so anything reading the location back shows it the
+ * way it was filled in. The API returns the ancestors already ordered, so
+ * appending the node itself completes the chain.
+ */
+export const getTerritoryChain = ({
+  territory,
+  territoryAncestors,
+}: Pick<
+  GetOrganizationByIdResponse,
+  "territory" | "territoryAncestors"
+>): GetOrganizationByIdResponse["territoryAncestors"] => [
+  ...territoryAncestors,
+  ...(territory ? [territory] : []),
+];
+
+/**
+ * Spreads the persisted territorial chain over the form's fixed set of
+ * selectors, padding the levels the organization left unanswered.
  */
 const mapTerritoryToFormValues = (
   organization: GetOrganizationByIdResponse
 ): string[] => {
-  const chain = [
-    ...organization.territoryAncestors.map((ancestor) => ancestor.id),
-    ...(organization.territory ? [organization.territory.id] : []),
-  ];
+  const chain = getTerritoryChain(organization);
   return Array.from(
     { length: TERRITORY_LEVEL_COUNT },
-    (_, level) => chain[level] ?? ""
+    (_, level) => chain[level]?.id ?? ""
   );
 };
 

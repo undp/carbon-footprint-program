@@ -4,6 +4,8 @@ import { TAX_ID_LABEL } from "@repo/constants";
 import { InfoRow } from "@/screens/MyOrganization/components/InfoRow";
 import { GetSubmissionHistoryResponse } from "@repo/types";
 import { VOCAB } from "@/config/vocab";
+import { TERRITORY_LEVEL_LABELS } from "@/screens/MyOrganization/constants";
+import { getTerritoryChain } from "@/screens/MyOrganization/mappers";
 
 type Props = {
   data: GetSubmissionHistoryResponse[number]["organizationData"];
@@ -11,6 +13,11 @@ type Props = {
 
 export const OrgDataSection: FC<Props> = ({ data }) => {
   const theme = useTheme();
+
+  // Outermost first, the order the form asked for it. Only the levels the
+  // organization actually answered are rendered: a reviewer reads what was
+  // declared, not the shape of the hierarchy.
+  const territoryChain = data ? getTerritoryChain(data) : [];
 
   const cardSx = {
     bgcolor: theme.palette.background.default,
@@ -53,14 +60,25 @@ export const OrgDataSection: FC<Props> = ({ data }) => {
             value={data?.subsector?.name ?? "-"}
           />
           <InfoRow
+            label="Actividad económica secundaria"
+            value={data?.secondarySubsector?.name ?? "-"}
+          />
+          <InfoRow
             label={`Tamaño de ${VOCAB.organization.noun.singular}`}
             value={data?.countryOrganizationSize?.name ?? "-"}
           />
           <InfoRow
-            label="Actividad principal"
+            label={`Unidad de actividad de ${VOCAB.organization.article.singular}`}
             value={data?.mainActivity?.name ?? "-"}
           />
-          <InfoRow label="Dirección" value={data?.address ?? "-"} />
+          {territoryChain.map((node) => (
+            <InfoRow
+              key={node.id}
+              label={TERRITORY_LEVEL_LABELS[node.level]}
+              value={node.name}
+            />
+          ))}
+          <InfoRow label="Dirección física" value={data?.address ?? "-"} />
           <InfoRow
             label="Número de trabajadores"
             value={data?.employeesCount ?? "-"}
