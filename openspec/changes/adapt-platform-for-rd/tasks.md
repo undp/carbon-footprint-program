@@ -34,7 +34,7 @@
 - [x] 4.3 Write the single migration directory with a timestamp preceding every later migration in the stack, and confirm both columns are nullable so it applies to a populated database
 - [x] 4.4 Insert the ten planning regions and thirty-two provinces in the same migration, guarded on an empty table, because `seed.ts` skips a populated deployment
 - [x] 4.5 Extend the Zod schemas in `packages/types` for the new organization fields
-- [ ] 4.6 Apply the migration against a populated database and verify existing rows survive with `NULL`, and that the forty-two territories load
+- [ ] 4.6 Apply the migration against a populated database and verify existing rows survive with `NULL`, and that the 199 territories load — ten planning regions, thirty-two provinces and 157 municipios
 - [x] 4.7 Run `pnpm format && pnpm lint && pnpm type-check`
 
 ## 5. PR 4 — Organization sizes · base PR 3 · no migration
