@@ -65,17 +65,17 @@ _Consequence._ Filtering organizations by province needs a recursive CTE or a cl
 
 _Consequence._ No migration in this repository carried data before, so this is a new pattern; it is justified by the branch being terminal and the target deployment already populated. The seed's global count assertion had to go — the table may now hold rows the seed file does not describe — and the `testing` territorial fixture with it, so the API tests assert against the Dominican hierarchy the migration guarantees is present.
 
-### 6. `Otro (especifique)` is enforced by a shared constant naming the escape hatches
+### 6. `Otro (especifique)` is stated, not enforced
 
-`COMMENT_REQUIRED_DIMENSION_VALUES` lists the value names that oblige their capture line to carry a comment. The API and the capture form apply the same predicate, and the API rejects the batch before its transaction.
+A first pass obliged a capture line selecting an escape-hatch value to carry a comment, driven by a constant naming those values. It was removed: the rule matched by value name, so it could not be scoped to one dimension without becoming a per-dimension rule, and having two `Otro` options behave unlike every other dimension value costs more in explanation than the traceability buys. The word _especifique_ from observations 4 and 6 lives in the subcategory explanations, and the comment stays available and optional.
 
-_Alternatives considered._ A dedicated boolean column on the dimension value survives a rename, which a name rule does not — but it only earns its schema if an administrator can toggle it, which means a maintainer surface for a deployment that seeds its methodology. Matching by prefix rather than exactly would sweep in `Otro país` and `Otro proceso`, which are ordinary options that name themselves. Requiring a comment on every line maximizes traceability at the cost of friction on inventories with hundreds of lines, and invites filler text. Leaving the comment optional contradicts the word _especifique_ in observations 4 and 6.
+_Alternatives considered._ A dedicated boolean column on the dimension value survives a rename, which a name rule does not — but it only earns its schema if an administrator can toggle it, which means a maintainer surface for a deployment that seeds its methodology. Requiring a comment on every line maximizes traceability at the cost of friction on inventories with hundreds of lines, and invites filler text.
 
-_Consequence._ Renaming `Otro` from the maintainer silently disables the requirement for that value. The accepted mitigation is that the constant is one line to update and the methodology is seed-managed on this branch.
+_Consequence._ Nothing stops an inventory from resolving several lines to `Otro` with no explanation. The conservative factor is what keeps that from understating; auditing which inventories lean on the catch-all is a reporting question, not a validation one.
 
 ### 7. `Otro` carries the most conservative factor in its dimension
 
-Page 4 requires that "cada alternativa corresponda a un tratamiento metodológico y factor de emisión definido", so `Otro` needs a factor, not an exemption. It takes the highest factor of its dimension, which never understates emissions, and the mandatory comment gives MMARN what it needs to reclassify the line later.
+Page 4 requires that "cada alternativa corresponda a un tratamiento metodológico y factor de emisión definido", so `Otro` needs a factor, not an exemption. It takes the highest factor of its dimension, which never understates emissions, so a line MMARN later reclassifies moves down rather than up.
 
 _Alternatives considered._ Leaving `Otro` without a catalog factor and requiring `manualFactor` plus `manualFactorSource` is the most rigorous option and needs no new code, but blocks any user without a documented factor at hand. A dimension average is unbiased in aggregate yet understates individual cases, which is the error hardest to defend in a national registry.
 

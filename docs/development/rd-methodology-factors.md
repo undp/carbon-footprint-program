@@ -77,19 +77,17 @@ registrant enters the operator's own value. That reads as a gap, which it is,
 rather than as an answer. Ask the operator for the consumption per
 passenger-kilometre and this becomes a data change.
 
-## The mandatory comment on `Otro`
+## What `Otro` carries, and what it does not
 
-A capture line selecting `Otro` — in the waste and electricity dimensions — cannot
-be saved without saying what the emission actually was. The names that carry the
-obligation live in `COMMENT_REQUIRED_DIMENSION_VALUES`
-(`packages/constants`), matched exactly so `Otro país` and `Otro proceso` stay
-ordinary options. It is enforced server-side in `syncCarbonInventoryLines` and
-surfaced on the line's comment action before the user reaches save.
+Every `Otro` takes the highest factor of its dimension, so the escape hatch never
+understates. The line's comment is where a registrant says what the emission
+actually was — and it is optional, like every other comment in capture.
 
-Combined with the conservative factor, this is what keeps an escape hatch from
-becoming a hole: the number never understates, and the comment gives MMARN what
-it needs to reclassify the line later.
-
-**One thing to watch.** Renaming `Otro` from the methodology maintainer disables
-the requirement for that value, because the rule is the name. If MMARN renames it
-or adds another catch-all, add the name to the constant.
+An earlier draft made it mandatory on the two dimensions whose catch-all is named
+exactly `Otro`. It was dropped: the rule matched by value name, which meant it
+could not be scoped to one dimension without becoming a per-dimension rule, and
+two `Otro` options behaving differently from every other value is harder to
+explain than the traceability it bought. Observations 4 and 6 say _especifique_;
+the subcategory explanations say so too, and the conservative factor is what
+keeps the hatch from becoming a hole. An inventory leaning on `Otro` is worth
+reviewing rather than trusting.
