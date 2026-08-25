@@ -115,6 +115,8 @@ Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**, salvo que uses factores propios.
 
+⚠️ Si el medio de transporte que usan tus empleados no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+
 ---
 
 ### 📌 Ejemplo práctico

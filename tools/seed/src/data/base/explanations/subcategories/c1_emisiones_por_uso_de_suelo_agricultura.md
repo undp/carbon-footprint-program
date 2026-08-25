@@ -106,6 +106,8 @@ Debes completar los siguientes campos:
 
 ⚠️ El campo **"Fuente factor"** no debe modificarse salvo que utilices un **factor propio**
 
+⚠️ Si tu tipo de cultivo no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+
 ---
 
 ### 📌 Ejemplo práctico

@@ -90,7 +90,9 @@ Debes rellenar los siguientes campos:
 | Tipo de animal | Selecciona el tipo de animal desde la lista | Vacas de pastoreo |
 | Cantidad       | Número promedio anual de animales           |                90 |
 
-Las opciones disponibles de tipo de animal son: **Vacas de pastoreo**, **Vacas lecheras**, **Ovejas**, **Porcinos**, **Buffalos**, **Cabras**, **Caballos**, **Mulas y burros**, **Camélidos**, **Ciervos** y **Crianza de aves**.
+Las opciones disponibles de tipo de animal son: **Vacas de pastoreo**, **Vacas lecheras**, **Ovejas**, **Porcinos**, **Búfalos**, **Cabras**, **Caballos**, **Mulas y burros**, **Camélidos**, **Ciervos**, **Crianza de aves** y **Otro**.
+
+⚠️ Si tu tipo de animal no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
 
 ⚠️ Selecciona correctamente el **tipo de animal**, ya que los factores de emisión varían entre especies
 

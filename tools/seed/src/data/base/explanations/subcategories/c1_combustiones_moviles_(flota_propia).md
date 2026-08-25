@@ -46,7 +46,7 @@ Incluye todos los **vehículos propios o arrendados** por tu empresa, como:
 
 - **Vehículos propios**, como autos, camiones, vans, motocicletas, barcos, aviones, helicópteros u otros
 - **Vehículos arrendados o en leasing** cuyo combustible es pagado por tu empresa
-- **Maquinaria liviana** (grúas, montacargas, equipos móviles u otros)
+- **Maquinaria móvil y pesada** (excavadoras, cargadores frontales, motoniveladoras, camiones tolva, grúas, montacargas, tractores agrícolas u otros equipos off-road)
 - **Flota operativa** utilizada para almacenaje, logística interna u otras tareas
 
 ⚠️ Solo debes incluir **vehículos propios o controlados directamente por tu empresa** (Los que tu empresa paga el combustible)
@@ -100,16 +100,18 @@ _Ejemplo:_
 
 Debes rellenar los siguientes campos:
 
-| Campo           | Qué debes ingresar                          |                                                 Ejemplo |
-| :-------------- | :------------------------------------------ | ------------------------------------------------------: |
-| Tipo (Opcional) | Qué vehículos vas a declarar                |                                       Van, auto, camión |
-| Combustible     | Combustible utilizado por tu(s) vehículo(s) | Diésel, gasolina, GLP, gas natural, electricidad (BEVs) |
-| Unidad          | Unidad en la que se declara el combustible  |                                                  Litros |
-| Cantidad        | Total anual consumido por la flota          |                                                12.000 L |
+| Campo           | Qué debes ingresar                                                                                                                                |                                                 Ejemplo |
+| :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------: |
+| Tipo (Opcional) | Qué vehículo o maquinaria vas a declarar. Si no está en la lista, selecciona **Otro**: este campo es descriptivo y no cambia el factor de emisión |        Camión, Excavadora, Grúa horquilla (montacargas) |
+| Combustible     | Combustible utilizado por tu(s) vehículo(s)                                                                                                       | Diésel, gasolina, GLP, gas natural, electricidad (BEVs) |
+| Unidad          | Unidad en la que se declara el combustible                                                                                                        |                                                  Litros |
+| Cantidad        | Total anual consumido por la flota                                                                                                                |                                                12.000 L |
 
 ⚠️ No siempre hay factor para todos los combustibles y unidades disponibles
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
+
+⚠️ Si el combustible de tu vehículo o maquinaria no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
 
 ---
 

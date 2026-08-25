@@ -263,6 +263,10 @@
                   {
                     "name": "Sistema fijo de generación eléctrica",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               },
@@ -322,6 +326,10 @@
                   },
                   {
                     "name": "Biomasa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -695,6 +703,194 @@
                   {
                     "name": "Camión",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Excavadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Excavadora de orugas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Miniexcavadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Retroexcavadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cargador frontal",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Minicargador",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bulldozer",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Tractor de orugas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Motoniveladora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Traílla (scraper)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Zanjadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Rodillo compactador",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Compactadora de suelos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Perforadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Jumbo de perforación",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cargador de bajo perfil (LHD)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión minero",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión articulado (dumper)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión fuera de carretera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión tolva",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión mixer (hormigonera)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión aljibe",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión pluma",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión grúa",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión recolector de residuos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Camión barredor",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Tractor de patio (yard truck)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Grúa móvil",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Grúa sobre orugas",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Grúa telescópica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Manipulador telescópico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Grúa horquilla (montacargas)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Apilador de contenedores (reach stacker)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Plataforma elevadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Elevador de tijera",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Pavimentadora de asfalto",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fresadora de pavimento",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Distribuidor de asfalto",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Bomba de hormigón autopropulsada",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Tractor agrícola",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cosechadora",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fumigadora autopropulsada",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cosechadora forestal",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Arrastrador forestal (skidder)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cargador forestal",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Chipeadora móvil",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               },
@@ -734,6 +930,10 @@
                   },
                   {
                     "name": "Electricidad",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -1023,6 +1223,10 @@
                   },
                   {
                     "name": "Trifluoruro de nitrógeno",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -1416,6 +1620,10 @@
                   {
                     "name": "Crianza de aves",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               }
@@ -1551,6 +1759,10 @@
                   },
                   {
                     "name": "Cultivo general clima tropical",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -1748,6 +1960,10 @@
                   {
                     "name": "Clinker",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               }
@@ -1817,6 +2033,10 @@
                   },
                   {
                     "name": "Vidrios de vajilla (Vasos, copas, platos, etc)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -2222,6 +2442,10 @@
                   {
                     "name": "Metal",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               },
@@ -2546,6 +2770,10 @@
                   },
                   {
                     "name": "Residuos comerciales o industriales",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
@@ -3005,7 +3233,8 @@
                   { "name": "Tren larga distancia", "parentValue": null },
                   { "name": "Taxi/Ride-share", "parentValue": null },
                   { "name": "Bici", "parentValue": null },
-                  { "name": "Caminata", "parentValue": null }
+                  { "name": "Caminata", "parentValue": null },
+                  { "name": "Otro", "parentValue": null }
                 ]
               },
               {
@@ -3647,6 +3876,10 @@
                   {
                     "name": "Transporte en avión: Long haul (>6hrs) Business",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               }
@@ -3805,6 +4038,10 @@
                   {
                     "name": "Van con motor a combustión",
                     "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
                   }
                 ]
               }
@@ -3962,6 +4199,10 @@
                   },
                   {
                     "name": "Van con motor a combustión",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
                     "parentValue": null
                   }
                 ]
