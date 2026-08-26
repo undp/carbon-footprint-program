@@ -16,10 +16,6 @@ interface EmissionEditorActionsCellProps {
   categoryColor?: string;
   disabled?: boolean;
   hasComment?: boolean;
-  /**
-   * The line selects a value whose comment is mandatory and has none, so the
-   * inventory cannot be saved until it is written.
-   */
   pendingFilesCount?: number;
   linkedFilesCount?: number;
 }

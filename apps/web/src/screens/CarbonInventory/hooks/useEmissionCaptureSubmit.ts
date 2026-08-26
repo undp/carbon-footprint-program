@@ -36,6 +36,7 @@ export const useEmissionCaptureSubmit = ({
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const { mutateAsync, isPending } = useSyncCarbonInventoryLines(inventoryId);
+
   const submit = useCallback(
     async (data: EmissionCaptureFormValues) => {
       try {
