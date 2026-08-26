@@ -17,12 +17,20 @@ interface Props {
 /**
  * Section heading for the public screens: a title, optionally preceded by an
  * icon in a light green circle and followed by a counter.
+ *
+ * The gap below the title is wider when there is no icon. The circle is 40px
+ * against the title's ~32px line box, so it padded the row on both sides; drop
+ * it and the same margin reads as the title touching its own content. Both
+ * values stay well under the 48px the public layout puts between sections, so
+ * a title still binds to what it introduces.
  */
 export const SectionHeading: FC<Props> = ({ Icon, title, badge }) => {
   const theme = useTheme();
 
   return (
-    <Box className="mb-5 flex flex-wrap items-center gap-3.5">
+    <Box
+      className={`${Icon ? "mb-5" : "mb-8"} flex flex-wrap items-center gap-3.5`}
+    >
       {Icon && (
         <Box
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full"
