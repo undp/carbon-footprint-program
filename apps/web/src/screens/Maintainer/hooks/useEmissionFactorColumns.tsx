@@ -464,10 +464,10 @@ export const useEmissionFactorColumns = ({
               disabled={(viewOnly && !hasBreakdown) || blockedByOtherEditing}
               sx={{
                 textTransform: "none",
-                borderColor: hasBreakdown ? "success.main" : "grey.400",
-                color: hasBreakdown ? "success.main" : "grey.600",
+                borderColor: hasBreakdown ? "primary.main" : "grey.400",
+                color: hasBreakdown ? "primary.main" : "grey.600",
                 "&:hover": {
-                  borderColor: hasBreakdown ? "success.dark" : "grey.500",
+                  borderColor: hasBreakdown ? "primary.dark" : "grey.500",
                   backgroundColor: hasBreakdown ? undefined : "grey.50",
                 },
               }}

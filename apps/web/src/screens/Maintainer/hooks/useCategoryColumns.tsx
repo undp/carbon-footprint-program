@@ -189,11 +189,11 @@ export const useCategoryColumns = ({
               disabled={viewOnly && !hasContent}
               sx={{
                 maxWidth: "100px",
-                borderColor: hasContent ? "success.main" : "grey.400",
-                color: hasContent ? "success.main" : "grey.600",
+                borderColor: hasContent ? "primary.main" : "grey.400",
+                color: hasContent ? "primary.main" : "grey.600",
                 textTransform: "none",
                 "&:hover": {
-                  borderColor: hasContent ? "success.dark" : "grey.500",
+                  borderColor: hasContent ? "primary.dark" : "grey.500",
                   backgroundColor: hasContent ? undefined : "grey.50",
                 },
               }}
