@@ -271,6 +271,22 @@ Typical workflow for a new feature with a new page:
 
 ---
 
+## Number Formatting
+
+Every rendered number goes through the `formatter` singleton in `src/utils/formatting.ts` — never `toFixed`, `toLocaleString` or an ad-hoc `Intl.NumberFormat` in a component.
+
+```ts
+formatter.emissions(1096.30800964); // "1.096,31 tCO₂e"
+formatter.emissionFactor(0.0569444); // "0,05694"
+formatter.emissionIntensity(0.0000592); // { value: "59,26", unit: "gCO₂e" }
+```
+
+Precision is per kind of number, not app-wide: emissions and quantities round to 2 decimals, factors to 4 significant digits, and intensity switches mass unit with magnitude. Where a display rounds, the unrounded value stays reachable through `DetailTooltipText`.
+
+See [Number Formatting (Web)](./number-formatting.md) for the full rules and the audit-affordance pattern.
+
+---
+
 ## Exporting Data
 
 Client-side Excel export is handled in `src/utils/`:

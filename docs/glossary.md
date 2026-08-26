@@ -34,6 +34,28 @@ All other indirect emissions in an organization's value chain: employee commutin
 
 A coefficient that converts an activity quantity (e.g., liters of diesel burned, kWh consumed) into CO₂e emissions. Example: `2.68 kg CO₂e / liter of diesel`.
 
+### Emission intensity
+
+Emissions per unit of an organization's **main activity** — tCO₂e divided by the output the organization declared in step 1 (litres produced, tonnes processed, rooms sold…). It answers "how carbon-heavy is each unit we make?", which, unlike an absolute total, is comparable between a small producer and a large one.
+
+Standard carbon-accounting term (also _carbon intensity_), and the reason the code uses it. Be aware that **one concept carries three names** across the stack:
+
+| Layer        | Name                                                                             |
+| ------------ | -------------------------------------------------------------------------------- |
+| API          | `rate`, returned by `GET /carbon-inventories/:id/main-activity-equivalence`      |
+| UI (Spanish) | "Equivalencia" — the step-4 caption and the "Tu huella de carbono equivale" card |
+| Web code     | `formatter.emissionIntensity()`, `EmissionIntensity`, `INTENSITY_*` constants    |
+
+The value is stored and returned in tCO₂e per activity unit, but it is **displayed** with an adaptive mass unit so the number stays legible: `0,00005925989 tCO₂e/litro` is shown as `59,26 gCO₂e/litros producidos`. See [Display Precision](./architecture/emission-calculation.md#display-precision).
+
+Scoped to the equivalence surfaces only — inventory totals, rankings and the transparency portal stay in tCO₂e so they remain comparable.
+
+### Main activity
+
+The output an organization declares as the denominator of its emission intensity: a quantity plus an activity name (e.g. `18 500 000` `litros producidos`), captured in step 1 of the calculator.
+
+It is assembled from two places: `mainActivityQuantity` and `mainActivityId` are **snapshotted into the inventory's `organizationData` JSON**, so a past inventory keeps the figures it was calculated with, while the display name comes from the `OrganizationMainActivity` catalog (which also carries the sector/subsector mapping). An inventory missing either part returns no equivalence at all, and the card is simply absent.
+
 ### Dimension (emission factor dimension)
 
 A property that differentiates emission factors within the same subcategory. Example: "fuel type" is a dimension whose values (diesel, gasoline, natural gas) each correspond to different emission factor values.
@@ -190,6 +212,8 @@ An XLSX download of inventory data for offline review or auditing. Generated in 
 | --------- | ----------------------------------------------------------- |
 | GHG       | Greenhouse Gas                                              |
 | tCO₂e     | Tonnes of CO₂ equivalent                                    |
+| kgCO₂e    | Kilograms of CO₂ equivalent (emission-intensity display)    |
+| gCO₂e     | Grams of CO₂ equivalent (emission-intensity display)        |
 | GWP       | Global Warming Potential                                    |
 | IPCC      | Intergovernmental Panel on Climate Change                   |
 | IEA       | International Energy Agency                                 |
