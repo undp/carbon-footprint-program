@@ -6,6 +6,12 @@ The public, unauthenticated screens — the landing, **Sobre la iniciativa**
 partners and lists live in plain data files, **not** hard-coded inside the
 components, so a country deployment can rewrite them without touching React.
 
+> **Two of them carry no tab in the RD deployment.** Resources and
+> Acknowledgements still exist and still answer on `/resources` and
+> `/acknowledgements`; they were dropped from the header navigation, which is a
+> single entry each in `PublicHeaderRoutes`. Editing their content works the
+> same either way — put the entry back and the tab returns.
+
 This guide shows where each piece of content lives. Start with the
 Acknowledgements list, which is the most frequently edited.
 
