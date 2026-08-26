@@ -75,6 +75,13 @@ ARG VITE_API_BASE_URL
 ARG STORAGE_ORIGIN
 
 USER root
+# Patch the base image's OpenSSL packages: the digest pinned above predates
+# Alpine's fix for CVE-2026-14456 (libcrypto3 / libssl3 3.5.7-r0 → 3.5.8-r0),
+# and nginx-unprivileged is rebuilt on its own cadence, so waiting for an
+# upstream rebuild would leave the image scan red in the meantime. Scoped to
+# those two packages on purpose — a blanket `apk upgrade` could pull nginx off
+# the 1.30.x stable branch this image deliberately tracks.
+RUN apk --no-cache upgrade libcrypto3 libssl3
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY apps/web/security-headers.conf /etc/nginx/snippets/security-headers.conf
 # Substitute the IdP/API/storage origins into the CSP. POSIX basic regex (busybox
