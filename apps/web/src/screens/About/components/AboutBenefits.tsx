@@ -1,5 +1,4 @@
 import { FC } from "react";
-import { EnergySavingsLeafOutlined } from "@mui/icons-material";
 import { Box } from "@mui/material";
 import { SectionHeading } from "@/components";
 import { ABOUT_BENEFITS, ABOUT_SECTION_TITLES } from "../constants";
@@ -8,10 +7,7 @@ import { AboutBenefitCard } from "./AboutBenefitCard";
 /** "Qué hace la plataforma": measure, report and act. */
 export const AboutBenefits: FC = () => (
   <Box component="section">
-    <SectionHeading
-      Icon={EnergySavingsLeafOutlined}
-      title={ABOUT_SECTION_TITLES.benefits}
-    />
+    <SectionHeading title={ABOUT_SECTION_TITLES.benefits} />
     <Box
       sx={{
         display: "grid",

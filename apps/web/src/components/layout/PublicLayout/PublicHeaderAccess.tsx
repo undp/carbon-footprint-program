@@ -28,7 +28,7 @@ export const PublicHeaderAccess: FC = () => {
         }
         sx={PUBLIC_ACCESS_BUTTON_SX}
       >
-        {isAdmin ? "Ir al admin" : "Ir al home"}
+        {isAdmin ? "Ir al admin" : "Ir al inicio"}
       </Button>
     );
   }
