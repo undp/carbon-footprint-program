@@ -56,15 +56,15 @@ export const LandingOptionCard: FC<Props> = ({
         boxShadow: `0 14px 38px ${alpha(theme.palette.common.deepNavyDark, 0.22)}`,
       }
     : {
-        background: `linear-gradient(150deg, ${alpha(theme.palette.common.white, 0.34)}, ${alpha(theme.palette.common.white, 0.2)})`,
-        border: `1px solid ${alpha(theme.palette.common.white, 0.5)}`,
+        background: `linear-gradient(150deg, ${alpha(theme.palette.common.white, 0.5)}, ${alpha(theme.palette.common.white, 0.34)})`,
+        border: `1px solid ${alpha(theme.palette.common.white, 0.7)}`,
         backdropFilter: "blur(6px) saturate(1.2)",
-        boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.45)}`,
+        boxShadow: `inset 0 1px 0 ${alpha(theme.palette.common.white, 0.6)}`,
       };
 
   const avatarBackground = isSolid
     ? alpha(theme.palette.secondary.light, 0.38)
-    : alpha(theme.palette.common.white, 0.55);
+    : alpha(theme.palette.common.white, 0.72);
 
   return (
     <Card
