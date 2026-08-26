@@ -243,9 +243,45 @@ Higher-level sums are computed in application code by iterating the view's rows.
 
 ## Display Precision
 
-- Storage: Decimal(28, 10).
-- API returns tCO₂e with full precision (the conversion is `kg / 1000`); it never rounds.
-- Rounding is a frontend concern: the `Formatter` in `apps/web/src/utils/formatting.ts` displays 2 decimals by default, widening to at most `MAX_DISPLAY_DECIMALS` (`apps/web/src/config/constants.ts`) for values too small to show otherwise, and falling back to a `<0,000001` threshold below that.
+### The precision chain, end to end
+
+Precision is lost at exactly one place, and it is not the one most people assume:
+
+| Stage        | Representation              | What happens to precision                                                                                                                                                                                                                                                                 |
+| ------------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Database     | `Decimal(28, 10)`           | 10 decimal places, exact base-10. Quantities, factors and emissions all use it.                                                                                                                                                                                                           |
+| API compute  | `Decimal.js`                | Multiplication and aggregation run in decimal arithmetic; no rounding.                                                                                                                                                                                                                    |
+| API response | `number` (IEEE-754 float64) | **The one lossy step.** Serializing calls `Decimal.toNumber()`, so a value is snapped to the nearest double. It is not a _rounding_ — no digits are dropped on purpose — but decimal fidelity beyond ~15–17 significant digits is gone, and binary artefacts appear in computed operands. |
+| Web compute  | `number` (float64)          | Step 3 recomputes line totals in the browser, inheriting float64 (see [float64 vs Decimal](../development/manual-testing-emission-capture.md#float64-vs-decimal)).                                                                                                                        |
+| Web display  | `Intl.NumberFormat`         | Rounding for legibility, per kind of number — see below.                                                                                                                                                                                                                                  |
+
+Two consequences worth stating plainly, because both have been reported as bugs:
+
+- The API **never rounds**, but "unrounded" is a float64 guarantee, not decimal fidelity to the stored `Decimal`. For values of the magnitude this domain stores the two coincide; the unrounded formatter is capped at `DB_DECIMAL_SCALE` (10) decimals precisely so a computed operand renders `1.231,2` and not its binary tail.
+- Emissions in **tCO₂e** are always `kg / 1000` — the storage unit is kilograms, the response unit is tonnes. Emission **factors** are the exception: they travel in their own `kg CO₂e/<unit>` rate unit, since that is how factor libraries publish them.
+
+### Display rules by kind of number
+
+Rounding is a frontend concern, owned by the `Formatter` in `apps/web/src/utils/formatting.ts` with its thresholds in `apps/web/src/config/constants.ts`. There is no single app-wide precision — each kind of number has its own rule, and the differences are deliberate:
+
+| Kind               | Method                | Rule                                                                                                                                                               | Why                                                                                                                                              |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Emissions (tCO₂e)  | `emissions()`         | 2 decimals; widens to at most `MAX_DISPLAY_DECIMALS` below `0,01`; `<0,000001` under that.                                                                         | tCO₂e is the unit of report and comparison — its precision must not vary between inventories, screens or rankings.                               |
+| Quantity           | `quantity()`          | Same as above.                                                                                                                                                     | The user typed it; echoing it back in a different precision is confusing.                                                                        |
+| Emission factor    | `emissionFactor()`    | **4 significant digits**, floored at 2 and capped at 6 decimals: `0,05694` · `2,68` · `1.164,49`. Floor and cap take precedence over the significant-digit target. | A factor rounded to 2 decimals stops reproducing the emissions shown next to it. The floor guarantees no regression against the previous format. |
+| Emission intensity | `emissionIntensity()` | Adaptive mass unit keeping the number in `[1, 1000)` — `tCO₂e` / `kgCO₂e` / `gCO₂e`; max 2 decimals; floor `<0,01 gCO₂e`. Returns `{ value, unit }`.               | A rate of `0,000057 tCO₂e` per unit is illegible in a hero typography; `57 gCO₂e` is the same number, readable.                                  |
+| Unrounded (audit)  | `exact()`             | No display rounding, capped at `DB_DECIMAL_SCALE` (10) decimals.                                                                                                   | Backs the audit affordances; the cap suppresses float64 binary tails.                                                                            |
+
+### Audit affordances
+
+Because the display rounds and the calculation does not, two places in the UI expose the underlying numbers on demand — via hover, keyboard focus **or** tap, never mouse-only:
+
+- **Exact factor.** A factor cell whose display rounds reveals `Valor usado en el cálculo: <unrounded>`. It appears **only** when the rounding actually hides digits: a tooltip that repeats the cell teaches users to ignore the affordance. Present in the step-3 capture grid and the step-4 `Factores utilizados` table.
+- **Calculation chain.** A detailed line's emissions cell reveals `21.600 h × 0,057 kg/h = 1.231,2 kg = 1,2312 t`, every operand unrounded so the multiplication actually checks out. This is the audit path when a large quantity makes even a 4-significant-digit factor insufficient to reproduce the total.
+
+The Excel export carries the same intent by different means: the factor is written as a **numeric** cell with a number format derived from these constants (out to the database's 10 decimals), not as a preformatted string — a spreadsheet has no tooltip to compensate a rounded display.
+
+Full normative rules, including threshold edge cases and the rationale for each bound, live in the `emission-factor-precision` and `emission-intensity-units` specs under `openspec/specs/`.
 
 ---
 
@@ -311,6 +347,7 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 | Custom factor sources | `packages/utils/src/constants.ts`                                                                          |
 | Subtotals view        | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
 | Display precision     | `apps/web/src/utils/formatting.ts` (`Formatter`), `apps/web/src/config/constants.ts`                       |
+| Number formatting API | [Number Formatting](../development/number-formatting.md)                                                   |
 
 ---
 
@@ -321,4 +358,4 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 Two behaviours documented there are worth knowing when reading this page:
 
 - The capture screen resolves factors from `GET /carbon-inventories/:id/methodology`, which returns each stored factor **plus a pre-generated variant per compatible rate unit**, rather than from `GET /emission-factors`.
-- Step 3 computes line totals in the browser with float64, while the persisted result is a `Decimal`. A single line can therefore differ by 0.01 tCO₂e between step 3 and step 4.
+- Step 3 computes line totals in the browser with float64, while the persisted result is a `Decimal`. A single line can therefore differ by 0.01 tCO₂e between step 3 and step 4. This is the one gap the audit affordances above cannot close, since both numbers are internally consistent with their own arithmetic.
