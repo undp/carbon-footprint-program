@@ -39,11 +39,36 @@ When something from upstream is needed:
 1. **Security fix** — cherry-pick the specific commit onto `rd/integration`,
    verify the gates (`pnpm format && pnpm lint && pnpm type-check`, the API test
    matrix and `Test (web)`), and deploy.
-2. **Feature or fix worth having** — cherry-pick deliberately, as a decision with
-   an owner. Expect to resolve seed-data conflicts by hand and to keep the
-   Dominican side of every conflicting file.
+2. **Feature or fix worth having** — take it deliberately, as a decision with an
+   owner. Expect to resolve seed-data conflicts by hand, and to keep **both**
+   sides of every conflicting file: the Dominican catalog changes and whatever
+   upstream did to the rows the deployment did not touch.
 3. **Anything touching the catalogs** — treat as a data decision, not a merge.
    The Dominican catalog is validated by MMARN; upstream is not.
+
+### Cherry-pick or rebase
+
+Cherry-picking is not the cheaper option it looks like. Anything landing on
+`rd/integration` moves the root, and moving the root rebases every branch of the
+stack anyway — so a cherry-pick costs one chain rebase _plus_ its own conflict
+resolution. When most of what upstream has is wanted, rebasing the stack onto
+`main` is the smaller operation and leaves the branch genuinely on top of
+upstream instead of carrying a partial copy of it.
+
+**Sync of 2026-08-26.** The stack was rebased onto `main` at `34f66c3b`, seven
+commits ahead. Two files conflicted: `methodologies.json` twice and
+`manual-testing-emission-capture.md` once. What it bought:
+
+- **Steel and zinc process factors were understated 1000×** on this branch —
+  `1.46 kg/ton` where the IPCC figure is `1460`. Inherited from the demo dataset,
+  not introduced here, and corrected upstream in the meantime.
+- **`Otro` was the first option in the Scope 2 dropdown.** Both capture endpoints
+  order dimension values `value: "asc"`, so the escape hatch sorted ahead of
+  `SENI`. Upstream now pins every `Otro` wording last.
+
+Both were defects this branch would have shipped. The rule that follows: when the
+conflict is in `methodologies.json`, verify the result by diffing factors
+programmatically against `main` — not by reading the merge.
 
 ## Reseeding is destructive
 
