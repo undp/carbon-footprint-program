@@ -11,7 +11,7 @@
 - [x] 2.1 Rewrite `tools/seed/src/data/base/countries.json`: `País Demo` / `PD` → `República Dominicana` / `DO`
 - [x] 2.2 Sweep `countryIsoCode` from `PD` to `DO` across the six base seed files that carry it: `country_organization_size.json`, `country_sector_subsectors.json`, `methodologies.json`, `country_job_positions.json`, `organization_main_activities.json`, `subcategory_recommendations.json`
 - [x] 2.3 Confirm the sweep is complete with `grep -rn '"PD"' tools/seed/src/data/base/` and verify no `.ts`/`.tsx` file references the ISO code
-- [ ] 2.4 Run `pnpm db:reset` followed by the seed to prove the dataset loads end to end under the new ISO
+- [x] 2.4 Run `pnpm db:reset` followed by the seed to prove the dataset loads end to end under the new ISO — proven through the API test harness, whose `globalSetup` runs `prisma migrate deploy` and `pnpm run seed` against a fresh Postgres testcontainer on every run. The full suite is green, so the whole dataset loads under `DO`
 - [x] 2.5 Run `pnpm format && pnpm lint && pnpm type-check`
 
 ## 3. PR 2 — Terminology · base PR 1 · no migration
@@ -34,14 +34,14 @@
 - [x] 4.3 Write the single migration directory with a timestamp preceding every later migration in the stack, and confirm both columns are nullable so it applies to a populated database
 - [x] 4.4 Insert the ten planning regions, the thirty-two provinces and the 157 municipios in the same migration, guarded on an empty table, because `seed.ts` skips a populated deployment
 - [x] 4.5 Extend the Zod schemas in `packages/types` for the new organization fields
-- [ ] 4.6 Apply the migration against a populated database and verify existing rows survive with `NULL`, and that the 199 territories load — ten planning regions, thirty-two provinces and 157 municipios
+- [x] 4.6 Apply the migration against a populated database and verify existing rows survive with `NULL`, and that the 199 territories load — ten planning regions, thirty-two provinces and 157 municipios. Done against a throwaway Postgres 18.6: every migration up to `20260819120000` deployed, two `organization_data` rows inserted, then `20260821120000` applied. Both rows survived with `NULL` in `secondary_subsector_id` and `territory_id` and their other columns untouched; the catalog landed 10 / 32 / 157 with no orphan below a region, Azua under El Valle, Santiago with ten municipios and the Distrito Nacional with none. Re-running the three inserts is a no-op, so the empty-table guard and the two `ON CONFLICT DO NOTHING` clauses both hold
 - [x] 4.7 Run `pnpm format && pnpm lint && pnpm type-check`
 
 ## 5. PR 4 — Organization sizes · base PR 3 · no migration
 
 - [x] 5.1 Replace the eight demo tiers in `country_organization_size.json` with the four Ley 187-17 categories: Microempresa (hasta 10 trabajadores), Pequeña empresa (11-50), Mediana empresa (51-150), Empresa grande
 - [x] 5.2 Confirm the size tier is not derived from `employeesCount`, so an organization can declare a tier without disclosing an exact headcount
-- [ ] 5.3 Run `pnpm db:reset`, seed, and verify the organization form offers exactly the four tiers
+- [~] 5.3 Run `pnpm db:reset`, seed, and verify the organization form offers exactly the four tiers — the seed loads the four Ley 187-17 tiers and the suite is green against them; that the **form** renders exactly those four is still a UI check nobody has made
 - [x] 5.4 Run `pnpm format && pnpm lint && pnpm type-check`
 
 ## 6. PR 5 — Supporting documents for inscription · base PR 4 · no migration
@@ -58,8 +58,8 @@
 - [x] 7.4 Split `Distribución y Transmisión` into `Transmisión de energía` and `Distribución de energía`
 - [x] 7.5 Remap the 19 entries in `organization_main_activities.json` onto the new sector names, deciding which intensity denominator belongs to each sector
 - [x] 7.6 Remap the 10 entries in `subcategory_recommendations.json` onto the new sector names
-- [ ] 7.7 Run `pnpm db:reset` and seed, confirming neither name-resolution guard in `seedOrganizationMainActivities` nor `seedSubcategoryRecommendations` throws
-- [ ] 7.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /countrySectors --coverage=false`
+- [x] 7.7 Run `pnpm db:reset` and seed, confirming neither name-resolution guard in `seedOrganizationMainActivities` nor `seedSubcategoryRecommendations` throws — the harness seeds a fresh database on every API run and both guards stayed silent, so all 19 intensity denominators and 10 recommendations resolved their sector by name
+- [x] 7.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /countrySectors --coverage=false` — green, as part of the full API suite
 
 ## 8. PR 7 — Organization form and deletion warnings · base PR 6 · no migration
 
@@ -70,7 +70,7 @@
 - [x] 8.5 Persist the new fields through `organizations/helpers.ts`, `mappers.ts` and the form handler, and surface them on `OrganizationProfileView`
 - [x] 8.6 Extend the sector and subsector `impactedChildren` organization count to include `secondary_subsector_id`, deduplicating an organization that references the same row as both primary and secondary
 - [x] 8.7 Write API integration tests for the secondary-activity round trip, the partial territorial selection, and the deduplicated `impactedChildren` count
-- [~] 8.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /organizations --coverage=false` — the first three ran green; the API tests need a database this environment does not have
+- [x] 8.8 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /organizations --coverage=false` — green, as part of the full API suite
 
 ## 9. PR 8 — RD methodology · base PR 7 · no migration · blocked on task 1.2
 
@@ -82,11 +82,11 @@
 - [-] 9.6 ~~Declare the escape-hatch value names in `COMMENT_REQUIRED_DIMENSION_VALUES`~~ — dropped with 9.5
 - [x] 9.7 Update the three affected subcategory explanation markdowns, including the Scope 2 text that currently promises options the dimension does not offer
 - [-] 9.8 ~~Write API integration tests for the comment requirement~~ — dropped with 9.5
-- [~] 9.9 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /emissionFactorDimensions --coverage=false` — the first three ran green; the API tests need a database this environment does not have
+- [x] 9.9 Run `pnpm format && pnpm lint && pnpm type-check && pnpm test:api -- /emissionFactorDimensions --coverage=false` — green, as part of the full API suite
 
 ## 10. Close out
 
-- [ ] 10.1 Verify the tip of the stack is green in CI (lint, type-check, format:check, API test matrix, `Test (web)`, build)
+- [x] 10.1 Verify the tip of the stack is green in CI (lint, type-check, format:check, API test matrix, `Test (web)`, build) — every one of those ran locally on the tip and passed: `lint`, `type-check`, `format:check`, `build`, `test:web` (746) and the full API matrix (2,304 passing, 8 skipped, across the `base`, `storage-azure` and `storage-minio` projects). GitHub Actions itself never runs on this stack: `ci.yml` triggers on `pull_request: branches: [main]`, and every pull request here targets another stack branch
 - [ ] 10.2 Record MMARN's answers to the three Open Questions in `design.md`, and correct the catalog or schema if any answer diverges from the assumption taken
 - [x] 10.3 Document the upstream freeze in the branch's README or deployment notes: only security fixes are cherry-picked from Huella Latam, with no periodic rebase
 
@@ -116,14 +116,21 @@ task 10.3. What was **not** done, and why:
   `docs/development/rd-methodology-factors.md` records what ships with a number,
   what does not, and the question MMARN has to answer before the gaps close.
 - **Every `pnpm db:reset` / seed / API-test task** (2.4, 4.6, 5.3, 7.7, 7.8,
-  8.8, 9.9) — no Postgres or Docker in the authoring environment. `format`,
-  `lint`, `type-check` and `test:web` were run green on each PR; the migration in
-  PR 3 is hand-written and unapplied — its territorial inserts included —, and every API integration test added by the
-  stack is unrun — PR 7's, the new coverage of the levels endpoint included.
-  PR 8 adds none: the tests it had covered the comment requirement, which was
-  dropped. The
-  two new seeders (`seedTerritories`, and the methodology rewrite) have never run
-  against a database either.
+  8.8, 9.9) — closed on 2026-08-26, once Postgres and Docker became available in
+  the authoring environment. The full API suite runs green on the tip (2,304
+  passing, 8 skipped, 226 files) with `globalSetup` deploying every migration and
+  running the whole seed against a fresh testcontainer, so the migration, both
+  new seeders and the methodology rewrite are all exercised. Task 4.6 was closed
+  separately against a **populated** database, which the harness cannot cover
+  because it always starts empty. Only 5.3 stays partial: its remaining half is a
+  UI check, not a database one.
+
+- **The suite caught one regression the stack had introduced.** PR 2 renamed the
+  intensity-denominator fallback from `actividad principal` to
+  `unidad de actividad` in `getMainActivityEquivalence` and
+  `getEmissionsDetailedSummary`, and left two integration tests asserting the old
+  wording. Nothing had run them. Both assertions now follow the rename, folded
+  into the commit that made it.
 - **Task 7.1 shipped 18 sectors, not 17** — the mapping needs both
   `Industria Cementera`, the target of the non-metallic-minerals split, and
   `Bienes Raíces`. Keeping the existing sector names also made 7.5/7.6 a no-op
