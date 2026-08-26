@@ -66,12 +66,12 @@ dressed as a factor.
 
 ## Scope 3 — Desplazamiento diario de empleados
 
-| Change                                                       | Basis                                                                                                 |
-| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `Teleférico` added, **no factor**                            | The option the observation asks for — see below                                                       |
-| `Tren cercanías` and `Tren larga distancia` removed          | The country has no passenger rail network; the Santo Domingo metro stays as `Metro`                   |
-| `Taxi/Ride-share` → `Taxi/vehículo de transporte individual` | One value, not three. Taxi, motoconcho and platform vehicles are split only once their factors differ |
-| `Bici` → `Bicicleta`                                         | Wording                                                                                               |
+| Change                                                       | Basis                                                                                                                                                                         |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Teleférico` added, **no factor**                            | The option the observation asks for — see below                                                                                                                               |
+| `Tren cercanías` and `Tren larga distancia` removed          | The country has no passenger rail network; the Santo Domingo metro stays as `Metro`                                                                                           |
+| `Taxi/Ride-share` → `Taxi/vehículo de transporte individual` | One value, not two: taxi and platform vehicles are split only once their factors differ. The motoconcho is not one of them — it is a motorcycle, and `Moto` already prices it |
+| `Bici` → `Bicicleta`                                         | Wording                                                                                                                                                                       |
 
 Both renames keep the platform's existing factors: the numbers are the same rows
 under new names, not new values.

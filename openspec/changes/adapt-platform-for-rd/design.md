@@ -87,6 +87,8 @@ _Consequence._ A registrant selecting one of the new values has to supply a fact
 
 Observation 5 conditions the breakdown of taxi, digital-platform vehicle and shared transport on "solo si la metodología asigna factores diferentes". Until Dominican factors distinguish them, the catalog carries one `Taxi/vehículo de transporte individual` value.
 
+The motoconcho is outside that condition: the factors already distinguish it, because it is a motorcycle and `Moto` prices it at 0.114 against the taxi's 0.149 for a car. Folding it into the taxi option would overstate a motoconcho kilometre by roughly a third, so the subcategory explanation sends it to `Moto`.
+
 ### 9. Deletion warnings count secondary references
 
 `DeleteWarningDialog` receives `impactedChildren.organizationData`: how many organizations will end up pointing at a soft-deleted row. That count must include organizations referencing the subsector as their secondary activity, or an admin confirms a deletion against an understated number. This is the only maintainer change the design forces, and decision 3 makes it non-negotiable.

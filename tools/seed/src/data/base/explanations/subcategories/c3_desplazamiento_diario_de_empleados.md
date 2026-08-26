@@ -15,7 +15,9 @@ Cubre todos los modos de transporte que usan los empleados, con desglose de **Ti
 
 > Para modos que no se desglosan por combustible (Bus, Metro, Teleférico, Bicicleta, Caminata), usa la variante **"No aplica"**.
 
-> El **taxi, el motoconcho y los vehículos de plataformas digitales** se declaran juntos en **Taxi/vehículo de transporte individual**: hoy comparten un mismo factor de emisión, por lo que separarlos no cambiaría el resultado.
+> El **taxi y los vehículos solicitados mediante plataformas digitales** se declaran juntos en **Taxi/vehículo de transporte individual**: hoy comparten un mismo factor de emisión, por lo que separarlos no cambiaría el resultado.
+
+> ⚠️ El **motoconcho no va ahí**: es una motocicleta, y la plataforma ya tiene un factor propio para ese modo. Decláralo en **Moto**, que emite bastante menos por kilómetro que un automóvil.
 
 ---
 
