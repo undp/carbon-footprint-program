@@ -3265,6 +3265,10 @@
                     "parentValue": null
                   },
                   {
+                    "name": "Teleférico",
+                    "parentValue": null
+                  },
+                  {
                     "name": "Taxi/vehículo de transporte individual",
                     "parentValue": null
                   },
@@ -3274,10 +3278,6 @@
                   },
                   {
                     "name": "Caminata",
-                    "parentValue": null
-                  },
-                  {
-                    "name": "Teleférico",
                     "parentValue": null
                   },
                   {
