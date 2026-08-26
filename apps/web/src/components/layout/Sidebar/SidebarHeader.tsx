@@ -15,6 +15,14 @@ interface SidebarHeaderProps {
 
 const HEADER_ROW_HEIGHT = 40;
 
+/**
+ * The expanded row lays the wordmark, the area chip and the pin out at fixed
+ * widths, so the three of them have to fit inside `SIDEBAR_WIDTH` minus the
+ * gutters of the toolbar: whatever lands past that edge is cut away by the
+ * drawer's `overflowX: hidden` instead of wrapping. They currently add up to
+ * ~241px of the ~247px the expanded rail offers, so keep an eye on that budget
+ * whenever one of them grows.
+ */
 export const SidebarHeader: FC<SidebarHeaderProps> = ({
   isExpanded,
   isPinned,
@@ -28,9 +36,10 @@ export const SidebarHeader: FC<SidebarHeaderProps> = ({
       <Box
         sx={{
           position: "relative",
+          flex: 1,
+          minWidth: 0,
           mx: 1,
           my: 0.25,
-          width: "100%",
           height: HEADER_ROW_HEIGHT,
         }}
       >
@@ -53,7 +62,7 @@ export const SidebarHeader: FC<SidebarHeaderProps> = ({
             inset: 0,
             display: "flex",
             alignItems: "center",
-            gap: 1.5,
+            gap: 0.75,
             opacity: isExpanded ? 1 : 0,
             pointerEvents: isExpanded ? "auto" : "none",
             transition: sidebarTransition(theme, "opacity"),
@@ -68,7 +77,7 @@ export const SidebarHeader: FC<SidebarHeaderProps> = ({
           >
             <BrandLockup
               markHeight={30}
-              nameFontSize={12.5}
+              nameFontSize={12}
               territoryFontSize={7}
               showTerritory={false}
               gap={1}
@@ -83,7 +92,7 @@ export const SidebarHeader: FC<SidebarHeaderProps> = ({
               height: 22,
               fontSize: 10,
               fontWeight: 600,
-              width: 62,
+              width: 54,
               flexShrink: 0,
               letterSpacing: 0.5,
               textTransform: "uppercase",
