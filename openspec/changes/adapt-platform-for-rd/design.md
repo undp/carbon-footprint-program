@@ -71,7 +71,7 @@ A first pass obliged a capture line selecting an escape-hatch value to carry a c
 
 _Alternatives considered._ A dedicated boolean column on the dimension value survives a rename, which a name rule does not — but it only earns its schema if an administrator can toggle it, which means a maintainer surface for a deployment that seeds its methodology. Requiring a comment on every line maximizes traceability at the cost of friction on inventories with hundreds of lines, and invites filler text.
 
-_Consequence._ Nothing stops an inventory from resolving several lines to `Otro` with no explanation. The conservative factor is what keeps that from understating; auditing which inventories lean on the catch-all is a reporting question, not a validation one.
+_Consequence._ Nothing stops an inventory from resolving several lines to `Otro` with no explanation. Nothing prices them either — decision 7 leaves `Otro` without a factor — so the registrant has to supply one to close the line, and an inventory leaning on the catch-all is visible in its manual factors. Auditing which ones do is a reporting question, not a validation one.
 
 ### 7. The new dimension values ship without factors
 
@@ -131,7 +131,7 @@ The work ships as a single linear stack of stacked pull requests. Each pull requ
 | 5   | `feat/mati/rd-supporting-documents` | PR 4             | Documents required at inscription                                          |
 | 6   | `feat/mati/rd-activity-catalog`     | PR 5             | 17/66 and the 29 dependent seed entries                                    |
 | 7   | `feat/mati/rd-organization-form`    | PR 6             | Four form fields, ONE territorial seed, deletion-warning count             |
-| 8   | `feat/mati/rd-methodology`          | PR 7             | Dimension values, factors, comment flags, explanations                     |
+| 8   | `feat/mati/rd-methodology`          | PR 7             | Dimension values, the SENI grid factor, explanations                       |
 
 The order is fixed by four constraints and one scheduling choice.
 

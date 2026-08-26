@@ -78,7 +78,7 @@
 - [x] 9.2 Define the solid-waste `Destino` dimension as open dump, controlled dump, sanitary landfill, incineration, recycling and `Otro`
 - [x] 9.3 Define the Scope 2 `Sistema eléctrico` dimension as SENI, isolated systems and `Otro`
 - [-] 9.4 ~~Assign every new dimension value its Dominican emission factor~~ — the values ship without factors. Dominican factors are MMARN's to set, and one derived here would be a foreign estimate that stops travelling with its reasoning once seeded. A value with no factor falls through to `Otro` in the factor-source selector, where the registrant supplies their own. The single exception is the SENI grid factor, which replaces a UK figure that priced Scope 2 for the whole country roughly threefold low
-- [-] 9.5 ~~Enforce the comment requirement in the capture form~~ — dropped. The rule matched by value name, so it could not be scoped to one dimension without becoming a per-dimension rule, and two `Otro` options behaving differently from every other value costs more in explanation than the traceability buys. The conservative factor stays; the comment is optional, like every other comment in capture
+- [-] 9.5 ~~Enforce the comment requirement in the capture form~~ — dropped. The rule matched by value name, so it could not be scoped to one dimension without becoming a per-dimension rule, and two `Otro` options behaving differently from every other value costs more in explanation than the traceability buys. The conservative factor went with the rest of the derived numbers in 9.4; the comment is optional, like every other comment in capture
 - [-] 9.6 ~~Declare the escape-hatch value names in `COMMENT_REQUIRED_DIMENSION_VALUES`~~ — dropped with 9.5
 - [x] 9.7 Update the three affected subcategory explanation markdowns, including the Scope 2 text that currently promises options the dimension does not offer
 - [-] 9.8 ~~Write API integration tests for the comment requirement~~ — dropped with 9.5
@@ -106,18 +106,22 @@ task 10.3. What was **not** done, and why:
   loading them is a data change. The form asks the catalog which levels have rows
   and renders one selector each, so the missing levels are invisible rather than
   broken, and a level that lands later appears without a code change.
-- **PR 8 (methodology)** — built. The dimension values and the comment
-  requirement are decisions the observations state outright, so they are final;
-  the **factors are a documented proposal**, since MMARN never answered task 1.2.
-  `docs/development/rd-methodology-factors.md` records every derivation and the
-  two places it is an approximation worth challenging — above all the SENI grid
-  factor, which prices Scope 2 for the whole country and replaces the demo
-  dataset's UK figure.
+- **PR 8 (methodology)** — built. The dimension values are decisions the
+  observations state outright, so they are final. The **factors are not**: since
+  MMARN never answered task 1.2, every new value ships as an option with no
+  factor rather than with one derived here, and falls through to `Otro` in the
+  factor-source selector where the registrant supplies their own. The one
+  exception is the SENI grid factor, which prices Scope 2 for the whole country
+  and replaces the demo dataset's UK figure.
+  `docs/development/rd-methodology-factors.md` records what ships with a number,
+  what does not, and the question MMARN has to answer before the gaps close.
 - **Every `pnpm db:reset` / seed / API-test task** (2.4, 4.6, 5.3, 7.7, 7.8,
   8.8, 9.9) — no Postgres or Docker in the authoring environment. `format`,
   `lint`, `type-check` and `test:web` were run green on each PR; the migration in
   PR 3 is hand-written and unapplied — its territorial inserts included —, and every API integration test added by the
-  stack is unrun — the eight in PR 7 and the seven in PR 8. The
+  stack is unrun — PR 7's, the new coverage of the levels endpoint included.
+  PR 8 adds none: the tests it had covered the comment requirement, which was
+  dropped. The
   two new seeders (`seedTerritories`, and the methodology rewrite) have never run
   against a database either.
 - **Task 7.1 shipped 18 sectors, not 17** — the mapping needs both
