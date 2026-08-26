@@ -4,7 +4,6 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
 } from "@repo/types";
-import { formatter } from "@/utils/formatting";
 import { buildCarbonInventoryWorkbook } from "./exportCarbonInventoryToExcel";
 
 // Types are derived from the real response shapes (via indexed access) so the
@@ -277,6 +276,18 @@ describe("buildCarbonInventoryWorkbook — Detalle emisiones sheet", () => {
     expect(row3.getCell(10).value).toBe("-");
   });
 
+  it("gives the factor column a number format that does not hide its decimals", async () => {
+    const workbook = await buildAndLoad(2024, makeSummary(), [makeFactor()], 0);
+    const worksheet = sheet(workbook, "Detalle emisiones");
+
+    // The factor keeps every decimal the database stores; quantities and
+    // emissions show two decimals normally but reveal the app's adaptive
+    // precision on the small-footprint lines a flat "#,##0.00" would hide.
+    expect(worksheet.getColumn(7).numFmt).toBe("#,##0.00########");
+    expect(worksheet.getColumn(6).numFmt).toBe("#,##0.00####");
+    expect(worksheet.getColumn(9).numFmt).toBe("#,##0.00####");
+  });
+
   it("writes the 'Sin datos de emisiones' fallback when there are no lines", async () => {
     const workbook = await buildAndLoad(
       2024,
@@ -326,18 +337,62 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(row2.getCell(1).value).toBe("Energía (Alcance 2)");
     expect(row2.getCell(2).value).toBe("Electricidad");
     expect(row2.getCell(3).value).toBe("Consumo eléctrico");
-    expect(row2.getCell(4).value).toBe(
-      `${formatter.emissionFactor(0.5)} kg CO₂e/kWh`
-    );
+    // The factor is a number a spreadsheet formula can multiply; the rate
+    // unit rides in the cell's number format instead of inside the value.
+    expect(row2.getCell(4).value).toBe(0.5);
+    expect(row2.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/kWh"');
     expect(row2.getCell(5).value).toBe("SEN - Red nacional");
 
     // Row 3: no synonyms + no source detail.
     const row3 = worksheet.getRow(3);
     expect(row3.getCell(1).value).toBe("Combustión");
-    expect(row3.getCell(4).value).toBe(
-      `${formatter.emissionFactor(2.68)} kg CO₂e/L`
-    );
+    expect(row3.getCell(4).value).toBe(2.68);
+    expect(row3.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/L"');
     expect(row3.getCell(5).value).toBe("IPCC");
+  });
+
+  it("keeps every decimal of a factor the app used to round away", async () => {
+    // 10 decimals: the full scale an own factor can be typed with. The
+    // spreadsheet has no exact-value tooltip, so what the cell *displays* has
+    // to carry them all.
+    const preciseFactor = makeFactor({
+      factorValue: 0.0569441234,
+      rateUnit: "kg CO₂e/L",
+    });
+
+    const workbook = await buildAndLoad(
+      2024,
+      makeSummary(),
+      [preciseFactor],
+      0
+    );
+    const worksheet = sheet(workbook, "Factores utilizados");
+
+    const cell = worksheet.getRow(2).getCell(4);
+    expect(cell.value).toBe(0.0569441234);
+    expect(cell.numFmt).toBe('#,##0.00########" kg CO₂e/L"');
+  });
+
+  it("drops the unit rather than the sheet when the rate unit is absurdly long", async () => {
+    // `rateUnit` is maintainer-editable with no length bound; interpolated into
+    // the number format it could exceed Excel's 255-char ceiling and make the
+    // whole workbook unopenable. The format falls back to the plain numeric one.
+    const factorWithHugeUnit = makeFactor({
+      factorValue: 2.68,
+      rateUnit: `kg CO₂e/${"x".repeat(300)}`,
+    });
+
+    const workbook = await buildAndLoad(
+      2024,
+      makeSummary(),
+      [factorWithHugeUnit],
+      0
+    );
+    const worksheet = sheet(workbook, "Factores utilizados");
+
+    const cell = worksheet.getRow(2).getCell(4);
+    expect(cell.value).toBe(2.68);
+    expect(cell.numFmt).toBe("#,##0.00########");
   });
 
   it("writes the 'Sin factores utilizados' fallback when there are no factors", async () => {

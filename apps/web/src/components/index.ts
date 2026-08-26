@@ -21,6 +21,7 @@ export * from "./TypeChip";
 export * from "./SubmissionTypeChip";
 export * from "./SystemRoleChip";
 export * from "./OverflowTooltipText";
+export * from "./DetailTooltipText";
 export * from "./SearchBar";
 export * from "./AppActionButton";
 export * from "./AdminActionButton";

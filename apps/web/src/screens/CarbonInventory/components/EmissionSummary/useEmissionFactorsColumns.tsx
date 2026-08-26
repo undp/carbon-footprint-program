@@ -3,6 +3,7 @@ import { Box, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { CategoryChip } from "@/components/EmissionResults";
+import { DetailTooltipText } from "@/components";
 import { formatter } from "@/utils/formatting";
 
 const extractDenominator = (rateUnit: string): string => {
@@ -77,13 +78,29 @@ export const useEmissionFactorsColumns = (): GridColDef<
         headerClassName,
         cellClassName,
         flex: 1.2,
-        renderCell: ({ row }) => {
+        renderCell: ({ row, tabIndex }) => {
           const denominator = extractDenominator(row.rateUnit);
+          // Same audit affordance as the capture grid, under the same rule: the
+          // cell shows the rounded factor and the tooltip the value the
+          // emissions come from, but only when that rounding actually hides
+          // digits. The per-gas breakdown below inherits the precision and not
+          // the affordance — those values are not the number users reconcile.
+          const displayedFactor = formatter.emissionFactor(row.factorValue);
+          const exactFactor = formatter.exact(row.factorValue);
+          const exactValueDetail =
+            displayedFactor === exactFactor
+              ? ""
+              : `Valor usado en el cálculo: ${exactFactor} ${row.rateUnit}`;
           return (
             <Box className="flex flex-col gap-0.5">
-              <Typography variant="body2" fontWeight="fontWeightRegular">
-                {formatter.emissionFactor(row.factorValue)} {row.rateUnit}
-              </Typography>
+              <DetailTooltipText
+                detail={exactValueDetail}
+                tabIndex={tabIndex}
+                variant="body2"
+                fontWeight="fontWeightRegular"
+              >
+                {displayedFactor} {row.rateUnit}
+              </DetailTooltipText>
               {row.gasBreakdownLines.map((line, idx) => (
                 <Typography
                   key={idx}

@@ -3,10 +3,68 @@ import type {
   GetEmissionsDetailedSummaryResponse,
   GetEmissionFactorsResponse,
 } from "@repo/types";
-import { display, BASE_FONT_SIZE } from "@/services/excel";
-import { formatter } from "@/utils/formatting";
+import { display, applyNumberFormat, BASE_FONT_SIZE } from "@/services/excel";
+import {
+  DB_DECIMAL_SCALE,
+  FACTOR_DISPLAY_MIN_DECIMALS,
+  MAX_DISPLAY_DECIMALS,
+} from "@/config/constants";
 
-const NUM_FMT_DECIMAL = "#,##0.00";
+/**
+ * Quantity and line-emission columns. Two fixed decimals for ordinary values,
+ * optional ones up to the app's display ceiling for the small-footprint lines
+ * where a flat `#,##0.00` would collapse a `0,000123 t` emission into `0,00` —
+ * the same "the export contradicts the screen" defect the factor format
+ * removes, one column over. `formatNumeric` shows exactly 2 decimals above
+ * `0,01` and adapts up to `MAX_DISPLAY_DECIMALS` below it; the optional-digit
+ * format mirrors that closely enough for a spreadsheet.
+ */
+const NUM_FMT_DECIMAL = `#,##0.00${"#".repeat(MAX_DISPLAY_DECIMALS - 2)}`;
+
+/**
+ * Excel refuses to open a workbook whose custom number format exceeds 255
+ * characters and greets the user with a "repair the workbook" dialog. The
+ * rate unit interpolated into `factorNumFmtWithUnit` is maintainer-editable
+ * with no length bound, so one long abbreviation would otherwise take down the
+ * whole export rather than one cell.
+ */
+const EXCEL_NUM_FMT_MAX_LENGTH = 255;
+
+/**
+ * Emission factors need their own number format: with the shared
+ * `#,##0.00` a factor of `0,056944` *displays* as `0,06` inside the
+ * spreadsheet, reproducing there the very rounding this change removes from
+ * the app.
+ *
+ * Derived from the same constants as the app so the two cannot drift: the
+ * app's display floor is always shown, and the optional decimals reach
+ * `DB_DECIMAL_SCALE` instead of the app's display ceiling. The grid caps at 6
+ * to stay narrow and offers the exact value in a tooltip; a spreadsheet has no
+ * tooltip, so hiding the last decimals of a 10-decimal own factor would be the
+ * original bug all over again.
+ */
+const NUM_FMT_FACTOR = `#,##0.${"0".repeat(FACTOR_DISPLAY_MIN_DECIMALS)}${"#".repeat(
+  DB_DECIMAL_SCALE - FACTOR_DISPLAY_MIN_DECIMALS
+)}`;
+
+/**
+ * Same factor format with the rate unit appended as literal text. The cell
+ * keeps a plain number as its value — a spreadsheet formula can still
+ * multiply it — while showing which unit that number is expressed in. It is
+ * per cell and not in the column header because each factor row carries its
+ * own rate unit (`kg CO₂e/L`, `kg CO₂e/kWh`, …).
+ */
+function factorNumFmtWithUnit(rateUnit: string | null | undefined): string {
+  if (!rateUnit) return NUM_FMT_FACTOR;
+  // Double quotes delimit literal text in a number format, so they cannot
+  // appear inside one.
+  const withUnit = `${NUM_FMT_FACTOR}" ${rateUnit.replaceAll('"', "")}"`;
+  // Over the limit, drop the unit rather than the sheet — the plain numeric
+  // format is always well under 255 characters.
+  return withUnit.length <= EXCEL_NUM_FMT_MAX_LENGTH
+    ? withUnit
+    : NUM_FMT_FACTOR;
+}
 
 function buildSummarySheet(
   workbook: ExcelJS.Workbook,
@@ -132,7 +190,7 @@ function buildDetailTableSheet(
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
   worksheet.getColumn(6).numFmt = NUM_FMT_DECIMAL;
-  worksheet.getColumn(7).numFmt = NUM_FMT_DECIMAL;
+  worksheet.getColumn(7).numFmt = NUM_FMT_FACTOR;
   worksheet.getColumn(9).numFmt = NUM_FMT_DECIMAL;
 }
 
@@ -163,9 +221,10 @@ function buildFactorsSheet(
       display(categoryLabel),
       display(factor.subcategoryName),
       display(factor.activityParameter),
-      display(
-        `${formatter.emissionFactor(factor.factorValue)} ${factor.rateUnit}`
-      ),
+      // Numeric, not a preformatted string: the reader must be able to
+      // multiply this cell. The rate unit rides along in the cell's number
+      // format (see `factorNumFmtWithUnit`).
+      display(factor.factorValue),
       display(source),
     ];
   });
@@ -196,6 +255,17 @@ function buildFactorsSheet(
   });
 
   worksheet.views = [{ state: "frozen", ySplit: 1 }];
+
+  // Row 1 is the table header, so data rows start at 2 and keep the order of
+  // `factorsData`. `applyNumberFormat` skips any cell whose value is not a
+  // number, so a future nullable `factorValue` never carries a numeric format.
+  factorsData.forEach((factor, index) => {
+    applyNumberFormat(
+      worksheet.getRow(index + 2),
+      4,
+      factorNumFmtWithUnit(factor.rateUnit)
+    );
+  });
 }
 
 /**

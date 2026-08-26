@@ -78,6 +78,7 @@ and regenerated.
 | [Public-Page Content](./development/public-pages-content.md)                          | Where the landing / About / Resources / Acknowledgements copy, partners and lists live, and how to edit them       |
 | [API Design Conventions](./development/api-conventions.md)                            | Feature folder pattern, route/handler/service layering, plugin architecture, error handling, adding a new endpoint |
 | [Data Export and Reporting](./development/data-export.md)                             | Excel exports (inventory, reduction project, reduction plan), file downloads, and what is not yet supported        |
+| [Number Formatting (Web)](./development/number-formatting.md)                         | Which `Formatter` method to use, factor and intensity precision rules, audit tooltips, and input scales            |
 | [Testing Guide](./development/testing.md)                                             | Vitest + Testcontainers setup, test structure, writing integration tests                                           |
 | [Manual Testing — Emission Capture](./development/manual-testing-emission-capture.md) | Reproducible acceptance case for calculator step 3: fixture inventory, expected totals, and display artifacts      |
 | [Packages and Monorepo Internals](./development/packages.md)                          | Shared packages, dependency graph, Turborepo pipeline, schema change propagation                                   |
