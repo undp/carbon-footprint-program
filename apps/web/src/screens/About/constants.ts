@@ -86,7 +86,3 @@ export const ABOUT_SUPPORTERS: readonly AboutSupporter[] = [
  * fine print it used to be.
  */
 export const ABOUT_FOUNDATION_NOTE = `${BRAND.name} se construye sobre Huella Latam, un Bien Público Digital impulsado por el PNUD con el apoyo del Gobierno de Suecia y el desarrollo tecnológico de Inventures.`;
-
-/** Donor clause that has to accompany the attribution above. */
-export const ABOUT_RESPONSIBILITY_NOTE =
-  "Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";

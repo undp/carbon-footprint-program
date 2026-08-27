@@ -1,10 +1,9 @@
 import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
-import { ABOUT_FOUNDATION_NOTE, ABOUT_RESPONSIBILITY_NOTE } from "../constants";
+import { ABOUT_FOUNDATION_NOTE } from "../constants";
 
 /**
- * Closing note: the digital public good the platform is built on, and the
- * donor clause that accompanies it.
+ * Closing note: the digital public good the platform is built on.
  *
  * It used to be fine print at the foot of the screen and went unread, so it is
  * now a framed block set in the brand navy at reading size.
@@ -33,13 +32,6 @@ export const AboutFoundationNote: FC = () => {
         }}
       >
         {ABOUT_FOUNDATION_NOTE}
-      </Typography>
-      <Typography
-        component="p"
-        color="text.secondary"
-        sx={{ mt: 1.5, fontSize: 13.5, lineHeight: 1.7 }}
-      >
-        {ABOUT_RESPONSIBILITY_NOTE}
       </Typography>
     </Box>
   );
