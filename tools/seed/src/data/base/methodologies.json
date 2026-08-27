@@ -2377,7 +2377,7 @@
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "SENI",
-                "value": 0.5915
+                "value": 0.53495
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"],

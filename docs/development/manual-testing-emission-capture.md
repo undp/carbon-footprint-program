@@ -206,7 +206,7 @@ Quantities below are written exactly as they must be typed — no thousand separ
 | Combustiones móviles       | Camioneta / Gasolina-Nafta                              | 4600     | litros              | 2.339        | kg/L          | DEFRA 2025  | 2,339        | 10 759.4    | **10,76**           |
 | Emisiones fugitivas        | HFC-134a                                                | 45       | kilógramos          | 1 300        | kg/kg         | DEFRA 2025  | 1.300        | 58 500      | **58,5**            |
 | Emisiones fugitivas        | HFC-32                                                  | 18       | kilógramos          | 677          | kg/kg         | DEFRA 2025  | 677          | 12 186      | **12,19**           |
-| Electricidad               | SENI                                                    | 1850     | megawatts hora      | 591.5        | kg/MWh        | SENI        | 591,5        | 1 094 275   | **1.094,28**        |
+| Electricidad               | SENI                                                    | 1850     | megawatts hora      | 534.95       | kg/MWh        | SENI        | 534,95       | 989 657.5   | **989,66**          |
 | Productos comprados        | Plástico / Primera mano                                 | 85       | toneladas           | 3 172        | kg/ton        | DEFRA 2025  | 3.172        | 269 620     | **269,62**          |
 | Productos comprados        | Papel y cartón / Con material reciclado                 | 140      | toneladas           | 1 068        | kg/ton        | DEFRA 2025  | 1.068        | 149 520     | **149,52**          |
 | Disposición de residuos    | Residuos comerciales o industriales / Relleno sanitario | 62       | toneladas           | 520.5327     | kg/ton        | DEFRA 2025  | 520,53 ⓘ     | 32 273.0274 | **32,27**           |
@@ -226,30 +226,30 @@ Quantities below are written exactly as they must be typed — no thousand separ
 
 The four factors that require conversion:
 
-| Stored factor                  | Unit picked    | Applied factor     | Derivation                |
-| ------------------------------ | -------------- | ------------------ | ------------------------- |
-| Diésel · 2 570 `kg/m3`         | litros         | **2.57** `kg/L`    | 2 570 × 1 / 1 000         |
-| Gasolina/Nafta · 2 339 `kg/m3` | litros         | **2.339** `kg/L`   | 2 339 × 1 / 1 000         |
-| GLP · 2 939 `kg/ton`           | kilógramos     | **2.939** `kg/kg`  | 2 939 × 1 000 / 1 000 000 |
-| Electricidad · 0.5915 `kg/kWh` | megawatts hora | **591.5** `kg/MWh` | 0.5915 × 1 000 / 1        |
+| Stored factor                   | Unit picked    | Applied factor      | Derivation                |
+| ------------------------------- | -------------- | ------------------- | ------------------------- |
+| Diésel · 2 570 `kg/m3`          | litros         | **2.57** `kg/L`     | 2 570 × 1 / 1 000         |
+| Gasolina/Nafta · 2 339 `kg/m3`  | litros         | **2.339** `kg/L`    | 2 339 × 1 / 1 000         |
+| GLP · 2 939 `kg/ton`            | kilógramos     | **2.939** `kg/kg`   | 2 939 × 1 000 / 1 000 000 |
+| Electricidad · 0.53495 `kg/kWh` | megawatts hora | **534.95** `kg/MWh` | 0.53495 × 1 000 / 1       |
 
 ### Per subcategory
 
 Shown in each subcategory header.
 
-| Subcategory                                       | kg CO₂e      | t CO₂e (exact) | Header shows       |
-| ------------------------------------------------- | ------------ | -------------- | ------------------ |
-| Combustiones estacionarias                        | 41 529.8     | 41.5298        | **41,53 tCO₂e**    |
-| Combustiones móviles (flota propia)               | 83 747.4     | 83.7474        | **83,75 tCO₂e**    |
-| Emisiones fugitivas                               | 70 686       | 70.686         | **70,69 tCO₂e**    |
-| Electricidad                                      | 1 094 275    | 1094.275       | **1.094,28 tCO₂e** |
-| Productos comprados                               | 419 140      | 419.14         | **419,14 tCO₂e**   |
-| Disposición de residuos sólidos                   | 32 357.36964 | 32.35736964    | **32,36 tCO₂e**    |
-| Consumo de agua y tratamiento de aguas residuales | 15 293.24    | 15.29324       | **15,29 tCO₂e**    |
-| Desplazamiento diario de empleados                | 59 478       | 59.478         | **59,48 tCO₂e**    |
-| Trabajo remoto de empleados                       | 2 256        | 2.256          | **2,26 tCO₂e**     |
-| Viajes de negocios - Estadía                      | 554.2        | 0.5542         | **0,55 tCO₂e**     |
-| Transporte y distribución de bienes aguas arriba  | 43 816       | 43.816         | **43,82 tCO₂e**    |
+| Subcategory                                       | kg CO₂e      | t CO₂e (exact) | Header shows     |
+| ------------------------------------------------- | ------------ | -------------- | ---------------- |
+| Combustiones estacionarias                        | 41 529.8     | 41.5298        | **41,53 tCO₂e**  |
+| Combustiones móviles (flota propia)               | 83 747.4     | 83.7474        | **83,75 tCO₂e**  |
+| Emisiones fugitivas                               | 70 686       | 70.686         | **70,69 tCO₂e**  |
+| Electricidad                                      | 989 657.5    | 989.6575       | **989,66 tCO₂e** |
+| Productos comprados                               | 419 140      | 419.14         | **419,14 tCO₂e** |
+| Disposición de residuos sólidos                   | 32 357.36964 | 32.35736964    | **32,36 tCO₂e**  |
+| Consumo de agua y tratamiento de aguas residuales | 15 293.24    | 15.29324       | **15,29 tCO₂e**  |
+| Desplazamiento diario de empleados                | 59 478       | 59.478         | **59,48 tCO₂e**  |
+| Trabajo remoto de empleados                       | 2 256        | 2.256          | **2,26 tCO₂e**   |
+| Viajes de negocios - Estadía                      | 554.2        | 0.5542         | **0,55 tCO₂e**   |
+| Transporte y distribución de bienes aguas arriba  | 43 816       | 43.816         | **43,82 tCO₂e**  |
 
 ### Per category and inventory total
 
@@ -258,11 +258,11 @@ Category totals appear in the `Total …` card at the top of each category tab.
 | Category                                         | kg CO₂e             | t CO₂e (exact)     | Card shows         |
 | ------------------------------------------------ | ------------------- | ------------------ | ------------------ |
 | 1 — Emisiones directas                           | 195 963.2           | 195.9632           | **195,96 tCO₂e**   |
-| 2 — Emisiones indirectas por energías importadas | 1 094 275           | 1094.275           | **1.094,28 tCO₂e** |
+| 2 — Emisiones indirectas por energías importadas | 989 657.5           | 989.6575           | **989,66 tCO₂e**   |
 | 3 — Otras emisiones indirectas                   | 572 894.80964       | 572.89480964       | **572,89 tCO₂e**   |
-| **TOTAL** (step 4 / step 5)                      | **1 863 133.00964** | **1 863.13300964** | **1.863,13 tCO₂e** |
+| **TOTAL** (step 4 / step 5)                      | **1 758 515.50964** | **1 758.51550964** | **1.758,52 tCO₂e** |
 
-Cross-checks: scope split ≈ 10.5 % / 58.7 % / 30.7 %; main-activity equivalence `1 863.13300964 / 18 500 000` = `0.00010070989…` tCO₂e per litre, which the adaptive mass unit renders as **100,71 gCO₂e/litros producidos** — in the step-4 caption and in the equivalence card of step 5 and the home screen. The raw tonne figure (`0,000101`) is never displayed; see [Display Precision](../architecture/emission-calculation.md#display-precision).
+Cross-checks: scope split ≈ 11.1 % / 56.3 % / 32.6 %; main-activity equivalence `1 758.51550964 / 18 500 000` = `0.00009505489…` tCO₂e per litre, which the adaptive mass unit renders as **95,05 gCO₂e/litros producidos** — in the step-4 caption and in the equivalence card of step 5 and the home screen. The raw tonne figure (`0,000095`) is never displayed; see [Display Precision](../architecture/emission-calculation.md#display-precision).
 
 ---
 
@@ -328,14 +328,14 @@ Step 3, per subcategory:
 Step 3, category cards:
 
 - [ ] Total emisiones directas = **195,96 tCO₂e**
-- [ ] Total emisiones indirectas por energías importadas = **1.094,28 tCO₂e**
+- [ ] Total emisiones indirectas por energías importadas = **989,66 tCO₂e**
 - [ ] Total otras emisiones indirectas = **572,89 tCO₂e**
 
 Steps 4 and 5:
 
-- [ ] Inventory total = **1.863,13 tCO₂e**
-- [ ] Scope split ≈ 10.5 % / 58.7 % / 30.7 %
-- [ ] The step-4 caption and the step-5 equivalence card both read **100,71 gCO₂e/litros producidos** — a `0,000101 tCO₂e/…` here means the adaptive mass unit did not apply.
+- [ ] Inventory total = **1.758,52 tCO₂e**
+- [ ] Scope split ≈ 11.1 % / 56.3 % / 32.6 %
+- [ ] The step-4 caption and the step-5 equivalence card both read **95,05 gCO₂e/litros producidos** — a `0,000095 tCO₂e/…` here means the adaptive mass unit did not apply.
 - [ ] The _Factores utilizados_ table of step 4 carries the same ⓘ affordance as the capture grid; its per-gas breakdown lines inherit the precision but deliberately not the affordance.
 
 Robustness:
@@ -364,11 +364,11 @@ ORDER BY c.position;
 
 Expected:
 
-| cat | kg                   | ton            |
-| --- | -------------------- | -------------- |
-| 1   | 195 963.2000000000   | 195.96320000   |
-| 2   | 1 094 275.0000000000 | 1 094.27500000 |
-| 3   | 572 894.8096400000   | 572.89480964   |
+| cat | kg                 | ton          |
+| --- | ------------------ | ------------ |
+| 1   | 195 963.2000000000 | 195.96320000 |
+| 2   | 989 657.5000000000 | 989.65750000 |
+| 3   | 572 894.8096400000 | 572.89480964 |
 
 To inspect line by line (quantity, applied factor, rate unit, result):
 

@@ -13,7 +13,7 @@ adds is therefore an option with **no seeded factor**, with one exception.
 
 ## The exception: the SENI grid factor
 
-`0.5915 kgCO₂e/kWh` replaces `0.177`, a UK figure inherited from the demo dataset
+`0.53495 kgCO₂e/kWh` replaces `0.177`, a UK figure inherited from the demo dataset
 that understated Dominican grid emissions roughly threefold. It is the one factor
 the branch changes, because it prices Scope 2 for every organization in the
 country and leaving a UK number there is worse than replacing it with an
@@ -35,11 +35,11 @@ code is involved.
 
 ## Scope 2 — Electricidad
 
-| Value           | Factor        | Note                                                                                          |
-| --------------- | ------------- | --------------------------------------------------------------------------------------------- |
-| SENI            | 0.5915 kg/kWh | The one replacement — see above                                                               |
-| Sistema aislado | none          | Typically diesel generation, so above the interconnected grid — by how much is MMARN's to say |
-| Otro            | none          | Escape hatch                                                                                  |
+| Value           | Factor         | Note                                                                                          |
+| --------------- | -------------- | --------------------------------------------------------------------------------------------- |
+| SENI            | 0.53495 kg/kWh | The one replacement — see above                                                               |
+| Sistema aislado | none           | Typically diesel generation, so above the interconnected grid — by how much is MMARN's to say |
+| Otro            | none           | Escape hatch                                                                                  |
 
 The demo dataset's single `Sistema nacional` value is gone: the country has an
 interconnected grid and isolated systems, and the observation asks for both.
