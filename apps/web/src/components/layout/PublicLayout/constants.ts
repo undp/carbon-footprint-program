@@ -22,8 +22,9 @@ export const PUBLIC_HEADER_NAME_FONT_SIZE = 17;
 export const PUBLIC_HEADER_TERRITORY_FONT_SIZE = 8.5;
 
 /**
- * Shape shared by the access buttons of the public header, so "Registrarse"
- * and "Iniciar sesión" read as a pair regardless of their variant.
+ * Shape of the access button of the public header. Kept as a constant rather
+ * than inlined: it sized a pair of buttons before the sign-up one came out, and
+ * the next action to join it should match without redefining the shape.
  */
 export const PUBLIC_ACCESS_BUTTON_SX: SxProps<Theme> = {
   borderRadius: 1.25,

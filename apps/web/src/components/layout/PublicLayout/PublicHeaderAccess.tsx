@@ -7,14 +7,16 @@ import { Routes } from "@/interfaces";
 import { PUBLIC_ACCESS_BUTTON_SX } from "./constants";
 
 /**
- * Access actions of the public header. An anonymous visitor gets the two doors
- * the platform has —registering a new organization and signing an existing one
- * in— and a visitor with a session open gets a single shortcut to the surface
- * that matches their role.
+ * Access action of the public header: an anonymous visitor signs in, and a
+ * visitor with a session open gets a single shortcut to the surface that
+ * matches their role.
+ *
+ * There is no sign-up button. `signUpRedirect` stays available on the auth
+ * context for whatever surface takes registration on later.
  */
 export const PublicHeaderAccess: FC = () => {
   const navigate = useNavigate();
-  const { signInRedirect, signUpRedirect, user } = useAuth();
+  const { signInRedirect, user } = useAuth();
 
   const isAdmin =
     user?.role === SystemRole.ADMIN || user?.role === SystemRole.SUPERADMIN;
@@ -34,25 +36,12 @@ export const PublicHeaderAccess: FC = () => {
   }
 
   return (
-    <>
-      <Button
-        variant="outlined"
-        onClick={() => void signUpRedirect(Routes.HOME)}
-        sx={{
-          ...PUBLIC_ACCESS_BUTTON_SX,
-          borderWidth: 1.5,
-          "&:hover": { borderWidth: 1.5 },
-        }}
-      >
-        Registrarse
-      </Button>
-      <Button
-        variant="contained"
-        onClick={() => void signInRedirect(Routes.HOME)}
-        sx={PUBLIC_ACCESS_BUTTON_SX}
-      >
-        Iniciar sesión
-      </Button>
-    </>
+    <Button
+      variant="contained"
+      onClick={() => void signInRedirect(Routes.HOME)}
+      sx={PUBLIC_ACCESS_BUTTON_SX}
+    >
+      Iniciar sesión
+    </Button>
   );
 };
