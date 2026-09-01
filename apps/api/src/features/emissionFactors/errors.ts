@@ -8,7 +8,7 @@ export const EmissionFactorNotFoundError = createError(
 
 export const EmissionFactorDuplicateError = createError(
   "EMISSION_FACTOR_DUPLICATE",
-  "An active emission factor with this source already exists for this subcategory",
+  "An active emission factor already exists for this subcategory with the same required dimension values, year, source and unit family",
   409
 );
 
@@ -22,12 +22,6 @@ export const RateMeasurementUnitNotFoundError = createError(
   "RATE_MEASUREMENT_UNIT_NOT_FOUND",
   "Rate measurement unit not found",
   404
-);
-
-export const EmissionFactorSourceConflictError = createError(
-  "EMISSION_FACTOR_SOURCE_CONFLICT",
-  "All active emission factors for this subcategory must share the same source. Existing source: %s",
-  409
 );
 
 export const EmissionFactorGasDetailsMismatchError = createError(
