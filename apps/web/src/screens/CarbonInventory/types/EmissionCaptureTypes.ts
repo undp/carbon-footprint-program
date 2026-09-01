@@ -19,8 +19,27 @@ export type LineFileSummary =
     isPending?: boolean;
   };
 
+/**
+ * The factor fields exactly as the server last returned them, captured when the
+ * line is loaded and never written to afterwards.
+ *
+ * Comparing the live fields against this is what lets a save say "I did not
+ * touch the factor" instead of restating one. That distinction matters for
+ * lines saved before the factor carried its catalog id: restating those loses
+ * the snapshot, while declaring them unchanged keeps it.
+ */
+export type LoadedFactorSnapshot = Pick<
+  CarbonInventoryLine,
+  | "emissionFactorId"
+  | "factorSource"
+  | "factorValue"
+  | "factorRateMeasurementUnitId"
+>;
+
 export type EmissionCaptureFormLine = Omit<CarbonInventoryLine, "files"> & {
   baseFactorId: string | null;
+  /** Null for a line created in this session: it has nothing stored yet. */
+  loadedFactor: LoadedFactorSnapshot | null;
   lineId: string;
   /**
    * Marks this line as newly created on the client.
