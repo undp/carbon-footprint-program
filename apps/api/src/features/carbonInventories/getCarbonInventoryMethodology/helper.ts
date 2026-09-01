@@ -32,6 +32,7 @@ type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
     dimensionValue2Id: true;
     rateMeasurementUnitId: true;
     source: true;
+    year: true;
     gasDetails: true;
     value: true;
     rateMeasurementUnit: {
@@ -59,10 +60,18 @@ type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
 type ConvertedEmissionFactor = {
   id: string;
   originalEmissionFactorId: string | null;
+  /**
+   * The canonical `emission_factor` row this item represents, set on the
+   * original and on every converted representation of it. A converted unit is a
+   * different way of writing one catalog factor, not a second catalog identity,
+   * so this is what a line-sync CATALOG selection sends.
+   */
+  baseEmissionFactorId: string;
   dimensionValue1Id: string | null;
   dimensionValue2Id: string | null;
   rateMeasurementUnitId: string;
   source: string;
+  year: number | null;
   gasDetails: Prisma.JsonValue;
   value: string;
 };
@@ -171,10 +180,12 @@ export const generateConvertedEmissionFactors = (
     {
       id: originalId,
       originalEmissionFactorId: null,
+      baseEmissionFactorId: originalId,
       dimensionValue1Id: emissionFactor.dimensionValue1Id?.toString() ?? null,
       dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
       rateMeasurementUnitId: emissionFactor.rateMeasurementUnitId.toString(),
       source: emissionFactor.source,
+      year: emissionFactor.year,
       gasDetails: emissionFactor.gasDetails,
       value: emissionFactor.value.toString(),
     },
@@ -221,10 +232,14 @@ export const generateConvertedEmissionFactors = (
       return {
         id: `${originalId}-${rateUnit.id.toString()}`, // Composite ID for uniqueness
         originalEmissionFactorId: originalId,
+        baseEmissionFactorId: originalId,
         dimensionValue1Id: emissionFactor.dimensionValue1Id?.toString() ?? null,
         dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
         rateMeasurementUnitId: rateUnit.id.toString(),
+        // Source and year describe the catalog vintage, so they follow the
+        // factor through every unit it is expressed in.
         source: emissionFactor.source,
+        year: emissionFactor.year,
         gasDetails: emissionFactor.gasDetails,
         value: convertedValue,
       };
