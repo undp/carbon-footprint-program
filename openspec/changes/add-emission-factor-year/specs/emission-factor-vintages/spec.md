@@ -4,7 +4,9 @@
 
 An `EmissionFactor` SHALL carry a nullable `year` attribute containing the reporting year the factor applies to, not merely its source publication year. `year = null` SHALL mean the factor is confirmed as transversal and applies to every reporting year.
 
-The `source` SHALL contain only the provider. Seed and import data SHALL provide `year` explicitly as an integer or `null`; omission SHALL NOT be interpreted as transversal.
+Seed and controlled import data SHALL keep provider/factor name in `source` and SHALL provide `year` explicitly as an integer or `null`; omission SHALL NOT be interpreted as transversal.
+
+The maintainer SHALL advise users not to include the reporting year in the factor/source name because presentation appends the separate year automatically. When the name appears to contain a four-digit year, the maintainer SHALL show a non-blocking warning. The warning SHALL NOT prevent saving solely because the text contains a year.
 
 #### Scenario: A dated factor is created
 
@@ -15,6 +17,13 @@ The `source` SHALL contain only the provider. Seed and import data SHALL provide
 
 - **WHEN** a maintainer creates a factor with an explicit `year = null`
 - **THEN** the factor SHALL be persisted as transversal and SHALL be eligible for every reporting year
+
+#### Scenario: A likely duplicated year produces guidance
+
+- **GIVEN** the maintainer year field is `2025`
+- **WHEN** the user enters `DEFRA 2025` as the factor/source name
+- **THEN** the maintainer SHALL advise using `DEFRA` because the displayed factor will append `(2025)` automatically
+- **AND** the warning SHALL NOT block saving
 
 #### Scenario: Migration separates a recognized source suffix
 
@@ -36,7 +45,7 @@ At most one ACTIVE emission factor SHALL exist for this business key:
 
 The exact measurement units SHALL NOT form the identity. The numerator/denominator magnitude pair SHALL define a unit family. Dimension slots that are not required by the subcategory SHALL be normalized to `null` for this rule.
 
-The application and a partial database unique index SHALL enforce the same key. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. The persisted family identity SHALL be derived by the server from the selected rate unit and SHALL NOT be accepted as client-authored data.
+The application and a partial database unique index SHALL enforce the same key. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. `EmissionFactor` SHALL persist `numeratorMagnitudeId` and `denominatorMagnitudeId`, derived by the server from the selected rate unit. These IDs SHALL NOT be accepted as client-authored data. No textual family key or additional unit-family table is required.
 
 #### Scenario: A second year is accepted
 
@@ -76,20 +85,20 @@ The catalog SHALL allow more than one source for the same activity, reporting ye
 
 #### Scenario: Two providers coexist for the same year
 
-- **GIVEN** a `DEFRA · 2025` factor exists for an activity and unit family
-- **WHEN** a maintainer creates an `IPCC · 2025` factor for the same activity and family
+- **GIVEN** a `DEFRA (2025)` factor exists for an activity and unit family
+- **WHEN** a maintainer creates an `IPCC (2025)` factor for the same activity and family
 - **THEN** creation SHALL succeed
 
 #### Scenario: Two transversal providers coexist
 
-- **GIVEN** an `IPCC · Transversal` factor exists for an activity and unit family
-- **WHEN** a maintainer creates a `Kool, A. · Transversal` factor for the same activity and family
+- **GIVEN** an `IPCC` factor with `year = null` exists for an activity and unit family
+- **WHEN** a maintainer creates a `Kool, A.` factor with `year = null` for the same activity and family
 - **THEN** creation SHALL succeed
 
 #### Scenario: The same provider cannot duplicate a transversal factor
 
-- **GIVEN** an `IPCC · Transversal` factor exists for an activity and unit family
-- **WHEN** another `IPCC · Transversal` factor is created for the same business key
+- **GIVEN** an `IPCC` factor with `year = null` exists for an activity and unit family
+- **WHEN** another `IPCC` factor with `year = null` is created for the same business key
 - **THEN** creation SHALL be rejected as a duplicate
 
 ### Requirement: Year and provider travel with every published factor

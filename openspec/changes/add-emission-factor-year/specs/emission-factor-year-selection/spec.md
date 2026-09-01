@@ -37,14 +37,14 @@ The platform SHALL preselect a factor only when the winning rank contains exactl
 
 #### Scenario: Equal-ranked providers require a choice
 
-- **GIVEN** a 2023 footprint with both `DEFRA · 2023` and `IPCC · 2023` compatible with the activity
+- **GIVEN** a 2023 footprint with both `DEFRA (2023)` and `IPCC (2023)` compatible with the activity
 - **WHEN** the organization completes the activity's required fields
 - **THEN** neither factor SHALL be preselected
 - **AND** the organization SHALL be asked to choose between both labeled candidates
 
 #### Scenario: Several transversal providers require a choice
 
-- **GIVEN** a footprint with `IPCC · Transversal` and `Kool, A. · Transversal` as the winning compatible candidates
+- **GIVEN** a footprint with transversal factors labeled `IPCC` and `Kool, A.` as the winning compatible candidates
 - **WHEN** the organization completes the activity's required fields
 - **THEN** neither factor SHALL be selected arbitrarily
 
@@ -61,24 +61,31 @@ The platform SHALL preselect a factor only when the winning rank contains exactl
 - **THEN** the unique transversal candidate MAY be preselected
 - **AND** a dated factor SHALL NOT be selected implicitly without an inventory year
 
-### Requirement: The organization selects a source and year combination
+### Requirement: The existing Factor selector includes source and year in its option text
 
-The selector SHALL present every compatible canonical factor in the chosen activity/unit family using a combined source/year label, such as `DEFRA · 2025`, `IPCC · Transversal` and `Kool, A. · Transversal`. Compatible converted units SHALL NOT appear as separate vintage records.
+The capture screen SHALL keep the existing single selector labeled `Factor`; it SHALL NOT introduce a separate year/vintage selector. A dated canonical catalog factor SHALL use generated option text such as `DEFRA (2025)`. A transversal factor SHALL show only its source, such as `IPCC` or `Kool, A.`, without adding `(Transversal)`. The existing `Otro` option SHALL remain in the same selector and SHALL continue opening the custom-factor flow. Compatible converted units SHALL NOT appear as separate catalog factor options.
 
 The organization SHALL be able to override a recommendation with any available candidate. A saved choice SHALL survive reload and SHALL remain selected if the inventory year later changes, until the organization replaces it explicitly.
 
 #### Scenario: The organization overrides the recommendation
 
-- **GIVEN** `DEFRA · 2023` is recommended and `DEFRA · 2022` is also available
-- **WHEN** the organization chooses `DEFRA · 2022` and saves
+- **GIVEN** `DEFRA (2023)` is recommended and `DEFRA (2022)` is also available
+- **WHEN** the organization chooses `DEFRA (2022)` and saves
 - **THEN** the line SHALL use the 2022 factor
 - **AND** the same choice SHALL be restored after reload
 
 #### Scenario: The organization chooses between transversal providers
 
-- **GIVEN** `IPCC · Transversal` and `Kool, A. · Transversal` are available
-- **WHEN** the organization selects `Kool, A. · Transversal`
+- **GIVEN** transversal factors labeled `IPCC` and `Kool, A.` are available
+- **WHEN** the organization selects `Kool, A.`
 - **THEN** that source SHALL be saved without assigning it a fabricated year
+
+#### Scenario: Otro remains in the Factor selector
+
+- **GIVEN** catalog factors such as `DEFRA (2025)` are listed in the `Factor` selector
+- **WHEN** the organization selects `Otro`
+- **THEN** the existing custom source, value and unit fields SHALL be shown
+- **AND** no catalog year SHALL be assigned to the custom factor
 
 ### Requirement: The API is authoritative for catalog factor application
 
@@ -96,7 +103,7 @@ For `CUSTOM` and `DIRECT`, the API SHALL apply their dedicated validation and ca
 
 #### Scenario: A valid catalog factor is applied in a compatible unit
 
-- **GIVEN** an ACTIVE canonical `DEFRA · 2023` factor in `kg/kWh` belongs to the inventory methodology
+- **GIVEN** an ACTIVE canonical `DEFRA (2023)` factor in `kg/kWh` belongs to the inventory methodology
 - **WHEN** the client submits its ID with a compatible mass/energy applied rate unit
 - **THEN** the API SHALL convert the catalog value to that unit
 - **AND** it SHALL calculate and persist the result and catalog snapshot from server-loaded data
@@ -127,7 +134,7 @@ The platform SHALL derive whether a dated catalog factor differs from the footpr
 
 #### Scenario: Catalog history remains reproducible
 
-- **GIVEN** a saved line used `DEFRA · 2022`
+- **GIVEN** a saved line used `DEFRA (2022)`
 - **WHEN** a maintainer edits that catalog row or adds a 2023 vintage
 - **THEN** the saved line SHALL keep its applied value, unit, source and year snapshots
 

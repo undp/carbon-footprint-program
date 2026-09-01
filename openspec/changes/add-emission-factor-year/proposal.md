@@ -16,19 +16,21 @@ An organization measuring its 2022 footprint today can be offered the newest fac
 
 - Add `emission_factor.year Int?`. `null` explicitly means _transversal_: the factor applies to every reporting year.
 - Store provider and reporting year separately, for example `source: "DEFRA"` plus `year: 2025`.
+- In the maintainer, advise users not to include the reporting year in the factor/source name. A likely four-digit year produces a non-blocking warning, not a save restriction.
 - Allow several sources for the same dated or transversal activity. Remove `validateSourceConsistency`; source is part of the factor's identity rather than a subcategory-wide restriction.
 - Do not infer that a source without a year is transversal. Existing data must be classified explicitly by the methodology team before migration.
 
 **Uniqueness uses a physical unit family, not the exact unit.**
 
 - The active-factor identity is `(subcategory, normalized required dimension values, year, source, numerator magnitude, denominator magnitude)`.
+- `EmissionFactor` persists `numeratorMagnitudeId` and `denominatorMagnitudeId`, derived by the server from its rate unit, so PostgreSQL can enforce that identity without joining other tables.
 - `kg/kg` and `kg/ton` are both mass/mass, so the catalog stores one canonical factor and generates the other representation by conversion.
 - `kg/kWh`, `kg/m3` and `kg/ton` are mass/energy, mass/volume and mass/mass respectively, so they may coexist for the same activity, source and year.
 - If two factors in the same unit family represent genuinely different scientific bases, such as wet mass versus dry mass, that distinction must be modeled as a dimension rather than hidden in the unit.
 
 **Capture recommends, but the organization chooses.**
 
-- The selector presents source and year together, for example `DEFRA · 2025`, `IPCC · Transversal` and `Kool, A. · Transversal`.
+- Keep the existing `Factor` selector and its `Otro` option. Dated catalog labels append the year, for example `DEFRA (2025)`; transversal factors show only their source, for example `IPCC` or `Kool, A.`. No separate year/vintage selector is introduced.
 - For footprint year `Y`, candidates are ranked by exact year, transversal, nearest earlier year and nearest later year.
 - A candidate is automatically selected only when exactly one factor remains at the winning rank. If several sources tie, the platform asks the organization to choose instead of choosing arbitrarily.
 - The organization can keep or replace any saved choice regardless of the footprint year.
@@ -65,9 +67,9 @@ An organization measuring its 2022 footprint today can be offered the newest fac
 
 ## Impact
 
-- **Database**: add `emission_factor.year`, a server-derived unit-family identity usable by the partial unique index, and `carbon_inventory_line_factor.applied_factor_year`; rebuild the factor index with `NULLS NOT DISTINCT`.
+- **Database**: add `emission_factor.year`, server-derived numerator/denominator magnitude IDs usable by the partial unique index, and `carbon_inventory_line_factor.applied_factor_year`; rebuild the factor index with `NULLS NOT DISTINCT`.
 - **API and shared types**: remove source-consistency validation; update factor CRUD, methodology duplication and exports; introduce discriminated `CATALOG`, `CUSTOM` and `DIRECT` sync payloads; validate and derive catalog snapshots server-side.
-- **Web**: replace source-only inference with a combined source/year selector and deterministic ranking; show the derived warning at subcategory level; do not re-resolve lines after a year change.
+- **Web**: keep the existing `Factor` selector, enrich its catalog labels with the year in parentheses, retain `Otro`, add non-blocking source-name guidance in the maintainer, and apply deterministic ranking; show the derived warning at subcategory level and do not re-resolve lines after a year change.
 - **Seed and migration**: split provider from reporting year, require an explicit integer or `null` in seed data, classify sources without a year before migration, and consolidate duplicate exact-unit rows within a unit family.
 - **Out of scope**: bulk maintainer import, reduction-plan behavior, and warnings about year-over-year reductions caused by catalog changes.
 

@@ -45,6 +45,8 @@ The logical vintage is `(source, year)`. Two providers may publish a factor for 
 
 Seed entries must provide `year` explicitly as either an integer or `null`. Migration may safely parse a recognized trailing year such as `DEFRA 2025`, but the absence of a suffix does not prove transversality. Every remaining factor must be classified by the methodology team before production migration.
 
+The maintainer recommends entering only the provider/factor name in `source`, because the UI appends `year` to the displayed label. A simple four-digit-year detector reinforces that guidance with a non-blocking warning. It does not reject the save: this is data-quality guidance rather than a domain prohibition.
+
 **Rationale**: one nullable field expresses the domain without an artificial year plus boolean, while explicit classification prevents missing metadata from silently becoming an all-years rule.
 
 ### Decision 3 — Uniqueness is based on dimensional unit family
@@ -55,19 +57,21 @@ Seed entries must provide `year` explicitly as either an integer or `null`. Migr
 
 `kg/kg` and `kg/ton` share the `mass/mass` family. Only one canonical factor is stored for that key; compatible representations are calculated from measurement-unit base factors. In contrast, `kg/kWh`, `kg/m3` and `kg/ton` belong to `mass/energy`, `mass/volume` and `mass/mass`, so they may coexist.
 
-The database cannot include magnitudes reached through `rate_measurement_unit` in a unique index. Therefore `emission_factor` gains a server-owned `unitFamilyKey`, deterministically derived from the selected rate unit's numerator and denominator magnitude IDs. The API never accepts this field from the client and verifies/recomputes it on create/update. Dimension slots not required by the subcategory are normalized to `null` before persistence.
+The database cannot include magnitudes reached through `rate_measurement_unit` in a unique index. Therefore `emission_factor` gains required `numeratorMagnitudeId` and `denominatorMagnitudeId` columns, each referencing `Magnitude`. The server derives them from the selected rate unit through its numerator/denominator measurement units. The API never accepts these fields from the client and recomputes them on factor create/update. Dimension slots not required by the subcategory are normalized to `null` before persistence.
+
+No `unitFamilyKey` string or unit-family table is introduced. The magnitude pair is intentionally denormalized on the factor to keep the schema change small; consistency is entrusted to the supported server write paths and migration backfill.
 
 The partial unique index is:
 
-`(subcategory_id, dimension_value_1_id, dimension_value_2_id, year, source, unit_family_key) NULLS NOT DISTINCT WHERE status <> 'DELETED'`.
+`(subcategory_id, dimension_value_1_id, dimension_value_2_id, year, source, numerator_magnitude_id, denominator_magnitude_id) NULLS NOT DISTINCT WHERE status <> 'DELETED'`.
 
-**Rationale**: exact units would recreate the original duplicate problem (`kg/kg` versus `kg/ton`), while omitting the family would incorrectly merge non-convertible domains. The denormalized key is deliberate: it allows database enforcement without a cross-table index and remains server-derived.
+**Rationale**: exact units would recreate the original duplicate problem (`kg/kg` versus `kg/ton`), while omitting the magnitudes would incorrectly merge non-convertible domains. The denormalized pair allows database enforcement without a cross-table index and is more explicit than an opaque string key.
 
 ### Decision 4 — Multiple sources coexist; source consistency validation is removed
 
 **Choice**: remove `validateSourceConsistency` and its error mapping/tests rather than scoping it by year.
 
-Source participates in the uniqueness key, so `IPCC · Transversal` and `Kool, A. · Transversal`, or `DEFRA · 2025` and `IPCC · 2025`, are valid alternatives for the same activity and unit family. A second factor with the same source, year, dimensions and family is still a duplicate.
+Source participates in the uniqueness key, so transversal factors from `IPCC` and `Kool, A.`, or dated factors labeled `DEFRA (2025)` and `IPCC (2025)`, are valid alternatives for the same activity and unit family. A second factor with the same source, year, dimensions and family is still a duplicate.
 
 **Rationale**: provider choice is product-visible information, not a subcategory invariant. Enforcing one source would prevent the accepted multi-provider use case.
 
@@ -82,7 +86,7 @@ Source participates in the uniqueness key, so `IPCC · Transversal` and `Kool, A
 
 If the winning rank contains exactly one canonical factor, preselect it. If it contains factors from several sources, preselect none and ask the organization to choose. Do not use row order, database ID or source alphabetically as a hidden tie-breaker.
 
-The selector combines source and year (`DEFRA · 2025`, `IPCC · Transversal`) because year alone is no longer unique. Compatible applied units remain a separate presentation/conversion choice, not separate vintage options.
+The current selector remains a single control labeled `Factor`; no separate year or vintage selector is added. Its dated catalog options combine source and year as `DEFRA (2025)`. A transversal option displays only its source, such as `IPCC`; transversality is inferred from its null year and is not written in the option text. The existing `Otro` option remains in that same selector and continues opening the custom-factor fields. Compatible applied units remain a separate presentation/conversion choice, not separate factor options.
 
 If the inventory year is absent through a bypassed flow, only a unique transversal candidate may be preselected; dated candidates require an explicit choice.
 
@@ -148,14 +152,14 @@ Transversal factors, custom/manual factors, direct totals, incomplete lines and 
 - **Canonical-unit consolidation can reveal inconsistent catalog values.** Existing same-family factors expressed in different units must be converted and compared. Disagreements require methodology review; the migration must not silently choose one.
 - **The methodology payload grows with each vintage.** The endpoint already expands factors into compatible units. A later optimization may send canonical factors plus conversion metadata, but it does not change this feature's selection contract.
 - **More valid providers means fewer automatic selections.** This is intentional: equal-ranked scientific sources require an explicit organization choice unless a separate preferred-source policy is introduced later.
-- **`unitFamilyKey` is denormalized.** API writes and migration backfill must derive it from rate-unit magnitudes. Direct database edits are outside the supported write path.
+- **The magnitude pair is denormalized.** API writes and migration backfill must derive both IDs from the selected rate unit. Drift caused by unsupported direct database edits or future rate-unit relationship changes is an accepted trade-off for avoiding another table.
 - **Old selections can mismatch a newly edited inventory year.** This is accepted behavior; snapshots and results remain stable and the derived warning exposes the mismatch.
 
 ## Migration Plan
 
 1. Obtain and review an explicit `year`/`null` classification for every seed and production factor. Parse only recognized trailing years, then block if any row remains unclassified.
 2. Detect rows that collapse to the same new business key after unit conversion. Automatically consolidate only mathematically equivalent values; send discrepancies for methodology review.
-3. Add nullable `year` and `unit_family_key`, backfill both, normalize non-required dimension slots, then make the family key required.
+3. Add nullable `year`, `numerator_magnitude_id` and `denominator_magnitude_id`; backfill the magnitude pair, normalize non-required dimension slots, then make both magnitude IDs required.
 4. Replace the old partial index with the source/year/family index using `NULLS NOT DISTINCT`.
 5. Add `carbon_inventory_line_factor.applied_factor_year` and backfill it from the linked catalog factor without changing existing value/source/unit/result snapshots.
 6. Update shared contracts and API writes so catalog factor snapshots are server-derived; remove source-consistency validation.
