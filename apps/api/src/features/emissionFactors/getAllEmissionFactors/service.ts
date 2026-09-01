@@ -85,6 +85,7 @@ export const getAllEmissionFactorsService = async (
     id: ef.id.toString(),
     value: ef.value.toString(),
     source: ef.source,
+    year: ef.year,
     subcategoryId: ef.subcategory.id.toString(),
     subcategoryName: ef.subcategory.name,
     dimensionValue1Id: ef.dimensionValue1?.id.toString() ?? null,
