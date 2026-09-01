@@ -63,6 +63,19 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   EMISSION_FACTOR_GAS_DETAILS_MISMATCH:
     "La suma del desglose GEI debe coincidir con el valor declarado.",
 
+  // Catalog factor selected while capturing a footprint. All four mean the same
+  // thing to the user — the factor on that line can no longer be applied — so
+  // each says which line to fix and what to do, instead of describing the
+  // internal check that failed.
+  CATALOG_EMISSION_FACTOR_NOT_FOUND:
+    "El factor de emisión elegido ya no está disponible en el catálogo. Vuelve a seleccionar un factor en esa línea para guardar.",
+  CATALOG_EMISSION_FACTOR_NOT_IN_METHODOLOGY:
+    "El factor de emisión elegido ya no pertenece a la metodología de esta huella. Vuelve a seleccionar un factor en esa línea.",
+  CATALOG_EMISSION_FACTOR_DIMENSION_MISMATCH:
+    "El factor de emisión elegido no corresponde a las variables seleccionadas en la línea. Revisa las variables o elige otro factor.",
+  CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH:
+    "El factor de emisión elegido no se puede expresar en la unidad de la línea. Cambia la unidad de medida o elige otro factor.",
+
   // Emission factor dimensions
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",
   DIMENSION_NOT_CONFIGURED: "La dimensión no está configurada.",
