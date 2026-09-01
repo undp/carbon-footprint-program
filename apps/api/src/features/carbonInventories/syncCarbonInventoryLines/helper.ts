@@ -11,10 +11,8 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
 import { MissingFilesError } from "@/features/files/errors.js";
-import {
-  isSameMagnitudeFamily,
-  resolveRateUnitMagnitudeFamily,
-} from "@/features/measurementUnits/helpers.js";
+import { isSameMagnitudeFamily } from "@/features/measurementUnits/helpers.js";
+import { RateMeasurementUnitNotFoundError } from "@/features/emissionFactors/errors.js";
 import {
   CatalogEmissionFactorDimensionMismatchError,
   CatalogEmissionFactorNotFoundError,
@@ -64,7 +62,148 @@ export type ResolvedFactor = {
 };
 
 /**
- * Loads the selected catalog factor and derives its applied snapshot.
+ * Everything the catalog resolution needs, loaded once per sync instead of once
+ * per line.
+ *
+ * The lookups it replaces were identical across lines of the same subcategory
+ * and the same unit, and they ran inside the write transaction — so a 200-line
+ * save issued roughly 800 sequential round-trips while holding its locks. That
+ * cost scales with the distance to the database, which is the one thing a
+ * deployment cannot tune.
+ *
+ * It is still built *inside* the transaction: reading the catalog there is what
+ * makes a row unable to change between the check and the write.
+ */
+export type FactorResolutionContext = {
+  /** Required dimension positions, keyed by subcategory id. */
+  requiredPositions: Map<string, Set<number>>;
+  /** Every ACTIVE catalog factor the request selected, keyed by id. */
+  factors: Map<string, CatalogFactorRow>;
+  /** Every rate unit the request referenced, keyed by id. */
+  rateUnits: Map<string, RateUnitRow>;
+};
+
+const catalogFactorSelect = {
+  id: true,
+  subcategoryId: true,
+  dimensionValue1Id: true,
+  dimensionValue2Id: true,
+  source: true,
+  year: true,
+  value: true,
+  rateMeasurementUnitId: true,
+  numeratorMagnitudeId: true,
+  denominatorMagnitudeId: true,
+  subcategory: {
+    select: { category: { select: { methodologyVersionId: true } } },
+  },
+  rateMeasurementUnit: {
+    select: {
+      numeratorMeasurementUnit: { select: { baseFactor: true } },
+      denominatorMeasurementUnit: { select: { baseFactor: true } },
+    },
+  },
+} satisfies Prisma.EmissionFactorSelect;
+
+const rateUnitSelect = {
+  id: true,
+  numeratorMeasurementUnit: {
+    select: { magnitudeId: true, baseFactor: true },
+  },
+  denominatorMeasurementUnit: {
+    select: { magnitudeId: true, baseFactor: true },
+  },
+} satisfies Prisma.RateMeasurementUnitSelect;
+
+type CatalogFactorRow = Prisma.EmissionFactorGetPayload<{
+  select: typeof catalogFactorSelect;
+}>;
+
+type RateUnitRow = Prisma.RateMeasurementUnitGetPayload<{
+  select: typeof rateUnitSelect;
+}>;
+
+/** The ids a single line's selection needs loaded. */
+type ResolutionRequest = {
+  subcategoryId: bigint;
+  selection: UpdateFactorSelection | null;
+};
+
+/**
+ * Collects the ids every line in the request will need, then loads them in
+ * three queries regardless of how many lines there are.
+ */
+export async function buildFactorResolutionContext(
+  tx: Prisma.TransactionClient,
+  requests: ResolutionRequest[]
+): Promise<FactorResolutionContext> {
+  const subcategoryIds = new Map<string, bigint>();
+  const factorIds = new Map<string, bigint>();
+  const rateUnitIds = new Map<string, bigint>();
+
+  const remember = (into: Map<string, bigint>, id: string) => {
+    if (!into.has(id)) into.set(id, BigInt(id));
+  };
+
+  for (const request of requests) {
+    subcategoryIds.set(request.subcategoryId.toString(), request.subcategoryId);
+
+    const selection = request.selection;
+    if (selection === null) continue;
+
+    if (selection.type === FactorSelectionType.CATALOG) {
+      remember(factorIds, selection.emissionFactorId);
+      remember(rateUnitIds, selection.appliedRateMeasurementUnitId);
+    } else if (selection.type === FactorSelectionType.CUSTOM) {
+      remember(rateUnitIds, selection.rateMeasurementUnitId);
+    }
+  }
+
+  const [dimensions, factors, rateUnits] = await Promise.all([
+    tx.emissionFactorDimension.findMany({
+      where: {
+        subcategoryId: { in: [...subcategoryIds.values()] },
+        isRequired: true,
+        status: EmissionFactorDimensionStatus.ACTIVE,
+      },
+      select: { subcategoryId: true, position: true },
+    }),
+    factorIds.size > 0
+      ? tx.emissionFactor.findMany({
+          where: {
+            id: { in: [...factorIds.values()] },
+            status: EmissionFactorStatus.ACTIVE,
+          },
+          select: catalogFactorSelect,
+        })
+      : Promise.resolve([]),
+    rateUnitIds.size > 0
+      ? tx.rateMeasurementUnit.findMany({
+          where: { id: { in: [...rateUnitIds.values()] } },
+          select: rateUnitSelect,
+        })
+      : Promise.resolve([]),
+  ]);
+
+  const requiredPositions = new Map<string, Set<number>>();
+  for (const id of subcategoryIds.keys()) {
+    requiredPositions.set(id, new Set());
+  }
+  for (const dimension of dimensions) {
+    requiredPositions
+      .get(dimension.subcategoryId.toString())
+      ?.add(dimension.position);
+  }
+
+  return {
+    requiredPositions,
+    factors: new Map(factors.map((f) => [f.id.toString(), f])),
+    rateUnits: new Map(rateUnits.map((u) => [u.id.toString(), u])),
+  };
+}
+
+/**
+ * Derives a line's applied snapshot from the selected catalog factor.
  *
  * The client sends an identity and the unit it wants the factor in; nothing
  * else. Value, source and year are read from the row, and the conversion into the
@@ -78,8 +217,8 @@ export type ResolvedFactor = {
  * numerator/denominator magnitude family, because a conversion across families
  * is not a conversion at all.
  */
-export async function resolveCatalogFactor(
-  tx: Prisma.TransactionClient,
+export function resolveCatalogFactor(
+  resolution: FactorResolutionContext,
   selection: CatalogFactorSelection,
   context: {
     methodologyVersionId: bigint | null;
@@ -87,36 +226,8 @@ export async function resolveCatalogFactor(
     dimensionValue1Id: bigint | null;
     dimensionValue2Id: bigint | null;
   }
-): Promise<ResolvedFactor> {
-  const emissionFactorId = BigInt(selection.emissionFactorId);
-
-  const factor = await tx.emissionFactor.findFirst({
-    where: {
-      id: emissionFactorId,
-      status: EmissionFactorStatus.ACTIVE,
-    },
-    select: {
-      id: true,
-      subcategoryId: true,
-      dimensionValue1Id: true,
-      dimensionValue2Id: true,
-      source: true,
-      year: true,
-      value: true,
-      rateMeasurementUnitId: true,
-      numeratorMagnitudeId: true,
-      denominatorMagnitudeId: true,
-      subcategory: {
-        select: { category: { select: { methodologyVersionId: true } } },
-      },
-      rateMeasurementUnit: {
-        select: {
-          numeratorMeasurementUnit: { select: { baseFactor: true } },
-          denominatorMeasurementUnit: { select: { baseFactor: true } },
-        },
-      },
-    },
-  });
+): ResolvedFactor {
+  const factor = resolution.factors.get(selection.emissionFactorId);
 
   if (!factor) {
     throw new CatalogEmissionFactorNotFoundError(selection.emissionFactorId);
@@ -135,18 +246,9 @@ export async function resolveCatalogFactor(
   // Only the dimensions the subcategory requires take part: an optional slot is
   // not part of the factor's identity, so it must not be able to reject a valid
   // selection either.
-  const requiredPositions = new Set(
-    (
-      await tx.emissionFactorDimension.findMany({
-        where: {
-          subcategoryId: context.subcategoryId,
-          isRequired: true,
-          status: EmissionFactorDimensionStatus.ACTIVE,
-        },
-        select: { position: true },
-      })
-    ).map((dimension) => dimension.position)
-  );
+  const requiredPositions =
+    resolution.requiredPositions.get(context.subcategoryId.toString()) ??
+    new Set<number>();
 
   if (
     (requiredPositions.has(1) &&
@@ -159,59 +261,65 @@ export async function resolveCatalogFactor(
     );
   }
 
-  const appliedRateUnitId = BigInt(selection.appliedRateMeasurementUnitId);
-  const appliedFamily = await resolveRateUnitMagnitudeFamily(
-    tx,
-    appliedRateUnitId
+  const appliedRateUnit = requireRateUnit(
+    resolution,
+    selection.appliedRateMeasurementUnitId
   );
 
-  if (!isSameMagnitudeFamily(appliedFamily, factor)) {
+  if (
+    !isSameMagnitudeFamily(
+      {
+        numeratorMagnitudeId:
+          appliedRateUnit.numeratorMeasurementUnit.magnitudeId,
+        denominatorMagnitudeId:
+          appliedRateUnit.denominatorMeasurementUnit.magnitudeId,
+      },
+      factor
+    )
+  ) {
     throw new CatalogEmissionFactorUnitFamilyMismatchError(
       selection.emissionFactorId
     );
   }
 
   const appliedValue =
-    appliedRateUnitId === factor.rateMeasurementUnitId
+    appliedRateUnit.id === factor.rateMeasurementUnitId
       ? factor.value
-      : await convertToRateUnit(tx, factor, appliedRateUnitId);
+      : convertToRateUnit(factor, appliedRateUnit);
 
   return {
     emissionFactorId: factor.id,
     appliedFactorValue: appliedValue,
-    appliedFactorRateUnitId: appliedRateUnitId,
+    appliedFactorRateUnitId: appliedRateUnit.id,
     appliedFactorSource: factor.source,
     appliedFactorYear: factor.year,
     manual: null,
   };
 }
 
-async function convertToRateUnit(
-  tx: Prisma.TransactionClient,
-  factor: {
-    value: Prisma.Decimal;
-    rateMeasurementUnit: {
-      numeratorMeasurementUnit: { baseFactor: number };
-      denominatorMeasurementUnit: { baseFactor: number };
-    };
-  },
-  appliedRateUnitId: bigint
-): Promise<Prisma.Decimal> {
-  const target = await tx.rateMeasurementUnit.findUnique({
-    where: { id: appliedRateUnitId },
-    select: {
-      numeratorMeasurementUnit: { select: { baseFactor: true } },
-      denominatorMeasurementUnit: { select: { baseFactor: true } },
-    },
-  });
+/**
+ * A rate unit the request referenced. Absent means the id does not exist, since
+ * every referenced id was queried when the context was built.
+ */
+function requireRateUnit(
+  resolution: FactorResolutionContext,
+  rateUnitId: string
+): RateUnitRow {
+  const rateUnit = resolution.rateUnits.get(rateUnitId);
+  if (!rateUnit) throw new RateMeasurementUnitNotFoundError();
+  return rateUnit;
+}
 
-  // resolveRateUnitMagnitudeFamily already proved the unit exists, so a miss
-  // here would mean the row vanished mid-transaction.
-  if (!target)
-    throw new CatalogEmissionFactorNotFoundError(appliedRateUnitId.toString());
-
-  // Decimal all the way: this value is persisted as the applied snapshot and
-  // multiplied into the stored result, so a rounding here is permanent.
+/**
+ * Expresses a catalog factor in a different unit of the same family.
+ *
+ * Decimal all the way: this value is persisted as the applied snapshot and
+ * multiplied into the stored result, so a rounding here is permanent.
+ */
+function convertToRateUnit(
+  factor: CatalogFactorRow,
+  target: RateUnitRow
+): Prisma.Decimal {
   return convertEmissionFactorValueDecimal(
     factor.value,
     factor.rateMeasurementUnit.numeratorMeasurementUnit.baseFactor,
@@ -288,6 +396,7 @@ async function resolveStoredFactor(
  */
 export async function resolveFactorSelection(
   tx: Prisma.TransactionClient,
+  resolution: FactorResolutionContext,
   item: ItemData,
   context: {
     methodologyVersionId: bigint | null;
@@ -307,24 +416,26 @@ export async function resolveFactorSelection(
         : await resolveStoredFactor(tx, context.lineId);
 
     case FactorSelectionType.CATALOG:
-      return await resolveCatalogFactor(tx, selection, {
+      return resolveCatalogFactor(resolution, selection, {
         ...context,
         dimensionValue1Id: mapBigIntField(item.dimensionValue1Id),
         dimensionValue2Id: mapBigIntField(item.dimensionValue2Id),
       });
 
     case FactorSelectionType.CUSTOM: {
-      const rateUnitId = BigInt(selection.rateMeasurementUnitId);
       // Validates existence; a custom factor has no family to match against.
-      await resolveRateUnitMagnitudeFamily(tx, rateUnitId);
+      const rateUnit = requireRateUnit(
+        resolution,
+        selection.rateMeasurementUnitId
+      );
       const value = mapDecimalField(selection.value);
       return {
         emissionFactorId: null,
         appliedFactorValue: value,
-        appliedFactorRateUnitId: rateUnitId,
+        appliedFactorRateUnitId: rateUnit.id,
         appliedFactorSource: selection.source,
         appliedFactorYear: null,
-        manual: { value, source: selection.source, rateUnitId },
+        manual: { value, source: selection.source, rateUnitId: rateUnit.id },
       };
     }
 
