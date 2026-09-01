@@ -216,6 +216,7 @@ export const EmissionSummaryScreen: FC = () => {
         {/* Emission factors table */}
         <EmissionFactorsTable
           data={factorsData}
+          inventoryYear={metadataData?.year ?? null}
           isLoading={isFactorsLoading}
           hasError={isFactorsError}
         />

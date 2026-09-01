@@ -8,16 +8,19 @@ import { EmptyStateMessage } from "../EmptyStateMessage";
 
 interface EmissionFactorsTableProps {
   data: GetEmissionFactorsResponse | undefined;
+  /** The current footprint year, which the applied year is compared against. */
+  inventoryYear: number | null;
   isLoading: boolean;
   hasError?: boolean;
 }
 
 export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
   data,
+  inventoryYear,
   isLoading = false,
   hasError = false,
 }) => {
-  const columns = useEmissionFactorsColumns();
+  const columns = useEmissionFactorsColumns(inventoryYear);
   const rows = useMemo(() => data ?? [], [data]);
 
   return (
