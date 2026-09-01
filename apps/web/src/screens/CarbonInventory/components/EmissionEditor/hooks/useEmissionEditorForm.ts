@@ -13,7 +13,7 @@ import {
 import {
   getCompatibleRateUnitId,
   getAvailableFactors,
-  getAvailableSources,
+  recommendCatalogFactor,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
@@ -26,6 +26,12 @@ interface UseEmissionEditorFormParams {
   subcategory: SubcategoryWithLines;
   emissionFactors: MethodologyEmissionFactor[];
   rateMeasurementUnits: RateMeasurementUnit[] | undefined;
+  /**
+   * The footprint year the factor recommendation is ranked against. Null only
+   * through a flow that skipped setting it, in which case no dated factor is ever
+   * preselected.
+   */
+  inventoryYear: number | null;
 }
 
 interface UseEmssionEditorFormResults {
@@ -41,7 +47,8 @@ interface UseEmssionEditorFormResults {
       row: EmissionCaptureFormLine;
     }
   ) => void;
-  handleFactorSourceChange: (lineId: LineId, newFactorSource: string) => void;
+  /** `selection` is a canonical emission-factor ID, or the `Otro` custom label. */
+  handleFactorSelectionChange: (lineId: LineId, selection: string) => void;
   handleDeleteLine: (lineId: LineId) => void;
   handleSetTotalEmission: (total: number | null) => void;
   handleSetManualMode: (isManual: boolean) => Promise<void>;
@@ -51,6 +58,7 @@ export const useEmissionEditorForm = ({
   subcategory,
   emissionFactors,
   rateMeasurementUnits,
+  inventoryYear,
 }: UseEmissionEditorFormParams): UseEmssionEditorFormResults => {
   const { inventoryId } = useParams({
     from: Routes.CARBON_INVENTORY_EMISSION_CAPTURE,
@@ -171,24 +179,42 @@ export const useEmissionEditorForm = ({
     [setValue, resetFactorValueFields]
   );
 
-  const handleFactorSourceChange = useCallback(
-    (lineId: string, newFactorSource: string) => {
+  /**
+   * Applies a `Factor` selector choice.
+   *
+   * `selection` is either a custom-factor label (`Otro`) or the canonical
+   * emission-factor ID of a catalog vintage. It is an ID rather than a source
+   * because two vintages of one provider share the same source text, so a source
+   * no longer identifies a factor.
+   */
+  const handleFactorSelectionChange = useCallback(
+    (lineId: string, selection: string) => {
       const line = getValues(
         `subcategories.${subcategoryId}.lines.${lineId}`
       ) as EmissionCaptureFormLine | undefined;
       if (!line) return;
 
-      // Fast update factor source at the form
-      setValue(
-        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
-        newFactorSource,
-        { shouldDirty: true }
-      );
-
-      if (CUSTOM_FACTOR_SOURCES.includes(newFactorSource)) {
-        // Reset factor value and base factor, but keep the compatible rate unit
+      if (CUSTOM_FACTOR_SOURCES.includes(selection)) {
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+          selection,
+          { shouldDirty: true }
+        );
+        // Reset factor value and base factor, but keep the compatible rate unit.
+        // A custom factor has no catalog identity and no vintage, so both are
+        // cleared — that is what keeps it out of the year-mismatch warning.
         setValue(
           `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+          null,
+          { shouldDirty: true }
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.emissionFactorId`,
+          null,
+          { shouldDirty: true }
+        );
+        setValue(
+          `subcategories.${subcategoryId}.lines.${lineId}.appliedFactorYear`,
           null,
           { shouldDirty: true }
         );
@@ -209,40 +235,28 @@ export const useEmissionEditorForm = ({
         return;
       }
 
-      // Then, load the value of the selected factor source
+      // Catalog branch: find the representation of the chosen canonical factor
+      // that is expressed in this line's compatible unit.
       const compatibleRateUnitId = getCompatibleRateUnitId(
         line.measurementUnitId,
         rateMeasurementUnits
       );
 
-      const availableFactors = getAvailableFactors(
+      const factor = getAvailableFactors(
         emissionFactors,
         line.dimensionValue1Id,
         line.dimensionValue2Id,
         compatibleRateUnitId
-      );
+      ).find((candidate) => candidate.baseEmissionFactorId === selection);
 
-      const sourceFilteredFactors = availableFactors.filter(
-        (factor) => factor.source === newFactorSource
-      );
-
-      if (!sourceFilteredFactors.length) {
+      if (!factor) {
         // eslint-disable-next-line no-console
         console.warn(
-          "There are no available factors for the selected parameters and source. Cannot auto-fill a factor value."
+          "The selected catalog factor is not available for the line's dimensions and unit. Cannot auto-fill a factor value."
         );
         return;
       }
 
-      if (sourceFilteredFactors.length > 1) {
-        // eslint-disable-next-line no-console
-        console.warn(
-          "There are multiple available factors for the selected parameters and source. Cannot auto-fill a factor value."
-        );
-        return;
-      }
-
-      const factor = sourceFilteredFactors[0];
       const factorValue = Number(factor.value);
 
       if (!Number.isFinite(factorValue)) {
@@ -253,9 +267,26 @@ export const useEmissionEditorForm = ({
         return;
       }
 
+      // Source and year are displayed from the factor, never typed by the user;
+      // the API re-derives both from the same row when the line is saved.
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
+        factor.source,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.appliedFactorYear`,
+        factor.year,
+        { shouldDirty: true }
+      );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
-        factor.originalEmissionFactorId ?? factor.id,
+        factor.baseEmissionFactorId,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.emissionFactorId`,
+        factor.baseEmissionFactorId,
         { shouldDirty: true }
       );
       setValue(
@@ -272,29 +303,24 @@ export const useEmissionEditorForm = ({
     [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
   );
 
-  const determineAutoLoadFactorSource = useCallback(
-    (line: EmissionCaptureFormLine): string | null => {
-      // 1. Get compatible rate unit
-      const compatibleRateUnitId = getCompatibleRateUnitId(
-        line.measurementUnitId,
-        rateMeasurementUnits
-      );
-
-      // 2. Get available factors for this context (dimensions + rate unit)
-      const availableFactors = getAvailableFactors(
+  /**
+   * The canonical factor to preselect for a line, or null to leave the choice to
+   * the organization.
+   *
+   * Ranks the compatible candidates against the footprint year and preselects
+   * only when the winning rank holds exactly one factor. Several providers at the
+   * same rank are equally defensible choices, so nothing is picked for them.
+   */
+  const determineAutoLoadFactorId = useCallback(
+    (line: EmissionCaptureFormLine): string | null =>
+      recommendCatalogFactor(
         emissionFactors,
         line.dimensionValue1Id,
         line.dimensionValue2Id,
-        compatibleRateUnitId
-      );
-
-      // 3. Get unique sources
-      const factorSources = getAvailableSources(availableFactors);
-
-      if (factorSources.length === 1) return factorSources[0];
-      return null;
-    },
-    [emissionFactors, rateMeasurementUnits]
+        getCompatibleRateUnitId(line.measurementUnitId, rateMeasurementUnits),
+        inventoryYear
+      ).recommended?.baseEmissionFactorId ?? null,
+    [emissionFactors, rateMeasurementUnits, inventoryYear]
   );
 
   const tryToLoadDetermineFactorPlatform = useCallback(
@@ -322,17 +348,25 @@ export const useEmissionEditorForm = ({
         !!formLine.factorSource &&
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
-      if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
-        const autoLoadedFactorSource = determineAutoLoadFactorSource(formLine);
-        if (autoLoadedFactorSource)
-          handleFactorSourceChange(lineId, autoLoadedFactorSource);
+      // A choice the organization already made is never overwritten by a newer
+      // recommendation — only an empty selection is filled in.
+      const hasCatalogFactorSelected = formLine.baseFactorId !== null;
+
+      if (
+        !isOwnFactorSelected &&
+        !hasCatalogFactorSelected &&
+        areAllRequiredFieldsSelected
+      ) {
+        const autoLoadedFactorId = determineAutoLoadFactorId(formLine);
+        if (autoLoadedFactorId)
+          handleFactorSelectionChange(lineId, autoLoadedFactorId);
       }
     },
     [
       subcategory,
       getValues,
-      determineAutoLoadFactorSource,
-      handleFactorSourceChange,
+      determineAutoLoadFactorId,
+      handleFactorSelectionChange,
     ]
   );
 
@@ -548,7 +582,7 @@ export const useEmissionEditorForm = ({
     // Form actions
     handleAddLine,
     handleCellChange,
-    handleFactorSourceChange,
+    handleFactorSelectionChange,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
