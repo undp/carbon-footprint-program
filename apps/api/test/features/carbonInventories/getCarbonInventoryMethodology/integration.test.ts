@@ -838,10 +838,22 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       );
     });
 
-    it("throws when the converted result overflows to a non-finite number", () => {
-      expect(() =>
-        convertEmissionFactorValue("1e300", 1e300, 1, 1, 1e300)
-      ).toThrow(/Conversion result is not finite/);
+    it("computes a magnitude that would overflow a double", () => {
+      // This used to overflow to Infinity and be rejected. The conversion is
+      // decimal now, so the same inputs produce the exact result instead —
+      // which matters because this value is what gets persisted as a line's
+      // applied factor.
+      expect(convertEmissionFactorValue("1e300", 1e300, 1, 1, 1e300)).toBe(
+        "1e+900"
+      );
+    });
+
+    it("keeps full precision beyond what a double can represent", () => {
+      // 1e-7 * 1000, with more significant digits than a double holds. Going
+      // through parseFloat rounded the last ones away, silently.
+      expect(
+        convertEmissionFactorValue("0.0000001234567891", 1, 1, 1, 1000)
+      ).toBe("0.0001234567891");
     });
 
     it("computes a converted value for valid finite inputs", () => {
