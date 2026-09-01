@@ -1,33 +1,36 @@
-import { FC, useEffect, useRef } from "react";
+import { FC } from "react";
 import { useWatch, useFormState, useFormContext } from "react-hook-form";
-import { Tooltip, Typography } from "@mui/material";
-import { Lock as LockIcon } from "@mui/icons-material";
+import { Box, Tooltip, Typography } from "@mui/material";
+import { WarningAmberRounded } from "@mui/icons-material";
 import { SOURCE_OPTIONS } from "../../constants";
 import type { EmissionFactorsFormValues } from "../../hooks/useEmissionFactorsForm";
+import {
+  SOURCE_YEAR_HELPER_TEXT,
+  buildSourceYearWarning,
+} from "../../utils/emissionFactorSourceGuidance";
 import { FreeSoloAutocompleteCell } from "./FreeSoloAutocompleteCell";
-import { useOverflowTooltip } from "@/hooks";
 
 const options = SOURCE_OPTIONS.map((o) => o.value);
-
-const normalizeSourceValue = (value?: string | null) =>
-  value?.trim().replace(/\s+/g, " ") ?? "";
 
 interface EmissionFactorSourceCellProps {
   rowIndex: number;
   isEditing: boolean;
   onChange: (value: string) => void;
   onClick?: () => void;
-  isSourceLocked?: boolean;
-  lockedSource?: string;
 }
 
+/**
+ * The provider/factor name, with the reporting year kept in its own column.
+ *
+ * Several providers may publish for the same activity and year, so the name is
+ * freely editable per row. It used to be locked to whatever the subcategory's
+ * other factors used, which made a second provider impossible to enter.
+ */
 export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   rowIndex,
   isEditing,
   onChange,
   onClick,
-  isSourceLocked = false,
-  lockedSource,
 }) => {
   const { control } = useFormContext<EmissionFactorsFormValues>();
   const formValue = useWatch<EmissionFactorsFormValues>({
@@ -38,96 +41,10 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
     name: `emissionFactors.${rowIndex}.source`,
   });
   const fieldError = errors.emissionFactors?.[rowIndex]?.source;
-  const onChangeRef = useRef(onChange);
 
-  const { isOverflowed, overflowRef } = useOverflowTooltip<HTMLElement>([
-    formValue,
-    lockedSource,
-  ]);
+  const yearWarning = buildSourceYearWarning(formValue ?? "");
 
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  useEffect(() => {
-    if (!isSourceLocked || !lockedSource) {
-      return;
-    }
-
-    const normalizedLockedSource = normalizeSourceValue(lockedSource);
-    const normalizedFormValue = normalizeSourceValue(formValue);
-
-    if (normalizedFormValue === normalizedLockedSource) {
-      return;
-    }
-
-    onChangeRef.current(lockedSource);
-  }, [isSourceLocked, lockedSource, formValue]);
-
-  if (isSourceLocked && isEditing) {
-    const displayValue = lockedSource ?? formValue;
-    return (
-      <Tooltip
-        title="La fuente es compartida por todos los factores de emisión de esta subcategoría y no puede ser modificada individualmente."
-        arrow
-        placement="top"
-      >
-        <Typography
-          ref={overflowRef}
-          sx={{
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            color: "text.secondary",
-            backgroundColor: "grey.100",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            width: "100%",
-            cursor: "not-allowed",
-          }}
-        >
-          <LockIcon sx={{ fontSize: 14, color: "text.disabled" }} />
-          {displayValue}
-        </Typography>
-      </Tooltip>
-    );
-  }
-
-  if (isSourceLocked && !isEditing) {
-    const displayValue = lockedSource ?? formValue;
-    const tooltipText = isOverflowed
-      ? `${displayValue} — La fuente es compartida por todos los factores de esta subcategoría.`
-      : "La fuente es compartida por todos los factores de emisión de esta subcategoría.";
-    return (
-      <Tooltip title={tooltipText} arrow placement="top" enterDelay={500}>
-        <Typography
-          ref={overflowRef}
-          sx={{
-            px: 1,
-            py: 0.5,
-            borderRadius: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 0.5,
-            cursor: "default",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            width: "100%",
-          }}
-        >
-          <LockIcon sx={{ fontSize: 14, color: "text.disabled" }} />
-          {displayValue}
-        </Typography>
-      </Tooltip>
-    );
-  }
-
-  return (
+  const field = (
     <FreeSoloAutocompleteCell
       value={formValue}
       options={options}
@@ -135,6 +52,30 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
       onChange={onChange}
       onClick={onClick}
       errorMessage={fieldError?.message}
+      helperText={
+        isEditing && !fieldError ? SOURCE_YEAR_HELPER_TEXT : undefined
+      }
     />
+  );
+
+  if (!yearWarning) return field;
+
+  // Advisory only: rendered beside the value, never as a validation error, so
+  // saving stays available.
+  return (
+    <Box
+      sx={{ display: "flex", alignItems: "center", gap: 0.5, width: "100%" }}
+    >
+      <Box sx={{ flex: 1, minWidth: 0 }}>{field}</Box>
+      <Tooltip title={yearWarning} arrow placement="top">
+        <Typography component="span" sx={{ display: "flex" }}>
+          <WarningAmberRounded
+            fontSize="small"
+            color="warning"
+            aria-label={yearWarning}
+          />
+        </Typography>
+      </Tooltip>
+    </Box>
   );
 };

@@ -38,6 +38,7 @@ export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
     dimensionValue2Name: ef.dimensionValue2Name,
     rateMeasurementUnitId: ef.rateMeasurementUnitId,
     source: ef.source,
+    year: ef.year,
     value: Number(ef.value),
     gasDetails: ef.gasDetails ?? DEFAULT_GAS_DETAILS,
   };
