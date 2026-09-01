@@ -1,105 +1,189 @@
 ## ADDED Requirements
 
-### Requirement: The capture screen preselects the vintage that matches the footprint's year
+### Requirement: Capture ranks catalog vintages against the footprint year
 
-When an organization captures an activity, the platform SHALL preselect an emission factor among those available for that activity (same dimension values, compatible rate unit), using the measurement year of the carbon inventory. For a footprint of year `Y` the preselected factor SHALL be, in order:
+For an activity with completed required dimensions, the platform SHALL filter catalog factors to the compatible numerator/denominator magnitude family and rank them against inventory year `Y` in this order:
 
-1. the factor whose year is `Y`;
-2. otherwise the transversal factor (no year);
-3. otherwise the factor with the most recent year below `Y`;
-4. otherwise the factor with the closest year above `Y`.
+1. factors whose `year = Y`;
+2. transversal factors whose `year = null`;
+3. factors at the greatest year below `Y`;
+4. factors at the smallest year above `Y`.
 
-When the preselected factor's year is not `Y`, the platform SHALL tell the organization which year was applied instead. When no factor is available for the activity at all, the platform SHALL preselect nothing and leave the organization to load its own factor, as it does today.
+The platform SHALL preselect a factor only when the winning rank contains exactly one candidate. If multiple providers remain in the winning rank, it SHALL preselect none and require the organization to choose. Database order, source text and factor ID SHALL NOT be used as implicit tie-breakers.
 
-#### Scenario: The exact year exists
+#### Scenario: One exact-year candidate exists
 
-- **GIVEN** a footprint measured for 2023, and factors for 2022, 2023 and 2025 available for the activity
+- **GIVEN** a 2023 footprint and one compatible candidate for each of 2022, 2023 and 2025
 - **WHEN** the organization completes the activity's required fields
-- **THEN** the 2023 factor SHALL be preselected, AND no other-year notice SHALL be shown
+- **THEN** the 2023 factor SHALL be preselected
 
-#### Scenario: A transversal factor covers the activity
+#### Scenario: A unique transversal candidate takes precedence over dated fallbacks
 
-- **GIVEN** a footprint measured for 2023, and a single transversal factor available for the activity
+- **GIVEN** a 2023 footprint with one transversal candidate and dated candidates for 2022 and 2025
 - **WHEN** the organization completes the activity's required fields
-- **THEN** the transversal factor SHALL be preselected, AND no other-year notice SHALL be shown, because a transversal factor applies to every year
+- **THEN** the transversal factor SHALL be preselected
 
-#### Scenario: Only earlier years exist
+#### Scenario: The nearest earlier year wins
 
-- **GIVEN** a footprint measured for 2023, and factors for 2020 and 2022 available for the activity
+- **GIVEN** a 2023 footprint with unique compatible candidates for 2020 and 2022 and no exact or transversal candidate
 - **WHEN** the organization completes the activity's required fields
-- **THEN** the 2022 factor SHALL be preselected — the most recent year that does not exceed the footprint's year — AND the organization SHALL be told that a 2022 factor was applied to a 2023 footprint
+- **THEN** the 2022 factor SHALL be preselected
 
-#### Scenario: Only later years exist
+#### Scenario: The nearest later year is the last fallback
 
-- **GIVEN** a footprint measured for 2022, and factors for 2025 and 2027 available for the activity
+- **GIVEN** a 2022 footprint with unique compatible candidates for 2025 and 2027 only
 - **WHEN** the organization completes the activity's required fields
-- **THEN** the 2025 factor SHALL be preselected — the closest year above the footprint's year — AND the organization SHALL be told that a 2025 factor was applied to a 2022 footprint
+- **THEN** the 2025 factor SHALL be preselected
 
-#### Scenario: The footprint has no year yet
+#### Scenario: Equal-ranked providers require a choice
 
-- **GIVEN** a carbon inventory that has no measurement year recorded
-- **WHEN** the organization reaches the capture screen and completes an activity's required fields
-- **THEN** the platform SHALL preselect the most recent factor available for the activity AND tell the organization that the measurement year is still undefined
+- **GIVEN** a 2023 footprint with both `DEFRA · 2023` and `IPCC · 2023` compatible with the activity
+- **WHEN** the organization completes the activity's required fields
+- **THEN** neither factor SHALL be preselected
+- **AND** the organization SHALL be asked to choose between both labeled candidates
 
-### Requirement: The organization can always choose another vintage
+#### Scenario: Several transversal providers require a choice
 
-The capture screen SHALL let the organization pick any vintage available for the activity, not only the preselected one. Choosing a vintage SHALL load that factor's value and rate unit for the line, exactly as choosing a source does today. Loading an own factor SHALL remain available regardless of the vintages on offer.
+- **GIVEN** a footprint with `IPCC · Transversal` and `Kool, A. · Transversal` as the winning compatible candidates
+- **WHEN** the organization completes the activity's required fields
+- **THEN** neither factor SHALL be selected arbitrarily
 
-#### Scenario: Overriding the preselected vintage
+#### Scenario: No catalog factor is available
 
-- **GIVEN** a footprint measured for 2023 whose activity has the 2023 factor preselected, with 2022 and 2025 also available
-- **WHEN** the organization selects the 2022 factor
-- **THEN** the line SHALL take the 2022 factor's value and rate unit, AND the choice SHALL survive saving and reloading the footprint
+- **WHEN** no compatible factor exists for the completed activity
+- **THEN** the platform SHALL preselect nothing
+- **AND** the custom-factor flow SHALL remain available
 
-#### Scenario: A single vintage still offers a choice of provider
+#### Scenario: The inventory year is absent through a bypassed flow
 
-- **WHEN** an activity has factors from more than one source for the footprint's year
-- **THEN** the organization SHALL be able to choose among them, preserving today's behavior for source selection
+- **GIVEN** the inventory has no measurement year
+- **WHEN** the activity has one transversal candidate and one or more dated candidates
+- **THEN** the unique transversal candidate MAY be preselected
+- **AND** a dated factor SHALL NOT be selected implicitly without an inventory year
 
-### Requirement: The applied year is recorded on the line and shown
+### Requirement: The organization selects a source and year combination
 
-Each captured line SHALL record the year of the emission factor actually applied to it, alongside the value, rate unit and source it already records, together with an indication of whether that year differs from the footprint's measurement year.
+The selector SHALL present every compatible canonical factor in the chosen activity/unit family using a combined source/year label, such as `DEFRA · 2025`, `IPCC · Transversal` and `Kool, A. · Transversal`. Compatible converted units SHALL NOT appear as separate vintage records.
 
-The recorded year SHALL be shown to the organization in the capture screen and in the summary of factors used, and SHALL NOT change when the catalog is later edited.
+The organization SHALL be able to override a recommendation with any available candidate. A saved choice SHALL survive reload and SHALL remain selected if the inventory year later changes, until the organization replaces it explicitly.
 
-#### Scenario: A verifier can tell an exact match from a fallback
+#### Scenario: The organization overrides the recommendation
 
-- **GIVEN** a footprint measured for 2022 with one line resolved to a 2022 factor and another resolved to a 2024 factor for lack of a 2022 one
-- **WHEN** the summary of factors used is consulted
-- **THEN** both lines SHALL show the year of the factor applied, AND the second SHALL be identifiable as having used a factor from another year
+- **GIVEN** `DEFRA · 2023` is recommended and `DEFRA · 2022` is also available
+- **WHEN** the organization chooses `DEFRA · 2022` and saves
+- **THEN** the line SHALL use the 2022 factor
+- **AND** the same choice SHALL be restored after reload
 
-#### Scenario: A catalog edit does not rewrite history
+#### Scenario: The organization chooses between transversal providers
 
-- **GIVEN** a saved line that applied the 2022 factor of an activity
-- **WHEN** a maintainer later corrects that factor's value, or loads a newer vintage for the same activity
-- **THEN** the saved line SHALL keep the value, rate unit, source and year it recorded
+- **GIVEN** `IPCC · Transversal` and `Kool, A. · Transversal` are available
+- **WHEN** the organization selects `Kool, A. · Transversal`
+- **THEN** that source SHALL be saved without assigning it a fabricated year
 
-### Requirement: Changing the footprint's year offers to update the factors
+### Requirement: The API is authoritative for catalog factor application
 
-When the measurement year of a carbon inventory changes and the footprint already has captured lines, the platform SHALL notify the organization that the factors no longer match the new year and SHALL offer to re-resolve them. The organization decides: nothing SHALL be recalculated without that explicit action. The same offer SHALL be made when a footprint duplicated from another year is re-dated.
+The line-sync contract SHALL use mutually exclusive factor variants:
 
-A carbon inventory that is not editable — self-declared or under verification — SHALL NOT be re-resolved, and SHALL NOT be offered the update.
+```text
+CATALOG { emissionFactorId, appliedRateMeasurementUnitId }
+CUSTOM  { source, value, rateMeasurementUnitId }
+DIRECT  { totalEmissions }
+```
 
-#### Scenario: The organization accepts the update
+For `CATALOG`, the API SHALL load the selected factor and derive source, year, canonical value and converted applied value. It SHALL validate that the factor is ACTIVE, belongs to the inventory methodology and subcategory, matches the line's required dimensions, and belongs to the same numerator/denominator magnitude family as the requested applied rate unit. Client-authored catalog source, year or value SHALL NOT be accepted.
 
-- **GIVEN** a footprint measured for 2022 with captured lines resolved to 2022 factors
-- **WHEN** the organization changes the measurement year to 2023 and accepts the offer to update the factors
-- **THEN** every editable line SHALL be re-resolved with the preselection rule against 2023, AND the resulting values SHALL be saved
+For `CUSTOM` and `DIRECT`, the API SHALL apply their dedicated validation and calculation paths. They SHALL NOT create a dated catalog-factor snapshot or participate in catalog-year warnings.
 
-#### Scenario: The organization declines the update
+#### Scenario: A valid catalog factor is applied in a compatible unit
 
-- **GIVEN** the same footprint
-- **WHEN** the organization changes the measurement year to 2023 and declines the offer
-- **THEN** every line SHALL keep the factor it had recorded, AND the footprint's results SHALL be unchanged
+- **GIVEN** an ACTIVE canonical `DEFRA · 2023` factor in `kg/kWh` belongs to the inventory methodology
+- **WHEN** the client submits its ID with a compatible mass/energy applied rate unit
+- **THEN** the API SHALL convert the catalog value to that unit
+- **AND** it SHALL calculate and persist the result and catalog snapshot from server-loaded data
 
-#### Scenario: Duplicating last year's footprint
+#### Scenario: Client-authored catalog data cannot replace the snapshot
 
-- **GIVEN** a footprint measured for 2022 that is duplicated to start the 2023 measurement
-- **WHEN** the organization sets the copy's measurement year to 2023
-- **THEN** the platform SHALL offer to update the copied factors to 2023 under the same rule
+- **WHEN** a catalog selection request also attempts to provide a different value, source or year
+- **THEN** request validation SHALL reject the unsupported fields or ignore them by construction
+- **AND** the persisted snapshot SHALL come only from the selected catalog factor
 
-#### Scenario: A declared footprint is left alone
+#### Scenario: A factor from another methodology is rejected
 
-- **GIVEN** a self-declared footprint measured for 2022
-- **WHEN** newer vintages are loaded into the catalog
-- **THEN** the footprint SHALL keep its recorded factors and SHALL NOT be offered any update
+- **GIVEN** a valid factor ID belongs to a methodology other than the inventory's methodology
+- **WHEN** it is submitted as a `CATALOG` selection
+- **THEN** the API SHALL reject the request without changing the line or result
+
+#### Scenario: An incompatible unit family is rejected
+
+- **GIVEN** the selected catalog factor is mass/energy
+- **WHEN** the requested applied rate unit is mass/volume
+- **THEN** the API SHALL reject the request instead of attempting a conversion
+
+### Requirement: The applied catalog year is snapshotted and mismatch is derived
+
+Each saved `CATALOG` line factor SHALL snapshot the selected factor's nullable year next to the existing applied value, unit and source. That snapshot SHALL remain unchanged if the catalog is later edited.
+
+The platform SHALL derive whether a dated catalog factor differs from the footprint year by comparing `appliedFactorYear` with the current `carbon_inventory.year`. It SHALL NOT persist a fallback or year-match boolean.
+
+#### Scenario: Catalog history remains reproducible
+
+- **GIVEN** a saved line used `DEFRA · 2022`
+- **WHEN** a maintainer edits that catalog row or adds a 2023 vintage
+- **THEN** the saved line SHALL keep its applied value, unit, source and year snapshots
+
+#### Scenario: Match state changes without rewriting the line
+
+- **GIVEN** a saved line has `appliedFactorYear = 2022` and its inventory year is 2022
+- **WHEN** the inventory year changes to 2023
+- **THEN** the same snapshot SHALL now be derived as a mismatch
+- **AND** no line-factor row SHALL be rewritten solely to update match state
+
+### Requirement: Changing the inventory year preserves choices and results
+
+Changing or re-dating an inventory SHALL retain every saved factor choice, applied snapshot and calculated result. The platform SHALL NOT offer or execute bulk factor re-resolution as part of the year change.
+
+#### Scenario: A captured inventory is re-dated
+
+- **GIVEN** a 2022 inventory with lines calculated using 2022 catalog factors
+- **WHEN** the organization changes its year to 2023
+- **THEN** every selected factor and result SHALL remain unchanged
+
+#### Scenario: A duplicated inventory is assigned a new year
+
+- **GIVEN** a copied inventory retains the source inventory's factors and results
+- **WHEN** the organization assigns a different year to the copy
+- **THEN** the copied factor snapshots and results SHALL remain unchanged until individually edited
+
+### Requirement: Dated mismatches produce one non-blocking warning per subcategory
+
+For each subcategory, an eligible line SHALL be an active line input with a saved catalog factor (`emissionFactorId != null`), a dated factor snapshot (`appliedFactorYear != null`) and a non-null current inventory year. A line SHALL be affected when its applied year differs from the inventory year.
+
+The platform SHALL show the subcategory warning if and only if at least one eligible line is affected. It SHALL include the affected count, total eligible dated-catalog count, distinct mismatching factor years, current inventory year and a statement that calculations were not modified.
+
+Transversal factors, custom/manual factors, direct totals, incomplete/no-factor lines and inactive/deleted inputs SHALL be excluded. The warning SHALL NOT block save, navigation or submission, and SHALL disappear when no eligible mismatch remains.
+
+#### Scenario: A mixed subcategory shows an exact count
+
+- **GIVEN** a 2023 inventory subcategory has eight eligible dated-catalog lines, three using 2021/2022 factors and five using 2023 factors
+- **WHEN** the subcategory is displayed
+- **THEN** one warning SHALL report that 3 of 8 dated-catalog lines use years 2021 and 2022 instead of 2023
+- **AND** it SHALL state that calculations were not modified
+
+#### Scenario: Excluded line types do not create false warnings
+
+- **GIVEN** a 2023 subcategory contains a transversal catalog factor, a custom factor, a direct-total line, an incomplete line and a dated 2023 catalog factor
+- **WHEN** the warning rule is evaluated
+- **THEN** no warning SHALL be shown
+
+#### Scenario: The warning is informational
+
+- **GIVEN** a subcategory warning is visible
+- **WHEN** the organization saves, navigates or submits the inventory without replacing the mismatched factors
+- **THEN** the action SHALL remain allowed
+- **AND** the selected factors and results SHALL remain unchanged
+
+#### Scenario: Manual correction clears the warning
+
+- **GIVEN** a subcategory warning identifies dated mismatches
+- **WHEN** the organization individually replaces all affected factors with exact-year or transversal factors
+- **THEN** the warning SHALL disappear after the lines are saved

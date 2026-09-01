@@ -1,85 +1,90 @@
-## 1. Database schema and migration
+## 1. Confirm and prepare catalog data
 
-- [ ] 1.1 In `packages/database/src/prisma/schema.prisma`, add `year Int?` to `model EmissionFactor` (mapped as `@map("year")` is unnecessary — the column name already matches).
-- [ ] 1.2 In the same model's trailing comment, replace the note about the partial unique index with the new key: `("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "year") WHERE status <> 'DELETED'`, `NULLS NOT DISTINCT`.
-- [ ] 1.3 In `model CarbonInventoryLineFactor`, add `appliedFactorYear Int? @map("applied_factor_year")` and `appliedFactorYearMatchesInventory Boolean? @map("applied_factor_year_matches_inventory")`. Both nullable: a line whose factor is transversal, or an own factor, has no year to record.
-- [ ] 1.4 Confirm the deployment target runs PostgreSQL 15 or newer (required by `NULLS NOT DISTINCT`). If it does not, express the index with `COALESCE(...)` expressions instead and note it in the migration header.
-- [ ] 1.5 Create the migration under `packages/database/src/prisma/migrations/<timestamp>_add_emission_factor_year/migration.sql`:
-  - `ALTER TABLE "emission_factor" ADD COLUMN "year" INTEGER;`
-  - `ALTER TABLE "carbon_inventory_line_factor"` add the two columns from 1.3.
-  - `DROP INDEX "emission_factor_unique_subcategory_dims_source";`
-  - `CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_year" ON "emission_factor" ("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "year") NULLS NOT DISTINCT WHERE "status" <> 'DELETED';`
-- [ ] 1.6 In the same migration, backfill: for every row whose `source` ends in a four-digit year, set `year` to that number and trim the year (and the separating whitespace) from `source`. Rows with no trailing year keep `year = null`. Include a header comment stating that a null year means transversal.
-- [ ] 1.7 Run `pnpm exec prisma migrate dev` against a local database, then verify by hand: `DEFRA 2025` rows became `DEFRA` + 2025, `IPCC` and `Kool, A.` rows kept a null year, and inserting a duplicate `(subcategory, dims, year)` is rejected while a different year is accepted.
+- [ ] 1.1 Produce a reviewed mapping for every existing factor with explicit `source` and reporting `year` (`integer` or confirmed `null`). A missing suffix SHALL remain an error until classified; do not infer that `IPCC` or `Kool, A.` is transversal from its name alone.
+- [ ] 1.2 Audit factors by the proposed business key `(subcategory, normalized required dimensions, year, source, numerator magnitude, denominator magnitude)` and list exact-unit rows that collapse into the same family (for example `kg/kg` and `kg/ton`).
+- [ ] 1.3 Convert same-family values to a common unit and automatically consolidate only mathematically equivalent rows. Send non-equivalent values to methodology review; model real wet/dry or similar distinctions as dimensions before migration.
+- [ ] 1.4 Update both `tools/seed/src/data/base/methodologies.json` and `tools/seed/src/data/testing/methodologies.json` with the reviewed classification: provider-only `source` and an explicit `year` value, including `"year": null` for confirmed transversal factors.
 
-## 2. Shared types
+## 2. Database schema and migration
 
-- [ ] 2.1 In `packages/types/src/baseSchemas/emissionFactor.ts`, add `year` to `EmissionFactorBaseSchema` as a nullable integer, described as the reporting year the factor applies to (null = transversal).
-- [ ] 2.2 In `packages/types/src/emissionFactors/createEmissionFactor/schemas.ts`, add `year` to the request schema and to `EmissionFactorFormSchema`. Validate it as an integer within a sane range and allow null.
-- [ ] 2.3 Mirror 2.2 in `packages/types/src/emissionFactors/updateEmissionFactor/schemas.ts` and add `year` to the `getAllEmissionFactors` response schema.
-- [ ] 2.4 In the carbon-inventory methodology schemas, add `year` to the emission-factor shape returned by `getCarbonInventoryMethodology`, and add the applied year plus the year-match flag to the line-factor shapes used by `syncCarbonInventoryLines` and `getEmissionFactors`.
+- [ ] 2.1 In `packages/database/src/prisma/schema.prisma`, add `year Int?` and a required server-derived `unitFamilyKey String @map("unit_family_key")` to `EmissionFactor`.
+- [ ] 2.2 In `CarbonInventoryLineFactor`, add only `appliedFactorYear Int? @map("applied_factor_year")`. Do not add `isFallback` or `appliedFactorYearMatchesInventory`; mismatch is derived from the current inventory year.
+- [ ] 2.3 Create `packages/database/src/prisma/migrations/<timestamp>_add_emission_factor_year/migration.sql`. Add `year` and a temporarily nullable `unit_family_key`; split recognized provider/year values using the reviewed map and fail the preflight if any factor is unclassified.
+- [ ] 2.4 Backfill `unit_family_key` from the factor rate unit's numerator and denominator measurement-unit magnitude IDs. Normalize dimension slots not required by the factor's subcategory to `NULL`, then make `unit_family_key` non-null.
+- [ ] 2.5 Drop `emission_factor_unique_subcategory_dims_source` and create a partial unique index over `("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "year", "source", "unit_family_key") NULLS NOT DISTINCT WHERE "status" <> 'DELETED'`.
+- [ ] 2.6 Add `applied_factor_year` and backfill it from each linked `emission_factor`. Do not recompute or overwrite existing applied value, unit, source or result snapshots.
+- [ ] 2.7 Run the migration on both a current-data database and a fresh seeded database. Verify: different years succeed; different sources in the same year succeed; different families succeed; the same source/year/family under compatible exact units is rejected; null dimensions/year cannot bypass uniqueness.
 
-## 3. API — emission factor maintenance
+## 3. Shared schemas and request contracts
 
-- [ ] 3.1 In `apps/api/src/features/emissionFactors/helpers.ts`, extend `checkDuplicateEmissionFactor` with a `year` parameter and add `year` to the `where` clause (matching `null` explicitly, not skipping the field).
-- [ ] 3.2 In the same file, extend `validateSourceConsistency` with a `year` parameter and scope its lookup to that year, so a subcategory can hold different sources across years but only one within a year.
-- [ ] 3.3 Update `createEmissionFactor/service.ts` and `updateEmissionFactor/service.ts` to pass the year to both helpers and to persist it. Keep the existing `P2002` mapping to `EmissionFactorDuplicateError` — the new index raises the same code.
-- [ ] 3.4 Update `apps/api/src/features/emissionFactors/mappers.ts` and `getAllEmissionFactors/service.ts` so the year is returned in every emission-factor response.
-- [ ] 3.5 In `apps/api/src/features/methodologies/duplicateMethodology/helpers.ts`, add `year` to the payload built by `cloneEmissionFactors`.
+- [ ] 3.1 Add nullable integer `year` to `packages/types/src/baseSchemas/emissionFactor.ts`, factor create/update forms and responses. Do not expose `unitFamilyKey` as a writable client field.
+- [ ] 3.2 Make seed `year` required-but-nullable in `tools/seed/src/scripts/seedMethodologyData/shared.ts` and propagate it in `seedEmissionFactors.ts`; omitted year entries SHALL fail validation.
+- [ ] 3.3 Add `year` and a stable canonical/base factor ID to the carbon-inventory methodology factor shape, including converted representations.
+- [ ] 3.4 Replace the ambiguous sync factor fields in `packages/types/src/carbonInventories/syncCarbonInventoryLines/schemas.ts` with a discriminated union equivalent to `CATALOG { emissionFactorId, appliedRateMeasurementUnitId }`, `CUSTOM { source, value, rateMeasurementUnitId }`, and `DIRECT { totalEmissions }`, alongside common line fields.
+- [ ] 3.5 Add `appliedFactorYear` to saved-line and factors-used response schemas. Do not add a persisted match/fallback boolean.
 
-## 4. API — methodology payload
+## 4. API — emission-factor maintenance and uniqueness
 
-- [ ] 4.1 In `apps/api/src/features/carbonInventories/getCarbonInventoryMethodology/service.ts`, add `year: true` to the `emissionFactors` select.
-- [ ] 4.2 In the sibling `helper.ts`, add `year` to `EmissionFactorWithRateUnit` and to `ConvertedEmissionFactor`, and carry it through `generateConvertedEmissionFactors` so every converted copy reports the year of the factor it derives from.
-- [ ] 4.3 Check `apps/api/src/features/carbonInventories/getCarbonInventoryMethodologyExport` and the methodology export mappers (`apps/api/src/features/methodologies/mappers.ts`) and add the year wherever the source is already exposed.
+- [ ] 4.1 Add a shared helper that loads a rate unit's numerator/denominator magnitudes and derives the canonical `unitFamilyKey`; reuse it for create, update, seed/migration verification and catalog sync validation.
+- [ ] 4.2 Update `checkDuplicateEmissionFactor` in `apps/api/src/features/emissionFactors/helpers.ts` to use normalized required dimensions plus `year`, `source` and unit family, matching null explicitly.
+- [ ] 4.3 Remove `validateSourceConsistency`, its error type/message mapping and all call sites. Multiple sources in the same dated or transversal rank are valid.
+- [ ] 4.4 Update `createEmissionFactor/service.ts` and `updateEmissionFactor/service.ts` to validate dimensions, derive `unitFamilyKey` from the selected rate unit and persist `year`. Keep `P2002` mapped to the duplicate-factor error.
+- [ ] 4.5 Return `year` from factor mappers/listing and preserve `year` plus canonical unit family in `duplicateMethodology/helpers.ts`.
 
-## 5. API — capture and recording
+## 5. API — methodology payload, exports and seed
 
-- [ ] 5.1 In `apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts`, accept the applied year and the year-match flag from the request and map them onto the `carbon_inventory_line_factor` create/update payloads, next to `appliedFactorValue` and `appliedFactorSource`.
-- [ ] 5.2 Derive the year-match flag server-side from the inventory's year rather than trusting the client, so the recorded flag cannot disagree with the recorded year.
-- [ ] 5.3 In `apps/api/src/features/carbonInventories/getEmissionFactors/service.ts`, select the applied year from the line factor and add it (plus the fallback indication) to `GetEmissionFactorsResponse`.
-- [ ] 5.4 In `apps/api/src/features/carbonInventories/duplicateCarbonInventory/service.ts`, copy the applied year and flag along with the rest of the line factor, so a duplicate starts as a faithful copy.
+- [ ] 5.1 In `getCarbonInventoryMethodology/service.ts`, select factor `id`, `year`, `source` and rate-unit magnitude data needed by the client contract.
+- [ ] 5.2 In its conversion helper, carry the canonical/base factor ID, source and year through every compatible converted representation. Never turn converted units into separate catalog identities.
+- [ ] 5.3 Update methodology API exports and `apps/web/src/utils/exportMethodologyToExcel.ts` so year is a separate column and transversal renders with an empty year cell.
+- [ ] 5.4 Update `seedEmissionFactors.ts` to derive the unit family server-side from each seed rate unit and persist the explicit year; confirm fresh and migrated databases have equivalent catalog keys.
 
-## 6. Seed
+## 6. API — server-authoritative line sync and snapshots
 
-- [ ] 6.1 In `tools/seed/src/scripts/seedMethodologyData/shared.ts`, add an optional `year` to the emission-factor entry of `FullMethodologyDataSchema`.
-- [ ] 6.2 In `tools/seed/src/scripts/seedMethodologyData/seedEmissionFactors.ts`, carry the year from the JSON into the created rows.
-- [ ] 6.3 In `tools/seed/src/data/base/methodologies.json` (246 factors), split every source: `"DEFRA 2025"` becomes `"source": "DEFRA", "year": 2025`; `"EcoAct 2020"` becomes `"source": "EcoAct", "year": 2020`; `"IPCC"` and `"Kool, A."` keep their source and omit the year.
-- [ ] 6.4 Repeat 6.3 in `tools/seed/src/data/testing/methodologies.json` (245 factors) so the testing dataset mirrors `base`.
-- [ ] 6.5 Run the seed against a fresh database and confirm the result matches a migrated one: same sources, same years, no duplicate-key failures.
+- [ ] 6.1 Refactor `syncCarbonInventoryLines` to branch on the discriminated `CATALOG`, `CUSTOM` and `DIRECT` variants instead of inferring custom factors from source strings.
+- [ ] 6.2 For `CATALOG`, load the factor inside the sync transaction and validate ACTIVE status, inventory methodology/subcategory membership, required dimension values and applied-unit family compatibility.
+- [ ] 6.3 Derive catalog source, year and canonical value on the server, perform the unit conversion on the server, calculate the line result and persist the applied value/unit/source/year snapshot. Remove client-authored catalog value/source/year from the write path.
+- [ ] 6.4 Keep dedicated validations for `CUSTOM` and `DIRECT`; persist `emissionFactorId = null` and `appliedFactorYear = null` for custom factors, and do not create a catalog-factor snapshot for direct totals.
+- [ ] 6.5 Update saved-line reads and `getEmissionFactors/service.ts` to return `emissionFactorId`/base factor ID and `appliedFactorYear`, so reload restores the exact catalog choice and warning state can be derived.
+- [ ] 6.6 Update `duplicateCarbonInventory/service.ts` to copy `appliedFactorYear` with the other immutable snapshots. Updating `carbon_inventory.year` SHALL NOT rewrite factors or results and SHALL NOT invoke a bulk resolution path.
 
-## 7. Web — vintage resolution and selection
+## 7. Web — ranking and combined source/year selection
 
-- [ ] 7.1 In `apps/web/src/screens/CarbonInventory/types/index.tsx`, add `year` to `MethodologyEmissionFactor`.
-- [ ] 7.2 In `apps/web/src/screens/CarbonInventory/components/EmissionEditor/services/emissionFactorService.ts`, add a pure `resolvePreselectedFactor(availableFactors, inventoryYear)` implementing the four-step rule (exact year, transversal, most recent below, closest above) and returning both the chosen factor and why it was chosen, so the caller can decide whether to show the other-year notice. Add a companion `getAvailableYears` for the selector's options.
-- [ ] 7.3 Replace `determineAutoLoadFactorSource` in `apps/web/src/screens/CarbonInventory/components/EmissionEditor/hooks/useEmissionEditorForm.ts` with year-based resolution. The current "auto-fill only when exactly one source survives" heuristic goes away; sources with more than one candidate for the resolved year keep the existing behavior of asking the organization to choose.
-- [ ] 7.4 Thread the inventory year into the editor. `useEmissionCaptureData` already exposes `year` on the merged capture data — pass it down rather than fetching it again.
-- [ ] 7.5 Extend the factor cells (`EmissionEditorFactorSourceCell.tsx`, and the factor/value cells beside it) so the vintage is selectable and the applied year is visible on the row, with the other-year notice when the resolved year is not the footprint's. Every status indicator needs a tooltip, per the project's UI convention.
-- [ ] 7.6 Send the applied year with each line when saving, so the API can record it.
+- [ ] 7.1 Add factor `year` and canonical/base factor ID to `MethodologyEmissionFactor` and the emission-editor models.
+- [ ] 7.2 In `EmissionEditor/services/emissionFactorService.ts`, implement pure helpers to filter by activity/dimensions and unit family and rank by exact year, transversal, nearest earlier, then nearest later.
+- [ ] 7.3 Return a recommendation only when the winning rank has exactly one canonical factor. If multiple sources tie, return the complete winning candidates with no selection; never break ties by array order, source or ID.
+- [ ] 7.4 Replace `determineAutoLoadFactorSource` with the new ranking and thread the already-available inventory year into it.
+- [ ] 7.5 Replace the source-only control with a combined selector label such as `DEFRA · 2025` or `IPCC · Transversal`. Keep applied-unit conversion separate from vintage identity and keep custom factor entry available.
+- [ ] 7.6 When saving a catalog selection, send only its canonical `emissionFactorId` and desired compatible applied rate unit. Adapt custom and direct lines to their discriminated variants.
+- [ ] 7.7 On reload, restore the selected canonical factor by ID and display the snapshotted source/year. Do not silently replace it with the newly recommended candidate.
 
-## 8. Web — year change and duplication
+## 8. Web — subcategory year-mismatch warning
 
-- [ ] 8.1 When the measurement year changes on a footprint that already has captured lines, show a notice offering to update the factors, and re-resolve every editable line with the rule from 7.2 before submitting through the existing sync endpoint. Never recalculate without the explicit action.
-- [ ] 8.2 Make the same offer after duplicating a footprint and re-dating the copy.
-- [ ] 8.3 Suppress the offer for footprints that are not editable (self-declared or under verification) — the existing `isEditable` gate already covers the screens; confirm it covers this path too.
+- [ ] 8.1 Add a pure warning-summary helper. Eligible rows are active lines with `emissionFactorId != null`, `appliedFactorYear != null` and a non-null inventory year; affected rows have `appliedFactorYear !== inventory.year`.
+- [ ] 8.2 Exclude transversal catalog factors, custom/manual factors, direct totals, incomplete/no-factor rows and inactive/deleted inputs from both affected and eligible dated-catalog counts.
+- [ ] 8.3 Render at most one warning per subcategory with affected/eligible counts, sorted distinct mismatching years, the current inventory year and the statement that calculations were not modified.
+- [ ] 8.4 Keep the warning informational: it SHALL NOT block save, navigation or submission. Recompute it from current line snapshots after reload, individual factor edits and inventory-year changes.
+- [ ] 8.5 Remove or do not implement any notice/action that offers bulk factor re-resolution after a year change or duplicated inventory re-date. Preserve all choices and results.
 
-## 9. Web — maintainer, summary and export
+## 9. Web — maintainer and factors-used summary
 
-- [ ] 9.1 Add a year column to the emission-factors maintainer grid (`apps/web/src/screens/Maintainer/hooks/useEmissionFactorColumns.tsx`) and to its form (`useEmissionFactorsForm.ts`), allowing an empty value to mean transversal.
-- [ ] 9.2 Surface the maintainer-side error messages for the two validators, including the source conflict, now scoped per year (`getApiErrorMessage` mapping).
-- [ ] 9.3 Add the year column to the factors sheet in `apps/web/src/utils/exportMethodologyToExcel.ts`, rendering a transversal factor as an empty cell.
-- [ ] 9.4 Show the year in the factors-used summary (`apps/web/src/screens/CarbonInventory/components/EmissionSummary/useEmissionFactorsColumns.tsx`), marking the rows that used a factor from another year.
+- [ ] 9.1 Add a nullable year field/column to the emission-factor maintainer form and grid. Show source and year separately there; require an explicit blank/null choice for transversal.
+- [ ] 9.2 Update maintainer duplicate errors to explain conflicts by source, year, required dimensions and unit family. Remove source-conflict messaging.
+- [ ] 9.3 Show the applied year in the factors-used summary. Derive mismatch styling from the current inventory year; transversal and custom factors SHALL not be marked as mismatches.
 
 ## 10. Tests
 
-- [ ] 10.1 API: extend the `emissionFactors` integration tests — a second vintage is accepted, a duplicate within the same year is rejected, two transversal factors collide, and the source-conflict error fires within a year but not across years.
-- [ ] 10.2 API: assert the year is present in the methodology payload, including on converted factors.
-- [ ] 10.3 API: assert `syncCarbonInventoryLines` persists the applied year and derives the match flag from the inventory's year, and that `getEmissionFactors` returns both.
-- [ ] 10.4 Web: unit-test `resolvePreselectedFactor` in `emissionFactorService.test.ts` — one case per branch of the rule, plus the no-factor and no-inventory-year cases.
-- [ ] 10.5 Run `pnpm test:api -- /emissionFactors --coverage=false`, `pnpm test:api -- /carbonInventories --coverage=false` and `pnpm test:web`.
+- [ ] 10.1 Database/API maintenance: cover different years, multiple sources in the same year, multiple transversal sources, same-source duplicates with nulls, compatible exact-unit duplicates and coexistence of non-convertible unit families.
+- [ ] 10.2 Migration/seed: fail on unclassified year, verify explicit transversal rows, verify provider/year splitting and detect non-equivalent same-family collisions.
+- [ ] 10.3 Methodology payload: assert source/year/base factor ID survive compatible conversions and methodology duplication/export.
+- [ ] 10.4 Sync API: assert valid catalog selection is server-derived; reject inactive, cross-methodology, wrong-dimension and incompatible-family selections; prove spoofed catalog value/source/year cannot be persisted.
+- [ ] 10.5 Snapshot API: assert `appliedFactorYear` is saved/returned/copied and remains stable after catalog edits and inventory-year changes.
+- [ ] 10.6 Web ranking: one case for every year rank, exact-year and transversal provider ties, no inventory year, no factors and unit-family filtering.
+- [ ] 10.7 Web warning: exact affected/eligible counts; distinct sorted years; exclusions for transversal/custom/direct/incomplete/inactive lines; clearing after individual correction; no blocking behavior.
+- [ ] 10.8 Year change/duplication regression: verify factor IDs, snapshots and calculated results remain byte-for-byte unchanged after re-dating.
 
-## 11. Wrap-up
+## 11. Validation and rollout
 
-- [ ] 11.1 Run `pnpm format && pnpm lint && pnpm type-check`.
-- [ ] 11.2 Confirm with the methodology team which factors are genuinely transversal before loading any real vintage, and correct the backfilled classification if they disagree. This is the change's one open question.
-- [ ] 11.3 Load the first real vintages, starting with the activities where the year moves the result (electricity, fuels), and check the payload size of `getCarbonInventoryMethodology` against the warning already noted in that service.
+- [ ] 11.1 Run targeted API and web tests, then `pnpm format`, `pnpm lint` and `pnpm type-check`.
+- [ ] 11.2 Run `openspec validate add-emission-factor-year --strict` and resolve every artifact/spec inconsistency.
+- [ ] 11.3 Deploy schema and server-authoritative contract before the web client that sends the new union, using the repository's compatible rollout strategy.
+- [ ] 11.4 Load additional vintages/providers only after production classification, migration checks and payload-size observation pass.

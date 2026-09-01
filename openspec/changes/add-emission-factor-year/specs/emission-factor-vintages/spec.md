@@ -1,89 +1,115 @@
 ## ADDED Requirements
 
-### Requirement: An emission factor declares the reporting year it applies to
+### Requirement: An emission factor declares its reporting year explicitly
 
-An `EmissionFactor` SHALL carry a nullable `year` attribute holding the **reporting year the factor applies to** — not the year its source was published. A `null` year SHALL mean the factor is _transversal_: it does not depend on the reporting year and serves any measurement year.
+An `EmissionFactor` SHALL carry a nullable `year` attribute containing the reporting year the factor applies to, not merely its source publication year. `year = null` SHALL mean the factor is confirmed as transversal and applies to every reporting year.
 
-The year SHALL be stored as its own attribute. The `source` attribute SHALL hold the provider only (`"DEFRA"`), never the year concatenated into the text (`"DEFRA 2025"`). Presentation layers MAY render the two together.
+The `source` SHALL contain only the provider. Seed and import data SHALL provide `year` explicitly as an integer or `null`; omission SHALL NOT be interpreted as transversal.
 
 #### Scenario: A dated factor is created
 
-- **WHEN** a maintainer creates an emission factor for a subcategory with `source = "DEFRA"` and `year = 2025`
-- **THEN** the factor SHALL be persisted with `year = 2025` and `source = "DEFRA"`, AND the year SHALL be returned by every endpoint that returns the factor
+- **WHEN** a maintainer creates a factor with `source = "DEFRA"` and `year = 2025`
+- **THEN** the factor SHALL be persisted and returned with `source = "DEFRA"` and `year = 2025`
 
-#### Scenario: A transversal factor is created
+#### Scenario: A confirmed transversal factor is created
 
-- **WHEN** a maintainer creates an emission factor without a year, for an activity whose value comes from process chemistry rather than a dated dataset
-- **THEN** the factor SHALL be persisted with `year = null`, AND it SHALL be eligible for a footprint of any measurement year
+- **WHEN** a maintainer creates a factor with an explicit `year = null`
+- **THEN** the factor SHALL be persisted as transversal and SHALL be eligible for every reporting year
 
-#### Scenario: Existing factors are migrated
+#### Scenario: Migration separates a recognized source suffix
 
-- **WHEN** the data migration runs against a catalog whose factors carry the year inside `source`
-- **THEN** a factor with `source = "DEFRA 2025"` SHALL end up with `source = "DEFRA"` and `year = 2025`, AND a factor with `source = "IPCC"` SHALL end up with `source = "IPCC"` and `year = null`
+- **GIVEN** the reviewed migration mapping classifies a factor stored as `source = "DEFRA 2025"` as reporting year 2025
+- **WHEN** the migration runs
+- **THEN** the factor SHALL become `source = "DEFRA"` and `year = 2025`
 
-### Requirement: Several vintages of the same activity coexist
+#### Scenario: Migration does not guess transversality
 
-At most one ACTIVE emission factor SHALL exist per (subcategory, the dimension values of the subcategory's required dimensions, year). Factors that differ only in their year SHALL NOT be treated as duplicates.
+- **GIVEN** an existing factor has no year suffix and no reviewed dated/transversal classification
+- **WHEN** the migration preflight runs
+- **THEN** production migration SHALL stop and report the unclassified factor instead of assigning `year = null`
 
-The uniqueness rule SHALL be enforced both by the application and by a partial unique index that treats null values as equal, so that factors with no dimension values and no year are covered by the constraint rather than escaping it.
+### Requirement: Factor identity uses source, year and dimensional unit family
 
-#### Scenario: A second vintage is accepted
+At most one ACTIVE emission factor SHALL exist for this business key:
 
-- **GIVEN** an ACTIVE factor exists for a subcategory with `year = 2025`
-- **WHEN** a maintainer creates a factor for the same subcategory and the same required dimension values with `year = 2026`
-- **THEN** the creation SHALL succeed
+`(subcategory, normalized required dimension values, year, source, numerator magnitude, denominator magnitude)`.
 
-#### Scenario: A duplicate within the same year is rejected
+The exact measurement units SHALL NOT form the identity. The numerator/denominator magnitude pair SHALL define a unit family. Dimension slots that are not required by the subcategory SHALL be normalized to `null` for this rule.
 
-- **GIVEN** an ACTIVE factor exists for a subcategory with `year = 2025`
-- **WHEN** a maintainer creates another factor for the same subcategory, the same required dimension values and `year = 2025`
-- **THEN** the creation SHALL be rejected as a duplicate
+The application and a partial database unique index SHALL enforce the same key. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. The persisted family identity SHALL be derived by the server from the selected rate unit and SHALL NOT be accepted as client-authored data.
 
-#### Scenario: A second transversal factor is rejected
+#### Scenario: A second year is accepted
 
-- **GIVEN** an ACTIVE factor exists for a subcategory with `year = null`
-- **WHEN** a maintainer creates another factor for the same subcategory and the same required dimension values with `year = null`
-- **THEN** the creation SHALL be rejected as a duplicate, because a null year is compared as a value and not as an unknown
+- **GIVEN** an ACTIVE `DEFRA` mass/energy factor exists for an activity with `year = 2025`
+- **WHEN** a maintainer creates the otherwise equivalent factor with `year = 2026`
+- **THEN** creation SHALL succeed
 
-### Requirement: One source per subcategory and year
+#### Scenario: Compatible exact units are one canonical factor
 
-All ACTIVE emission factors of a subcategory that share the same year SHALL share the same `source`. Factors of the same subcategory with different years MAY have different sources.
+- **GIVEN** an ACTIVE factor exists for an activity, source and year in `kg/kg`
+- **WHEN** a maintainer creates another factor for the same activity, source and year in `kg/ton`
+- **THEN** creation SHALL be rejected as a duplicate because both rate units are mass/mass
+- **AND** the `kg/ton` representation SHALL be obtained by converting the canonical factor
 
-#### Scenario: A new vintage may keep the same provider
+#### Scenario: Non-convertible unit families coexist
 
-- **GIVEN** a subcategory whose 2025 factors all have `source = "DEFRA"`
-- **WHEN** a maintainer creates a factor for that subcategory with `year = 2026` and `source = "DEFRA"`
-- **THEN** the creation SHALL succeed
+- **GIVEN** an ACTIVE mass/mass factor exists for an activity, source and year in `kg/ton`
+- **WHEN** a maintainer creates factors with the same activity, source and year in `kg/kWh` and `kg/m3`
+- **THEN** both creations SHALL succeed because mass/energy, mass/volume and mass/mass are different families
 
-#### Scenario: A new vintage may change provider
+#### Scenario: Same-family scientific bases require a dimension
 
-- **GIVEN** a subcategory whose 2025 factors all have `source = "DEFRA"`
-- **WHEN** a maintainer creates a factor for that subcategory with `year = 2026` and `source = "IPCC"`
-- **THEN** the creation SHALL succeed, because the source consistency rule is scoped to a single year
+- **GIVEN** wet mass and dry mass need different factor values within the mass/mass family
+- **WHEN** those factors are modeled in the catalog
+- **THEN** the wet/dry basis SHALL be represented by a factor dimension
+- **AND** exact unit spelling SHALL NOT be used to bypass the family uniqueness rule
 
-#### Scenario: Mixing sources within one year is rejected
+#### Scenario: A duplicate including nulls is rejected
 
-- **GIVEN** a subcategory whose 2025 factors all have `source = "DEFRA"`
-- **WHEN** a maintainer creates a factor for that subcategory with `year = 2025` and `source = "IPCC"`
-- **THEN** the creation SHALL be rejected with the source-conflict error naming the existing source
+- **GIVEN** an ACTIVE factor exists with no required dimension values and `year = null`
+- **WHEN** another factor is created with the same subcategory, source and unit family and `year = null`
+- **THEN** creation SHALL be rejected as a duplicate
 
-### Requirement: The year travels with the factor wherever it is published
+### Requirement: Multiple providers may coexist in the same vintage rank
 
-Every representation of an emission factor that already exposes its source SHALL also expose its year: the maintainer listing, the methodology payload consumed by the emission capture screen (including the unit-converted copies of a factor), the methodology export, and the methodology spreadsheet download, where the year SHALL be a column of its own next to the source.
+The catalog SHALL allow more than one source for the same activity, reporting year and unit family, including more than one transversal source. The former subcategory-wide source-consistency validation SHALL NOT be applied.
 
-Duplicating a methodology version SHALL preserve each factor's year.
+#### Scenario: Two providers coexist for the same year
 
-#### Scenario: The capture payload carries the year
+- **GIVEN** a `DEFRA · 2025` factor exists for an activity and unit family
+- **WHEN** a maintainer creates an `IPCC · 2025` factor for the same activity and family
+- **THEN** creation SHALL succeed
 
-- **WHEN** the emission capture screen requests the methodology of a carbon inventory
-- **THEN** every emission factor in the response SHALL include its year, AND each unit-converted copy of a factor SHALL carry the same year as the factor it was derived from
+#### Scenario: Two transversal providers coexist
 
-#### Scenario: The spreadsheet download carries the year
+- **GIVEN** an `IPCC · Transversal` factor exists for an activity and unit family
+- **WHEN** a maintainer creates a `Kool, A. · Transversal` factor for the same activity and family
+- **THEN** creation SHALL succeed
 
-- **WHEN** a maintainer downloads the methodology as a spreadsheet
-- **THEN** the emission-factors sheet SHALL include a year column, AND a transversal factor SHALL render as an empty year cell rather than as a fabricated year
+#### Scenario: The same provider cannot duplicate a transversal factor
 
-#### Scenario: Duplicating a methodology preserves vintages
+- **GIVEN** an `IPCC · Transversal` factor exists for an activity and unit family
+- **WHEN** another `IPCC · Transversal` factor is created for the same business key
+- **THEN** creation SHALL be rejected as a duplicate
 
-- **WHEN** a maintainer duplicates a methodology version whose catalog holds factors for 2025 and 2026
-- **THEN** the duplicated catalog SHALL hold the same factors with the same years
+### Requirement: Year and provider travel with every published factor
+
+Every representation that exposes an emission factor's source SHALL also expose its year: maintainer responses, methodology payloads, compatible unit-converted representations, methodology exports and spreadsheet downloads. Duplicating a methodology version SHALL preserve source, year and canonical unit family.
+
+#### Scenario: The capture payload carries vintage metadata
+
+- **WHEN** the emission capture screen requests the inventory methodology
+- **THEN** every canonical factor SHALL include source and year
+- **AND** every compatible converted representation SHALL retain the base factor ID, source and year from which it was derived
+
+#### Scenario: The spreadsheet keeps year separate from source
+
+- **WHEN** a maintainer downloads the methodology spreadsheet
+- **THEN** the factor sheet SHALL include a separate year column
+- **AND** a transversal factor SHALL render with an empty year cell and its provider unchanged
+
+#### Scenario: Duplicating a methodology preserves alternatives
+
+- **GIVEN** a methodology has multiple dated and transversal providers for an activity
+- **WHEN** the methodology version is duplicated
+- **THEN** the duplicate SHALL preserve all alternatives with their source, year, unit family and value
