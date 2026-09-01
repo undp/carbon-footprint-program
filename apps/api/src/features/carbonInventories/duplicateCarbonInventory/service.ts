@@ -111,6 +111,10 @@ export const duplicateCarbonInventoryService = async (
               appliedFactorValue: input.factor.appliedFactorValue,
               appliedFactorRateUnitId: input.factor.appliedFactorRateUnitId,
               appliedFactorSource: input.factor.appliedFactorSource,
+              // Copied, never re-resolved: the duplicate inherits the vintage the
+              // source inventory actually applied. Re-dating the copy later must
+              // not change it either.
+              appliedFactorYear: input.factor.appliedFactorYear,
               derivationDetails: input.factor.derivationDetails ?? undefined,
               createdById: userId,
               updatedAt: null,
