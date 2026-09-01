@@ -63,21 +63,24 @@ export type EmissionFactorIdentity = {
 };
 
 /**
- * Normalizes a factor's dimension slots **for identity purposes only**: a value
- * parked in a slot the subcategory does not require is not part of the key, so
- * it must not be able to split one identity into two.
+ * The dimension part of the duplicate lookup.
  *
- * The normalized values are not what gets persisted. A value the maintainer put
- * in an optional slot is real data and stays on the row; it just does not earn
- * the factor a separate identity. That does mean this check is stricter than the
- * database index, which compares the raw columns — the same asymmetry the
- * catalog has always had, and safe in that direction: the application rejects a
- * little more than the constraint would, never less.
+ * A slot the subcategory does not require is not part of a factor's identity, so
+ * it is left **out of the query entirely** rather than pinned to null. Those are
+ * not the same thing: pinning it to null asks for rows whose slot is *also*
+ * empty, which silently misses an existing factor that has a value parked there
+ * and lets a duplicate through — the database index compares the raw columns and
+ * does not catch it either.
+ *
+ * Omitting the slot keeps the intended asymmetry: the application rejects a
+ * little more than the constraint would, never less. A value the maintainer put
+ * in an optional slot stays on the row; it just does not earn the factor a
+ * separate identity.
  */
-async function normalizeEmissionFactorIdentity(
+async function buildDimensionIdentityFilter(
   tx: Prisma.TransactionClient,
   identity: EmissionFactorIdentity
-): Promise<EmissionFactorIdentity> {
+): Promise<Prisma.EmissionFactorWhereInput> {
   const requiredDimensions = await tx.emissionFactorDimension.findMany({
     where: {
       subcategoryId: identity.subcategoryId,
@@ -90,13 +93,12 @@ async function normalizeEmissionFactorIdentity(
   const requiredPositions = new Set(requiredDimensions.map((d) => d.position));
 
   return {
-    ...identity,
-    dimensionValue1Id: requiredPositions.has(1)
-      ? identity.dimensionValue1Id
-      : null,
-    dimensionValue2Id: requiredPositions.has(2)
-      ? identity.dimensionValue2Id
-      : null,
+    ...(requiredPositions.has(1)
+      ? { dimensionValue1Id: identity.dimensionValue1Id }
+      : {}),
+    ...(requiredPositions.has(2)
+      ? { dimensionValue2Id: identity.dimensionValue2Id }
+      : {}),
   };
 }
 
@@ -107,12 +109,14 @@ async function normalizeEmissionFactorIdentity(
  *   (subcategory, required dimension values, year, source,
  *    numerator magnitude, denominator magnitude)
  *
- * Two points are easy to get wrong. `year = null` is a real value meaning
- * "transversal", so it has to be matched explicitly rather than skipped — which
- * is why every field is compared with an explicit null. And the key uses the
- * unit *family*, not the exact unit: `kg/kg` and `kg/ton` are both mass/mass and
- * so are one factor expressed two ways, while `kg/kWh` and `kg/m3` are different
- * families that may coexist for the same activity, source and year.
+ * Three points are easy to get wrong. `year = null` is a real value meaning
+ * "transversal", so it is matched with an explicit null rather than skipped. An
+ * optional dimension slot is the opposite case: it is not part of the identity,
+ * so it is omitted from the query rather than matched against null — see
+ * `buildDimensionIdentityFilter`. And the key uses the unit *family*, not the
+ * exact unit: `kg/kg` and `kg/ton` are both mass/mass and so are one factor
+ * expressed two ways, while `kg/kWh` and `kg/m3` are different families that may
+ * coexist for the same activity, source and year.
  *
  * The same key is enforced by the partial unique index
  * `emission_factor_unique_subcategory_dims_year_source_family`; this check exists
@@ -123,17 +127,16 @@ export async function checkDuplicateEmissionFactor(
   identity: EmissionFactorIdentity,
   excludeId?: bigint
 ): Promise<void> {
-  const normalized = await normalizeEmissionFactorIdentity(tx, identity);
+  const dimensionFilter = await buildDimensionIdentityFilter(tx, identity);
 
   const duplicate = await tx.emissionFactor.findFirst({
     where: {
-      subcategoryId: normalized.subcategoryId,
-      dimensionValue1Id: normalized.dimensionValue1Id,
-      dimensionValue2Id: normalized.dimensionValue2Id,
-      year: normalized.year,
-      source: normalized.source,
-      numeratorMagnitudeId: normalized.numeratorMagnitudeId,
-      denominatorMagnitudeId: normalized.denominatorMagnitudeId,
+      subcategoryId: identity.subcategoryId,
+      ...dimensionFilter,
+      year: identity.year,
+      source: identity.source,
+      numeratorMagnitudeId: identity.numeratorMagnitudeId,
+      denominatorMagnitudeId: identity.denominatorMagnitudeId,
       status: EmissionFactorStatus.ACTIVE,
       ...(excludeId != null ? { id: { not: excludeId } } : {}),
     },
