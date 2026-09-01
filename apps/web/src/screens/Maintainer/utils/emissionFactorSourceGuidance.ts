@@ -11,6 +11,32 @@
 /** Years a factor could plausibly report on; anything outside is not a vintage. */
 const PLAUSIBLE_YEAR_PATTERN = /(?:^|[^\d])((?:19|20)\d{2})(?:[^\d]|$)/;
 
+/**
+ * The same shape, but keeping the character before the year in a group and
+ * looking ahead at the one after it, so a replace can drop the year without
+ * eating its neighbours — and so two years in a row both match.
+ *
+ * Declared separately because a `g` regex carries `lastIndex` between calls,
+ * which would make the detection helpers above answer differently each time.
+ */
+const PLAUSIBLE_YEAR_REPLACE_PATTERN = /(^|[^\d])((?:19|20)\d{2})(?=[^\d]|$)/g;
+
+/**
+ * Removes every plausible year from a provider name and tidies what the removal
+ * leaves behind: brackets with nothing in them, doubled spaces, and separators
+ * stranded at either end.
+ *
+ * A plain substring replace is not enough. "IPCC (2019)" would become "IPCC ()",
+ * and "2020 EcoAct 2020" would keep the very year the warning asks to remove.
+ */
+const stripYears = (source: string): string =>
+  source
+    .replace(PLAUSIBLE_YEAR_REPLACE_PATTERN, "$1")
+    .replace(/\(\s*\)|\[\s*\]/g, "")
+    .replace(/\s+/g, " ")
+    .replace(/^[\s\-–—,;:·|/]+|[\s\-–—,;:·|/]+$/g, "")
+    .trim();
+
 /** True when the name appears to carry a four-digit reporting year. */
 export const looksLikeSourceContainsYear = (source: string): boolean =>
   PLAUSIBLE_YEAR_PATTERN.test(source);
@@ -32,10 +58,7 @@ export const buildSourceYearWarning = (source: string): string | null => {
   const detectedYear = extractYearFromSource(source);
   if (detectedYear === null) return null;
 
-  const withoutYear = source
-    .replace(String(detectedYear), "")
-    .replace(/\s+/g, " ")
-    .trim();
+  const withoutYear = stripYears(source);
 
   const suggestion = withoutYear.length > 0 ? withoutYear : source;
 

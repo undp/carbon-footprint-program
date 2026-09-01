@@ -61,4 +61,27 @@ describe("buildSourceYearWarning", () => {
     expect(buildSourceYearWarning("DEFRA")).toBeNull();
     expect(buildSourceYearWarning("")).toBeNull();
   });
+
+  it("does not leave the brackets that held the year", () => {
+    // A substring replace turns this into "IPCC ()", which is not a name anyone
+    // would want to be told to use.
+    expect(buildSourceYearWarning("IPCC (2019)")).toContain('"IPCC"');
+  });
+
+  it("removes every occurrence, not just the first", () => {
+    const warning = buildSourceYearWarning("2020 EcoAct 2020");
+
+    expect(warning).toContain('"EcoAct"');
+    // The suggestion must not still carry the year the warning asks to remove.
+    expect(warning).not.toContain('"EcoAct 2020"');
+  });
+
+  it("does not leave a separator stranded where the year was", () => {
+    expect(buildSourceYearWarning("DEFRA - 2025")).toContain('"DEFRA"');
+  });
+
+  it("falls back to the original name when it is only a year", () => {
+    // Suggesting an empty name would be worse than suggesting nothing.
+    expect(buildSourceYearWarning("2025")).toContain('"2025"');
+  });
 });
