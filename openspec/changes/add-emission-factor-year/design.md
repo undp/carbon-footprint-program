@@ -1,137 +1,168 @@
 ## Context
 
-`emission_factor` stores one row per (subcategory, dimension values) and no year. The vintage is carried informally in the free-text `source`: the seed ships `"DEFRA 2025"`, `"EcoAct 2020"`, `"IPCC"` and `"Kool, A."`. Three mechanisms conspire to make a second vintage impossible today:
+`emission_factor` currently stores one row per subcategory/dimension combination and carries its vintage informally in `source`. Application validation prevents both a second year and a second provider, while the database index enforces a different identity. Capture then expands a base factor into compatible rate units on the client and sends the selected value/source/unit back to the API.
 
-- `checkDuplicateEmissionFactor` (`apps/api/src/features/emissionFactors/helpers.ts:65`) keys uniqueness on subcategory + the dimension values of the _required_ dimensions only. A 2026 row for the same activity is a duplicate.
-- `validateSourceConsistency` (`helpers.ts:109`) rejects any factor whose `source` differs from the source already used anywhere in that subcategory. `"DEFRA 2026"` next to `"DEFRA 2025"` fails.
-- The partial unique index `emission_factor_unique_subcategory_dims_source` (`packages/database/src/prisma/migrations/20251227203015_create_methodology_tables/migration.sql:170`) covers `(subcategory_id, dimension_value_1_id, dimension_value_2_id, source)`. It disagrees with the application checks in both directions: it includes `source` (which the app ignores) and omits the rate unit (which the app also ignores) and the optional dimensions' role.
+The design has to preserve four properties:
 
-On the capture side, `getCarbonInventoryMethodology` ships every active factor of the methodology — each one expanded into every compatible rate unit by `generateConvertedEmissionFactors` — and the frontend picks one by filtering on `(dimensionValue1Id, dimensionValue2Id, rateMeasurementUnitId)` and then collapsing to the distinct `source` values (`emissionFactorService.ts:30`). The auto-fill in `determineAutoLoadFactorSource` (`useEmissionEditorForm.ts:275`) only fires when exactly one source survives; with two vintages loaded it silently stops recommending and lists both in a control labelled "Fuente".
+- several dated and transversal sources may coexist for one activity;
+- compatible units are representations of one physical factor, not separate catalog identities;
+- saved calculations remain reproducible;
+- changing the footprint year does not override an organization's saved choices.
 
-Constraints driving the design:
-
-- **The footprint's year is already known before capture.** `carbon_inventory.year` is set in step 1 (business profiling), the field is `required` with real React Hook Form validation, and `useEmissionCaptureData` already merges `inventory.year` into the capture screen's data.
-- **Results must stay reproducible.** `carbon_inventory_line_factor` freezes `appliedFactorValue`, `appliedFactorRateUnitId` and `appliedFactorSource` per line; recomputation never happens implicitly.
-- **The organization picks the vintage.** The Product Owner asked for a visible selector defaulting to the footprint's year, not a silent resolution rule.
-- **The catalog is loaded by file.** Historical vintages are seeded by the technical team; the maintainer screen handles point corrections.
+`carbon_inventory.year` is available before capture. `carbon_inventory_line_factor` already snapshots the applied value, rate unit and source, so adding the applied year follows the existing reproducibility model.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
-- Make the year a first-class, queryable attribute of an emission factor, with `null` meaning "applies to any year".
-- Let several vintages of the same activity coexist, and align the DB index with the application-level uniqueness rule instead of leaving them contradictory.
-- Preselect the vintage that matches the footprint's year, degrade predictably when it is missing, and always let the organization override the choice.
-- Record which year was actually applied to each line, and whether it came from a fallback, so a verifier can reproduce the number.
-- Keep every already-computed result exactly as it is.
+- Make reporting year explicit, with `null` reserved for factors confirmed as transversal.
+- Define one uniqueness rule shared by the database, application and seed.
+- Allow multiple providers for the same year, including multiple transversal providers.
+- Recommend a source/year deterministically without choosing arbitrarily between equally ranked providers.
+- Make the API authoritative for catalog values and conversions.
+- Preserve saved lines after an inventory-year change and surface only a derived, non-blocking subcategory warning.
 
 **Non-Goals:**
 
-- No bulk Excel import in the maintainer screen. Vintages arrive by seed/file; the grid stays for corrections.
-- No warning that a year-over-year drop may come from a factor change rather than a real reduction (rankings, admin dashboard, public transparency). Known risk, deferred.
-- No change to the reduction plan: `getSuggestedReductionPlanService` ranks subcategories by their already-computed subtotals and returns qualitative initiatives (`reduction_plan_initiative` is title + description). It never computes with factors.
-- No route guard for a footprint that reaches capture with `year = null`. The year is already required to leave step 1; only a hand-typed URL can bypass it, and the fallback covers it.
-- No conversion of `gasDetails` or any other factor attribute into a per-vintage structure beyond the year.
+- No bulk Excel import in the maintainer.
+- No implicit or bulk re-resolution after changing an inventory year.
+- No change to the reduction plan.
+- No modeling of wet/dry basis or other scientific distinctions as units; those belong in factor dimensions.
 
 ## Decisions
 
-### Decision 1 — A `year` column on `emission_factor`, not a separate vintage table
+### Decision 1 — A factor row is a logical `(source, year)` vintage
 
-**Choice**: add `year Int?` to `emission_factor`. Each vintage is a row.
+**Choice**: add `year Int?` directly to `emission_factor`; each provider/year combination remains a complete factor row.
 
-**Alternatives considered**:
+The logical vintage is `(source, year)`. Two providers may publish a factor for the same year, and two providers may both publish transversal factors. A separate vintage table is not introduced because the current catalog has no shared vintage metadata beyond these fields.
 
-- **Split identity from vintage** (`emission_factor` keyed by subcategory + dimensions + source, with an `emission_factor_value` child carrying year, value, gasDetails and rate unit) — the cleaner temporal model, and the right shape if a vintage ever needs several attributes of its own. But it moves the `carbon_inventory_line_factor.emission_factor_id` FK to the child table, rewrites every read path, and buys nothing today: a vintage differs only in its value and its gas breakdown, both already columns of the row.
-- **One methodology version per year** (`duplicateMethodology` already deep-clones a whole catalog) — zero schema change. But subcategory ids differ per version, so two footprints from different years stop being comparable at the id level, and the maintainer has to keep N parallel catalogs in sync by hand. It trades a one-column migration for a permanent maintenance cost.
+**Rationale**: this is the smallest model that represents the product rule while preserving current foreign keys and complete per-row values/gas details. If richer publication metadata is needed later, `(source, year)` can be extracted into its own entity.
 
-**Rationale**: the row-per-vintage model is the smallest change that satisfies the definition, and it leaves the door open to the split model later — the split becomes a mechanical extraction once there is a reason for it.
+### Decision 2 — `year = null` means confirmed transversal, never unknown
 
-### Decision 2 — `year = null` means transversal, rather than a separate flag
+**Choice**: `null` means the factor is scientifically applicable to any reporting year.
 
-**Choice**: a `null` year declares that the factor does not depend on the reporting year.
+Seed entries must provide `year` explicitly as either an integer or `null`. Migration may safely parse a recognized trailing year such as `DEFRA 2025`, but the absence of a suffix does not prove transversality. Every remaining factor must be classified by the methodology team before production migration.
 
-**Alternatives considered**:
+**Rationale**: one nullable field expresses the domain without an artificial year plus boolean, while explicit classification prevents missing metadata from silently becoming an all-years rule.
 
-- **`isTransversal Boolean` + non-null `year`** — more explicit, but forces every transversal factor to invent a year that must then be ignored everywhere, and creates a second source of truth to keep consistent.
-- **Every factor must declare a year** — rejected by the definition: industrial-process factors (cement, glass, steel, zinc) come from process chemistry, and stamping them with a publication year would be inventing information.
+### Decision 3 — Uniqueness is based on dimensional unit family
 
-**Rationale**: `null` is the honest encoding of "no year applies", and it makes the migration trivial — the 246 factors already loaded stay valid while their years are backfilled.
+**Choice**: the active-factor business key is:
 
-### Decision 3 — Resolution stays on the client, the server ships the year
+`(subcategory, normalized required dimension values, year, source, numerator magnitude, denominator magnitude)`.
 
-**Choice**: `getCarbonInventoryMethodology` adds `year` to each factor (originals and converted copies alike); the emission editor resolves the default and renders the selector.
+`kg/kg` and `kg/ton` share the `mass/mass` family. Only one canonical factor is stored for that key; compatible representations are calculated from measurement-unit base factors. In contrast, `kg/kWh`, `kg/m3` and `kg/ton` belong to `mass/energy`, `mass/volume` and `mass/mass`, so they may coexist.
 
-**Alternatives considered**:
+The database cannot include magnitudes reached through `rate_measurement_unit` in a unique index. Therefore `emission_factor` gains a server-owned `unitFamilyKey`, deterministically derived from the selected rate unit's numerator and denominator magnitude IDs. The API never accepts this field from the client and verifies/recomputes it on create/update. Dimension slots not required by the subcategory are normalized to `null` before persistence.
 
-- **Server-side resolution** — the endpoint already receives the inventory id, so it could return only the winning factor per activity. But the selector needs every vintage anyway, so the server would have to ship them all _and_ a resolved pointer; the resolution would then live in two places the moment the organization changes the year of a line.
+The partial unique index is:
 
-**Rationale**: one resolution, in the layer that owns the selector. The payload already carries every factor of the methodology, so adding a small integer per factor costs nothing new.
+`(subcategory_id, dimension_value_1_id, dimension_value_2_id, year, source, unit_family_key) NULLS NOT DISTINCT WHERE status <> 'DELETED'`.
 
-### Decision 4 — Preselection order: exact, transversal, nearest earlier, nearest later
+**Rationale**: exact units would recreate the original duplicate problem (`kg/kg` versus `kg/ton`), while omitting the family would incorrectly merge non-convertible domains. The denormalized key is deliberate: it allows database enforcement without a cross-table index and remains server-derived.
 
-**Choice**: for a footprint of year `Y` — the factor whose year is `Y`; else the transversal factor; else the most recent factor with a year `< Y`; else the closest factor with a year `> Y`, flagged as coming from another year.
+### Decision 4 — Multiple sources coexist; source consistency validation is removed
 
-**Alternatives considered**:
+**Choice**: remove `validateSourceConsistency` and its error mapping/tests rather than scoping it by year.
 
-- **Transversal after the nearest earlier dated factor** — the dated row is arguably more specific. Rejected: a factor with no year _declares_ that the year is irrelevant to it, which is a stronger statement than a stale vintage of a factor that does vary.
-- **Most recent overall as the fallback** — literally what the Product Owner first wrote, but for a 2022 footprint with 2021 and 2025 loaded it preselects 2025, which is further from the measured year. Clarified with the Product Owner: the default is the most recent year that does not exceed the footprint's year.
-- **No preselection when the exact year is missing** — safest, but pushes work onto every organization in the common case of a partially loaded catalog.
+Source participates in the uniqueness key, so `IPCC · Transversal` and `Kool, A. · Transversal`, or `DEFRA · 2025` and `IPCC · 2025`, are valid alternatives for the same activity and unit family. A second factor with the same source, year, dimensions and family is still a duplicate.
 
-**Rationale**: steps 2 and 3 only compete when a subcategory mixes dated and transversal factors, which the catalog is not expected to do; the order is written down so the behavior is defined if it ever happens.
+**Rationale**: provider choice is product-visible information, not a subcategory invariant. Enforcing one source would prevent the accepted multi-provider use case.
 
-### Decision 5 — `validateSourceConsistency` is scoped per year, not removed
+### Decision 5 — Rank by year, then require an explicit choice on provider ties
 
-**Choice**: the rule becomes "all active factors of a subcategory _and year_ share one source".
+**Choice**: for footprint year `Y`, filter candidates to the selected activity/dimensions and compatible unit family, then choose the first non-empty rank:
 
-**Alternatives considered**:
+1. `year = Y`;
+2. `year = null` (transversal);
+3. the maximum year below `Y`;
+4. the minimum year above `Y`.
 
-- **Remove the rule** — it is the reason a second vintage fails today, so deleting it is tempting. But it is also what guarantees the "Fuente" control shows one coherent provider per activity; without it a subcategory could end up half DEFRA and half IPCC for the same year with no way for the organization to tell which is which.
+If the winning rank contains exactly one canonical factor, preselect it. If it contains factors from several sources, preselect none and ask the organization to choose. Do not use row order, database ID or source alphabetically as a hidden tie-breaker.
 
-**Rationale**: the rule was never about years; scoping it restores its original intent.
+The selector combines source and year (`DEFRA · 2025`, `IPCC · Transversal`) because year alone is no longer unique. Compatible applied units remain a separate presentation/conversion choice, not separate vintage options.
 
-### Decision 6 — The DB index gains the year and `NULLS NOT DISTINCT`
+If the inventory year is absent through a bypassed flow, only a unique transversal candidate may be preselected; dated candidates require an explicit choice.
 
-**Choice**: rebuild the partial unique index as `(subcategory_id, dimension_value_1_id, dimension_value_2_id, year) WHERE status <> 'DELETED'`, declared `NULLS NOT DISTINCT`.
+**Rationale**: the ranking provides useful defaults, while the tie rule respects the organization's responsibility for selecting between legitimate providers.
 
-**Rationale**: three of the four columns are nullable, and PostgreSQL's default treats `NULL` values as distinct — which is why the current index never actually prevented duplicate rows for factors with no dimension values. `NULLS NOT DISTINCT` (PostgreSQL 15+) makes the index enforce what the application check already enforces. `source` leaves the index: with Decision 5 in place it is functionally dependent on (subcategory, year), and keeping it would let two vintages of the same year slip through under different source strings.
+### Decision 6 — The server derives every catalog snapshot
 
-### Decision 7 — The applied year is denormalized onto the line factor
+**Choice**: make factor selection a discriminated request:
 
-**Choice**: `carbon_inventory_line_factor` gains the year of the applied factor and a flag recording that it did not match the footprint's year.
+```text
+CATALOG { emissionFactorId, appliedRateMeasurementUnitId }
+CUSTOM  { source, value, rateMeasurementUnitId }
+DIRECT  { totalEmissions }
+```
 
-**Alternatives considered**:
+Line dimensions, quantity and other common fields remain outside that discriminated factor selection.
 
-- **Derive it from `emission_factor_id`** — no new column. But the row already denormalizes value, rate unit and source precisely so a later catalog edit cannot rewrite history, and `emission_factor_id` is null for own factors. Deriving would make the year the one attribute that silently changes under the organization's feet.
+For `CATALOG`, the server loads the factor and inventory methodology inside the sync transaction and validates:
 
-**Rationale**: consistency with the columns beside it, and it is the only encoding that survives a maintainer correcting the catalog.
+- the factor exists and is ACTIVE;
+- it belongs to the inventory's methodology version and selected subcategory;
+- its required dimension values match the line;
+- the requested applied rate unit has the same numerator/denominator magnitude family;
+- all units needed for the conversion are active and valid.
 
-### Decision 8 — "Update factors to the new year" reuses the existing sync endpoint
+The server then converts the canonical catalog value into the requested applied unit, calculates the result and snapshots `emissionFactorId`, applied value, applied unit, source and year. Client-provided catalog value/source/year fields are removed from the contract. `CUSTOM` and `DIRECT` keep their own validation paths and cannot impersonate a catalog factor.
 
-**Choice**: when the footprint's year changes (directly, or by duplicating last year's footprint and re-dating it), the web app offers to re-resolve every line's factor and submits the result through `syncCarbonInventoryLines`. No new endpoint, no server-side recalculation.
+**Rationale**: the client may recommend and display factors, but it must not be the authority for catalog data or calculations.
 
-**Rationale**: the resolution lives on the client (Decision 3) and the sync endpoint already accepts a full set of lines with their applied values. The offer is an explicit user action, which is what the definition asks for.
+### Decision 7 — Snapshot only the applied year; derive mismatch state
 
-### Decision 9 — Backfill parses the trailing year out of `source`
+**Choice**: add `appliedFactorYear Int?` to `carbon_inventory_line_factor`. Do not persist `isFallback` or `appliedFactorYearMatchesInventory`.
 
-**Choice**: a data migration extracts a trailing four-digit year from `emission_factor.source`, writes it to `year`, and trims it from the source string. Sources with no trailing year keep `year = null`.
+The applied year is copied from the selected catalog row at save time and travels with the existing value/source/unit snapshots. A mismatch is calculated whenever data is read/rendered:
 
-**Rationale**: the four sources in the catalog today split cleanly — `"DEFRA 2025"` → `DEFRA` + 2025, `"EcoAct 2020"` → `EcoAct` + 2020, `"IPCC"` and `"Kool, A."` → transversal, which is exactly the intended classification for the IPCC process factors. The seed JSON is edited in the same change so fresh deployments never see the concatenated form.
+`emissionFactorId != null && appliedFactorYear != null && inventory.year != null && appliedFactorYear != inventory.year`.
+
+**Rationale**: the year is historical data and must not change with later catalog edits. Match/fallback is contextual state and would become stale when `carbon_inventory.year` changes.
+
+### Decision 8 — A year change preserves lines and produces a subcategory warning
+
+**Choice**: updating or re-dating `carbon_inventory.year` never re-resolves factors and never recalculates results.
+
+For each subcategory, evaluate current editor/read-model lines. An eligible line is an active line input with a saved catalog factor (`emissionFactorId != null`) and a dated snapshot (`appliedFactorYear != null`). Show the warning iff at least one eligible line differs from the current non-null inventory year.
+
+The warning reports:
+
+- affected count;
+- total eligible dated-catalog line count;
+- distinct mismatching factor years;
+- the current footprint year;
+- the fact that calculations were not modified.
+
+Example: `3 de 8 líneas con factor de catálogo fechado usan factores de 2021 y 2022, distintos del año 2023 de la huella. Los cálculos no fueron modificados; revisa las fuentes si corresponde.`
+
+Transversal factors, custom/manual factors, direct totals, incomplete lines and inactive/deleted inputs are excluded. The warning disappears when no eligible mismatch remains and never blocks save, navigation or submission.
+
+**Rationale**: the organization retains responsibility for its choices, while the platform makes stale dated choices visible at the level where they can be reviewed efficiently.
 
 ## Risks / Trade-offs
 
-- **Which factors are genuinely transversal is unconfirmed.** The backfill treats "no year in the source string" as transversal. That matches the intent for the IPCC process factors, but the Product Owner answered this question with an explicit "not sure" — it needs a pass from the methodology team before the backfill runs. If a factor is wrongly marked transversal it will keep being preselected for every year, silently.
-- **The methodology payload grows with every vintage.** `getCarbonInventoryMethodology` already carries a comment warning about response size, because each factor is expanded into every compatible rate unit. Multiplying by the number of loaded vintages compounds it. Mitigation for this change: only load vintages where the year matters (electricity, fuels). If the payload becomes a problem, the endpoint can start filtering to the vintages relevant to the footprint's year — a server-side change that does not alter the contract.
-- **Two vintages of the same activity can disagree in rate unit.** The uniqueness key does not include the rate unit (neither does today's application check), so a 2025 factor in `kg/GJ` and a 2026 one in `kg/kWh` are both legal. The conversion helper already normalizes across compatible units, so the selector still works; it is worth watching in the maintainer UI.
-- **`NULLS NOT DISTINCT` requires PostgreSQL 15+.** Confirm against the deployment target before the migration lands; otherwise the index has to be expressed with `COALESCE` expressions.
-- **Older footprints see their recommendation change.** An organization that re-opens a 2022 footprint after the vintages are loaded will be offered a different default than the one it captured with. The frozen line values do not move, and the offer to update is explicit — but the difference will be visible, which is the point.
+- **Classification is a migration gate.** Incorrectly assigning `null` makes a factor eligible for all years. The production migration must not guess from a missing source suffix.
+- **Canonical-unit consolidation can reveal inconsistent catalog values.** Existing same-family factors expressed in different units must be converted and compared. Disagreements require methodology review; the migration must not silently choose one.
+- **The methodology payload grows with each vintage.** The endpoint already expands factors into compatible units. A later optimization may send canonical factors plus conversion metadata, but it does not change this feature's selection contract.
+- **More valid providers means fewer automatic selections.** This is intentional: equal-ranked scientific sources require an explicit organization choice unless a separate preferred-source policy is introduced later.
+- **`unitFamilyKey` is denormalized.** API writes and migration backfill must derive it from rate-unit magnitudes. Direct database edits are outside the supported write path.
+- **Old selections can mismatch a newly edited inventory year.** This is accepted behavior; snapshots and results remain stable and the derived warning exposes the mismatch.
 
 ## Migration Plan
 
-1. Schema: add `emission_factor.year`, add the applied-year columns to `carbon_inventory_line_factor`, and replace the partial unique index. All additive — no existing row becomes invalid, since `year` starts null and null means transversal.
-2. Backfill in the same migration: parse and strip the trailing year from `source`.
-3. API: scope both validators by year, expose the year in the factor payloads, and persist the applied year on the line.
-4. Seed: split source and year in both datasets so a fresh database matches a migrated one.
-5. Web: the selector, the resolution, the fallback notice, the maintainer column, the summary and the Excel export.
-6. Only then load real vintages, starting with electricity and fuels.
+1. Obtain and review an explicit `year`/`null` classification for every seed and production factor. Parse only recognized trailing years, then block if any row remains unclassified.
+2. Detect rows that collapse to the same new business key after unit conversion. Automatically consolidate only mathematically equivalent values; send discrepancies for methodology review.
+3. Add nullable `year` and `unit_family_key`, backfill both, normalize non-required dimension slots, then make the family key required.
+4. Replace the old partial index with the source/year/family index using `NULLS NOT DISTINCT`.
+5. Add `carbon_inventory_line_factor.applied_factor_year` and backfill it from the linked catalog factor without changing existing value/source/unit/result snapshots.
+6. Update shared contracts and API writes so catalog factor snapshots are server-derived; remove source-consistency validation.
+7. Update seed, maintainer, methodology payload/duplication/export and the capture selector.
+8. Add the derived subcategory warning. Do not add any year-change re-resolution flow.
+9. Load additional vintages and providers only after migration and contract tests pass.
 
-Steps 1–5 ship a platform that behaves exactly as it does today while the catalog holds a single vintage per activity: the exact-year branch is unreachable until step 6, and the transversal branch resolves to the factor that is already being used.
+## Rollback
+
+Application rollback is safe before new vintages are loaded because the added columns are additive. After multiple sources/years/families are stored, rolling back code would make those rows unselectable under the old logic; rollback then requires keeping the new read contract or temporarily disabling affected catalog rows. Existing saved calculations remain reproducible because their applied snapshots are not rewritten.
