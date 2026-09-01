@@ -2,6 +2,7 @@ import { type PrismaClient } from "@repo/database";
 import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
 } from "@repo/database/enums";
 import { z } from "zod";
 import { type SeedsDataset } from "@/utils/index.js";
@@ -27,6 +28,7 @@ export async function seedEmissionFactors(
           dimensionValue2: ef.dimensionValue2,
           rateMeasurementUnitAbbreviation: ef.rateMeasurementUnitAbbreviation,
           source: ef.source,
+          year: ef.year,
           value: ef.value,
         }))
       )
@@ -56,8 +58,18 @@ export async function seedEmissionFactors(
     ])
   );
 
-  // Fetch rate measurement units to map abbreviation to id
-  const rateMeasurementUnits = await prisma.rateMeasurementUnit.findMany();
+  // Fetch rate measurement units to map abbreviation to id. The numerator and
+  // denominator magnitudes come along because emission_factor denormalizes them
+  // so its unique index can enforce factor identity by unit family; they are
+  // always derived from the rate unit, never taken from the seed data.
+  const rateMeasurementUnits = await prisma.rateMeasurementUnit.findMany({
+    select: {
+      id: true,
+      abbreviation: true,
+      numeratorMeasurementUnit: { select: { magnitudeId: true } },
+      denominatorMeasurementUnit: { select: { magnitudeId: true } },
+    },
+  });
   const rateMeasurementUnitsByAbbr = new Map(
     rateMeasurementUnits.map((rmu) => [rmu.abbreviation, rmu])
   );
@@ -159,6 +171,11 @@ export async function seedEmissionFactors(
       dimensionValue2Id: dimensionValue2Id,
       rateMeasurementUnitId: rateMeasurementUnit.id,
       source: ef.source,
+      year: ef.year,
+      numeratorMagnitudeId:
+        rateMeasurementUnit.numeratorMeasurementUnit.magnitudeId,
+      denominatorMagnitudeId:
+        rateMeasurementUnit.denominatorMeasurementUnit.magnitudeId,
       gasDetails: {},
       value: ef.value,
     };
@@ -170,12 +187,17 @@ export async function seedEmissionFactors(
     skipDuplicates: true,
   });
 
-  // Verify all emission factors were created
-  const emissionFactors = await prisma.emissionFactor.findMany();
+  // Verify all emission factors were created. Only ACTIVE rows count: the
+  // add_emission_factor_year migration retires duplicate unit representations by
+  // soft delete, so a migrated database keeps rows this seed data no longer
+  // describes and would otherwise fail here while being perfectly correct.
+  const emissionFactors = await prisma.emissionFactor.findMany({
+    where: { status: EmissionFactorStatus.ACTIVE },
+  });
 
   if (emissionFactors.length !== emissionFactorsData.length)
     throw new Error(
-      `Expected ${emissionFactorsData.length} emission factors but found ${emissionFactors.length} for dataset ${dataset}`
+      `Expected ${emissionFactorsData.length} active emission factors but found ${emissionFactors.length} for dataset ${dataset}`
     );
 
   console.log(
