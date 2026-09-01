@@ -3,8 +3,7 @@ import { useWatch } from "react-hook-form";
 import { Select, MenuItem, Tooltip } from "@mui/material";
 import {
   getCompatibleRateUnitId,
-  getAvailableFactors,
-  getAvailableSources,
+  getCatalogFactorOptions,
 } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
@@ -35,9 +34,23 @@ export const EmissionEditorFactorSourceCell: FC<
   onChange,
   disabled = false,
 }) => {
-  const value = useWatch({
+  // The selector is keyed on the canonical catalog factor, not on its source
+  // text: two vintages of one provider share a source and would otherwise be the
+  // same option. `Otro` keeps its place in the same list as the custom-factor
+  // escape hatch, and a saved custom line shows it because its factorSource says
+  // so rather than because its ID is missing.
+  const factorSource = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.factorSource`,
   }) as string | null;
+
+  const baseFactorId = useWatch({
+    name: `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
+  }) as string | null;
+
+  const value =
+    factorSource && CUSTOM_FACTOR_SOURCES.includes(factorSource)
+      ? factorSource
+      : baseFactorId;
 
   const measurementUnitId = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
@@ -53,30 +66,22 @@ export const EmissionEditorFactorSourceCell: FC<
 
   const validation = useLineValidation(subcategoryId, lineId, dimensions);
 
-  const availableSources = useMemo(() => {
-    // 1. Get compatible rate unit
-    const compatibleRateUnitId = getCompatibleRateUnitId(
-      measurementUnitId,
-      rateMeasurementUnits
-    );
-
-    // 2. Get available factors for this context (dimensions + rate unit)
-    const availableFactors = getAvailableFactors(
+  const catalogOptions = useMemo(
+    () =>
+      getCatalogFactorOptions(
+        emissionFactors,
+        dimensionValue1Id,
+        dimensionValue2Id,
+        getCompatibleRateUnitId(measurementUnitId, rateMeasurementUnits)
+      ),
+    [
       emissionFactors,
+      rateMeasurementUnits,
+      measurementUnitId,
       dimensionValue1Id,
       dimensionValue2Id,
-      compatibleRateUnitId
-    );
-
-    // 3. Get unique sources
-    return getAvailableSources(availableFactors);
-  }, [
-    emissionFactors,
-    rateMeasurementUnits,
-    measurementUnitId,
-    dimensionValue1Id,
-    dimensionValue2Id,
-  ]);
+    ]
+  );
 
   const selectElement = (
     <Select
@@ -96,9 +101,9 @@ export const EmissionEditorFactorSourceCell: FC<
         },
       }}
     >
-      {availableSources.map((source) => (
-        <MenuItem key={source} value={source}>
-          {source}
+      {catalogOptions.map((option) => (
+        <MenuItem key={option.id} value={option.id}>
+          {option.label}
         </MenuItem>
       ))}
       {CUSTOM_FACTOR_SOURCES.map((source) => (

@@ -40,6 +40,8 @@ const createNewLine = (
     comment: null,
     manualTotalEmissions: null,
     baseFactorId: null,
+    emissionFactorId: null,
+    appliedFactorYear: null,
     isNew: true,
     isDeleted: false,
     files: [],

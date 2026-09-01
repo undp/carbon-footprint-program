@@ -417,6 +417,7 @@ export const EmissionCaptureScreen: FC = () => {
                             inventoryUsageMode={
                               data?.usageMode ?? UsageMode.SIMPLIFIED
                             }
+                            inventoryYear={data?.year ?? null}
                             inventoryId={inventoryId}
                           />
                         );
