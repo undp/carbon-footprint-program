@@ -22,7 +22,7 @@ import {
   FileAlreadyLinkedError,
 } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
-import { convertEmissionFactorValue } from "../getCarbonInventoryMethodology/helper.js";
+import { convertEmissionFactorValueDecimal } from "../getCarbonInventoryMethodology/helper.js";
 
 export type ItemData = {
   dimensionValue1Id: string | null;
@@ -166,12 +166,12 @@ export async function resolveCatalogFactor(
 
   const appliedValue =
     appliedRateUnitId === factor.rateMeasurementUnitId
-      ? factor.value.toString()
+      ? factor.value
       : await convertToRateUnit(tx, factor, appliedRateUnitId);
 
   return {
     emissionFactorId: factor.id,
-    appliedFactorValue: new Prisma.Decimal(appliedValue),
+    appliedFactorValue: appliedValue,
     appliedFactorRateUnitId: appliedRateUnitId,
     appliedFactorSource: factor.source,
     appliedFactorYear: factor.year,
@@ -189,7 +189,7 @@ async function convertToRateUnit(
     };
   },
   appliedRateUnitId: bigint
-): Promise<string> {
+): Promise<Prisma.Decimal> {
   const target = await tx.rateMeasurementUnit.findUnique({
     where: { id: appliedRateUnitId },
     select: {
@@ -203,8 +203,10 @@ async function convertToRateUnit(
   if (!target)
     throw new CatalogEmissionFactorNotFoundError(appliedRateUnitId.toString());
 
-  return convertEmissionFactorValue(
-    factor.value.toString(),
+  // Decimal all the way: this value is persisted as the applied snapshot and
+  // multiplied into the stored result, so a rounding here is permanent.
+  return convertEmissionFactorValueDecimal(
+    factor.value,
     factor.rateMeasurementUnit.numeratorMeasurementUnit.baseFactor,
     factor.rateMeasurementUnit.denominatorMeasurementUnit.baseFactor,
     target.numeratorMeasurementUnit.baseFactor,
