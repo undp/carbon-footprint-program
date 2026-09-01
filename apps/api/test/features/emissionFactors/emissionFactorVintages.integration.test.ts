@@ -558,6 +558,46 @@ describe("Emission factor vintages - Integration Tests", () => {
       ).rejects.toMatchObject({ code: "EMISSION_FACTOR_DUPLICATE" });
     });
 
+    it("ignores a value already stored in a non-required dimension slot", async () => {
+      const subcategory = await buildSubcategory();
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false, name: "Tipo" }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Caldera",
+      });
+
+      // The stored factor is the one carrying the optional value this time. The
+      // check has to look past it in both directions, or the second factor is
+      // accepted and two rows share one identity.
+      await createEmissionFactorService(
+        prisma,
+        createRequest({
+          subcategoryId: subcategory.id,
+          rateMeasurementUnitId: kgPerKwhId,
+          source: "DEFRA",
+          year: 2025,
+          dimensionValue1Name: "Caldera",
+        }),
+        user
+      );
+
+      await expect(
+        createEmissionFactorService(
+          prisma,
+          createRequest({
+            subcategoryId: subcategory.id,
+            rateMeasurementUnitId: kgPerKwhId,
+            source: "DEFRA",
+            year: 2025,
+          }),
+          user
+        )
+      ).rejects.toMatchObject({ code: "EMISSION_FACTOR_DUPLICATE" });
+    });
+
     it("keeps required dimension values as separate identities", async () => {
       const subcategory = await buildSubcategory();
       const dimension = await createTestEmissionFactorDimension(
