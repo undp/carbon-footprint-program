@@ -14,34 +14,33 @@ import type { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
  */
 const buildLine = (
   overrides: Partial<EmissionCaptureFormLine> = {}
-): EmissionCaptureFormLine =>
-  ({
-    id: "10",
-    lineId: "10",
-    subcategoryId: "1",
-    isManualTotalEmissions: false,
-    dimensionValue1Id: null,
-    dimensionValue2Id: null,
-    quantity: 100,
-    measurementUnitId: "5",
+): EmissionCaptureFormLine => ({
+  id: "10",
+  lineId: "10",
+  subcategoryId: "1",
+  isManualTotalEmissions: false,
+  dimensionValue1Id: null,
+  dimensionValue2Id: null,
+  quantity: 100,
+  measurementUnitId: "5",
+  factorSource: "DEFRA",
+  factorValue: 2.5,
+  factorRateMeasurementUnitId: "7",
+  emissionFactorId: "42",
+  appliedFactorYear: 2024,
+  baseFactorId: "42",
+  comment: null,
+  manualTotalEmissions: null,
+  files: [],
+  removedFileIds: [],
+  loadedFactor: {
+    emissionFactorId: "42",
     factorSource: "DEFRA",
     factorValue: 2.5,
     factorRateMeasurementUnitId: "7",
-    emissionFactorId: "42",
-    appliedFactorYear: 2024,
-    baseFactorId: "42",
-    comment: null,
-    manualTotalEmissions: null,
-    files: [],
-    removedFileIds: [],
-    loadedFactor: {
-      emissionFactorId: "42",
-      factorSource: "DEFRA",
-      factorValue: 2.5,
-      factorRateMeasurementUnitId: "7",
-    },
-    ...overrides,
-  }) as EmissionCaptureFormLine;
+  },
+  ...overrides,
+});
 
 const updateFor = (line: EmissionCaptureFormLine) =>
   mapLinesToSyncRequest([line]).update[0];
