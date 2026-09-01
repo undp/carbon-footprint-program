@@ -92,6 +92,7 @@ const makeFactor = (overrides: Partial<Factor> = {}): Factor => ({
   rateUnit: "kg CO₂e/kWh",
   gasBreakdownLines: [{ value: 0.5, gas: "CO₂" }],
   factorSource: "SEN",
+  appliedFactorYear: null,
   factorSourceDetail: "Red nacional",
   ...overrides,
 });
@@ -313,6 +314,7 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
       factorValue: 2.68,
       rateUnit: "kg CO₂e/L",
       factorSource: "IPCC",
+      appliedFactorYear: null,
       factorSourceDetail: null, // → source without the detail suffix
     });
 
