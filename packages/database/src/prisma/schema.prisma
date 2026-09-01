@@ -409,7 +409,9 @@ model Magnitude {
   createdAt DateTime        @default(now()) @map("created_at")
   updatedAt DateTime        @updatedAt @map("updated_at")
 
-  measurementUnits MeasurementUnit[]
+  measurementUnits             MeasurementUnit[]
+  emissionFactorsAsNumerator   EmissionFactor[]  @relation("emission_factor_numerator_magnitude")
+  emissionFactorsAsDenominator EmissionFactor[]  @relation("emission_factor_denominator_magnitude")
 
   @@map("magnitude")
 }
@@ -670,26 +672,36 @@ enum EmissionFactorStatus {
 }
 
 model EmissionFactor {
-  id                    BigInt                        @id @default(autoincrement())
-  subcategoryId         BigInt                        @map("subcategory_id")
-  dimensionValue1Id     BigInt?                       @map("dimension_value_1_id")
-  dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
-  rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
-  source                String
-  gasDetails            Json                          @map("gas_details") @db.JsonB
-  value                 Decimal                       @db.Decimal(28, 10)
-  status                EmissionFactorStatus          @default(ACTIVE)
-  createdAt             DateTime                      @default(now()) @map("created_at")
-  updatedAt             DateTime?                     @updatedAt @map("updated_at")
-  createdById           BigInt?                       @map("created_by_id")
-  updatedById           BigInt?                       @map("updated_by_id")
-  subcategory           Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
-  dimensionValue1       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
-  dimensionValue2       EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
-  rateMeasurementUnit   RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
-  creator               User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
-  updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
-  lineFactors           CarbonInventoryLineFactor[]
+  id                     BigInt                        @id @default(autoincrement())
+  subcategoryId          BigInt                        @map("subcategory_id")
+  dimensionValue1Id      BigInt?                       @map("dimension_value_1_id")
+  dimensionValue2Id      BigInt?                       @map("dimension_value_2_id")
+  rateMeasurementUnitId  BigInt                        @map("rate_measurement_unit_id")
+  source                 String
+  // Reporting year the factor applies to. NULL means transversal: confirmed
+  // applicable to every reporting year. It never means "unknown".
+  year                   Int?
+  // Unit family of `rateMeasurementUnit`, denormalized so the partial unique
+  // index can enforce factor identity without joining rate_measurement_unit.
+  // Always derived server-side from the rate unit; never client-authored.
+  numeratorMagnitudeId   BigInt                        @map("numerator_magnitude_id")
+  denominatorMagnitudeId BigInt                        @map("denominator_magnitude_id")
+  gasDetails             Json                          @map("gas_details") @db.JsonB
+  value                  Decimal                       @db.Decimal(28, 10)
+  status                 EmissionFactorStatus          @default(ACTIVE)
+  createdAt              DateTime                      @default(now()) @map("created_at")
+  updatedAt              DateTime?                     @updatedAt @map("updated_at")
+  createdById            BigInt?                       @map("created_by_id")
+  updatedById            BigInt?                       @map("updated_by_id")
+  subcategory            Subcategory                   @relation(fields: [subcategoryId], references: [id], onDelete: Cascade)
+  dimensionValue1        EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_1", fields: [dimensionValue1Id], references: [id])
+  dimensionValue2        EmissionFactorDimensionValue? @relation("emission_factor_dimension_value_2", fields: [dimensionValue2Id], references: [id])
+  rateMeasurementUnit    RateMeasurementUnit           @relation(fields: [rateMeasurementUnitId], references: [id])
+  numeratorMagnitude     Magnitude                     @relation("emission_factor_numerator_magnitude", fields: [numeratorMagnitudeId], references: [id])
+  denominatorMagnitude   Magnitude                     @relation("emission_factor_denominator_magnitude", fields: [denominatorMagnitudeId], references: [id])
+  creator                User?                         @relation("emission_factor_created_by", fields: [createdById], references: [id])
+  updater                User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
+  lineFactors            CarbonInventoryLineFactor[]
 
   // Partial unique index (status <> 'DELETED') managed in migration SQL
   @@map("emission_factor")
@@ -840,6 +852,11 @@ model CarbonInventoryLineFactor {
   appliedFactorValue      Decimal                  @map("applied_factor_value") @db.Decimal(28, 10)
   appliedFactorRateUnitId BigInt                   @map("applied_factor_rate_unit_id")
   appliedFactorSource     String?                  @map("applied_factor_source")
+  // Reporting year of the catalog factor applied when the line was saved.
+  // NULL for transversal catalog factors, custom factors and direct totals.
+  // Historical: never rewritten when the catalog or the inventory year changes.
+  // Mismatch against carbon_inventory.year is derived at read time, never stored.
+  appliedFactorYear       Int?                     @map("applied_factor_year")
   derivationDetails       Json?                    @map("derivation_details") @db.JsonB
   createdAt               DateTime                 @default(now()) @map("created_at")
   updatedAt               DateTime?                @updatedAt @map("updated_at")
