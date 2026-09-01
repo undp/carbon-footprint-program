@@ -1,0 +1,1812 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Análisis técnico simplificado de la propuesta para agregar año a los factores de emisión."
+    />
+    <title>Análisis · Año de factores de emisión</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --forest-950: #0f2b24;
+        --forest-900: #1c403a;
+        --green-700: #006e4d;
+        --green-800: #004d35;
+        --green-100: #dff5ec;
+        --mint-500: #63e4cf;
+        --mint-200: #bff5eb;
+        --lime-400: #56f58d;
+        --yellow-500: #fecb00;
+        --orange-600: #ed6c02;
+        --red-700: #c62828;
+        --blue-700: #01579b;
+        --ink: #414046;
+        --muted: #6d6c72;
+        --line: #dedee1;
+        --surface: #ffffff;
+        --surface-soft: #f4f7f6;
+        --canvas: #f9f9f9;
+        --shadow: 0 14px 40px rgba(15, 43, 36, 0.09);
+        --content: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.58;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #eef2f1;
+        padding: 0.12rem 0.32rem;
+        color: var(--forest-950);
+        font-size: 0.9em;
+      }
+
+      pre {
+        margin: 0;
+        overflow-x: auto;
+        border-left: 4px solid var(--mint-500);
+        background: var(--forest-950);
+        padding: 1.15rem 1.25rem;
+        color: #f3fff9;
+        font-size: 0.86rem;
+        line-height: 1.65;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 100;
+        top: 0.75rem;
+        left: 0.75rem;
+        transform: translateY(-160%);
+        background: white;
+        padding: 0.6rem 0.85rem;
+        color: var(--forest-950);
+        box-shadow: var(--shadow);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: var(--forest-950);
+        color: white;
+      }
+
+      .hero::after {
+        position: absolute;
+        right: -9rem;
+        bottom: -11rem;
+        width: 34rem;
+        height: 34rem;
+        border: 7rem solid rgba(99, 228, 207, 0.1);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        padding: 4.7rem 0 4.2rem;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-bottom: 1.15rem;
+        color: var(--mint-500);
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 2.2rem;
+        height: 2px;
+        background: var(--lime-400);
+        content: "";
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin-top: 0;
+        color: var(--forest-950);
+        line-height: 1.2;
+      }
+
+      h1 {
+        max-width: 830px;
+        margin-bottom: 1.2rem;
+        color: white;
+        font-size: clamp(2.25rem, 6vw, 4.45rem);
+        font-weight: 300;
+        letter-spacing: -0.035em;
+      }
+
+      .hero-lead {
+        max-width: 760px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: clamp(1.05rem, 2vw, 1.25rem);
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem 1.8rem;
+        margin-top: 2rem;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.86rem;
+      }
+
+      .hero-meta strong {
+        color: white;
+      }
+
+      .toolbar {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+      }
+
+      .toolbar-inner {
+        display: flex;
+        width: min(calc(100% - 2rem), var(--content));
+        min-height: 3.75rem;
+        margin: 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .toolbar-title {
+        color: var(--forest-950);
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .toolbar-actions {
+        display: flex;
+        gap: 0.45rem;
+      }
+
+      .toolbar button,
+      .filter-button {
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        padding: 0.46rem 0.7rem;
+        color: var(--forest-900);
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .toolbar button:hover,
+      .toolbar button:focus-visible,
+      .filter-button:hover,
+      .filter-button:focus-visible,
+      .filter-button[aria-pressed="true"] {
+        border-color: var(--green-700);
+        outline: none;
+        background: var(--green-100);
+      }
+
+      .layout {
+        display: grid;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 3rem;
+        padding: 3rem 0 5rem;
+      }
+
+      .toc {
+        position: sticky;
+        top: 5.2rem;
+        align-self: start;
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+      }
+
+      .toc-title {
+        margin: 0 0 0.7rem;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        display: block;
+        border-left: 2px solid var(--line);
+        padding: 0.38rem 0 0.38rem 0.8rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.35;
+        text-decoration: none;
+      }
+
+      .toc a:hover,
+      .toc a.active {
+        border-left-color: var(--green-700);
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .section {
+        scroll-margin-top: 5.2rem;
+        margin-bottom: 4rem;
+      }
+
+      .section-kicker {
+        margin-bottom: 0.4rem;
+        color: var(--green-700);
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .section h2 {
+        margin-bottom: 0.9rem;
+        font-size: clamp(1.65rem, 4vw, 2.35rem);
+        font-weight: 400;
+        letter-spacing: -0.025em;
+      }
+
+      .section-intro {
+        max-width: 760px;
+        margin-top: 0;
+        color: var(--muted);
+        font-size: 1.04rem;
+      }
+
+      .summary-grid {
+        display: grid;
+        margin-top: 1.5rem;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .summary-stat {
+        padding: 1.2rem;
+      }
+
+      .summary-stat + .summary-stat {
+        border-left: 1px solid var(--line);
+      }
+
+      .summary-number {
+        display: block;
+        color: var(--green-700);
+        font-size: 2rem;
+        font-weight: 300;
+      }
+
+      .summary-label {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .callout {
+        margin: 1.5rem 0;
+        border-left: 5px solid var(--yellow-500);
+        background: #fff9d8;
+        padding: 1.1rem 1.2rem;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--forest-950);
+      }
+
+      .callout p {
+        margin: 0;
+      }
+
+      .flow {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: 1fr 2.2rem 1fr 2.2rem 1fr;
+        align-items: stretch;
+      }
+
+      .flow-step {
+        min-height: 150px;
+        border-top: 4px solid var(--green-700);
+        background: var(--surface);
+        padding: 1rem;
+        box-shadow: 0 5px 18px rgba(15, 43, 36, 0.06);
+      }
+
+      .flow-step small {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--green-700);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .flow-step strong {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: var(--forest-950);
+      }
+
+      .flow-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.87rem;
+      }
+
+      .flow-arrow {
+        display: grid;
+        color: var(--green-700);
+        place-items: center;
+        font-size: 1.35rem;
+      }
+
+      .example {
+        overflow: hidden;
+        margin-top: 1.5rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .example-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--line);
+        background: var(--forest-900);
+        padding: 1rem 1.2rem;
+        color: white;
+      }
+
+      .example-header strong {
+        font-size: 1.05rem;
+      }
+
+      .example-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .example-panel {
+        padding: 1.25rem;
+      }
+
+      .example-panel + .example-panel {
+        border-left: 1px solid var(--line);
+        background: var(--surface-soft);
+      }
+
+      .example-panel h3 {
+        margin-bottom: 0.7rem;
+        font-size: 1rem;
+      }
+
+      .example-panel p,
+      .example-panel ul {
+        margin-top: 0;
+        font-size: 0.9rem;
+      }
+
+      .timeline {
+        display: grid;
+        margin-top: 1.2rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+      }
+
+      .year {
+        position: relative;
+        border-top: 3px solid var(--line);
+        padding: 1.1rem 0.5rem 0;
+        text-align: center;
+      }
+
+      .year::before {
+        position: absolute;
+        top: -7px;
+        left: calc(50% - 5px);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #bdbdbd;
+        content: "";
+      }
+
+      .year.active {
+        border-top-color: var(--green-700);
+      }
+
+      .year.active::before {
+        background: var(--lime-400);
+        box-shadow: 0 0 0 4px rgba(86, 245, 141, 0.22);
+      }
+
+      .year strong {
+        display: block;
+        color: var(--forest-950);
+      }
+
+      .year span {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1.4rem 0 1.2rem;
+      }
+
+      .finding-list {
+        display: grid;
+        gap: 1.2rem;
+      }
+
+      .finding {
+        scroll-margin-top: 5.4rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        box-shadow: 0 7px 25px rgba(15, 43, 36, 0.05);
+      }
+
+      .finding[hidden] {
+        display: none;
+      }
+
+      .finding-header {
+        display: grid;
+        grid-template-columns: 3.2rem minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 1rem;
+        border-bottom: 1px solid var(--line);
+        padding: 1.25rem;
+      }
+
+      .finding-number {
+        color: var(--green-700);
+        font-size: 2rem;
+        font-weight: 300;
+        line-height: 1;
+      }
+
+      .finding-title h3 {
+        margin-bottom: 0.25rem;
+        font-size: 1.2rem;
+      }
+
+      .finding-title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .severity {
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        padding: 0.22rem 0.55rem;
+        font-size: 0.69rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .severity.high {
+        background: #fff0ef;
+        color: var(--red-700);
+      }
+
+      .severity.medium {
+        background: #fff7e8;
+        color: #a84c00;
+      }
+
+      .finding-body {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .finding-block {
+        padding: 1.15rem 1.25rem;
+      }
+
+      .finding-block:nth-child(odd) {
+        border-right: 1px solid var(--line);
+      }
+
+      .finding-block:nth-child(n + 3) {
+        border-top: 1px solid var(--line);
+      }
+
+      .finding-block h4 {
+        margin-bottom: 0.45rem;
+        color: var(--green-800);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .finding-block p,
+      .finding-block ul {
+        margin-top: 0;
+        margin-bottom: 0;
+        font-size: 0.9rem;
+      }
+
+      .finding-block ul {
+        padding-left: 1.2rem;
+      }
+
+      .finding-block li + li {
+        margin-top: 0.3rem;
+      }
+
+      .model {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .entity {
+        border-top: 4px solid var(--mint-500);
+        background: var(--forest-950);
+        padding: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+      }
+
+      .entity h3 {
+        margin-bottom: 0.8rem;
+        color: white;
+        font-size: 1rem;
+      }
+
+      .entity ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.78rem;
+      }
+
+      .entity li {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.36rem 0;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 1.4rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 0.75rem 0.85rem;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--surface-soft);
+        color: var(--forest-950);
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .state {
+        white-space: nowrap;
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem 1.5rem;
+        margin-top: 1.2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        padding-left: 1.7rem;
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 0.15rem;
+        left: 0;
+        display: grid;
+        width: 1.15rem;
+        height: 1.15rem;
+        border: 1px solid var(--green-700);
+        color: var(--green-700);
+        content: "✓";
+        font-size: 0.72rem;
+        font-weight: 700;
+        place-items: center;
+      }
+
+      .glossary {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        border: 1px solid var(--line);
+        background: var(--line);
+      }
+
+      .term {
+        background: white;
+        padding: 1rem;
+      }
+
+      .term dt {
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      .term dd {
+        margin: 0.25rem 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .source-list {
+        margin-top: 1.2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .source-list li {
+        border-top: 1px solid var(--line);
+        padding: 0.7rem 0;
+        font-size: 0.82rem;
+      }
+
+      .source-list code {
+        overflow-wrap: anywhere;
+      }
+
+      .footer {
+        background: var(--forest-950);
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .footer-inner {
+        display: flex;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.4rem 0;
+        font-size: 0.78rem;
+      }
+
+      .footer strong {
+        color: white;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          display: none;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .summary-stat + .summary-stat {
+          border-left: 0;
+        }
+
+        .summary-stat:nth-child(even) {
+          border-left: 1px solid var(--line);
+        }
+
+        .summary-stat:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+          gap: 0.6rem;
+        }
+
+        .flow-arrow {
+          min-height: 1.5rem;
+          transform: rotate(90deg);
+        }
+
+        .model {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .hero-inner {
+          padding: 3.4rem 0;
+        }
+
+        .toolbar-title {
+          display: none;
+        }
+
+        .toolbar-inner {
+          justify-content: flex-end;
+        }
+
+        .layout {
+          gap: 0;
+          padding-top: 2rem;
+        }
+
+        .example-body,
+        .finding-body,
+        .checklist,
+        .glossary {
+          grid-template-columns: 1fr;
+        }
+
+        .example-panel + .example-panel,
+        .finding-block:nth-child(odd) {
+          border-right: 0;
+          border-left: 0;
+        }
+
+        .finding-block + .finding-block {
+          border-top: 1px solid var(--line);
+        }
+
+        .finding-header {
+          grid-template-columns: 2.4rem minmax(0, 1fr);
+        }
+
+        .severity {
+          grid-column: 2;
+          justify-self: start;
+        }
+
+        .timeline {
+          grid-template-columns: repeat(2, 1fr);
+          row-gap: 1.6rem;
+        }
+
+        .footer-inner {
+          display: block;
+        }
+      }
+
+      @media print {
+        body {
+          background: white;
+          font-size: 11pt;
+        }
+
+        .toolbar,
+        .toc,
+        .filters,
+        .skip-link {
+          display: none !important;
+        }
+
+        .hero {
+          background: white;
+          color: var(--ink);
+        }
+
+        .hero-inner {
+          padding: 1rem 0 2rem;
+        }
+
+        h1,
+        .hero-lead,
+        .hero-meta,
+        .hero-meta strong {
+          color: var(--forest-950);
+        }
+
+        .eyebrow {
+          color: var(--green-700);
+        }
+
+        .layout {
+          display: block;
+          width: 100%;
+          padding: 0;
+        }
+
+        .section,
+        .finding,
+        .example,
+        .table-wrap {
+          break-inside: avoid;
+        }
+
+        .finding {
+          box-shadow: none;
+        }
+
+        .footer {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="hero" id="inicio">
+      <div class="hero-inner">
+        <div class="eyebrow">Revisión técnica simplificada</div>
+        <h1>Año de factores de emisión</h1>
+        <p class="hero-lead">
+          Análisis de la propuesta <code>add-emission-factor-year</code>: por qué
+          el cambio es necesario, dónde están los riesgos y cómo implementarlo
+          sin alterar huellas históricas.
+        </p>
+        <div class="hero-meta">
+          <span><strong>Estado:</strong> propuesta válida, diseño pendiente</span>
+          <span><strong>Alcance:</strong> catálogo, captura, auditoría y migración</span>
+          <span><strong>Resultado:</strong> 8 hallazgos + plan recomendado</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar" aria-label="Herramientas del documento">
+      <div class="toolbar-inner">
+        <span class="toolbar-title">Análisis de vintages de factores</span>
+        <div class="toolbar-actions">
+          <button type="button" id="expand-all">Mostrar todo</button>
+          <button type="button" onclick="window.print()">Imprimir / PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="toc" aria-label="Contenido">
+        <p class="toc-title">Contenido</p>
+        <nav>
+          <a href="#resumen">1. Resumen</a>
+          <a href="#contexto">2. Contexto actual</a>
+          <a href="#ejemplo">3. Caso explicado</a>
+          <a href="#hallazgos">4. Hallazgos</a>
+          <a href="#modelo">5. Modelo recomendado</a>
+          <a href="#comportamiento">6. Comportamiento esperado</a>
+          <a href="#implementacion">7. Plan de implementación</a>
+          <a href="#glosario">8. Glosario</a>
+          <a href="#fuentes">9. Evidencia revisada</a>
+        </nav>
+      </aside>
+
+      <main id="contenido">
+        <section class="section" id="resumen">
+          <p class="section-kicker">Lectura rápida</p>
+          <h2>Resumen ejecutivo</h2>
+          <p class="section-intro">
+            El problema es real: hoy el año de la huella no participa en la
+            elección del factor. Sin embargo, agregar una columna <code>year</code>
+            no basta. También hay que resolver la identidad del factor, quién
+            decide el vintage, qué se guarda como evidencia y cómo se preservan
+            las huellas ya calculadas.
+          </p>
+
+          <div class="summary-grid" aria-label="Resumen numérico">
+            <div class="summary-stat">
+              <span class="summary-number">246</span>
+              <span class="summary-label">factores en el seed base</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">245</span>
+              <span class="summary-label">factores en testing</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">4</span>
+              <span class="summary-label">hallazgos de prioridad alta</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">1/4</span>
+              <span class="summary-label">artefactos OpenSpec completos</span>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Recomendación principal</strong>
+            <p>
+              Modelar el vintage como una entidad explícita, resolver y validar
+              la selección en el servidor, y guardar en cada línea un snapshot
+              del factor realmente aplicado.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="contexto">
+          <p class="section-kicker">Cómo funciona hoy</p>
+          <h2>Contexto actual</h2>
+          <p class="section-intro">
+            La plataforma conoce el año de la huella, pero lo ignora al elegir
+            el factor. El año está incrustado dentro de un texto de fuente como
+            “DEFRA 2025”.
+          </p>
+
+          <div class="flow" aria-label="Flujo actual de selección">
+            <div class="flow-step">
+              <small>Entrada</small>
+              <strong>Huella de 2022</strong>
+              <p>El campo <code>carbon_inventory.year</code> ya existe.</p>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+              <small>Catálogo</small>
+              <strong>Fuente “DEFRA 2025”</strong>
+              <p>No hay una columna de año que permita comparar vintages.</p>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+              <small>Resultado</small>
+              <strong>Se usa el factor disponible</strong>
+              <p>El sistema no informa que corresponde a otro año.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fuente actual</th>
+                  <th>Cantidad</th>
+                  <th>Problema de clasificación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>DEFRA 2025</code></td>
+                  <td>195</td>
+                  <td>El año puede separarse de forma directa.</td>
+                </tr>
+                <tr>
+                  <td><code>EcoAct 2020</code></td>
+                  <td>3</td>
+                  <td>El año puede separarse, pero es antiguo para el rango actual.</td>
+                </tr>
+                <tr>
+                  <td><code>IPCC</code></td>
+                  <td>45</td>
+                  <td>No indica año y aparece tanto en procesos como en uso de suelo.</td>
+                </tr>
+                <tr>
+                  <td><code>Kool, A.</code></td>
+                  <td>3</td>
+                  <td>No indica año; no debe asumirse transversal automáticamente.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="ejemplo">
+          <p class="section-kicker">Caso expuesto</p>
+          <h2>Ejemplo paso a paso</h2>
+          <p class="section-intro">
+            Una organización prepara hoy su huella del año 2022. Para una
+            actividad determinada sólo existe en el catálogo un factor DEFRA
+            publicado en 2025.
+          </p>
+
+          <div class="example">
+            <div class="example-header">
+              <strong>Huella 2022 · factor disponible 2025</strong>
+              <span>caso de fallback futuro</span>
+            </div>
+            <div class="example-body">
+              <div class="example-panel">
+                <h3>Comportamiento actual</h3>
+                <ul>
+                  <li>El catálogo entrega <code>source = "DEFRA 2025"</code>.</li>
+                  <li>El frontend lo selecciona porque es la única fuente.</li>
+                  <li>Se guarda el valor y la fuente.</li>
+                  <li>No queda registrado que 2025 es posterior a 2022.</li>
+                </ul>
+              </div>
+              <div class="example-panel">
+                <h3>Comportamiento esperado</h3>
+                <ul>
+                  <li>El catálogo entrega <code>source = "DEFRA"</code> y <code>year = 2025</code>.</li>
+                  <li>El resolver busca 2022, transversal y años anteriores.</li>
+                  <li>Como no encuentra ninguno, elige 2025.</li>
+                  <li>La UI avisa “se usará un factor posterior al año de medición”.</li>
+                  <li>El servidor guarda año, valor, fuente y motivo de selección.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline" aria-label="Línea de tiempo del ejemplo">
+            <div class="year active"><strong>2022</strong><span>año de huella</span></div>
+            <div class="year"><strong>2023</strong><span>sin factor</span></div>
+            <div class="year"><strong>2024</strong><span>sin factor</span></div>
+            <div class="year active"><strong>2025</strong><span>factor elegido</span></div>
+          </div>
+
+          <div class="callout">
+            <strong>Qué no debe cambiar</strong>
+            <p>
+              Si la huella ya fue calculada con ese factor, una actualización del
+              catálogo no puede modificar su valor histórico sin una acción
+              explícita de la organización.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="hallazgos">
+          <p class="section-kicker">Riesgos y decisiones</p>
+          <h2>Hallazgos de la revisión</h2>
+          <p class="section-intro">
+            Cada hallazgo muestra el contexto, un ejemplo concreto, la solución
+            recomendada y el comportamiento que debería quedar verificable.
+          </p>
+
+          <div class="filters" aria-label="Filtrar hallazgos">
+            <button class="filter-button" type="button" data-filter="all" aria-pressed="true">Todos</button>
+            <button class="filter-button" type="button" data-filter="blocker" aria-pressed="false">Prioridad alta</button>
+            <button class="filter-button" type="button" data-filter="design" aria-pressed="false">Diseño</button>
+            <button class="filter-button" type="button" data-filter="data" aria-pressed="false">Datos</button>
+          </div>
+
+          <div class="finding-list">
+            <article class="finding" id="hallazgo-1" data-category="blocker design">
+              <div class="finding-header">
+                <span class="finding-number">01</span>
+                <div class="finding-title">
+                  <h3>La clave propuesta omite el dominio de unidad</h3>
+                  <p>Una misma actividad puede necesitar factores para energía, volumen y masa.</p>
+                </div>
+                <span class="severity high">Alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    “Gas natural” aparece con la misma fuente y dimensiones en
+                    <code>kg/kWh</code>, <code>kg/m³</code> y <code>kg/ton</code>.
+                    No se puede convertir entre energía, volumen y masa sin datos
+                    físicos adicionales.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    La clave “subcategoría + dimensiones + año” obligaría a borrar
+                    factores válidos o produciría conflictos durante la migración.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Agregar una familia de unidad basada en las magnitudes del
+                    numerador y denominador. La identidad queda como vintage +
+                    dimensiones requeridas + familia de unidad.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Se conservan factores <code>mass/energy</code>, <code>mass/volume</code> y <code>mass/mass</code>.</li>
+                    <li>Dentro de una familia queda un solo factor canónico.</li>
+                    <li>Duplicados convertibles como <code>kg/ton</code> y <code>kg/kg</code> se limpian.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-2" data-category="blocker design">
+              <div class="finding-header">
+                <span class="finding-number">02</span>
+                <div class="finding-title">
+                  <h3>Un booleano de fallback queda obsoleto</h3>
+                  <p>El significado cambia si la huella se vuelve a fechar.</p>
+                </div>
+                <span class="severity high">Alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    Un factor 2022 fue exacto para una huella 2022. Luego la huella
+                    cambia a 2023 y el usuario conserva los números. El mismo factor
+                    ahora es anterior al año de medición.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    Un campo <code>isFallback = false</code> seguiría diciendo que el
+                    factor es exacto, aunque ya no lo sea.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Guardar <code>appliedFactorYear</code>,
+                    <code>inventoryYearAtSelection</code> y
+                    <code>selectionMode</code>. Derivar al leer si es exacto,
+                    transversal, anterior, posterior o manual.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>El valor histórico no cambia al conservar.</li>
+                    <li>La etiqueta temporal sí se actualiza frente al nuevo año.</li>
+                    <li>Una elección manual distinta queda marcada como override.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-3" data-category="blocker design">
+              <div class="finding-header">
+                <span class="finding-number">03</span>
+                <div class="finding-title">
+                  <h3>El cliente no puede ser la autoridad del snapshot</h3>
+                  <p>Hoy envía ID, valor, unidad y fuente sin validación cruzada suficiente.</p>
+                </div>
+                <span class="severity high">Alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    Un cliente antiguo o manipulado podría enviar el ID de un factor
+                    junto con otro valor, otra fuente o un año incorrecto.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    La pantalla diría “factor oficial 2022”, pero la base no podría
+                    demostrar que los datos pertenecen realmente a ese factor.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Para catálogo, el cliente sólo envía el factor seleccionado y la
+                    unidad aplicada. El servidor valida metodología, dimensiones,
+                    año y unidad; después calcula y guarda el snapshot.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Un factor ajeno a la metodología es rechazado.</li>
+                    <li>Una combinación inconsistente de ID y valor es imposible.</li>
+                    <li>Los factores propios usan un payload separado y explícito.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-4" data-category="blocker design">
+              <div class="finding-header">
+                <span class="finding-number">04</span>
+                <div class="finding-title">
+                  <h3>Las auto-declaradas no están congeladas hoy</h3>
+                  <p>La propuesta supone una regla que el código actual no aplica.</p>
+                </div>
+                <span class="severity high">Alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    El estado <code>SELF_DECLARED</code> forma parte de los estados
+                    editables. Además, el guard del API se basa en el estado
+                    calculado y no en el campo persistido <code>isEditable</code>.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    Una huella que Producto considera cerrada podría cambiar de año
+                    o de factores, rompiendo la evidencia de su declaración.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Crear un guard específico para cambiar año o factores. Según la
+                    definición propuesta, auto-declaradas, en revisión y aprobadas
+                    quedan bloqueadas; para editar se crea un nuevo borrador.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Un borrador puede conservar o reseleccionar.</li>
+                    <li>Una huella congelada recibe un error de dominio claro.</li>
+                    <li>Duplicar genera un borrador editable sin alterar el original.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-5" data-category="design data">
+              <div class="finding-header">
+                <span class="finding-number">05</span>
+                <div class="finding-title">
+                  <h3>Los valores nulos debilitan el índice único</h3>
+                  <p>Un año nulo y dimensiones nulas requieren semántica SQL explícita.</p>
+                </div>
+                <span class="severity medium">Media-alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    PostgreSQL considera distintos dos <code>NULL</code> en un índice
+                    único normal. Por eso podrían existir dos factores transversales
+                    con la misma actividad.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    La aplicación detectaría algunos duplicados, pero dos solicitudes
+                    concurrentes podrían crear datos inconsistentes.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Crear índices parciales <code>NULLS NOT DISTINCT</code> sobre una
+                    clave normalizada. Los valores de dimensiones no requeridas se
+                    normalizan a nulo antes de guardar.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Sólo existe un vintage transversal por ámbito definido.</li>
+                    <li>La base protege la regla incluso con concurrencia.</li>
+                    <li>La aplicación conserva validaciones para mensajes comprensibles.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-6" data-category="design">
+              <div class="finding-header">
+                <span class="finding-number">06</span>
+                <div class="finding-title">
+                  <h3>Faltan contratos de lectura y exportación</h3>
+                  <p>No basta con cambiar el endpoint de metodología y el Excel web.</p>
+                </div>
+                <span class="severity medium">Media-alta</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    Al reabrir una línea, el frontend fuerza actualmente
+                    <code>baseFactorId = null</code>. Además, el Excel recibe sus datos
+                    desde selects, mappers y schemas compartidos del API.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    Editar un comentario podría perder la referencia al factor. El
+                    año podría mostrarse en captura pero faltar en resumen o exportación.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Extender de punta a punta metodología, detalle de huella, sync,
+                    resumen de factores y exportación. Las pantallas históricas deben
+                    leer primero el snapshot aplicado.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Reabrir y guardar sin cambiar factor conserva su ID y snapshot.</li>
+                    <li>Resumen y Excel muestran el mismo año y fuente.</li>
+                    <li>Las copias convertidas heredan el vintage original.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-7" data-category="design">
+              <div class="finding-header">
+                <span class="finding-number">07</span>
+                <div class="finding-title">
+                  <h3>El flujo de factor propio queda ambiguo</h3>
+                  <p>El año no puede reemplazar sin más al selector de fuente.</p>
+                </div>
+                <span class="severity medium">Media</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    Hoy la opción “Otro” vive en el selector de fuente. Si la UI lo
+                    reemplaza por un selector de año, desaparece el acceso al factor
+                    manual.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    El usuario podría no saber si está eligiendo una fuente, un
+                    vintage o un factor propio. También quedaría indefinido qué año
+                    guardar para “Otro”.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Separar “Factor de plataforma” de “Factor propio”. En plataforma,
+                    mostrar opciones como “2025 · DEFRA” o “Transversal · IPCC”.
+                    En propio, pedir fuente, valor y unidad.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>Un factor propio se clasifica como <code>MANUAL</code>.</li>
+                    <li>Su año es nulo salvo que Producto agregue un año manual explícito.</li>
+                    <li>Las líneas de total directo no tienen vintage.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+
+            <article class="finding" id="hallazgo-8" data-category="data">
+              <div class="finding-header">
+                <span class="finding-number">08</span>
+                <div class="finding-title">
+                  <h3>No se puede inferir transversalidad desde la fuente</h3>
+                  <p>IPCC y Kool aparecen fuera de los procesos industriales.</p>
+                </div>
+                <span class="severity medium">Media</span>
+              </div>
+              <div class="finding-body">
+                <div class="finding-block">
+                  <h4>Contexto y ejemplo</h4>
+                  <p>
+                    IPCC aparece en ganadería, agricultura y procesos industriales.
+                    Kool aparece en aplicación de fertilizantes. Una fuente sin año
+                    no significa necesariamente que el factor sea atemporal.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Riesgo</h4>
+                  <p>
+                    Marcar automáticamente estos factores como transversales haría
+                    que siempre ganaran frente a un factor histórico anterior.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Solución propuesta</h4>
+                  <p>
+                    Exigir una clasificación explícita de metodología para cada grupo.
+                    <code>year = null</code> significa “transversal confirmado”, nunca
+                    “año desconocido”.
+                  </p>
+                </div>
+                <div class="finding-block">
+                  <h4>Comportamiento esperado</h4>
+                  <ul>
+                    <li>La migración se bloquea si quedan factores sin clasificar.</li>
+                    <li>El seed exige siempre un año o un nulo confirmado.</li>
+                    <li>No se mezclan fechados y transversales para la misma actividad y familia.</li>
+                  </ul>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="section" id="modelo">
+          <p class="section-kicker">Arquitectura preferida</p>
+          <h2>Modelo de datos recomendado</h2>
+          <p class="section-intro">
+            Separar el vintage evita repetir fuente y año en cientos de filas y
+            hace imposible que una misma subcategoría tenga dos fuentes distintas
+            para el mismo año.
+          </p>
+
+          <div class="model" aria-label="Entidades recomendadas">
+            <div class="entity">
+              <h3>EmissionFactorVintage</h3>
+              <ul>
+                <li>id</li>
+                <li>subcategoryId</li>
+                <li>year: Int | null</li>
+                <li>source</li>
+                <li>status</li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>EmissionFactor</h3>
+              <ul>
+                <li>vintageId</li>
+                <li>requiredDimensions</li>
+                <li>rateUnitFamilyId</li>
+                <li>canonicalRateUnitId</li>
+                <li>value + gasDetails</li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>CarbonInventoryLineFactor</h3>
+              <ul>
+                <li>emissionFactorId?</li>
+                <li>appliedFactorValue</li>
+                <li>appliedFactorSource</li>
+                <li>appliedFactorYear?</li>
+                <li>inventoryYearAtSelection</li>
+                <li>selectionMode</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 2rem">Payload recomendado al guardar</h3>
+          <pre><code>type FactorSelection =
+  | {
+      type: "CATALOG";
+      emissionFactorId: string;
+      appliedRateUnitId: string;
+    }
+  | {
+      type: "CUSTOM";
+      source: string;
+      value: number;
+      rateUnitId: string;
+    }
+  | {
+      type: "DIRECT";
+    };</code></pre>
+
+          <div class="callout">
+            <strong>Alternativa de menor cambio</strong>
+            <p>
+              Si no se crea <code>EmissionFactorVintage</code>, se pueden mantener
+              <code>year</code> y <code>source</code> en cada factor, pero deben existir
+              una familia de unidad persistida, restricciones SQL y validaciones que
+              garanticen la misma fuente por subcategoría y año.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="comportamiento">
+          <p class="section-kicker">Criterios de aceptación</p>
+          <h2>Comportamiento esperado</h2>
+          <p class="section-intro">
+            Esta matriz convierte las decisiones en casos observables y sirve como
+            base para los escenarios OpenSpec y las pruebas.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Caso</th>
+                  <th>Factores disponibles</th>
+                  <th>Selección</th>
+                  <th>Estado mostrado</th>
+                  <th>Resultado esperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Coincidencia exacta</td>
+                  <td>2021, 2022, 2024</td>
+                  <td>2022</td>
+                  <td class="state">EXACT</td>
+                  <td>Sin advertencia.</td>
+                </tr>
+                <tr>
+                  <td>Sólo transversal</td>
+                  <td>Sin año</td>
+                  <td>Transversal</td>
+                  <td class="state">TRANSVERSAL</td>
+                  <td>Disponible para cualquier año.</td>
+                </tr>
+                <tr>
+                  <td>Falta exacto</td>
+                  <td>2020, 2021</td>
+                  <td>2021</td>
+                  <td class="state">PAST_FALLBACK</td>
+                  <td>Aviso de factor anterior.</td>
+                </tr>
+                <tr>
+                  <td>Sólo años futuros</td>
+                  <td>2024, 2025</td>
+                  <td>2024</td>
+                  <td class="state">FUTURE_FALLBACK</td>
+                  <td>Aviso reforzado antes de guardar.</td>
+                </tr>
+                <tr>
+                  <td>Override del usuario</td>
+                  <td>2022, 2023, 2024</td>
+                  <td>2024 elegido</td>
+                  <td class="state">USER_OVERRIDE</td>
+                  <td>Se conserva la decisión explícita.</td>
+                </tr>
+                <tr>
+                  <td>Factor propio</td>
+                  <td>No aplica</td>
+                  <td>Valor manual</td>
+                  <td class="state">MANUAL</td>
+                  <td>Sin vintage de catálogo.</td>
+                </tr>
+                <tr>
+                  <td>Cambio 2022 → 2023, conservar</td>
+                  <td>Aplicado 2022</td>
+                  <td>KEEP</td>
+                  <td class="state">PAST_FALLBACK</td>
+                  <td>Mismo valor; cambia la relación temporal.</td>
+                </tr>
+                <tr>
+                  <td>Cambio 2022 → 2023, actualizar</td>
+                  <td>Existe 2023</td>
+                  <td>RESELECT</td>
+                  <td class="state">EXACT</td>
+                  <td>Nuevo input y resultado; historial intacto.</td>
+                </tr>
+                <tr>
+                  <td>Huella congelada</td>
+                  <td>Cualquiera</td>
+                  <td>Intento de cambio</td>
+                  <td class="state">REJECTED</td>
+                  <td>El API no modifica año ni factores.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 2rem">Cambio de año atómico</h3>
+          <pre><code>PATCH /carbon-inventories/:id
+{
+  "year": 2025,
+  "factorPolicy": "KEEP" | "RESELECT"
+}</code></pre>
+          <p>
+            Si existen líneas afectadas y falta <code>factorPolicy</code>, el API
+            debería responder <code>FACTOR_DECISION_REQUIRED</code>. Así nunca se
+            recalcula o conserva de forma silenciosa.
+          </p>
+        </section>
+
+        <section class="section" id="implementacion">
+          <p class="section-kicker">Orden recomendado</p>
+          <h2>Plan de implementación</h2>
+          <p class="section-intro">
+            El orden evita crear restricciones antes de clasificar y limpiar los
+            datos actuales.
+          </p>
+
+          <ol class="checklist">
+            <li>Cerrar con metodología el año o transversalidad de cada grupo.</li>
+            <li>Definir familia de unidad y limpiar factores convertibles duplicados.</li>
+            <li>Documentar decisiones y escenarios en <code>design.md</code> y specs.</li>
+            <li>Agregar tablas o columnas nuevas sin restricciones iniciales.</li>
+            <li>Backfill de catálogo y snapshots históricos con un mapping explícito.</li>
+            <li>Normalizar juntos <code>source</code> y <code>appliedFactorSource</code>.</li>
+            <li>Implementar el resolver y la validación del servidor.</li>
+            <li>Extender todos los contratos API, mappers y schemas.</li>
+            <li>Actualizar captura, resumen, mantenedor y exportación.</li>
+            <li>Crear índices <code>NULLS NOT DISTINCT</code> después de validar datos.</li>
+            <li>Probar conservación y reselección con historial de inputs.</li>
+            <li>Ejecutar <code>openspec validate add-emission-factor-year --strict</code>.</li>
+          </ol>
+
+          <div class="callout">
+            <strong>Condición para iniciar implementación</strong>
+            <p>
+              No debe quedar ningún factor con año “desconocido”. Un valor nulo se
+              reserva exclusivamente para factores confirmados como transversales.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="glosario">
+          <p class="section-kicker">Términos usados</p>
+          <h2>Glosario breve</h2>
+          <dl class="glossary">
+            <div class="term">
+              <dt>Vintage</dt>
+              <dd>Versión de una fuente o conjunto de factores asociada a un año.</dd>
+            </div>
+            <div class="term">
+              <dt>Transversal</dt>
+              <dd>Factor confirmado como independiente del año de medición.</dd>
+            </div>
+            <div class="term">
+              <dt>Fallback</dt>
+              <dd>Factor usado porque no existe uno exacto para el año de la huella.</dd>
+            </div>
+            <div class="term">
+              <dt>Snapshot</dt>
+              <dd>Copia inmutable del valor, fuente, unidad y año realmente aplicados.</dd>
+            </div>
+            <div class="term">
+              <dt>Familia de unidad</dt>
+              <dd>Grupo de unidades convertibles que comparten magnitudes, por ejemplo masa/masa.</dd>
+            </div>
+            <div class="term">
+              <dt>Resolver</dt>
+              <dd>Regla determinista que elige el vintage recomendado para un contexto.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="section" id="fuentes">
+          <p class="section-kicker">Trazabilidad</p>
+          <h2>Evidencia revisada</h2>
+          <p class="section-intro">
+            El análisis se basa en la propuesta y en el comportamiento observable
+            del esquema, API, frontend y seed actuales.
+          </p>
+          <ul class="source-list">
+            <li><code>openspec/changes/add-emission-factor-year/proposal.md</code></li>
+            <li><code>packages/database/src/prisma/schema.prisma</code></li>
+            <li><code>apps/api/src/features/emissionFactors/helpers.ts</code></li>
+            <li><code>apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts</code></li>
+            <li><code>apps/api/src/features/carbonInventories/getCarbonInventoryMethodology/</code></li>
+            <li><code>apps/web/src/screens/CarbonInventory/components/EmissionEditor/</code></li>
+            <li><code>tools/seed/src/data/base/methodologies.json</code></li>
+            <li><code>tools/seed/src/data/testing/methodologies.json</code></li>
+          </ul>
+
+          <div class="callout">
+            <strong>Estado OpenSpec</strong>
+            <p>
+              La propuesta es el único artefacto completo. Faltan
+              <code>design.md</code>, deltas de capacidades y tareas. El registro
+              externo con respuestas de Producto no fue verificable desde el
+              repositorio; sus decisiones deberían copiarse al diseño.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <span><strong>Huella Latam</strong> · análisis técnico de cambio OpenSpec</span>
+        <span>Documento autocontenido · sin dependencias externas</span>
+      </div>
+    </footer>
+
+    <script>
+      (() => {
+        const filterButtons = [...document.querySelectorAll("[data-filter]")];
+        const findings = [...document.querySelectorAll(".finding")];
+        const expandAll = document.getElementById("expand-all");
+        const tocLinks = [...document.querySelectorAll(".toc a")];
+        const sections = tocLinks
+          .map((link) => document.querySelector(link.getAttribute("href")))
+          .filter(Boolean);
+
+        const applyFilter = (filter) => {
+          findings.forEach((finding) => {
+            const categories = finding.dataset.category.split(" ");
+            finding.hidden = filter !== "all" && !categories.includes(filter);
+          });
+          filterButtons.forEach((button) => {
+            button.setAttribute(
+              "aria-pressed",
+              String(button.dataset.filter === filter)
+            );
+          });
+        };
+
+        filterButtons.forEach((button) => {
+          button.addEventListener("click", () => applyFilter(button.dataset.filter));
+        });
+
+        expandAll.addEventListener("click", () => applyFilter("all"));
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            tocLinks.forEach((link) => {
+              link.classList.toggle(
+                "active",
+                link.getAttribute("href") === `#${visible.target.id}`
+              );
+            });
+          },
+          { rootMargin: "-18% 0px -62% 0px", threshold: [0, 0.2, 0.6] }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      })();
+    </script>
+  </body>
+</html>
