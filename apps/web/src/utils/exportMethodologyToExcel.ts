@@ -152,6 +152,9 @@ function fillEmissionFactorsSheet(
           value: Number.isFinite(numericValue) ? numericValue : factor.value,
           rateMeasurementUnit: display(factor.rateMeasurementUnit.abbreviation),
           source: display(factor.source),
+          // Blank, not "-": an empty year cell is how a transversal factor
+          // reads, and it must not look like missing data.
+          year: factor.year ?? "",
           co2Fossil: factor.gasDetails.CO2_FOSSIL,
           ch4: factor.gasDetails.CH4,
           n2o: factor.gasDetails.N2O,
@@ -225,6 +228,7 @@ export async function buildMethodologyWorkbook(
     { header: "Valor", key: "value", width: 18 },
     { header: "Unidad", key: "rateMeasurementUnit", width: 18 },
     { header: "Fuente", key: "source", width: 30 },
+    { header: "Año", key: "year", width: 10 },
     { header: "CO₂ fósil", key: "co2Fossil", width: 12 },
     { header: "CH₄", key: "ch4", width: 12 },
     { header: "N₂O", key: "n2o", width: 12 },
