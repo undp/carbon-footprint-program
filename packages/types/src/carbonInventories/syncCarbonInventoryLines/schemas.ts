@@ -19,6 +19,16 @@ export const FactorSelectionType = {
   CUSTOM: "CUSTOM",
   /** A total the organization declared directly, with no factor at all. */
   DIRECT: "DIRECT",
+  /**
+   * The line's factor was not touched: keep the snapshot it already has.
+   *
+   * Only an update can say this, and it is the only variant the server answers
+   * without reading the catalog. That is the point — a line whose factor the
+   * organization did not change must not be re-valued because the catalog moved
+   * underneath it, and must not fail to save because the factor it used was
+   * retired.
+   */
+  UNCHANGED: "UNCHANGED",
 } as const;
 
 export const FactorSelectionTypeSchema = z.enum(FactorSelectionType);
@@ -61,11 +71,31 @@ export const DirectFactorSelectionSchema = z
   })
   .strict();
 
+export const UnchangedFactorSelectionSchema = z
+  .object({
+    type: z.literal(FactorSelectionType.UNCHANGED),
+  })
+  .strict();
+
 export const FactorSelectionSchema = z
   .discriminatedUnion("type", [
     CatalogFactorSelectionSchema,
     CustomFactorSelectionSchema,
     DirectFactorSelectionSchema,
+  ])
+  .describe("The factor selection for this line");
+
+/**
+ * What an update may declare. `UNCHANGED` is deliberately absent from the create
+ * union: a line being created has no previous snapshot to keep, so the variant
+ * is unrepresentable there rather than silently meaning "no factor".
+ */
+export const UpdateFactorSelectionSchema = z
+  .discriminatedUnion("type", [
+    CatalogFactorSelectionSchema,
+    CustomFactorSelectionSchema,
+    DirectFactorSelectionSchema,
+    UnchangedFactorSelectionSchema,
   ])
   .describe("The factor selection for this line");
 
@@ -152,8 +182,8 @@ export const SyncUpdateLineItemSchema = LineItemSchema.pick({
     inputType: InputTypeSchema.describe(
       "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
     ),
-    factorSelection: FactorSelectionSchema.nullable().describe(
-      "The factor selection, or null while the line is still incomplete"
+    factorSelection: UpdateFactorSelectionSchema.nullable().describe(
+      "The factor selection, UNCHANGED to keep the stored snapshot, or null while the line is still incomplete"
     ),
     addFileUuids: z
       .array(z.uuid())
