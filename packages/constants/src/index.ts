@@ -6,4 +6,5 @@ export * from "./measurementUnit.js";
 export * from "./magnitude.js";
 export * from "./legal.js";
 export * from "./carbonInventory.js";
+export * from "./emissionFactor.js";
 export * from "./organization.js";
