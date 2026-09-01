@@ -1,8 +1,10 @@
 import {
+  EmissionFactorDimensionStatus,
   EmissionFactorStatus,
   FactorSelectionType,
   FileStatus,
-  type FactorSelection,
+  type CatalogFactorSelection,
+  type UpdateFactorSelection,
 } from "@repo/types";
 import { InputType, Prisma } from "@repo/database";
 import { mapBigIntField } from "@/utils/bigint.js";
@@ -30,7 +32,7 @@ export type ItemData = {
   quantity: number | null;
   measurementUnitId: string | null;
   comment?: string | null;
-  factorSelection: FactorSelection | null;
+  factorSelection: UpdateFactorSelection | null;
 };
 
 /**
@@ -46,12 +48,17 @@ export type ResolvedFactor = {
   emissionFactorId: bigint | null;
   appliedFactorValue: Prisma.Decimal;
   appliedFactorRateUnitId: bigint;
-  appliedFactorSource: string;
+  /**
+   * Nullable to mirror the column. A catalog or custom selection always carries
+   * a source; only a snapshot read back from a line saved before the source was
+   * required can be null, and re-saving that line must not invent one.
+   */
+  appliedFactorSource: string | null;
   appliedFactorYear: number | null;
   /** Set only for CUSTOM, which stores its factor on the line input itself. */
   manual: {
     value: Prisma.Decimal;
-    source: string;
+    source: string | null;
     rateUnitId: bigint;
   } | null;
 };
@@ -73,7 +80,7 @@ export type ResolvedFactor = {
  */
 export async function resolveCatalogFactor(
   tx: Prisma.TransactionClient,
-  selection: Extract<FactorSelection, { type: "CATALOG" }>,
+  selection: CatalogFactorSelection,
   context: {
     methodologyVersionId: bigint | null;
     subcategoryId: bigint;
@@ -134,7 +141,7 @@ export async function resolveCatalogFactor(
         where: {
           subcategoryId: context.subcategoryId,
           isRequired: true,
-          status: "ACTIVE",
+          status: EmissionFactorDimensionStatus.ACTIVE,
         },
         select: { position: true },
       })
@@ -215,6 +222,64 @@ async function convertToRateUnit(
 }
 
 /**
+ * Reads back the factor snapshot a line already has, from its current active
+ * input, so an `UNCHANGED` selection can keep it verbatim.
+ *
+ * Nothing here touches the catalog. That is the whole point: the organization
+ * did not change its factor, so neither an edit nor a retirement of the catalog
+ * row may alter what this line stores or stop it from saving.
+ *
+ * Returns `null` when the line has no snapshot yet, which makes `UNCHANGED`
+ * degrade to "no factor" rather than to an error.
+ */
+async function resolveStoredFactor(
+  tx: Prisma.TransactionClient,
+  lineId: bigint
+): Promise<ResolvedFactor | null> {
+  const input = await tx.carbonInventoryLineInput.findFirst({
+    where: { lineId, isActive: true },
+    select: {
+      manualFactor: true,
+      manualFactorSource: true,
+      manualFactorRateUnitId: true,
+      factor: {
+        select: {
+          emissionFactorId: true,
+          appliedFactorValue: true,
+          appliedFactorRateUnitId: true,
+          appliedFactorSource: true,
+          appliedFactorYear: true,
+        },
+      },
+    },
+  });
+
+  const stored = input?.factor;
+  if (!stored) return null;
+
+  // A custom factor lives on the line input as well as in the snapshot, so it
+  // has to be carried across to the new input or the next read would see a
+  // catalog-shaped line with no catalog row behind it.
+  const manual =
+    input.manualFactor !== null && input.manualFactorRateUnitId !== null
+      ? {
+          value: input.manualFactor,
+          source: input.manualFactorSource ?? stored.appliedFactorSource,
+          rateUnitId: input.manualFactorRateUnitId,
+        }
+      : null;
+
+  return {
+    emissionFactorId: stored.emissionFactorId,
+    appliedFactorValue: stored.appliedFactorValue,
+    appliedFactorRateUnitId: stored.appliedFactorRateUnitId,
+    appliedFactorSource: stored.appliedFactorSource,
+    appliedFactorYear: stored.appliedFactorYear,
+    manual,
+  };
+}
+
+/**
  * Resolves whichever factor variant the line declared.
  *
  * Returns `null` when the line has no factor yet (still being filled in) or when
@@ -227,12 +292,20 @@ export async function resolveFactorSelection(
   context: {
     methodologyVersionId: bigint | null;
     subcategoryId: bigint;
+    /** Set for an update; absent on create, which has nothing stored yet. */
+    lineId?: bigint;
   }
 ): Promise<ResolvedFactor | null> {
   const selection = item.factorSelection;
   if (selection === null) return null;
 
   switch (selection.type) {
+    case FactorSelectionType.UNCHANGED:
+      // Unreachable from a create: the create schema has no UNCHANGED variant.
+      return context.lineId === undefined
+        ? null
+        : await resolveStoredFactor(tx, context.lineId);
+
     case FactorSelectionType.CATALOG:
       return await resolveCatalogFactor(tx, selection, {
         ...context,
