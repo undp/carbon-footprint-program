@@ -1,9 +1,11 @@
 import { z } from "zod";
 import type {
   FactorSelectionSchema,
+  UpdateFactorSelectionSchema,
   CatalogFactorSelectionSchema,
   CustomFactorSelectionSchema,
   DirectFactorSelectionSchema,
+  UnchangedFactorSelectionSchema,
   SyncCreateLineItemSchema,
   SyncUpdateLineItemSchema,
   SyncDeleteLineItemSchema,
@@ -15,8 +17,14 @@ import type {
 // TypeScript types
 export type FactorSelection = z.infer<typeof FactorSelectionSchema>;
 
+export type UpdateFactorSelection = z.infer<typeof UpdateFactorSelectionSchema>;
+
 export type CatalogFactorSelection = z.infer<
   typeof CatalogFactorSelectionSchema
+>;
+
+export type UnchangedFactorSelection = z.infer<
+  typeof UnchangedFactorSelectionSchema
 >;
 
 export type CustomFactorSelection = z.infer<typeof CustomFactorSelectionSchema>;
