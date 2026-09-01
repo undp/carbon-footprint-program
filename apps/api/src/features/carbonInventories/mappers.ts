@@ -108,6 +108,14 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
       sizeBytes: entry.file.sizeBytes,
     }));
 
+  // The catalog identity and the applied year come only from the saved factor
+  // snapshot. A custom factor lives on the input (`manualFactor*`) and has
+  // neither, so a reload restores the exact catalog row that was chosen rather
+  // than re-deriving it from the source text.
+  const emissionFactorId =
+    activeInput?.factor?.emissionFactorId?.toString() ?? null;
+  const appliedFactorYear = activeInput?.factor?.appliedFactorYear ?? null;
+
   return {
     id: String(line.id),
     subcategoryId: line.subcategoryId.toString(),
@@ -119,6 +127,8 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
     factorSource,
     factorValue,
     factorRateMeasurementUnitId,
+    emissionFactorId,
+    appliedFactorYear,
     comment,
     manualTotalEmissions,
     files,

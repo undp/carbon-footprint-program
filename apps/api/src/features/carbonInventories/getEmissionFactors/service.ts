@@ -158,6 +158,11 @@ export const getEmissionFactorsService = async (
       rateUnit,
       gasBreakdownLines,
       factorSource,
+      // Read from the line's own snapshot, not from the catalog row: the catalog
+      // may have been edited since, and the summary has to show the vintage that
+      // was actually applied. Null for transversal and custom factors, which is
+      // what stops them from being styled as a mismatch.
+      appliedFactorYear: factor?.appliedFactorYear ?? null,
       factorSourceDetail,
     });
   }
