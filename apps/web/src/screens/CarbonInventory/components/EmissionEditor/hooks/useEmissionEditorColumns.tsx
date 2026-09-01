@@ -34,7 +34,8 @@ interface UseEmissionEditorColumnsParams {
       string | number | null
     >
   ) => void;
-  onFactorSourceChange: (lineId: LineId, factorSource: string) => void;
+  /** `selection` is a canonical emission-factor ID, or the `Otro` custom label. */
+  onFactorSelectionChange: (lineId: LineId, selection: string) => void;
   onDeleteLine: (lineId: LineId) => void;
   onUpdateComment: (rowId: LineId, comment: string) => void;
   onUploadFiles: (rowId: LineId) => void;
@@ -49,7 +50,7 @@ export const useEmissionEditorColumns = ({
   rateMeasurementUnits,
   categoryColor,
   onCellChange,
-  onFactorSourceChange,
+  onFactorSelectionChange,
   onDeleteLine,
   onUpdateComment,
   onUploadFiles,
@@ -213,7 +214,7 @@ export const useEmissionEditorColumns = ({
               rateMeasurementUnits={rateMeasurementUnits || []}
               disabled={isManualModeLoading}
               onChange={(value) =>
-                onFactorSourceChange(params.row.lineId, value)
+                onFactorSelectionChange(params.row.lineId, value)
               }
             />
           );
@@ -309,7 +310,7 @@ export const useEmissionEditorColumns = ({
     rateMeasurementUnits,
     categoryColor,
     onCellChange,
-    onFactorSourceChange,
+    onFactorSelectionChange,
     onDeleteLine,
     onUpdateComment,
     onUploadFiles,
