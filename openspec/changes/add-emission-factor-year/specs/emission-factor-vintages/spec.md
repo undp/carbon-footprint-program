@@ -43,7 +43,7 @@ At most one ACTIVE emission factor SHALL exist for this business key:
 
 `(subcategory, normalized required dimension values, year, source, numerator magnitude, denominator magnitude)`.
 
-The exact measurement units SHALL NOT form the identity. The numerator/denominator magnitude pair SHALL define a unit family. Dimension slots that are not required by the subcategory SHALL be normalized to `null` for this rule.
+The exact measurement units SHALL NOT form the identity. The numerator/denominator magnitude pair SHALL define a unit family. Dimension slots that are not required by the subcategory SHALL be normalized to `null` when applying this rule, and SHALL NOT be normalized on persistence: a value entered in a non-required slot SHALL be stored and returned unchanged.
 
 The application and a partial database unique index SHALL enforce the same key. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. `EmissionFactor` SHALL persist `numeratorMagnitudeId` and `denominatorMagnitudeId`, derived by the server from the selected rate unit. These IDs SHALL NOT be accepted as client-authored data. No textual family key or additional unit-family table is required.
 
@@ -72,6 +72,13 @@ The application and a partial database unique index SHALL enforce the same key. 
 - **WHEN** those factors are modeled in the catalog
 - **THEN** the wet/dry basis SHALL be represented by a factor dimension
 - **AND** exact unit spelling SHALL NOT be used to bypass the family uniqueness rule
+
+#### Scenario: An optional dimension value is preserved and does not create a new identity
+
+- **GIVEN** a subcategory whose position-1 dimension is not required
+- **WHEN** a maintainer saves a factor with a value in that slot
+- **THEN** the factor SHALL be persisted and returned with that dimension value
+- **AND** it SHALL NOT count as a different identity from an otherwise equal factor whose slot is empty
 
 #### Scenario: A duplicate including nulls is rejected
 
