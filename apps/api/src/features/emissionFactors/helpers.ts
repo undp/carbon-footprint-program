@@ -9,7 +9,6 @@ import {
   DimensionNotConfiguredError,
   DimensionValueNotFoundError,
   EmissionFactorDuplicateError,
-  EmissionFactorSourceConflictError,
   EmissionFactorGasDetailsMismatchError,
   SubcategoryChangeMissingDimensionsError,
 } from "./errors.js";
@@ -53,25 +52,35 @@ export async function findDimensionValue(
   return value.id;
 }
 
+export type EmissionFactorIdentity = {
+  subcategoryId: bigint;
+  dimensionValue1Id: bigint | null;
+  dimensionValue2Id: bigint | null;
+  year: number | null;
+  source: string;
+  numeratorMagnitudeId: bigint;
+  denominatorMagnitudeId: bigint;
+};
+
 /**
- * Checks that no other ACTIVE emission factor exists with the same
- * uniqueness key for the given subcategory.
+ * Normalizes a factor's dimension slots **for identity purposes only**: a value
+ * parked in a slot the subcategory does not require is not part of the key, so
+ * it must not be able to split one identity into two.
  *
- * The uniqueness key is always subcategoryId, plus each dimension value
- * whose dimension is marked as required for that subcategory. Optional
- * dimensions are not part of the key — multiple factors may coexist with
- * different (or null) optional dimension values.
+ * The normalized values are not what gets persisted. A value the maintainer put
+ * in an optional slot is real data and stays on the row; it just does not earn
+ * the factor a separate identity. That does mean this check is stricter than the
+ * database index, which compares the raw columns — the same asymmetry the
+ * catalog has always had, and safe in that direction: the application rejects a
+ * little more than the constraint would, never less.
  */
-export async function checkDuplicateEmissionFactor(
+async function normalizeEmissionFactorIdentity(
   tx: Prisma.TransactionClient,
-  subcategoryId: bigint,
-  dimensionValue1Id: bigint | null,
-  dimensionValue2Id: bigint | null,
-  excludeId?: bigint
-): Promise<void> {
+  identity: EmissionFactorIdentity
+): Promise<EmissionFactorIdentity> {
   const requiredDimensions = await tx.emissionFactorDimension.findMany({
     where: {
-      subcategoryId,
+      subcategoryId: identity.subcategoryId,
       isRequired: true,
       status: EmissionFactorDimensionStatus.ACTIVE,
     },
@@ -80,49 +89,59 @@ export async function checkDuplicateEmissionFactor(
 
   const requiredPositions = new Set(requiredDimensions.map((d) => d.position));
 
-  const where: Prisma.EmissionFactorWhereInput = {
-    subcategoryId,
-    status: EmissionFactorStatus.ACTIVE,
-    ...(excludeId != null ? { id: { not: excludeId } } : {}),
+  return {
+    ...identity,
+    dimensionValue1Id: requiredPositions.has(1)
+      ? identity.dimensionValue1Id
+      : null,
+    dimensionValue2Id: requiredPositions.has(2)
+      ? identity.dimensionValue2Id
+      : null,
   };
+}
 
-  if (requiredPositions.has(1)) {
-    where.dimensionValue1Id = dimensionValue1Id ?? null;
-  }
-  if (requiredPositions.has(2)) {
-    where.dimensionValue2Id = dimensionValue2Id ?? null;
-  }
+/**
+ * Checks that no other ACTIVE emission factor already occupies this factor's
+ * identity:
+ *
+ *   (subcategory, required dimension values, year, source,
+ *    numerator magnitude, denominator magnitude)
+ *
+ * Two points are easy to get wrong. `year = null` is a real value meaning
+ * "transversal", so it has to be matched explicitly rather than skipped — which
+ * is why every field is compared with an explicit null. And the key uses the
+ * unit *family*, not the exact unit: `kg/kg` and `kg/ton` are both mass/mass and
+ * so are one factor expressed two ways, while `kg/kWh` and `kg/m3` are different
+ * families that may coexist for the same activity, source and year.
+ *
+ * The same key is enforced by the partial unique index
+ * `emission_factor_unique_subcategory_dims_year_source_family`; this check exists
+ * to return a meaningful error instead of a raw P2002.
+ */
+export async function checkDuplicateEmissionFactor(
+  tx: Prisma.TransactionClient,
+  identity: EmissionFactorIdentity,
+  excludeId?: bigint
+): Promise<void> {
+  const normalized = await normalizeEmissionFactorIdentity(tx, identity);
 
   const duplicate = await tx.emissionFactor.findFirst({
-    where,
+    where: {
+      subcategoryId: normalized.subcategoryId,
+      dimensionValue1Id: normalized.dimensionValue1Id,
+      dimensionValue2Id: normalized.dimensionValue2Id,
+      year: normalized.year,
+      source: normalized.source,
+      numeratorMagnitudeId: normalized.numeratorMagnitudeId,
+      denominatorMagnitudeId: normalized.denominatorMagnitudeId,
+      status: EmissionFactorStatus.ACTIVE,
+      ...(excludeId != null ? { id: { not: excludeId } } : {}),
+    },
     select: { id: true },
   });
 
   if (duplicate) {
     throw new EmissionFactorDuplicateError();
-  }
-}
-
-/**
- * Enforces that all active emission factors for a subcategory share the same source.
- */
-export async function validateSourceConsistency(
-  tx: Prisma.TransactionClient,
-  subcategoryId: bigint,
-  source: string,
-  excludeId?: bigint
-): Promise<void> {
-  const existingSource = await tx.emissionFactor.findFirst({
-    where: {
-      subcategoryId,
-      status: EmissionFactorStatus.ACTIVE,
-      ...(excludeId != null ? { id: { not: excludeId } } : {}),
-    },
-    select: { source: true },
-  });
-
-  if (existingSource && existingSource.source !== source) {
-    throw new EmissionFactorSourceConflictError(existingSource.source);
   }
 }
 
