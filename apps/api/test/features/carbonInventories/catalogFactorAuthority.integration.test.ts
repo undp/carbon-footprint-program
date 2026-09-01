@@ -598,4 +598,254 @@ describe("Catalog factor authority and snapshots - Integration Tests", () => {
       expect(after.appliedFactorYear).toBe(2022);
     });
   });
+  /**
+   * An update that does not restate its factor.
+   *
+   * The organization edited something else on the line — a quantity, a comment —
+   * and said nothing about the factor. The stored snapshot is then the only
+   * correct answer: not the catalog's current value, which may have moved, and
+   * not an error, which is what a re-resolution against a retired row produces.
+   */
+  describe("An unchanged selection keeps the stored snapshot", () => {
+    /** Captures a line through a CATALOG selection and returns its id. */
+    async function captureCatalogLine(scenario: {
+      subcategory: { id: bigint };
+      clinker: { id: bigint };
+      factor: { id: bigint };
+      carbonInventory: { id: bigint };
+    }) {
+      const response = await sync(
+        scenario.carbonInventory.id,
+        syncPayload({
+          subcategoryId: scenario.subcategory.id,
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 10,
+          factorSelection: {
+            type: FactorSelectionType.CATALOG,
+            emissionFactorId: scenario.factor.id.toString(),
+            appliedRateMeasurementUnitId: kgPerTonId.toString(),
+          },
+        })
+      );
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      return body.created[0];
+    }
+
+    const unchangedUpdate = (
+      lineId: string,
+      overrides: {
+        dimensionValue1Id: bigint;
+        measurementUnitId: bigint;
+        quantity: number;
+      }
+    ) => ({
+      create: [],
+      update: [
+        {
+          id: lineId,
+          inputType: "SIMPLIFIED",
+          dimensionValue1Id: overrides.dimensionValue1Id.toString(),
+          dimensionValue2Id: null,
+          measurementUnitId: overrides.measurementUnitId.toString(),
+          quantity: overrides.quantity,
+          factorSelection: { type: FactorSelectionType.UNCHANGED },
+          comment: "Only the quantity changed",
+        },
+      ],
+      delete: [],
+    });
+
+    const readSnapshot = async (lineId: string) =>
+      await prisma.carbonInventoryLineFactor.findFirstOrThrow({
+        where: { lineInput: { line: { id: BigInt(lineId) }, isActive: true } },
+        select: {
+          emissionFactorId: true,
+          appliedFactorValue: true,
+          appliedFactorRateUnitId: true,
+          appliedFactorSource: true,
+          appliedFactorYear: true,
+        },
+      });
+
+    it("does not adopt a catalog value edited after capture", async () => {
+      const scenario = await buildScenario();
+      const line = await captureCatalogLine(scenario);
+      const before = await readSnapshot(line.id);
+
+      // The maintainer corrects the factor after the organization used it.
+      await prisma.emissionFactor.update({
+        where: { id: scenario.factor.id },
+        data: { value: "999", source: "IPCC revisado", year: 2024 },
+      });
+
+      const response = await sync(
+        scenario.carbonInventory.id,
+        unchangedUpdate(line.id, {
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 25,
+        })
+      );
+
+      expect(response.statusCode).toBe(200);
+      expect(await readSnapshot(line.id)).toEqual(before);
+
+      // The result follows the quantity the user did change, computed from the
+      // value the line kept — not from the catalog's new one.
+      const result = await prisma.carbonInventoryLineResult.findFirstOrThrow({
+        where: { lineInput: { line: { id: BigInt(line.id) }, isActive: true } },
+        select: { totalEmissions: true },
+      });
+      expect(result.totalEmissions.toString()).toBe("13000");
+    });
+
+    it("saves a line whose catalog factor was retired", async () => {
+      const scenario = await buildScenario();
+      const line = await captureCatalogLine(scenario);
+      const before = await readSnapshot(line.id);
+
+      await prisma.emissionFactor.update({
+        where: { id: scenario.factor.id },
+        data: { status: EmissionFactorStatus.DELETED },
+      });
+
+      const response = await sync(
+        scenario.carbonInventory.id,
+        unchangedUpdate(line.id, {
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 25,
+        })
+      );
+
+      // Re-resolving would 404 here and roll back the whole batch, including
+      // every unrelated line in it.
+      expect(response.statusCode).toBe(200);
+      expect(await readSnapshot(line.id)).toEqual(before);
+    });
+
+    it("carries a custom factor's own columns across", async () => {
+      const scenario = await buildScenario();
+
+      const created = await sync(
+        scenario.carbonInventory.id,
+        syncPayload({
+          subcategoryId: scenario.subcategory.id,
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 10,
+          factorSelection: {
+            type: FactorSelectionType.CUSTOM,
+            source: "Otro",
+            value: 7.25,
+            rateMeasurementUnitId: kgPerTonId.toString(),
+          },
+        })
+      );
+      expect(created.statusCode).toBe(200);
+      const line = (
+        JSON.parse(created.body) as SyncCarbonInventoryLinesResponse
+      ).created[0];
+
+      const response = await sync(
+        scenario.carbonInventory.id,
+        unchangedUpdate(line.id, {
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 4,
+        })
+      );
+      expect(response.statusCode).toBe(200);
+
+      // A custom factor lives on the line input as well as in the snapshot; if
+      // only the snapshot were carried over the line would read as a catalog
+      // line with no catalog row behind it.
+      const input = await prisma.carbonInventoryLineInput.findFirstOrThrow({
+        where: { lineId: BigInt(line.id), isActive: true },
+        select: {
+          manualFactor: true,
+          manualFactorSource: true,
+          manualFactorRateUnitId: true,
+        },
+      });
+      expect(input.manualFactor?.toString()).toBe("7.25");
+      expect(input.manualFactorSource).toBe("Otro");
+      expect(input.manualFactorRateUnitId).toBe(kgPerTonId);
+
+      const snapshot = await readSnapshot(line.id);
+      expect(snapshot.emissionFactorId).toBeNull();
+      expect(snapshot.appliedFactorSource).toBe("Otro");
+    });
+
+    it("means no factor when the line never had one", async () => {
+      const scenario = await buildScenario();
+
+      const created = await sync(scenario.carbonInventory.id, {
+        create: [
+          {
+            subcategoryId: scenario.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
+            measurementUnitId: null,
+            quantity: null,
+            factorSelection: null,
+            comment: null,
+          },
+        ],
+        update: [],
+        delete: [],
+      });
+      expect(created.statusCode).toBe(200);
+      const line = (
+        JSON.parse(created.body) as SyncCarbonInventoryLinesResponse
+      ).created[0];
+
+      const response = await sync(
+        scenario.carbonInventory.id,
+        unchangedUpdate(line.id, {
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 3,
+        })
+      );
+
+      // Degrades to "still incomplete" rather than erroring: an empty line is a
+      // normal state in capture, not a broken request.
+      expect(response.statusCode).toBe(200);
+      const snapshot = await prisma.carbonInventoryLineFactor.findFirst({
+        where: { lineInput: { line: { id: BigInt(line.id) }, isActive: true } },
+      });
+      expect(snapshot).toBeNull();
+    });
+
+    it("is not part of the create contract", async () => {
+      const scenario = await buildScenario();
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [
+          {
+            subcategoryId: scenario.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
+            measurementUnitId: null,
+            quantity: null,
+            factorSelection: { type: FactorSelectionType.UNCHANGED },
+            comment: null,
+          },
+        ],
+        update: [],
+        delete: [],
+      });
+
+      // A line being created has no snapshot to keep, so the variant is
+      // unrepresentable there rather than silently meaning "no factor".
+      expect(response.statusCode).toBe(400);
+    });
+  });
 });
