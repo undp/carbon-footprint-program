@@ -223,6 +223,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           dimensionValue2Name: row.dimensionValue2Name || null,
           rateMeasurementUnitId: row.rateMeasurementUnitId,
           source: row.source,
+          year: row.year,
           gasDetails: row.gasDetails,
           value: row.value,
         });
@@ -256,6 +257,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.dimensionValue2Name !== original.dimensionValue2Name ||
       row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
       row.source !== original.source ||
+      row.year !== original.year ||
       row.value !== original.value ||
       !gasDetailsEqual(row.gasDetails, original.gasDetails);
 
@@ -269,6 +271,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
             dimensionValue2Name: row.dimensionValue2Name || null,
             rateMeasurementUnitId: row.rateMeasurementUnitId,
             source: row.source,
+            year: row.year,
             gasDetails: row.gasDetails,
             value: row.value,
           },
@@ -350,6 +353,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       dimensionValue2Name: null,
       rateMeasurementUnitId: "",
       source: "",
+      year: null,
       value: 0,
       gasDetails: EMPTY_GAS_DETAILS,
     });
@@ -577,6 +581,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
               "dimensionValue1Name",
               "dimensionValue2Name",
               "source",
+              { name: "year", getFn: (row) => row.year?.toString() ?? "" },
             ],
           },
           placeholder: "Buscar factor de emisión...",

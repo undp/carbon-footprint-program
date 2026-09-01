@@ -55,13 +55,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // Emission factors
   EMISSION_FACTOR_NOT_FOUND: "El factor de emisión no fue encontrado.",
   EMISSION_FACTOR_DUPLICATE:
-    "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
+    "Ya existe un factor de emisión activo con la misma sub-categoría, variables, fuente, año y familia de unidades (por ejemplo kg/kg y kg/ton son la misma familia).",
   SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR:
     "La sub-categoría asociada no fue encontrada.",
   RATE_MEASUREMENT_UNIT_NOT_FOUND:
     "La unidad de tasa seleccionada no fue encontrada.",
-  EMISSION_FACTOR_SOURCE_CONFLICT:
-    "Todos los factores de emisión activos de esta sub-categoría deben usar la misma fuente.",
   EMISSION_FACTOR_GAS_DETAILS_MISMATCH:
     "La suma del desglose GEI debe coincidir con el valor declarado.",
 
