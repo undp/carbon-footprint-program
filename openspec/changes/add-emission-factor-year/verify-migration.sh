@@ -40,11 +40,18 @@ stage() {
   admin "CREATE DATABASE $db TEMPLATE $TEMPLATE_DB;"
   local parked
   parked="$(mktemp -d)/pending"
+  # The migration under test is moved aside so `migrate deploy` stops at the
+  # commit before it. Everything between the two moves can fail — a wrong
+  # DATABASE_URL, an unreachable server, a Ctrl-C — and with `set -e` and no
+  # trap the script would exit before the second one, leaving the migration in
+  # an unnamed temp directory and gone from the working tree.
+  trap 'mv "$parked" "$MIGRATION_DIR" 2>/dev/null || true' EXIT INT TERM
   mv "$MIGRATION_DIR" "$parked"
   (cd "$REPO_ROOT/packages/database" &&
     DATABASE_URL="postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$db" \
       pnpm exec prisma migrate deploy >/dev/null)
   mv "$parked" "$MIGRATION_DIR"
+  trap - EXIT INT TERM
 }
 
 expect_abort() {
