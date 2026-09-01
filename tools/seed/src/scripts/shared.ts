@@ -75,6 +75,11 @@ export const FullMethodologyDataSchema = z.array(
                     .nullable(),
                   rateMeasurementUnitAbbreviation: z.string().min(1),
                   source: z.string().min(1),
+                  // Required but nullable. `null` declares the factor
+                  // transversal — applicable to every reporting year — so it
+                  // has to be written out. Omitting the key is a data error,
+                  // not a shorthand for transversal.
+                  year: z.number().int().nullable(),
                   value: z.number(),
                 })
               )
