@@ -20,6 +20,7 @@ export const GetAllEmissionFactorsResponseSchema = z.array(
     id: true,
     value: true,
     source: true,
+    year: true,
   }).extend({
     subcategoryId: SubcategoryBaseSchema.shape.id,
     subcategoryName: SubcategoryBaseSchema.shape.name,

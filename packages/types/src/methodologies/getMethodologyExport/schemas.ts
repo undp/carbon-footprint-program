@@ -49,6 +49,7 @@ const ExportEmissionFactorDimensionValueSchema =
 const ExportEmissionFactorSchema = EmissionFactorBaseSchema.pick({
   id: true,
   source: true,
+  year: true,
   value: true,
 }).extend({
   gasDetails: GasDetailsSchema.describe(
