@@ -16,6 +16,7 @@ import {
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
   getTestRateMeasurementUnitId,
+  resolveTestRateUnitMagnitudes,
 } from "@test/factories/emissionFactorFactory.js";
 import { updateEmissionFactorService } from "@/features/emissionFactors/updateEmissionFactor/service.js";
 import { mapUserToResponse } from "@/features/users/mappers.js";
@@ -113,7 +114,7 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     expect(body.source).toBe("IPCC 2024");
   });
 
-  it("should reject source update when another active factor in the same subcategory has a different source", async () => {
+  it("allows a second source in the same subcategory, because source is part of the factor's identity", async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       name: "Test - Source Conflict EF",
     });
@@ -128,13 +129,14 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
 
     await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
       source: "Source A",
+      year: 2025,
     });
 
     const efToUpdate = await createTestEmissionFactor(
       prisma,
       subcategory.id,
       rateUnitId,
-      { source: "Source A" }
+      { source: "Source A", year: 2024 }
     );
 
     const response = await app.inject({
@@ -143,9 +145,12 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
       payload: { source: "Source B" },
     });
 
-    expect(response.statusCode).toBe(409);
-    const body = JSON.parse(response.body) as { code: string };
-    expect(body.code).toBe("EMISSION_FACTOR_SOURCE_CONFLICT");
+    // The old subcategory-wide source-consistency rule is gone: two providers
+    // publishing for the same activity are two legitimate alternatives, and
+    // choosing between them belongs to the organization, not to a constraint.
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as { source: string };
+    expect(body.source).toBe("Source B");
   });
 
   it("should return 404 when emission factor does not exist", async () => {
@@ -710,6 +715,8 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
             dimensionValue1Id: targetDim1Value.id,
             dimensionValue2Id: targetDim2Value.id,
             rateMeasurementUnitId: rateUnitId,
+            // Derived from the rate unit, as every production write path does.
+            ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
             source: "Test Transactional Race Source",
             gasDetails: {
               CO2_FOSSIL: 0,

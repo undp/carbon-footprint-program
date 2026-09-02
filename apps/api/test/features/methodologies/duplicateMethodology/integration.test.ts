@@ -21,6 +21,7 @@ import {
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
   getTestRateMeasurementUnitId,
+  resolveTestRateUnitMagnitudes,
 } from "@test/factories/emissionFactorFactory.js";
 import type { DuplicateMethodologyResponse } from "@repo/types";
 import {
@@ -1158,6 +1159,8 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
         data: {
           subcategoryId: sub.id,
           rateMeasurementUnitId: rateUnitId,
+          // Derived from the rate unit, as every production write path does.
+          ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
           source: "Test - Null Gas Source",
           gasDetails: Prisma.JsonNull,
           value: new Prisma.Decimal("1"),
