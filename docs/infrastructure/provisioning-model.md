@@ -5,6 +5,8 @@ This document describes how cloud resources for the Huella Latam platform are cr
 For the actual Bicep modules and deployment scripts, see [`infra/`](../../infra/) and [Deployment Guide](./Deployment.md).
 For the expected load and service requirements, see [App Usage Assumptions](./app-usage-assumptions.md) and [Azure Services Requirements](./requirements.md).
 
+> **Non-Azure adopters:** this document describes UNDP's supported Azure path. A country deployment that must run on another cloud can start from the cloud-neutral Terraform examples in [`infra/terraform/`](../../infra/terraform/) (AWS and GCP), which mirror the services below. Those examples are provided as adopter references and are not part of the supported Azure CI/CD path described here.
+
 ---
 
 ## Architecture Overview

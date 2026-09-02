@@ -1,0 +1,87 @@
+# terraform.tfvars.example — copy to terraform.tfvars and edit.
+#
+#   cp terraform.tfvars.example terraform.tfvars
+#
+# Only the values you want to override need to be present; everything has a
+# sensible default in variables.tf. The ones most adopters MUST set are called
+# out below.
+
+# ---------------------------------------------------------------------------
+# Core
+# ---------------------------------------------------------------------------
+
+# AWS region for the stack. CloudFront cert + WAF always go to us-east-1
+# regardless; this controls everything else (VPC, ECS, RDS, ALB, S3).
+region = "us-east-1"
+
+# Names become "<name_prefix>-<environment>-<role>", e.g. huella-prod-alb.
+name_prefix = "huella"
+environment = "prod"
+
+# ---------------------------------------------------------------------------
+# App wiring — REQUIRED for a working deploy
+# ---------------------------------------------------------------------------
+
+# Browser origin of the web app. Sets Fastify ALLOWED_ORIGIN and the S3 CORS
+# allow-list. Use your custom domain if you have one, otherwise the CloudFront
+# domain from `terraform output web_url` (chicken-and-egg: apply once to learn
+# it, then set this and apply again).
+allowed_origin = "https://app.example.org"
+
+# Optional extra origin allowed to call S3 directly (local dev). Leave "" off.
+# dev_allowed_origin = "http://localhost:5173"
+
+# Full ECR image reference for the API. Placeholder default won't actually run
+# the app — after the first apply, push the real image (see README) and set:
+#   api_image = "<account>.dkr.ecr.<region>.amazonaws.com/huella-prod-api:v1"
+# api_image = "123456789012.dkr.ecr.us-east-1.amazonaws.com/huella-prod-api:v1"
+
+# Public origin of the API itself. Only needed if you enable the MinIO storage
+# relay (MINIO_RELAY_ENABLED). Otherwise leave "".
+# api_origin = "https://api.example.org"
+
+# ---------------------------------------------------------------------------
+# OIDC / JWKS — bring your own IdP (see docs/infrastructure/GenericOidcAuthenticationSetup.md)
+# These may be empty at first apply and filled in once the IdP is configured.
+# ---------------------------------------------------------------------------
+
+# jwks_issuer   = "https://idp.example.org/realms/huella"
+# jwks_uri      = "https://idp.example.org/realms/huella/protocol/openid-connect/certs"
+# jwks_audience = "huella-api"
+# jwks_required_scope   = ""
+# jwks_skip_scope_check = ""
+# superadmin_email      = "admin@example.org"
+
+# ---------------------------------------------------------------------------
+# Custom domains & TLS (all optional)
+# ---------------------------------------------------------------------------
+
+# Custom domain for the API. You create the DNS record pointing at the ALB
+# (see `terraform output alb_dns_name`). Leave "" to use the ALB DNS name.
+# custom_domain_api = "api.example.org"
+
+# REGIONAL ACM cert ARN (same region as the stack) for the ALB HTTPS listener.
+# Without it the ALB serves plain HTTP only.
+# acm_certificate_arn_api = "arn:aws:acm:us-east-1:123456789012:certificate/xxxxxxxx"
+
+# Custom domain for the web app. Creates a us-east-1 ACM cert you must validate
+# via DNS (see README two-phase apply). Leave "" to use the CloudFront domain.
+# custom_domain_web = "app.example.org"
+
+# ---------------------------------------------------------------------------
+# Sizing & options (defaults are fine to start)
+# ---------------------------------------------------------------------------
+
+# api_cpu           = 512
+# api_memory        = 1024
+# api_desired_count = 1
+
+# db_instance_class      = "db.t4g.medium"
+# db_allocated_storage   = 32
+# postgres_version       = "17"   # Azure reference uses 18; bump if RDS in your region offers it
+# db_multi_az            = false
+# db_deletion_protection = false
+# db_skip_final_snapshot = true
+
+# Attach a WAF (managed common rules + rate limit) to CloudFront. Adds cost.
+# enable_waf = false
