@@ -138,6 +138,113 @@
     ]
   },
   {
+    "subcategoryName": "Procesos industriales - Cal",
+    "initiatives": [
+      {
+        "title": "Captura de CO₂ en el horno de cal",
+        "description": "Evaluar captura de carbono en la corriente de gases del horno, la única vía que reduce las emisiones inherentes a la descarbonatación del carbonato de calcio."
+      },
+      {
+        "title": "Optimización del grado de calcinación",
+        "description": "Ajustar temperatura y tiempo de residencia para evitar sobrecalcinación, reduciendo el consumo de caliza y de combustible por tonelada de cal."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Aluminio",
+    "initiatives": [
+      {
+        "title": "Control de efecto ánodo",
+        "description": "Reducir la frecuencia y duración de los efectos ánodo mediante control automatizado de celdas, disminuyendo las emisiones de PFC, gases de muy alto potencial de calentamiento."
+      },
+      {
+        "title": "Ánodos inertes y mejora del ánodo de carbono",
+        "description": "Evaluar tecnologías de ánodo inerte o mejorar la calidad del ánodo de carbono para reducir su consumo por tonelada de aluminio."
+      },
+      {
+        "title": "Incremento del aluminio secundario",
+        "description": "Aumentar la proporción de chatarra refundida, que evita por completo la electrólisis y sus emisiones de proceso."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Química",
+    "initiatives": [
+      {
+        "title": "Instalación de catalizadores de destrucción de N₂O",
+        "description": "En plantas de ácido nítrico y adípico, instalar catalizadores secundarios o terciarios de descomposición de N₂O, con potencial de reducción superior al 90% del gas de proceso."
+      },
+      {
+        "title": "Hidrógeno de bajas emisiones para amoníaco",
+        "description": "Sustituir el reformado de gas natural por hidrógeno producido con electrólisis y energía renovable, eliminando el CO₂ de proceso de la síntesis de amoníaco."
+      },
+      {
+        "title": "Recuperación y valorización de gases de proceso",
+        "description": "Capturar corrientes de CO₂ y compuestos fluorados del proceso para reutilización interna o destrucción controlada en lugar de venteo."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Ferroaleaciones y otros metales",
+    "initiatives": [
+      {
+        "title": "Sustitución parcial del reductor por biocarbono",
+        "description": "Reemplazar parte del coque o carbón mineral por carbón vegetal certificado, reduciendo el carbono fósil del proceso de reducción."
+      },
+      {
+        "title": "Optimización del consumo de reductor",
+        "description": "Ajustar la operación del horno de arco sumergido para acercarse al requerimiento estequiométrico y reducir el exceso de carbono fijo."
+      },
+      {
+        "title": "Incremento de materias primas secundarias",
+        "description": "Aumentar el uso de chatarra y materiales reciclados, que evitan la reducción química del mineral y sus emisiones de proceso."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Papel y celulosa",
+    "initiatives": [
+      {
+        "title": "Reducción de la reposición de carbonato en el horno de cal",
+        "description": "Optimizar el circuito de recuperación de cal para minimizar la caliza fresca que entra al horno y se descarbonata."
+      },
+      {
+        "title": "Electrificación del horno de cal",
+        "description": "Evaluar tecnologías de calcinación eléctrica alimentadas con energía renovable, desplazando emisiones de combustión hacia el Alcance 2."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Cerámica y otros carbonatos",
+    "initiatives": [
+      {
+        "title": "Formulación con menor contenido de carbonatos",
+        "description": "Reformular pastas y esmaltes para reducir la proporción de carbonatos que se descomponen durante la cocción."
+      },
+      {
+        "title": "Optimización de las curvas de cocción",
+        "description": "Ajustar las curvas de temperatura del horno para alcanzar las propiedades requeridas con menor descomposición de carbonatos."
+      }
+    ]
+  },
+  {
+    "subcategoryName": "Procesos industriales - Otros",
+    "initiatives": [
+      {
+        "title": "Sustitución de insumos de alto contenido de carbono fósil",
+        "description": "Revisar lubricantes, ceras y solventes y reemplazarlos por alternativas de menor contenido de carbono fósil o de base biológica."
+      },
+      {
+        "title": "Recuperación de gases de proceso en línea",
+        "description": "Instalar sistemas de captación y tratamiento en los puntos de venteo, priorizando corrientes de gases fluorados y N₂O."
+      },
+      {
+        "title": "Medición directa de las emisiones de proceso",
+        "description": "Implementar monitoreo o campañas de medición en planta para reemplazar estimaciones con factores propios por datos medidos."
+      }
+    ]
+  },
+  {
     "subcategoryName": "Emisiones provenientes de otras fuentes",
     "initiatives": [
       {
