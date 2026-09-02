@@ -8,6 +8,7 @@ import {
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
+  buildFactorResolutionContext,
   createLineInput,
   createLineFactor,
   createLineResult,
@@ -119,6 +120,20 @@ export const syncCarbonInventoryLinesService = async (
   const userId = user ? BigInt(user.id) : null;
 
   await prismaClient.$transaction(async (tx) => {
+    // Every catalog lookup the request needs, in three queries instead of four
+    // per line. Built here rather than before the transaction so the rows still
+    // cannot change between the check and the write.
+    const resolution = await buildFactorResolutionContext(tx, [
+      ...request.create.map((item) => ({
+        subcategoryId: BigInt(item.subcategoryId),
+        selection: item.factorSelection,
+      })),
+      ...request.update.map((item) => ({
+        subcategoryId: subcategoryIdByLineId.get(item.id)!,
+        selection: item.factorSelection,
+      })),
+    ]);
+
     // 1. CREATE operations
     for (const createItem of request.create) {
       const line = await tx.carbonInventoryLine.create({
@@ -137,10 +152,15 @@ export const syncCarbonInventoryLinesService = async (
       const inputType = createItem.inputType;
       // Resolved inside the transaction so the catalog row cannot be edited or
       // deleted between validation and the write.
-      const resolvedFactor = await resolveFactorSelection(tx, createItem, {
-        methodologyVersionId: carbonInventory.methodologyVersionId,
-        subcategoryId: BigInt(createItem.subcategoryId),
-      });
+      const resolvedFactor = await resolveFactorSelection(
+        tx,
+        resolution,
+        createItem,
+        {
+          methodologyVersionId: carbonInventory.methodologyVersionId,
+          subcategoryId: BigInt(createItem.subcategoryId),
+        }
+      );
       const newInput = await createLineInput(
         tx,
         line.id,
@@ -175,16 +195,25 @@ export const syncCarbonInventoryLinesService = async (
       const lineId = BigInt(updateItem.id);
       updatedLineIds.push(lineId);
 
+      const inputType = updateItem.inputType;
+      // Resolved before the old input is superseded: an UNCHANGED selection
+      // reads its snapshot from that very input, so deactivating it first would
+      // leave nothing to carry forward.
+      const resolvedFactor = await resolveFactorSelection(
+        tx,
+        resolution,
+        updateItem,
+        {
+          methodologyVersionId: carbonInventory.methodologyVersionId,
+          subcategoryId: subcategoryIdByLineId.get(updateItem.id)!,
+          lineId,
+        }
+      );
+
       // Mark old active input as inactive
       await tx.carbonInventoryLineInput.updateMany({
         where: { lineId, isActive: true },
         data: { isActive: false, updatedById: userId },
-      });
-
-      const inputType = updateItem.inputType;
-      const resolvedFactor = await resolveFactorSelection(tx, updateItem, {
-        methodologyVersionId: carbonInventory.methodologyVersionId,
-        subcategoryId: subcategoryIdByLineId.get(updateItem.id)!,
       });
       const newInput = await createLineInput(
         tx,

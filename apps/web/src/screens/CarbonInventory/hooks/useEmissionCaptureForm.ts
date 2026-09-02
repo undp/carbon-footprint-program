@@ -42,6 +42,8 @@ const createNewLine = (
     baseFactorId: null,
     emissionFactorId: null,
     appliedFactorYear: null,
+    // A line created in this session has no stored snapshot to keep.
+    loadedFactor: null,
     isNew: true,
     isDeleted: false,
     files: [],

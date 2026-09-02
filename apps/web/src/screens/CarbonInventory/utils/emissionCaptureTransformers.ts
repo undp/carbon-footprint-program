@@ -6,6 +6,7 @@ import {
   FactorSelectionType,
   InputTypeSchema,
   type FactorSelection,
+  type UpdateFactorSelection,
 } from "@repo/types";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
@@ -58,6 +59,52 @@ function mapFactorSelection(
 }
 
 /**
+ * True when the line still carries exactly the factor the server last sent, so
+ * the save has nothing to restate.
+ *
+ * The comparison is deliberately strict: a false "changed" only costs a
+ * redundant catalog selection, while a false "unchanged" would keep a snapshot
+ * the user had actually replaced.
+ */
+function isFactorUnchanged(line: EmissionCaptureFormLine): boolean {
+  const loaded = line.loadedFactor;
+  if (!loaded) return false;
+
+  // Nothing was stored, so there is no snapshot worth keeping and the line
+  // should go through the normal mapping.
+  if (
+    loaded.factorValue === null ||
+    loaded.factorRateMeasurementUnitId === null
+  )
+    return false;
+
+  return (
+    line.emissionFactorId === loaded.emissionFactorId &&
+    line.factorSource === loaded.factorSource &&
+    toNullableNumber(line.factorValue) === loaded.factorValue &&
+    line.factorRateMeasurementUnitId === loaded.factorRateMeasurementUnitId
+  );
+}
+
+/**
+ * The factor an update declares.
+ *
+ * A line whose factor the user never touched says so, instead of restating a
+ * selection. That keeps its stored snapshot exactly as it is — which is the
+ * only correct answer for a line saved before the snapshot carried a catalog
+ * id, and the reason an edit elsewhere in the inventory no longer depends on
+ * the catalog row still being there.
+ */
+function mapUpdateFactorSelection(
+  line: EmissionCaptureFormLine
+): UpdateFactorSelection | null {
+  if (!line.isManualTotalEmissions && isFactorUnchanged(line)) {
+    return { type: FactorSelectionType.UNCHANGED };
+  }
+  return mapFactorSelection(line);
+}
+
+/**
  * Maps common fields shared between create and update requests
  */
 function mapCommonFields(line: EmissionCaptureFormLine) {
@@ -69,7 +116,6 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
     quantity: toNullableNumber(line.quantity),
-    factorSelection: mapFactorSelection(line),
     comment: line.comment,
   };
 }
@@ -88,6 +134,8 @@ function mapLineToCreateRequest(
 ): SyncCreateLineItem {
   return {
     ...mapCommonFields(line),
+    // A create has nothing stored, so it always states its factor in full.
+    factorSelection: mapFactorSelection(line),
     subcategoryId: line.subcategoryId,
     addFileUuids: getPendingFileUuids(line),
   };
@@ -101,6 +149,7 @@ function mapLineToUpdateRequest(
 ): SyncUpdateLineItem {
   return {
     ...mapCommonFields(line),
+    factorSelection: mapUpdateFactorSelection(line),
     id: line.lineId,
     addFileUuids: getPendingFileUuids(line),
     removeFileIds: line.removedFileIds ?? [],
