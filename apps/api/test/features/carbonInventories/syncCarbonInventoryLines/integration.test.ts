@@ -36,6 +36,7 @@ import {
   createTestFile,
 } from "@test/factories/fileFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import { resolveTestRateUnitMagnitudes } from "@test/factories/emissionFactorFactory.js";
 import { syncCarbonInventoryLinesService } from "@/features/carbonInventories/syncCarbonInventoryLines/service.js";
 import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
@@ -320,6 +321,11 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
             dimensionValue1Id: dimensionValue1?.id ?? null,
             dimensionValue2Id: null,
             rateMeasurementUnitId: rateMeasurementUnit.id,
+            // Derived from the rate unit, as every production write path does.
+            ...(await resolveTestRateUnitMagnitudes(
+              prisma,
+              rateMeasurementUnit.id
+            )),
             source: "DEFRA 2025",
             gasDetails: {},
             value: new Prisma.Decimal("2.31"),
