@@ -1,6 +1,7 @@
 import { useMemo } from "react";
-import { Box, Typography } from "@mui/material";
+import { Box, Tooltip, Typography } from "@mui/material";
 import { GridColDef } from "@mui/x-data-grid";
+import { WarningAmberRounded } from "@mui/icons-material";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { CategoryChip } from "@/components/EmissionResults";
 import { DetailTooltipText } from "@/components";
@@ -11,9 +12,9 @@ const extractDenominator = (rateUnit: string): string => {
   return parts.length > 1 ? parts.slice(1).join("/") : rateUnit;
 };
 
-export const useEmissionFactorsColumns = (): GridColDef<
-  GetEmissionFactorsResponse[number]
->[] => {
+export const useEmissionFactorsColumns = (
+  inventoryYear: number | null
+): GridColDef<GetEmissionFactorsResponse[number]>[] => {
   const cellClassName = "content-center p-4!";
 
   const headerClassName =
@@ -140,7 +141,67 @@ export const useEmissionFactorsColumns = (): GridColDef<
           </Box>
         ),
       },
+      {
+        field: "appliedFactorYear",
+        headerName: "Año del factor",
+        minWidth: 130,
+        headerClassName,
+        cellClassName,
+        flex: 0.7,
+        renderCell: ({ row }) => {
+          // A null applied year is a transversal catalog factor or a custom
+          // factor. Neither has a vintage to disagree with the footprint year,
+          // so neither is ever styled as a mismatch.
+          if (row.appliedFactorYear === null) {
+            return (
+              <Tooltip
+                title="Factor transversal o propio: aplica a cualquier año de reporte."
+                arrow
+                placement="top"
+              >
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  fontWeight="fontWeightRegular"
+                >
+                  —
+                </Typography>
+              </Tooltip>
+            );
+          }
+
+          const isMismatch =
+            inventoryYear !== null && row.appliedFactorYear !== inventoryYear;
+
+          if (!isMismatch) {
+            return (
+              <Typography variant="body2" fontWeight="fontWeightRegular">
+                {row.appliedFactorYear}
+              </Typography>
+            );
+          }
+
+          return (
+            <Tooltip
+              title={`Este factor corresponde al año ${row.appliedFactorYear}, distinto del año ${inventoryYear} de la huella. El cálculo no fue modificado.`}
+              arrow
+              placement="top"
+            >
+              <Box className="flex items-center gap-1">
+                <WarningAmberRounded fontSize="small" color="warning" />
+                <Typography
+                  variant="body2"
+                  color="warning.dark"
+                  fontWeight="fontWeightMedium"
+                >
+                  {row.appliedFactorYear}
+                </Typography>
+              </Box>
+            </Tooltip>
+          );
+        },
+      },
     ],
-    []
+    [inventoryYear]
   );
 };

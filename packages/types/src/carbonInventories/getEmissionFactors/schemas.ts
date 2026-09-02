@@ -38,6 +38,9 @@ const ItemSchema = z
         "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e of <gas>/<denominator>` where the denominator is derived from `rateUnit`."
       ),
     factorSource: EmissionFactorBaseSchema.shape.source,
+    appliedFactorYear: EmissionFactorBaseSchema.shape.year.describe(
+      "The reporting year snapshotted when the factor was applied. Null for a transversal catalog factor or a custom factor, neither of which can mismatch the footprint year."
+    ),
     factorSourceDetail: z
       .string()
       .nullable()

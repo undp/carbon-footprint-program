@@ -151,6 +151,7 @@ export const getCarbonInventoryMethodologyService = async (
                   dimensionValue2Id: true,
                   rateMeasurementUnitId: true,
                   source: true,
+                  year: true,
                   gasDetails: true,
                   value: true,
                   rateMeasurementUnit: {

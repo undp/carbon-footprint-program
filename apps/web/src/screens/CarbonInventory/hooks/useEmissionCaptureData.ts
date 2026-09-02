@@ -47,7 +47,11 @@ export const useEmissionCaptureData = ({
             lines: (inventorySubcategory?.lines || []).map((line) => ({
               ...line,
               lineId: line.id,
-              baseFactorId: null,
+              // Seeded from the saved snapshot so the selector reopens on the
+              // exact catalog factor the organization chose. Leaving it null
+              // would make the line look unselected and let the recommendation
+              // silently replace a deliberate choice.
+              baseFactorId: line.emissionFactorId,
               files: line.files ?? [],
               removedFileIds: [],
             })),

@@ -11,6 +11,7 @@ import {
   createLineInput,
   createLineFactor,
   createLineResult,
+  resolveFactorSelection,
   linkFilesToCarbonInventoryLine,
   unlinkFilesFromCarbonInventoryLine,
 } from "./helper.js";
@@ -80,13 +81,17 @@ export const syncCarbonInventoryLinesService = async (
     ...request.delete.map((item) => BigInt(item.id)),
   ];
 
+  // An updated line's subcategory is whatever the stored line says, never
+  // something the request can restate — catalog validation is scoped to it.
+  const subcategoryIdByLineId = new Map<string, bigint>();
+
   if (lineIdsToValidate.length > 0) {
     const existingLines = await prismaClient.carbonInventoryLine.findMany({
       where: {
         id: { in: lineIdsToValidate },
         status: CarbonInventoryLineStatus.ACTIVE, // Only consider active lines
       },
-      select: { id: true, carbonInventoryId: true },
+      select: { id: true, carbonInventoryId: true, subcategoryId: true },
     });
 
     const existingLineMap = new Map(
@@ -102,6 +107,7 @@ export const syncCarbonInventoryLinesService = async (
           carbonInventoryId.toString(),
           line.carbonInventoryId.toString()
         );
+      subcategoryIdByLineId.set(item.id, line.subcategoryId);
     }
   }
 
@@ -129,15 +135,29 @@ export const syncCarbonInventoryLinesService = async (
 
       // Always create input with the provided inputType
       const inputType = createItem.inputType;
+      // Resolved inside the transaction so the catalog row cannot be edited or
+      // deleted between validation and the write.
+      const resolvedFactor = await resolveFactorSelection(tx, createItem, {
+        methodologyVersionId: carbonInventory.methodologyVersionId,
+        subcategoryId: BigInt(createItem.subcategoryId),
+      });
       const newInput = await createLineInput(
         tx,
         line.id,
         createItem,
         inputType,
+        resolvedFactor,
         userId
       );
-      await createLineFactor(tx, newInput.id, createItem, userId);
-      await createLineResult(tx, newInput.id, createItem, inputType, userId);
+      await createLineFactor(tx, newInput.id, resolvedFactor, userId);
+      await createLineResult(
+        tx,
+        newInput.id,
+        createItem,
+        inputType,
+        resolvedFactor,
+        userId
+      );
 
       if (createItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(
@@ -162,15 +182,27 @@ export const syncCarbonInventoryLinesService = async (
       });
 
       const inputType = updateItem.inputType;
+      const resolvedFactor = await resolveFactorSelection(tx, updateItem, {
+        methodologyVersionId: carbonInventory.methodologyVersionId,
+        subcategoryId: subcategoryIdByLineId.get(updateItem.id)!,
+      });
       const newInput = await createLineInput(
         tx,
         lineId,
         updateItem,
         inputType,
+        resolvedFactor,
         userId
       );
-      await createLineFactor(tx, newInput.id, updateItem, userId);
-      await createLineResult(tx, newInput.id, updateItem, inputType, userId);
+      await createLineFactor(tx, newInput.id, resolvedFactor, userId);
+      await createLineResult(
+        tx,
+        newInput.id,
+        updateItem,
+        inputType,
+        resolvedFactor,
+        userId
+      );
 
       if (updateItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(

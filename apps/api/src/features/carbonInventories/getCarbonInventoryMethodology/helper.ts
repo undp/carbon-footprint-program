@@ -32,6 +32,7 @@ type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
     dimensionValue2Id: true;
     rateMeasurementUnitId: true;
     source: true;
+    year: true;
     gasDetails: true;
     value: true;
     rateMeasurementUnit: {
@@ -59,38 +60,63 @@ type EmissionFactorWithRateUnit = Prisma.EmissionFactorGetPayload<{
 type ConvertedEmissionFactor = {
   id: string;
   originalEmissionFactorId: string | null;
+  /**
+   * The canonical `emission_factor` row this item represents, set on the
+   * original and on every converted representation of it. A converted unit is a
+   * different way of writing one catalog factor, not a second catalog identity,
+   * so this is what a line-sync CATALOG selection sends.
+   */
+  baseEmissionFactorId: string;
   dimensionValue1Id: string | null;
   dimensionValue2Id: string | null;
   rateMeasurementUnitId: string;
   source: string;
+  year: number | null;
   gasDetails: Prisma.JsonValue;
   value: string;
 };
 
 /**
- * Converts an emission factor value between rate units using base factors.
+ * Converts an emission factor value between rate units, in decimal arithmetic.
  * Formula: new_value = original_value * (original_num_baseFactor * new_den_baseFactor) / (original_den_baseFactor * new_num_baseFactor)
+ *
+ * This is the real implementation. `convertEmissionFactorValue` is the same
+ * conversion for callers that already hold a string and only display the result;
+ * it goes through a double and can round a value the column can hold. Anything
+ * that *persists* the result has to use this one, because a rounded applied
+ * factor becomes a rounded stored emission with no way back to the original.
  */
-export const convertEmissionFactorValue = (
-  originalValue: string,
+export const convertEmissionFactorValueDecimal = (
+  originalValue: Prisma.Decimal,
   originalNumBaseFactor: number,
   originalDenBaseFactor: number,
   newNumBaseFactor: number,
   newDenBaseFactor: number
-): string => {
-  // Validate originalValue: parse and check if it's NaN or not finite
-  const value = Number.parseFloat(originalValue);
-  if (Number.isNaN(value)) {
-    throw new DataIntegrityError(
-      `Invalid originalValue: "${originalValue}" cannot be parsed as a number (NaN)`
-    );
-  }
-  if (!Number.isFinite(value)) {
-    throw new DataIntegrityError(
-      `Invalid originalValue: "${originalValue}" is not a finite number`
-    );
-  }
+): Prisma.Decimal => {
+  assertUsableBaseFactors(
+    originalNumBaseFactor,
+    originalDenBaseFactor,
+    newNumBaseFactor,
+    newDenBaseFactor
+  );
 
+  return originalValue
+    .mul(new Prisma.Decimal(originalNumBaseFactor))
+    .mul(new Prisma.Decimal(newDenBaseFactor))
+    .div(new Prisma.Decimal(originalDenBaseFactor))
+    .div(new Prisma.Decimal(newNumBaseFactor));
+};
+
+/**
+ * The base-factor preconditions shared by both conversions: every factor must be
+ * finite, and the two that end up in a denominator must not be zero.
+ */
+const assertUsableBaseFactors = (
+  originalNumBaseFactor: number,
+  originalDenBaseFactor: number,
+  newNumBaseFactor: number,
+  newDenBaseFactor: number
+): void => {
   // Validate originalNumBaseFactor: must be finite
   if (!Number.isFinite(originalNumBaseFactor)) {
     throw new DataIntegrityError(
@@ -128,16 +154,48 @@ export const convertEmissionFactorValue = (
       `Invalid newDenBaseFactor: ${newDenBaseFactor} is not a finite number`
     );
   }
+};
 
-  // Convert to base units, then to new units
-  const convertedValue =
-    (value * originalNumBaseFactor * newDenBaseFactor) /
-    (originalDenBaseFactor * newNumBaseFactor);
+/**
+ * Converts an emission factor value between rate units, as a string.
+ *
+ * The read path builds every unit representation of every factor on each
+ * request, so it takes the string form. It delegates to the decimal conversion
+ * and only stringifies at the end — the value is never turned into a double.
+ */
+export const convertEmissionFactorValue = (
+  originalValue: string,
+  originalNumBaseFactor: number,
+  originalDenBaseFactor: number,
+  newNumBaseFactor: number,
+  newDenBaseFactor: number
+): string => {
+  let value: Prisma.Decimal;
+  try {
+    value = new Prisma.Decimal(originalValue);
+  } catch {
+    throw new DataIntegrityError(
+      `Invalid originalValue: "${originalValue}" cannot be parsed as a number (NaN)`
+    );
+  }
+  if (!value.isFinite()) {
+    throw new DataIntegrityError(
+      `Invalid originalValue: "${originalValue}" is not a finite number`
+    );
+  }
+
+  const convertedValue = convertEmissionFactorValueDecimal(
+    value,
+    originalNumBaseFactor,
+    originalDenBaseFactor,
+    newNumBaseFactor,
+    newDenBaseFactor
+  );
 
   // Validate the result is finite before returning
-  if (!Number.isFinite(convertedValue)) {
+  if (!convertedValue.isFinite()) {
     throw new DataIntegrityError(
-      `Conversion result is not finite: ${convertedValue} (computed from originalValue=${originalValue}, originalNumBaseFactor=${originalNumBaseFactor}, originalDenBaseFactor=${originalDenBaseFactor}, newNumBaseFactor=${newNumBaseFactor}, newDenBaseFactor=${newDenBaseFactor})`
+      `Conversion result is not finite: ${convertedValue.toString()} (computed from originalValue=${originalValue}, originalNumBaseFactor=${originalNumBaseFactor}, originalDenBaseFactor=${originalDenBaseFactor}, newNumBaseFactor=${newNumBaseFactor}, newDenBaseFactor=${newDenBaseFactor})`
     );
   }
 
@@ -171,10 +229,12 @@ export const generateConvertedEmissionFactors = (
     {
       id: originalId,
       originalEmissionFactorId: null,
+      baseEmissionFactorId: originalId,
       dimensionValue1Id: emissionFactor.dimensionValue1Id?.toString() ?? null,
       dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
       rateMeasurementUnitId: emissionFactor.rateMeasurementUnitId.toString(),
       source: emissionFactor.source,
+      year: emissionFactor.year,
       gasDetails: emissionFactor.gasDetails,
       value: emissionFactor.value.toString(),
     },
@@ -221,10 +281,14 @@ export const generateConvertedEmissionFactors = (
       return {
         id: `${originalId}-${rateUnit.id.toString()}`, // Composite ID for uniqueness
         originalEmissionFactorId: originalId,
+        baseEmissionFactorId: originalId,
         dimensionValue1Id: emissionFactor.dimensionValue1Id?.toString() ?? null,
         dimensionValue2Id: emissionFactor.dimensionValue2Id?.toString() ?? null,
         rateMeasurementUnitId: rateUnit.id.toString(),
+        // Source and year describe the catalog vintage, so they follow the
+        // factor through every unit it is expressed in.
         source: emissionFactor.source,
+        year: emissionFactor.year,
         gasDetails: emissionFactor.gasDetails,
         value: convertedValue,
       };

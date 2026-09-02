@@ -6,6 +6,69 @@ import { InputType } from "../../enums.js";
 
 export const InputTypeSchema = z.enum(InputType);
 
+/**
+ * How a line's factor was chosen. The three variants are mutually exclusive and
+ * carry disjoint data, so catalog validation can never be bypassed by dressing a
+ * custom factor up as a catalog one — which is what inferring "custom" from the
+ * source string allowed.
+ */
+export const FactorSelectionType = {
+  /** A row from the emission-factor catalog. The server derives everything. */
+  CATALOG: "CATALOG",
+  /** A factor the organization typed in itself. */
+  CUSTOM: "CUSTOM",
+  /** A total the organization declared directly, with no factor at all. */
+  DIRECT: "DIRECT",
+} as const;
+
+export const FactorSelectionTypeSchema = z.enum(FactorSelectionType);
+
+/**
+ * A catalog selection sends only its identity and the unit it wants the factor
+ * expressed in. Value, source and year are deliberately absent: the server reads
+ * them from the selected row, so a client cannot persist a value that disagrees
+ * with the catalog.
+ */
+export const CatalogFactorSelectionSchema = z
+  .object({
+    type: z.literal(FactorSelectionType.CATALOG),
+    emissionFactorId: IdSchema.describe(
+      "The canonical emission_factor row selected, never a converted-representation composite ID"
+    ),
+    appliedRateMeasurementUnitId: IdSchema.describe(
+      "The rate unit to express the factor in; must belong to the factor's numerator/denominator magnitude family"
+    ),
+  })
+  .strict();
+
+export const CustomFactorSelectionSchema = z
+  .object({
+    type: z.literal(FactorSelectionType.CUSTOM),
+    source: z.string().min(1).describe("The source the organization declared"),
+    value: z.number().describe("The factor value the organization declared"),
+    rateMeasurementUnitId: IdSchema.describe(
+      "The rate unit the declared value is expressed in"
+    ),
+  })
+  .strict();
+
+export const DirectFactorSelectionSchema = z
+  .object({
+    type: z.literal(FactorSelectionType.DIRECT),
+    totalEmissions: z
+      .number()
+      .describe("Total emissions in tons, declared directly without a factor"),
+  })
+  .strict();
+
+export const FactorSelectionSchema = z
+  .discriminatedUnion("type", [
+    CatalogFactorSelectionSchema,
+    CustomFactorSelectionSchema,
+    DirectFactorSelectionSchema,
+  ])
+  .describe("The factor selection for this line");
+
 const LineItemSchema = z
   .object({
     id: IdSchema.describe("The ID of the line"),
@@ -32,6 +95,16 @@ const LineItemSchema = z
     factorRateMeasurementUnitId: IdSchema.nullable().describe(
       "The ID of the rate measurement unit of the factor"
     ),
+    emissionFactorId: IdSchema.nullable().describe(
+      "The canonical catalog factor applied to this line; null for custom factors and direct totals. Reload restores the selection from this, not from the source text."
+    ),
+    appliedFactorYear: z
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The reporting year of the catalog factor applied when the line was saved. Null for transversal catalog factors, custom factors and direct totals. Whether it mismatches the footprint year is derived at read time, never stored."
+      ),
     comment: z.string().nullable().describe("Comment for the line"),
     manualTotalEmissions: z
       .number()
@@ -55,14 +128,9 @@ export const SyncCreateLineItemSchema = z
     dimensionValue2Id: LineItemSchema.shape.dimensionValue2Id,
     quantity: LineItemSchema.shape.quantity,
     measurementUnitId: LineItemSchema.shape.measurementUnitId,
-    factorSource: LineItemSchema.shape.factorSource,
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
+    factorSelection: FactorSelectionSchema.nullable().describe(
+      "The factor selection, or null while the line is still incomplete"
     ),
-    appliedFactorValue: LineItemSchema.shape.factorValue,
-    appliedFactorRateMeasurementUnitId:
-      LineItemSchema.shape.factorRateMeasurementUnitId,
-    manualTotalEmissions: LineItemSchema.shape.manualTotalEmissions,
     comment: LineItemSchema.shape.comment,
     addFileUuids: z
       .array(z.uuid())
@@ -78,20 +146,15 @@ export const SyncUpdateLineItemSchema = LineItemSchema.pick({
   dimensionValue2Id: true,
   quantity: true,
   measurementUnitId: true,
-  factorSource: true,
-  manualTotalEmissions: true,
   comment: true,
 })
   .extend({
     inputType: InputTypeSchema.describe(
       "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
     ),
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
+    factorSelection: FactorSelectionSchema.nullable().describe(
+      "The factor selection, or null while the line is still incomplete"
     ),
-    appliedFactorValue: LineItemSchema.shape.factorValue,
-    appliedFactorRateMeasurementUnitId:
-      LineItemSchema.shape.factorRateMeasurementUnitId,
     addFileUuids: z
       .array(z.uuid())
       .default([])
