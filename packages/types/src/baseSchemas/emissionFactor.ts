@@ -6,6 +6,19 @@ export const EmissionFactorStatusSchema = z
   .enum(EmissionFactorStatus)
   .describe("The status of the emission factor");
 
+/**
+ * Reporting year the factor applies to. `null` means transversal: the factor is
+ * confirmed applicable to every reporting year. It never means "unknown", so a
+ * caller that does not know the year must not send `null` to mean so.
+ */
+export const EmissionFactorYearSchema = z
+  .number()
+  .int()
+  .nullable()
+  .describe(
+    "The reporting year the emission factor applies to; null means transversal (applies to every year)"
+  );
+
 export const EmissionFactorBaseSchema = z.object({
   id: IdSchema.describe("The ID of the emission factor"),
   subcategoryId: IdSchema.describe("The ID of the subcategory"),
@@ -19,6 +32,7 @@ export const EmissionFactorBaseSchema = z.object({
     "The ID of the rate measurement unit"
   ),
   source: z.string().describe("The source of the emission factor"),
+  year: EmissionFactorYearSchema,
   gasDetails: z.unknown().describe("The gas details as JSON"),
   value: z.string().describe("The emission factor value"),
   status: EmissionFactorStatusSchema.describe(
