@@ -34,6 +34,7 @@ const EmissionFactorItemSchema = EmissionFactorBaseSchema.pick({
   dimensionValue2Id: true,
   rateMeasurementUnitId: true,
   source: true,
+  year: true,
   gasDetails: true,
 })
   .extend({
@@ -49,6 +50,9 @@ const EmissionFactorItemSchema = EmissionFactorBaseSchema.pick({
       ),
     originalEmissionFactorId: IdSchema.nullable().describe(
       "The ID of the original emission factor. Null for original factors, set for converted factors."
+    ),
+    baseEmissionFactorId: IdSchema.describe(
+      "The ID of the canonical emission_factor row this item represents, whether the item is the original or a converted representation of it. This — not `id` — is what a CATALOG line-sync selection sends, so a converted unit never becomes a separate catalog identity."
     ),
   })
   .refine(
@@ -67,6 +71,15 @@ const EmissionFactorItemSchema = EmissionFactorBaseSchema.pick({
     {
       message:
         "id format is invalid: if originalEmissionFactorId is null, id must be purely numeric (e.g., '123'); otherwise, when originalEmissionFactorId is set, id must be a composite 'NNN-MMM' AND begin with 'originalEmissionFactorId-' (e.g., '123-456' when originalEmissionFactorId is '123')",
+    }
+  )
+  .refine(
+    (data) =>
+      data.baseEmissionFactorId ===
+      (data.originalEmissionFactorId ?? data.id.split("-")[0]),
+    {
+      message:
+        "baseEmissionFactorId must be the canonical factor: `id` for an original item, `originalEmissionFactorId` for a converted one",
     }
   );
 
