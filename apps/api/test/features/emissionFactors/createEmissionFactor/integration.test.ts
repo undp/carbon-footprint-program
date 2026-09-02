@@ -15,6 +15,7 @@ import {
   getTestRateMeasurementUnitId,
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
+  resolveTestRateUnitMagnitudes,
 } from "@test/factories/emissionFactorFactory.js";
 import { createEmissionFactorService } from "@/features/emissionFactors/createEmissionFactor/service.js";
 import { mapUserToResponse } from "@/features/users/mappers.js";
@@ -71,7 +72,10 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
         dimensionValue1Name: null,
         dimensionValue2Name: null,
         rateMeasurementUnitId: rateUnitId.toString(),
-        source: "DEFRA 2025",
+        // Provider and reporting year are separate fields now; a year in the
+        // name would be shown twice.
+        source: "DEFRA",
+        year: 2025,
         gasDetails: {
           CO2_FOSSIL: 1.5,
           CH4: 0,
@@ -104,7 +108,8 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
 
       expect(body.id).toBeTruthy();
       expect(body.value).toBe("1.5");
-      expect(body.source).toBe("DEFRA 2025");
+      expect(body.source).toBe("DEFRA");
+      expect(body.year).toBe(2025);
       expect(body.subcategoryId).toBe(payload.subcategoryId);
       expect(body.gasDetails.CO2_FOSSIL).toBe(1.5);
     });
@@ -395,7 +400,8 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
           dimensionValue1Name: null,
           dimensionValue2Name: null,
           rateMeasurementUnitId: rateUnitId.toString(),
-          source: "DEFRA 2025",
+          source: "DEFRA",
+          year: 2025,
           gasDetails: {
             CO2_FOSSIL: 0,
             CH4: 0,
@@ -452,10 +458,10 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
         });
       const dbUser = await prisma.user.findFirstOrThrow();
 
-      // Both dimension value columns must be non-null for the DB's partial
-      // unique index to actually reject a duplicate -- Postgres treats
-      // NULL <> NULL under standard unique-index semantics, so a null/null
-      // combination on both sides would never collide.
+      // Both dimension values are set so the racing rows are a realistic
+      // fully-specified factor. Null columns would collide too: the partial
+      // unique index is NULLS NOT DISTINCT, precisely so a missing dimension or
+      // a transversal year behaves as a value rather than a free pass.
       const dim1 = await createTestEmissionFactorDimension(
         prisma,
         subcategory.id,
@@ -499,7 +505,13 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
             dimensionValue1Id: dim1Value.id,
             dimensionValue2Id: dim2Value.id,
             rateMeasurementUnitId: rateUnitId,
+            // Derived from the rate unit, as every production write path does.
+            ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
             source: "IPCC transactional race",
+            // Must match the racing payload's year: year is part of the factor
+            // identity, so two different years are two different factors and
+            // there would be no race to lose.
+            year: 2025,
             gasDetails: {
               CO2_FOSSIL: 0,
               CH4: 0,
