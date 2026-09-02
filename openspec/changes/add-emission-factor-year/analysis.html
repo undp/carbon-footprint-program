@@ -1,0 +1,1468 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Análisis técnico simplificado de la propuesta para agregar año a los factores de emisión."
+    />
+    <title>Análisis · Año de factores de emisión</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --forest-950: #0f2b24;
+        --forest-900: #1c403a;
+        --green-700: #006e4d;
+        --green-800: #004d35;
+        --green-100: #dff5ec;
+        --mint-500: #63e4cf;
+        --mint-200: #bff5eb;
+        --lime-400: #56f58d;
+        --yellow-500: #fecb00;
+        --orange-600: #ed6c02;
+        --red-700: #c62828;
+        --blue-700: #01579b;
+        --ink: #414046;
+        --muted: #6d6c72;
+        --line: #dedee1;
+        --surface: #ffffff;
+        --surface-soft: #f4f7f6;
+        --canvas: #f9f9f9;
+        --shadow: 0 14px 40px rgba(15, 43, 36, 0.09);
+        --content: 1180px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        background: var(--canvas);
+        color: var(--ink);
+        font-family: "Roboto", "Helvetica Neue", Arial, sans-serif;
+        font-size: 16px;
+        line-height: 1.58;
+      }
+
+      a {
+        color: inherit;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      code,
+      pre {
+        font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      }
+
+      code {
+        border-radius: 4px;
+        background: #eef2f1;
+        padding: 0.12rem 0.32rem;
+        color: var(--forest-950);
+        font-size: 0.9em;
+      }
+
+      pre {
+        margin: 0;
+        overflow-x: auto;
+        border-left: 4px solid var(--mint-500);
+        background: var(--forest-950);
+        padding: 1.15rem 1.25rem;
+        color: #f3fff9;
+        font-size: 0.86rem;
+        line-height: 1.65;
+      }
+
+      .skip-link {
+        position: fixed;
+        z-index: 100;
+        top: 0.75rem;
+        left: 0.75rem;
+        transform: translateY(-160%);
+        background: white;
+        padding: 0.6rem 0.85rem;
+        color: var(--forest-950);
+        box-shadow: var(--shadow);
+      }
+
+      .skip-link:focus {
+        transform: translateY(0);
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        background: var(--forest-950);
+        color: white;
+      }
+
+      .hero::after {
+        position: absolute;
+        right: -9rem;
+        bottom: -11rem;
+        width: 34rem;
+        height: 34rem;
+        border: 7rem solid rgba(99, 228, 207, 0.1);
+        border-radius: 50%;
+        content: "";
+      }
+
+      .hero-inner {
+        position: relative;
+        z-index: 1;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        padding: 4.7rem 0 4.2rem;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.55rem;
+        margin-bottom: 1.15rem;
+        color: var(--mint-500);
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      .eyebrow::before {
+        width: 2.2rem;
+        height: 2px;
+        background: var(--lime-400);
+        content: "";
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        margin-top: 0;
+        color: var(--forest-950);
+        line-height: 1.2;
+      }
+
+      h1 {
+        max-width: 830px;
+        margin-bottom: 1.2rem;
+        color: white;
+        font-size: clamp(2.25rem, 6vw, 4.45rem);
+        font-weight: 300;
+        letter-spacing: -0.035em;
+      }
+
+      .hero-lead {
+        max-width: 760px;
+        margin: 0;
+        color: rgba(255, 255, 255, 0.86);
+        font-size: clamp(1.05rem, 2vw, 1.25rem);
+      }
+
+      .hero-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.7rem 1.8rem;
+        margin-top: 2rem;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.86rem;
+      }
+
+      .hero-meta strong {
+        color: white;
+      }
+
+      .toolbar {
+        position: sticky;
+        z-index: 20;
+        top: 0;
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(10px);
+      }
+
+      .toolbar-inner {
+        display: flex;
+        width: min(calc(100% - 2rem), var(--content));
+        min-height: 3.75rem;
+        margin: 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .toolbar-title {
+        color: var(--forest-950);
+        font-size: 0.88rem;
+        font-weight: 700;
+      }
+
+      .toolbar-actions {
+        display: flex;
+        gap: 0.45rem;
+      }
+
+      .toolbar button,
+      .filter-button {
+        border: 1px solid var(--line);
+        border-radius: 5px;
+        background: white;
+        padding: 0.46rem 0.7rem;
+        color: var(--forest-900);
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+      }
+
+      .toolbar button:hover,
+      .toolbar button:focus-visible,
+      .filter-button:hover,
+      .filter-button:focus-visible,
+      .filter-button[aria-pressed="true"] {
+        border-color: var(--green-700);
+        outline: none;
+        background: var(--green-100);
+      }
+
+      .layout {
+        display: grid;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        grid-template-columns: 230px minmax(0, 1fr);
+        gap: 3rem;
+        padding: 3rem 0 5rem;
+      }
+
+      .toc {
+        position: sticky;
+        top: 5.2rem;
+        align-self: start;
+        max-height: calc(100vh - 6rem);
+        overflow-y: auto;
+      }
+
+      .toc-title {
+        margin: 0 0 0.7rem;
+        color: var(--muted);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .toc a {
+        display: block;
+        border-left: 2px solid var(--line);
+        padding: 0.38rem 0 0.38rem 0.8rem;
+        color: var(--muted);
+        font-size: 0.82rem;
+        line-height: 1.35;
+        text-decoration: none;
+      }
+
+      .toc a:hover,
+      .toc a.active {
+        border-left-color: var(--green-700);
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      main {
+        min-width: 0;
+      }
+
+      .section {
+        scroll-margin-top: 5.2rem;
+        margin-bottom: 4rem;
+      }
+
+      .section-kicker {
+        margin-bottom: 0.4rem;
+        color: var(--green-700);
+        font-size: 0.73rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+      }
+
+      .section h2 {
+        margin-bottom: 0.9rem;
+        font-size: clamp(1.65rem, 4vw, 2.35rem);
+        font-weight: 400;
+        letter-spacing: -0.025em;
+      }
+
+      .section-intro {
+        max-width: 760px;
+        margin-top: 0;
+        color: var(--muted);
+        font-size: 1.04rem;
+      }
+
+      .summary-grid {
+        display: grid;
+        margin-top: 1.5rem;
+        grid-template-columns: repeat(4, 1fr);
+        border: 1px solid var(--line);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+      }
+
+      .summary-stat {
+        padding: 1.2rem;
+      }
+
+      .summary-stat + .summary-stat {
+        border-left: 1px solid var(--line);
+      }
+
+      .summary-number {
+        display: block;
+        color: var(--green-700);
+        font-size: 2rem;
+        font-weight: 300;
+      }
+
+      .summary-label {
+        color: var(--muted);
+        font-size: 0.78rem;
+      }
+
+      .callout {
+        margin: 1.5rem 0;
+        border-left: 5px solid var(--yellow-500);
+        background: #fff9d8;
+        padding: 1.1rem 1.2rem;
+      }
+
+      .callout strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--forest-950);
+      }
+
+      .callout p {
+        margin: 0;
+      }
+
+      .flow {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: 1fr 2.2rem 1fr 2.2rem 1fr;
+        align-items: stretch;
+      }
+
+      .flow-step {
+        min-height: 150px;
+        border-top: 4px solid var(--green-700);
+        background: var(--surface);
+        padding: 1rem;
+        box-shadow: 0 5px 18px rgba(15, 43, 36, 0.06);
+      }
+
+      .flow-step small {
+        display: block;
+        margin-bottom: 0.35rem;
+        color: var(--green-700);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .flow-step strong {
+        display: block;
+        margin-bottom: 0.45rem;
+        color: var(--forest-950);
+      }
+
+      .flow-step p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.87rem;
+      }
+
+      .flow-arrow {
+        display: grid;
+        color: var(--green-700);
+        place-items: center;
+        font-size: 1.35rem;
+      }
+
+      .example {
+        overflow: hidden;
+        margin-top: 1.5rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      .example-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        border-bottom: 1px solid var(--line);
+        background: var(--forest-900);
+        padding: 1rem 1.2rem;
+        color: white;
+      }
+
+      .example-header strong {
+        font-size: 1.05rem;
+      }
+
+      .example-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .example-panel {
+        padding: 1.25rem;
+      }
+
+      .example-panel + .example-panel {
+        border-left: 1px solid var(--line);
+        background: var(--surface-soft);
+      }
+
+      .example-panel h3 {
+        margin-bottom: 0.7rem;
+        font-size: 1rem;
+      }
+
+      .example-panel p,
+      .example-panel ul {
+        margin-top: 0;
+        font-size: 0.9rem;
+      }
+
+      .timeline {
+        display: grid;
+        margin-top: 1.2rem;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 0;
+      }
+
+      .year {
+        position: relative;
+        border-top: 3px solid var(--line);
+        padding: 1.1rem 0.5rem 0;
+        text-align: center;
+      }
+
+      .year::before {
+        position: absolute;
+        top: -7px;
+        left: calc(50% - 5px);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #bdbdbd;
+        content: "";
+      }
+
+      .year.active {
+        border-top-color: var(--green-700);
+      }
+
+      .year.active::before {
+        background: var(--lime-400);
+        box-shadow: 0 0 0 4px rgba(86, 245, 141, 0.22);
+      }
+
+      .year strong {
+        display: block;
+        color: var(--forest-950);
+      }
+
+      .year span {
+        color: var(--muted);
+        font-size: 0.72rem;
+      }
+
+      .filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin: 1.4rem 0 1.2rem;
+      }
+
+      .finding-list {
+        display: grid;
+        gap: 1.2rem;
+      }
+
+      .finding {
+        scroll-margin-top: 5.4rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        box-shadow: 0 7px 25px rgba(15, 43, 36, 0.05);
+      }
+
+      .finding[hidden] {
+        display: none;
+      }
+
+      .finding-header {
+        display: grid;
+        grid-template-columns: 3.2rem minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 1rem;
+        border-bottom: 1px solid var(--line);
+        padding: 1.25rem;
+      }
+
+      .finding-number {
+        color: var(--green-700);
+        font-size: 2rem;
+        font-weight: 300;
+        line-height: 1;
+      }
+
+      .finding-title h3 {
+        margin-bottom: 0.25rem;
+        font-size: 1.2rem;
+      }
+
+      .finding-title p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+
+      .severity {
+        border: 1px solid currentColor;
+        border-radius: 999px;
+        padding: 0.22rem 0.55rem;
+        font-size: 0.69rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+      }
+
+      .severity.high {
+        background: #fff0ef;
+        color: var(--red-700);
+      }
+
+      .severity.medium {
+        background: #fff7e8;
+        color: #a84c00;
+      }
+
+      .finding-body {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .finding-block {
+        padding: 1.15rem 1.25rem;
+      }
+
+      .finding-block:nth-child(odd) {
+        border-right: 1px solid var(--line);
+      }
+
+      .finding-block:nth-child(n + 3) {
+        border-top: 1px solid var(--line);
+      }
+
+      .finding-block h4 {
+        margin-bottom: 0.45rem;
+        color: var(--green-800);
+        font-size: 0.78rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .finding-block p,
+      .finding-block ul {
+        margin-top: 0;
+        margin-bottom: 0;
+        font-size: 0.9rem;
+      }
+
+      .finding-block ul {
+        padding-left: 1.2rem;
+      }
+
+      .finding-block li + li {
+        margin-top: 0.3rem;
+      }
+
+      .model {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1rem;
+      }
+
+      .entity {
+        border-top: 4px solid var(--mint-500);
+        background: var(--forest-950);
+        padding: 1.1rem;
+        color: rgba(255, 255, 255, 0.85);
+      }
+
+      .entity h3 {
+        margin-bottom: 0.8rem;
+        color: white;
+        font-size: 1rem;
+      }
+
+      .entity ul {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-family: "SFMono-Regular", Consolas, monospace;
+        font-size: 0.78rem;
+      }
+
+      .entity li {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 0.36rem 0;
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+        margin-top: 1.4rem;
+        border: 1px solid var(--line);
+        background: var(--surface);
+      }
+
+      table {
+        width: 100%;
+        min-width: 760px;
+        border-collapse: collapse;
+        font-size: 0.84rem;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--line);
+        padding: 0.75rem 0.85rem;
+        text-align: left;
+        vertical-align: top;
+      }
+
+      th {
+        background: var(--surface-soft);
+        color: var(--forest-950);
+        font-size: 0.72rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .state {
+        white-space: nowrap;
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      .checklist {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem 1.5rem;
+        margin-top: 1.2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .checklist li {
+        position: relative;
+        padding-left: 1.7rem;
+      }
+
+      .checklist li::before {
+        position: absolute;
+        top: 0.15rem;
+        left: 0;
+        display: grid;
+        width: 1.15rem;
+        height: 1.15rem;
+        border: 1px solid var(--green-700);
+        color: var(--green-700);
+        content: "✓";
+        font-size: 0.72rem;
+        font-weight: 700;
+        place-items: center;
+      }
+
+      .pending-list {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.8rem 1.5rem;
+        margin: 1.2rem 0 2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .pending-list li {
+        position: relative;
+        padding-left: 1.7rem;
+      }
+
+      .pending-list li::before {
+        position: absolute;
+        top: 0.15rem;
+        left: 0;
+        display: grid;
+        width: 1.15rem;
+        height: 1.15rem;
+        border: 1px solid var(--blue-700);
+        color: var(--blue-700);
+        content: "→";
+        font-size: 0.72rem;
+        font-weight: 700;
+        place-items: center;
+      }
+
+      .glossary {
+        display: grid;
+        margin-top: 1.4rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1px;
+        border: 1px solid var(--line);
+        background: var(--line);
+      }
+
+      .term {
+        background: white;
+        padding: 1rem;
+      }
+
+      .term dt {
+        color: var(--green-800);
+        font-weight: 700;
+      }
+
+      .term dd {
+        margin: 0.25rem 0 0;
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+
+      .source-list {
+        margin-top: 1.2rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .source-list li {
+        border-top: 1px solid var(--line);
+        padding: 0.7rem 0;
+        font-size: 0.82rem;
+      }
+
+      .source-list code {
+        overflow-wrap: anywhere;
+      }
+
+      .footer {
+        background: var(--forest-950);
+        color: rgba(255, 255, 255, 0.72);
+      }
+
+      .footer-inner {
+        display: flex;
+        width: min(calc(100% - 2rem), var(--content));
+        margin: 0 auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.4rem 0;
+        font-size: 0.78rem;
+      }
+
+      .footer strong {
+        color: white;
+      }
+
+      @media (max-width: 960px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .toc {
+          display: none;
+        }
+
+        .summary-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .summary-stat + .summary-stat {
+          border-left: 0;
+        }
+
+        .summary-stat:nth-child(even) {
+          border-left: 1px solid var(--line);
+        }
+
+        .summary-stat:nth-child(n + 3) {
+          border-top: 1px solid var(--line);
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+          gap: 0.6rem;
+        }
+
+        .flow-arrow {
+          min-height: 1.5rem;
+          transform: rotate(90deg);
+        }
+
+        .model {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 700px) {
+        .hero-inner {
+          padding: 3.4rem 0;
+        }
+
+        .toolbar-title {
+          display: none;
+        }
+
+        .toolbar-inner {
+          justify-content: flex-end;
+        }
+
+        .layout {
+          gap: 0;
+          padding-top: 2rem;
+        }
+
+        .example-body,
+        .finding-body,
+        .checklist,
+        .pending-list,
+        .glossary {
+          grid-template-columns: 1fr;
+        }
+
+        .example-panel + .example-panel,
+        .finding-block:nth-child(odd) {
+          border-right: 0;
+          border-left: 0;
+        }
+
+        .finding-block + .finding-block {
+          border-top: 1px solid var(--line);
+        }
+
+        .finding-header {
+          grid-template-columns: 2.4rem minmax(0, 1fr);
+        }
+
+        .severity {
+          grid-column: 2;
+          justify-self: start;
+        }
+
+        .timeline {
+          grid-template-columns: repeat(2, 1fr);
+          row-gap: 1.6rem;
+        }
+
+        .footer-inner {
+          display: block;
+        }
+      }
+
+      @media print {
+        body {
+          background: white;
+          font-size: 11pt;
+        }
+
+        .toolbar,
+        .toc,
+        .filters,
+        .skip-link {
+          display: none !important;
+        }
+
+        .hero {
+          background: white;
+          color: var(--ink);
+        }
+
+        .hero-inner {
+          padding: 1rem 0 2rem;
+        }
+
+        h1,
+        .hero-lead,
+        .hero-meta,
+        .hero-meta strong {
+          color: var(--forest-950);
+        }
+
+        .eyebrow {
+          color: var(--green-700);
+        }
+
+        .layout {
+          display: block;
+          width: 100%;
+          padding: 0;
+        }
+
+        .section,
+        .finding,
+        .example,
+        .table-wrap {
+          break-inside: avoid;
+        }
+
+        .finding {
+          box-shadow: none;
+        }
+
+        .footer {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
+
+    <header class="hero" id="inicio">
+      <div class="hero-inner">
+        <div class="eyebrow">Decisiones y pendientes</div>
+        <h1>Año de factores de emisión</h1>
+        <p class="hero-lead">
+          Estado actualizado de <code>add-emission-factor-year</code>: decisiones
+          acordadas, comportamiento esperado y trabajo pendiente antes de cargar
+          nuevos factores históricos.
+        </p>
+        <div class="hero-meta">
+          <span><strong>Estado:</strong> OpenSpec válido · 4/4 artefactos completos</span>
+          <span><strong>Alcance:</strong> catálogo, captura, auditoría y migración</span>
+          <span><strong>Resultado:</strong> decisiones cerradas + tareas de preparación</span>
+        </div>
+      </div>
+    </header>
+
+    <div class="toolbar" aria-label="Herramientas del documento">
+      <div class="toolbar-inner">
+        <span class="toolbar-title">Análisis de vintages de factores</span>
+        <div class="toolbar-actions">
+          <button type="button" onclick="window.print()">Imprimir / PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="toc" aria-label="Contenido">
+        <p class="toc-title">Contenido</p>
+        <nav>
+          <a href="#resumen">1. Resumen</a>
+          <a href="#contexto">2. Contexto actual</a>
+          <a href="#ejemplo">3. Caso explicado</a>
+          <a href="#modelo">4. Cambios de esquema</a>
+          <a href="#comportamiento">5. Comportamiento esperado</a>
+          <a href="#implementacion">6. Qué queda pendiente</a>
+          <a href="#glosario">7. Glosario</a>
+          <a href="#fuentes">8. Evidencia revisada</a>
+        </nav>
+      </aside>
+
+      <main id="contenido">
+        <section class="section" id="resumen">
+          <p class="section-kicker">Lectura rápida</p>
+          <h2>Resumen ejecutivo</h2>
+          <p class="section-intro">
+            El diseño ya está acordado. El año se guarda separado de la fuente,
+            la identidad incluye la familia dimensional de unidad, pueden existir
+            varias fuentes para un mismo año y el servidor reconstruye los datos
+            del factor de catálogo al guardar. Cambiar el año de la huella conserva
+            factores y resultados; sólo aparece una advertencia por subcategoría.
+          </p>
+
+          <div class="summary-grid" aria-label="Resumen numérico">
+            <div class="summary-stat">
+              <span class="summary-number">246</span>
+              <span class="summary-label">factores en el seed base</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">245</span>
+              <span class="summary-label">factores en testing</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">2</span>
+              <span class="summary-label">tareas de preparación de datos</span>
+            </div>
+            <div class="summary-stat">
+              <span class="summary-number">4/4</span>
+              <span class="summary-label">artefactos OpenSpec completos</span>
+            </div>
+          </div>
+
+          <div class="callout">
+            <strong>Estado para ejecutar el plan</strong>
+            <p>
+              La implementación puede comenzar. Antes de ejecutar la migración
+              sobre datos reales deben completarse dos tareas: clasificar cada
+              factor como fechado o transversal y revisar los factores que se
+              vuelven duplicados al agrupar unidades compatibles.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="contexto">
+          <p class="section-kicker">Cómo funciona hoy</p>
+          <h2>Contexto actual</h2>
+          <p class="section-intro">
+            La plataforma conoce el año de la huella, pero lo ignora al elegir
+            el factor. El año está incrustado dentro de un texto de fuente como
+            “DEFRA 2025”.
+          </p>
+
+          <div class="flow" aria-label="Flujo actual de selección">
+            <div class="flow-step">
+              <small>Entrada</small>
+              <strong>Huella de 2022</strong>
+              <p>El campo <code>carbon_inventory.year</code> ya existe.</p>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+              <small>Catálogo</small>
+              <strong>Fuente “DEFRA 2025”</strong>
+              <p>No hay una columna de año que permita comparar vintages.</p>
+            </div>
+            <div class="flow-arrow" aria-hidden="true">→</div>
+            <div class="flow-step">
+              <small>Resultado</small>
+              <strong>Se usa el factor disponible</strong>
+              <p>El sistema no informa que corresponde a otro año.</p>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fuente actual</th>
+                  <th>Cantidad</th>
+                  <th>Problema de clasificación</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><code>DEFRA 2025</code></td>
+                  <td>195</td>
+                  <td>El año puede separarse de forma directa.</td>
+                </tr>
+                <tr>
+                  <td><code>EcoAct 2020</code></td>
+                  <td>3</td>
+                  <td>El año puede separarse, pero es antiguo para el rango actual.</td>
+                </tr>
+                <tr>
+                  <td><code>IPCC</code></td>
+                  <td>45</td>
+                  <td>No indica año y aparece tanto en procesos como en uso de suelo.</td>
+                </tr>
+                <tr>
+                  <td><code>Kool, A.</code></td>
+                  <td>3</td>
+                  <td>No indica año; no debe asumirse transversal automáticamente.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section" id="ejemplo">
+          <p class="section-kicker">Caso expuesto</p>
+          <h2>Ejemplo paso a paso</h2>
+          <p class="section-intro">
+            Una organización prepara hoy su huella del año 2022. Para una
+            actividad determinada sólo existe en el catálogo un factor DEFRA
+            aplicable al año de reporte 2025.
+          </p>
+
+          <div class="example">
+            <div class="example-header">
+              <strong>Huella 2022 · factor disponible 2025</strong>
+              <span>factor de otro año</span>
+            </div>
+            <div class="example-body">
+              <div class="example-panel">
+                <h3>Comportamiento actual</h3>
+                <ul>
+                  <li>El catálogo entrega <code>source = "DEFRA 2025"</code>.</li>
+                  <li>El frontend lo selecciona porque es el único factor.</li>
+                  <li>Se guarda el valor y la fuente.</li>
+                  <li>No queda registrado que 2025 es posterior a 2022.</li>
+                </ul>
+              </div>
+              <div class="example-panel">
+                <h3>Comportamiento esperado</h3>
+                <ul>
+                  <li>El catálogo entrega <code>source = "DEFRA"</code> y <code>year = 2025</code>.</li>
+                  <li>El selector “Factor” muestra <code>DEFRA (2025)</code>.</li>
+                  <li>El resolver busca 2022, transversales y años anteriores.</li>
+                  <li>Como sólo queda DEFRA 2025 en el mejor nivel, lo recomienda.</li>
+                  <li>El servidor recibe el ID, valida y deriva valor, fuente, unidad y año.</li>
+                  <li>La subcategoría advierte que existe una línea con un factor de otro año.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div class="timeline" aria-label="Línea de tiempo del ejemplo">
+            <div class="year active"><strong>2022</strong><span>año de huella</span></div>
+            <div class="year"><strong>2023</strong><span>sin factor</span></div>
+            <div class="year"><strong>2024</strong><span>sin factor</span></div>
+            <div class="year active"><strong>2025</strong><span>factor elegido</span></div>
+          </div>
+
+          <div class="callout">
+            <strong>Qué no debe cambiar</strong>
+            <p>
+              Si la huella ya fue calculada con ese factor, una actualización del
+              catálogo o del año de la huella no modifica su valor histórico. El
+              usuario puede cambiar el factor individualmente cuando lo considere.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="modelo">
+          <p class="section-kicker">Cambios concretos</p>
+          <h2>Cambios en el esquema</h2>
+          <p class="section-intro">
+            Esta sección no propone un modelo alternativo. Es un mapa corto para
+            mostrar qué columnas se agregan y dónde quedan los datos históricos.
+            No se crea una tabla <code>EmissionFactorVintage</code>.
+          </p>
+
+          <div class="model" aria-label="Cambios de esquema acordados">
+            <div class="entity">
+              <h3>EmissionFactor</h3>
+              <ul>
+                <li><strong>Nuevo:</strong> year: Int | null</li>
+                <li><strong>Nuevo:</strong> numeratorMagnitudeId</li>
+                <li><strong>Nuevo:</strong> denominatorMagnitudeId</li>
+                <li>source</li>
+                <li>rateMeasurementUnitId</li>
+                <li>value + gasDetails</li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>Clave única activa</h3>
+              <ul>
+                <li>subcategoryId</li>
+                <li>dimensiones requeridas</li>
+                <li>year + source</li>
+                <li>numeratorMagnitudeId</li>
+                <li>denominatorMagnitudeId</li>
+                <li>NULLS NOT DISTINCT</li>
+              </ul>
+            </div>
+            <div class="entity">
+              <h3>CarbonInventoryLineFactor</h3>
+              <ul>
+                <li>emissionFactorId?</li>
+                <li>appliedFactorValue</li>
+                <li>appliedFactorRateUnitId</li>
+                <li>appliedFactorSource</li>
+                <li><strong>Nuevo:</strong> appliedFactorYear?</li>
+              </ul>
+            </div>
+          </div>
+
+          <h3 style="margin-top: 2rem">Payload recomendado al guardar</h3>
+          <pre><code>type FactorSelection =
+  | {
+      type: "CATALOG";
+      emissionFactorId: string;
+      appliedRateMeasurementUnitId: string;
+    }
+  | {
+      type: "CUSTOM";
+      source: string;
+      value: number;
+      rateUnitId: string;
+    }
+  | {
+      type: "DIRECT";
+      totalEmissions: number;
+    };</code></pre>
+
+          <div class="callout">
+            <strong>Qué no se agrega</strong>
+            <p>
+              No se agregan <code>EmissionFactorVintage</code>, una tabla de familias
+              de unidad, ni un <code>unitFamilyKey</code> textual. Tampoco se agregan
+              <code>inventoryYearAtSelection</code>, <code>selectionMode</code>,
+              <code>isFallback</code> ni un booleano de coincidencia. La relación
+              entre años se calcula al leer usando el snapshot aplicado.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="comportamiento">
+          <p class="section-kicker">Criterios de aceptación</p>
+          <h2>Comportamiento esperado</h2>
+          <p class="section-intro">
+            Esta matriz convierte las decisiones en casos observables y sirve como
+            base para los escenarios OpenSpec y las pruebas.
+          </p>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Caso</th>
+                  <th>Factores disponibles</th>
+                  <th>Selección</th>
+                  <th>Estado mostrado</th>
+                  <th>Resultado esperado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Coincidencia exacta</td>
+                  <td>DEFRA 2021, 2022 y 2024</td>
+                  <td>DEFRA (2022)</td>
+                  <td class="state">RECOMENDADO</td>
+                  <td>Único candidato exacto; se preselecciona.</td>
+                </tr>
+                <tr>
+                  <td>Sólo transversal</td>
+                  <td>IPCC con año nulo</td>
+                  <td>IPCC</td>
+                  <td class="state">RECOMENDADO</td>
+                  <td>Se muestra sólo la fuente, sin “Transversal”.</td>
+                </tr>
+                <tr>
+                  <td>Empate entre fuentes</td>
+                  <td>DEFRA 2023 e IPCC 2023</td>
+                  <td>Elección del usuario</td>
+                  <td class="state">SIN PRESELECCIÓN</td>
+                  <td>No se desempata por ID, orden ni nombre.</td>
+                </tr>
+                <tr>
+                  <td>Dos transversales</td>
+                  <td>IPCC y Kool, A.</td>
+                  <td>Elección del usuario</td>
+                  <td class="state">SIN PRESELECCIÓN</td>
+                  <td>Ambas fuentes pueden coexistir.</td>
+                </tr>
+                <tr>
+                  <td>Falta año exacto</td>
+                  <td>DEFRA 2020 y 2021</td>
+                  <td>DEFRA (2021)</td>
+                  <td class="state">RECOMENDADO</td>
+                  <td>Se elige el año anterior más cercano.</td>
+                </tr>
+                <tr>
+                  <td>Factor propio</td>
+                  <td>Selector Factor</td>
+                  <td>Otro</td>
+                  <td class="state">PERSONALIZADO</td>
+                  <td>Abre fuente, valor y unidad manuales.</td>
+                </tr>
+                <tr>
+                  <td>Cambio 2022 → 2023</td>
+                  <td>Aplicado 2022</td>
+                  <td>Sin reselección</td>
+                  <td class="state">ADVERTENCIA</td>
+                  <td>Mismos factores y resultados; aviso por subcategoría.</td>
+                </tr>
+                <tr>
+                  <td>Nombre contiene año</td>
+                  <td>Fuente “DEFRA 2025” + año 2025</td>
+                  <td>Guardar permitido</td>
+                  <td class="state">AVISO</td>
+                  <td>Se recomienda escribir sólo “DEFRA”; no se bloquea.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h3 style="margin-top: 2rem">Regla de advertencia por subcategoría</h3>
+          <pre><code>affected = activeLine
+  && emissionFactorId != null
+  && appliedFactorYear != null
+  && inventory.year != null
+  && appliedFactorYear != inventory.year</code></pre>
+          <p>
+            Se muestra un único aviso cuando existe al menos una línea afectada.
+            Informa cantidad, total evaluado y años distintos. No bloquea guardar,
+            navegar ni enviar, y nunca recalcula automáticamente.
+          </p>
+        </section>
+
+        <section class="section" id="implementacion">
+          <p class="section-kicker">Estado de avance</p>
+          <h2>Qué queda pendiente</h2>
+          <p class="section-intro">
+            Las decisiones y los artefactos están listos, pero la funcionalidad aún
+            no está implementada en el esquema, API o web. Éste es el orden pendiente.
+          </p>
+
+          <h3>Completado</h3>
+          <ol class="checklist">
+            <li>Propuesta, diseño, specs y tareas actualizados.</li>
+            <li>Validación estricta de OpenSpec aprobada.</li>
+            <li>Familia dimensional incorporada a la identidad.</li>
+            <li>Múltiples fuentes fechadas o transversales permitidas.</li>
+            <li>Regla de selección y empate documentada.</li>
+            <li>Regla de advertencia por subcategoría documentada.</li>
+            <li>Contrato de guardado con servidor autoritativo definido.</li>
+            <li>Selector “Factor”, etiquetas y opción “Otro” definidos.</li>
+          </ol>
+
+          <h3 style="margin-top: 2rem">Preparación antes de migrar datos reales</h3>
+          <ul class="pending-list">
+            <li>Clasificar cada factor existente con año explícito o nulo transversal confirmado.</li>
+            <li>Auditar colisiones entre unidades de la misma familia, por ejemplo kg/kg y kg/ton.</li>
+            <li>Comparar valores convertidos y escalar a metodología los que no sean equivalentes.</li>
+            <li>Actualizar ambos archivos seed con la clasificación revisada.</li>
+          </ul>
+
+          <h3>Pendiente de implementación</h3>
+          <ul class="pending-list">
+            <li>Crear columnas, backfill e índice parcial <code>NULLS NOT DISTINCT</code>.</li>
+            <li>Actualizar schemas compartidos y el seed técnico.</li>
+            <li>Eliminar <code>validateSourceConsistency</code> y alinear duplicados.</li>
+            <li>Implementar los payloads CATALOG, CUSTOM y DIRECT.</li>
+            <li>Validar y convertir factores de catálogo en el servidor.</li>
+            <li>Actualizar el selector “Factor”, ranking y restauración por ID.</li>
+            <li>Agregar aviso no bloqueante por subcategoría y aviso del nombre en mantenedor.</li>
+            <li>Actualizar resumen, duplicación, exports y Excel.</li>
+            <li>Ejecutar pruebas de migración, API, web, lint y type-check.</li>
+            <li>Observar tamaño del payload antes de cargar nuevos vintages.</li>
+          </ul>
+
+          <div class="callout">
+            <strong>Orden recomendado</strong>
+            <p>
+              Estas tareas no impiden comenzar a programar. Conviene completarlas
+              antes de ejecutar la migración productiva para que el backfill y el
+              índice nuevo se apliquen sobre datos ya revisados.
+            </p>
+          </div>
+        </section>
+
+        <section class="section" id="glosario">
+          <p class="section-kicker">Términos usados</p>
+          <h2>Glosario breve</h2>
+          <dl class="glossary">
+            <div class="term">
+              <dt>Vintage</dt>
+              <dd>Versión de una fuente o conjunto de factores asociada a un año.</dd>
+            </div>
+            <div class="term">
+              <dt>Transversal</dt>
+              <dd>Factor confirmado como independiente del año de medición.</dd>
+            </div>
+            <div class="term">
+              <dt>Fallback</dt>
+              <dd>Factor usado porque no existe uno exacto para el año de la huella.</dd>
+            </div>
+            <div class="term">
+              <dt>Snapshot</dt>
+              <dd>Copia inmutable del valor, fuente, unidad y año realmente aplicados.</dd>
+            </div>
+            <div class="term">
+              <dt>Familia de unidad</dt>
+              <dd>Grupo de unidades convertibles que comparten magnitudes, por ejemplo masa/masa.</dd>
+            </div>
+            <div class="term">
+              <dt>Resolver</dt>
+              <dd>Regla determinista que elige el vintage recomendado para un contexto.</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="section" id="fuentes">
+          <p class="section-kicker">Trazabilidad</p>
+          <h2>Evidencia revisada</h2>
+          <p class="section-intro">
+            El análisis se basa en la propuesta y en el comportamiento observable
+            del esquema, API, frontend y seed actuales.
+          </p>
+          <ul class="source-list">
+            <li><code>openspec/changes/add-emission-factor-year/proposal.md</code></li>
+            <li><code>openspec/changes/add-emission-factor-year/design.md</code></li>
+            <li><code>openspec/changes/add-emission-factor-year/specs/</code></li>
+            <li><code>openspec/changes/add-emission-factor-year/tasks.md</code></li>
+            <li><code>packages/database/src/prisma/schema.prisma</code></li>
+            <li><code>apps/api/src/features/emissionFactors/helpers.ts</code></li>
+            <li><code>apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts</code></li>
+            <li><code>apps/api/src/features/carbonInventories/getCarbonInventoryMethodology/</code></li>
+            <li><code>apps/web/src/screens/CarbonInventory/components/EmissionEditor/</code></li>
+            <li><code>tools/seed/src/data/base/methodologies.json</code></li>
+            <li><code>tools/seed/src/data/testing/methodologies.json</code></li>
+          </ul>
+
+          <div class="callout">
+            <strong>Estado OpenSpec</strong>
+            <p>
+              Los cuatro artefactos están completos y
+              <code>openspec validate add-emission-factor-year --strict</code>
+              finaliza correctamente. Las decisiones revisadas con Producto ya
+              están copiadas al diseño, specs y tareas. La clasificación metodológica
+              queda registrada como una tarea de preparación de datos.
+            </p>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        <span><strong>Huella Latam</strong> · análisis técnico de cambio OpenSpec</span>
+        <span>Documento autocontenido · sin dependencias externas</span>
+      </div>
+    </footer>
+
+    <script>
+      (() => {
+        const tocLinks = [...document.querySelectorAll(".toc a")];
+        const sections = tocLinks
+          .map((link) => document.querySelector(link.getAttribute("href")))
+          .filter(Boolean);
+
+        const observer = new IntersectionObserver(
+          (entries) => {
+            const visible = entries
+              .filter((entry) => entry.isIntersecting)
+              .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+            if (!visible) return;
+            tocLinks.forEach((link) => {
+              link.classList.toggle(
+                "active",
+                link.getAttribute("href") === `#${visible.target.id}`
+              );
+            });
+          },
+          { rootMargin: "-18% 0px -62% 0px", threshold: [0, 0.2, 0.6] }
+        );
+
+        sections.forEach((section) => observer.observe(section));
+      })();
+    </script>
+  </body>
+</html>
