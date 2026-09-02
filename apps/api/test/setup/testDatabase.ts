@@ -4,9 +4,12 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 
 const TEST_DATABASE_CONFIG = {
-  // Digest-pinned for reproducibility; bump the tag and digest together.
+  // pgvector image (Debian-based, not alpine): the chatbot corpus migration
+  // installs the `vector` extension, which the official postgres image does
+  // not ship. Must match the compose files. Digest-pinned for reproducibility;
+  // bump the tag and digest together.
   image:
-    "postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa",
+    "pgvector/pgvector:pg18@sha256:691673308c99d2161ba298736f3147f1f22d79de2fb7ec93ae9b4afcab870b62",
   database: "testdb",
   username: "testuser",
   password: "testpass",
@@ -87,6 +90,13 @@ export async function setupTestDatabase(): Promise<{
 
   const baseUrl = container.getConnectionUri();
   const url = new URL(baseUrl);
+  // On Windows, `localhost` resolves to `::1` (IPv6) first, but Docker
+  // Desktop only binds `0.0.0.0` (IPv4) by default — Prisma then fails with
+  // P1001 "Can't reach database server". Force IPv4 here so the URL works
+  // identically across macOS/Linux/Windows hosts.
+  if (url.hostname === "localhost") {
+    url.hostname = "127.0.0.1";
+  }
   // Note: connection_limit is not set; Vitest runs files sequentially (fileParallelism: false).
   // url.searchParams.set("connection_limit", "1");
   const databaseUrl = url.toString();

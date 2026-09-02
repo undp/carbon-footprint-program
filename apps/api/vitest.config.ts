@@ -43,6 +43,9 @@ const SHARED_TEST_ENV = {
   // suite so its routes register and the chatbot integration tests run
   // (LLM_PROVIDER defaults to "mock").
   CHATBOT_ENABLED: "true",
+  // Deterministic SHA-256-seeded embeddings for the corpus/retrieval suites.
+  // Never "azure-openai" here: the tests must not reach a live endpoint.
+  EMBEDDING_PROVIDER: "mock",
   // Neutralize ambient .envrc/direnv JWKS_* leakage so local runs match CI.
   JWKS_ISSUER: "",
   JWKS_URI: "",

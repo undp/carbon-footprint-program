@@ -63,6 +63,22 @@ param azureAuthTenantType string = 'external'
 @description('Azure tenant subdomain (required for external/CIAM tenants)')
 param azureAuthTenantSubdomain string = ''
 
+@description('Enable the AI chatbot. When false the API boots with no AI code path, no Azure OpenAI dependency, and the widget stays hidden — the DPG optionality guarantee.')
+param enableChatbot bool = false
+
+@description('Azure OpenAI endpoint URL (required when enableChatbot is true)')
+param openAiEndpoint string = ''
+
+@description('Azure OpenAI chat deployment name (required when enableChatbot is true)')
+param openAiChatDeploymentName string = ''
+
+@description('Azure OpenAI embedding deployment name (required when enableChatbot is true)')
+param openAiEmbeddingDeploymentName string = ''
+
+@description('Secret used to sign the chatbot session and conversation cookies (COOKIE_SECRET). Required in production when the chatbot is enabled.')
+@secure()
+param cookieSecret string = ''
+
 @description('Tags to apply to resources')
 param tags object = {}
 
@@ -190,7 +206,45 @@ resource appService 'Microsoft.Web/sites@2025-03-01' = {
           name: 'AUTH_PROVIDER'
           value: 'jwks'
         }
+      ] : [], enableChatbot ? [
+        {
+          name: 'CHATBOT_ENABLED'
+          value: 'true'
+        }
+        {
+          name: 'LLM_PROVIDER'
+          value: 'azure-openai'
+        }
+        {
+          // The API refuses to boot in production with the mock embedding
+          // provider while the chatbot is on: its SHA-256-derived vectors have
+          // no semantic relation to the text, so retrieval would return noise
+          // rather than fail. Setting it explicitly here means the deployment
+          // never depends on the default.
+          name: 'EMBEDDING_PROVIDER'
+          value: 'azure-openai'
+        }
+        {
+          name: 'AZURE_OPENAI_ENDPOINT'
+          value: openAiEndpoint
+        }
+        {
+          name: 'AZURE_OPENAI_DEPLOYMENT_NAME'
+          value: openAiChatDeploymentName
+        }
+        {
+          name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME'
+          value: openAiEmbeddingDeploymentName
+        }
+        {
+          name: 'COOKIE_SECRET'
+          value: cookieSecret
+        }
       ] : [])
+      // AZURE_OPENAI_API_KEY is deliberately absent. Setting it switches both the
+      // chat and embedding clients off managed identity and onto a static key —
+      // and the account is provisioned with local auth disabled, so the key would
+      // not work anyway. It exists solely as a local-development fallback.
     }
   }
 }

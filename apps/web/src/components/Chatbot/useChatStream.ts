@@ -1,12 +1,22 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SourceCitationWireArraySchema } from "@repo/types";
+import type { SourceCitationWire } from "@repo/types";
 import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { clearConversationCookieClient } from "./conversationCookie";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 const SEND_URL = "/api/chatbot/message";
 const DELETE_URL = "/api/chatbot/conversations/me";
+
+/** Shape `seedMessages` accepts — ids are minted here, not by the caller. */
+export type SeedMessage = {
+  role: "user" | "assistant";
+  content: string;
+  sourcesCited?: SourceCitationWire[];
+};
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
@@ -142,6 +152,38 @@ export const useChatStream = () => {
       const processEvent = (ev: SsePayload): SendMessageResult | null => {
         if (ev.id) lastEventIdRef.current = ev.id;
         if (ev.event === "done") {
+          // The terminal `done` payload carries the corpus chunks the assistant
+          // grounded this turn in (RAG). Optional: a non-tool turn omits it, and
+          // a foundation-era backend never sends it.
+          try {
+            const parsed = JSON.parse(ev.data) as { sources?: unknown };
+            if (parsed.sources !== undefined) {
+              // Validated rather than cast: the field crosses the wire, and an
+              // entry missing `cite_url` would reach MessageBubble as an
+              // undefined React key and a blank row. A bad payload degrades to
+              // "no citations" — the answer already streamed and is still good.
+              const result = SourceCitationWireArraySchema.safeParse(
+                parsed.sources
+              );
+              if (!result.success) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                  "Malformed `sources` field on chatbot `done` event; rendering the turn without citations."
+                );
+              } else if (result.data.length > 0) {
+                const sources = result.data;
+                updateLastAssistant((msg) => ({
+                  ...msg,
+                  sourcesCited: sources,
+                }));
+              }
+            }
+          } catch {
+            // A malformed `done` payload must not fail an otherwise good turn —
+            // the text already streamed. Drop the citations and complete.
+            // eslint-disable-next-line no-console
+            console.warn("Malformed chatbot `done` event payload");
+          }
           return { kind: "completed" };
         }
         if (ev.event === "error") {
@@ -256,6 +298,13 @@ export const useChatStream = () => {
         () => controller.abort(),
         CHATBOT_STREAM_OVERALL_TIMEOUT_MS
       );
+
+      // True while THIS turn is still the active one. `startNewConversation`
+      // nulls `abortRef` (and a newer send replaces it), so a turn it cancelled
+      // mid-flight cannot write state that belongs to the cleared/next thread.
+      // `stop()` deliberately leaves `abortRef` pointing here, so a user-stopped
+      // turn still resolves to "truncated" with its partial content.
+      const isCurrentTurn = (): boolean => abortRef.current === controller;
 
       const attempt = async (): Promise<{
         response: Response | null;
@@ -388,6 +437,9 @@ export const useChatStream = () => {
         consecutiveFailuresRef.current = 0;
         const result = await consumeStream(response, controller);
         if (!mountedRef.current) return;
+        // A `startNewConversation` during the stream already reset the thread;
+        // applying this turn's terminal state would re-dirty the cleared UI.
+        if (!isCurrentTurn()) return;
 
         switch (result.kind) {
           case "completed":
@@ -451,5 +503,74 @@ export const useChatStream = () => {
     abortRef.current?.abort();
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory, stop };
+  /**
+   * Replace the visible thread with a persisted conversation loaded on mount
+   * (see `useConversationRehydrate`). Ids are minted from this hook's own
+   * counter rather than accepted from the caller: two id sources could collide
+   * on `assistant-1` and let React reconcile a fresh bubble onto a seeded
+   * node — the very hazard the counter exists to prevent.
+   *
+   * The seed LOSES every race against the live thread. Rehydration is one
+   * mount-time round-trip, so a fast typist on a slow API can send a turn while
+   * it is still in flight; replacing the thread then would drop the user's
+   * message and orphan the in-flight assistant bubble, whose deltas
+   * `updateLastAssistant` would silently discard on the id check. Both guards
+   * are load-bearing: the ref catches a turn whose append has not committed
+   * yet, and the `prev.length` check inside the updater catches an already
+   * populated thread (including one seeded by StrictMode's double effect).
+   */
+  const seedMessages = useCallback(
+    (loaded: SeedMessage[]): void => {
+      if (loaded.length === 0) return;
+      if (inFlightAssistantIdRef.current !== null) return;
+      // Minted outside the updater: `nextMessageId` bumps a ref, and updaters
+      // must stay pure (StrictMode double-invokes them). A rejected seed just
+      // burns a few counter values, which costs nothing — the counter only has
+      // to be unique, never contiguous.
+      const seeded = loaded.map((m) => {
+        const message: ChatbotMessage = {
+          id: nextMessageId(m.role),
+          role: m.role,
+          content: m.content,
+        };
+        if (m.role === "assistant" && m.sourcesCited?.length) {
+          message.sourcesCited = m.sourcesCited;
+        }
+        return message;
+      });
+      setMessages((prev) => (prev.length > 0 ? prev : seeded));
+    },
+    [nextMessageId]
+  );
+
+  /**
+   * Start a fresh client-side thread. Prior turns stay persisted server-side —
+   * this is NOT a delete. The conversation cookie is dropped so a later reload
+   * does not rehydrate the thread we just left, and any in-flight turn is
+   * aborted so it cannot stream into the cleared view.
+   */
+  const startNewConversation = useCallback((): void => {
+    // Null the ref BEFORE aborting: `isCurrentTurn()` in the in-flight
+    // sendMessage reads it after its await resumes, and must observe that this
+    // turn is no longer current.
+    const inFlight = abortRef.current;
+    abortRef.current = null;
+    inFlight?.abort();
+    inFlightAssistantIdRef.current = null;
+    clearConversationCookieClient();
+    setMessages([]);
+    setState("empty");
+    lastEventIdRef.current = undefined;
+    consecutiveFailuresRef.current = 0;
+  }, []);
+
+  return {
+    state,
+    messages,
+    sendMessage,
+    deleteHistory,
+    stop,
+    seedMessages,
+    startNewConversation,
+  };
 };

@@ -5,8 +5,16 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { clearConversationCookieClient } from "./conversationCookie";
 import { useChatStream } from "./useChatStream";
 import type { ChatbotMessage } from "./types";
+
+// The cookie write is a document.cookie side effect scoped to /api/chatbot, so
+// it is not readable back from the test document's path. Spy on the helper
+// instead of asserting on document.cookie.
+vi.mock("./conversationCookie", () => ({
+  clearConversationCookieClient: vi.fn(),
+}));
 
 // The hook keeps these user-facing strings private; mirror them here so the
 // assertions read intent instead of magic text. If a copy change breaks a test,
@@ -157,6 +165,7 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
+  vi.mocked(clearConversationCookieClient).mockClear();
 });
 
 afterEach(() => {
@@ -772,5 +781,306 @@ describe("useChatStream — deleteHistory", () => {
     });
 
     expect(result.current.state).toBe("error");
+  });
+});
+
+// Task 10.28, hook layer. The widget test covers the control's wiring and that
+// the click issues no request; these cover the state effects of the reset
+// itself, against the real hook.
+describe("useChatStream — done event sources", () => {
+  const VALID_SOURCE = {
+    source_id: "1",
+    chunk_id: "7",
+    cite_label: "GHG Protocol §2.3",
+    cite_url: "https://ghgprotocol.org/corporate-standard",
+    snippet: "Las emisiones de alcance 1 son emisiones directas.",
+  };
+
+  const streamWithDonePayload = (payload: unknown) =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'data: {"content":"Hola"}\n\n',
+            `event: done\ndata: ${JSON.stringify(payload)}\n\n`,
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("assigns a valid sources array to the in-flight assistant message", async () => {
+    streamWithDonePayload({
+      inputTokens: 12,
+      outputTokens: 34,
+      sources: [VALID_SOURCE],
+    });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toEqual([
+      VALID_SOURCE,
+    ]);
+  });
+
+  it("leaves sourcesCited unset when the field is absent", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34 });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  it("leaves sourcesCited unset for an empty sources array", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources: [] });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    // Defensive: the API omits the field at K=0 rather than sending []. An
+    // empty array must behave identically to an absent one, never as an empty
+    // "Fuentes consultadas (0)" panel.
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  // The wire is the only place these entries are validated client-side. Without
+  // it a non-conforming entry reaches MessageBubble, which keys its rows on
+  // `cite_url` — an undefined key plus a blank row.
+  it.each([
+    ["a non-array value", "broken"],
+    ["entries that are not objects", [1, 2, 3]],
+    ["an entry missing cite_url", [{ ...VALID_SOURCE, cite_url: undefined }]],
+    [
+      "an entry whose cite_url is not https",
+      [{ ...VALID_SOURCE, cite_url: "http://insecure.example" }],
+    ],
+    [
+      "an entry whose ids are not numeric strings",
+      [{ ...VALID_SOURCE, source_id: "abc" }],
+    ],
+  ])("warns and drops citations for %s", async (_label, sources) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("sources"));
+    // The answer already streamed — a bad citations payload must not fail it.
+    expect(lastMessage(result.current.messages).content).toBe("Hola");
+    expect(result.current.state).not.toBe("error");
+  });
+});
+
+describe("useChatStream — seedMessages", () => {
+  it("seeds a persisted thread onto an untouched hook", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([
+        { role: "user", content: "pregunta previa" },
+        { role: "assistant", content: "respuesta previa" },
+      ]);
+    });
+
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "pregunta previa",
+      "respuesta previa",
+    ]);
+  });
+
+  // The seed is one mount-time round-trip, so a fast typist on a slow API can
+  // start a turn while it is still in flight. Replacing the thread then would
+  // drop the user's message AND orphan the in-flight assistant bubble — every
+  // later delta fails updateLastAssistant's id check and is discarded, so the
+  // answer streams into nothing. Required by the chatbot-widget spec:
+  // "Sending a new message while the rehydrate is in flight SHALL NOT cause
+  // the seed to overwrite the new message."
+  it("loses the race against a turn already in flight", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // The live turn survives intact: the seed neither replaced it nor appended.
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "hola",
+      "parcial",
+    ]);
+
+    // And the bubble is still the live one — deltas arriving after the rejected
+    // seed must keep landing, which is what breaks if the seed detached it.
+    act(() => {
+      result.current.stop();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+    expect(lastMessage(result.current.messages).content).toContain("parcial");
+  });
+
+  it("leaves a thread that already has turns untouched", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const before = result.current.messages;
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // Identity, not just equality: a late seed must not even re-render the list.
+    expect(result.current.messages).toBe(before);
+  });
+
+  it("ignores an empty seed", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([]);
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+});
+
+describe("useChatStream — startNewConversation", () => {
+  const streamOneTurn = () =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("clears the thread and returns to the empty state", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    expect(result.current.messages.length).toBeGreaterThan(0);
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+
+  it("issues no request of its own", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const callsAfterTurn = fetchMock.mock.calls.length;
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    // Non-destructive by design: prior turns stay persisted server-side, so the
+    // reset must not issue a DELETE — or anything else.
+    expect(fetchMock.mock.calls).toHaveLength(callsAfterTurn);
+  });
+
+  it("drops the conversation cookie so a reload does not rehydrate the thread", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(clearConversationCookieClient).toHaveBeenCalledTimes(1);
+  });
+
+  it("resets Last-Event-ID so the next turn cannot carry a stale one", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'id: 42\ndata: {"content":"Hola"}\n\n',
+            "event: done\ndata: {}\n\n",
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await sendTurn(result, "otra");
+
+    const lastInit = fetchMock.mock.calls[fetchMock.mock.calls.length - 1][1];
+    const headers = lastInit?.headers as Record<string, string> | undefined;
+    expect(headers?.["Last-Event-ID"]).toBeUndefined();
+  });
+
+  // A turn cancelled by the reset must not write its terminal state onto the
+  // freshly-cleared thread. `stop()` deliberately behaves the other way round.
+  it("keeps a mid-flight turn from re-dirtying the cleared thread", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+
+    // Contrast with the Stop test above, which resolves to "truncated": there
+    // the turn is still the current one, so its terminal state is welcome. Here
+    // the reset replaced it, so the turn must land on nothing.
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
   });
 });

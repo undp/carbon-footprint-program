@@ -15,6 +15,13 @@ param dbPassword string = ''
 @description('Name for the database password secret')
 param dbPasswordSecretName string = 'postgres-admin-password'
 
+@secure()
+@description('Chatbot cookie signing secret to store (if provided). Empty leaves any existing secret untouched.')
+param cookieSecret string = ''
+
+@description('Name for the chatbot cookie signing secret')
+param cookieSecretName string = 'chatbot-cookie-secret'
+
 @description('Network ACL default action: Allow or Deny')
 param networkAclDefaultAction string = 'Allow'
 
@@ -59,6 +66,17 @@ resource dbPasswordSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = if (d
   }
 }
 
+// Same create-or-preserve behaviour as the database password above: an empty
+// value leaves an existing secret alone, so a redeploy that does not supply the
+// secret cannot blank it out and invalidate every signed chatbot cookie.
+resource chatbotCookieSecret 'Microsoft.KeyVault/vaults/secrets@2025-05-01' = if (cookieSecret != '') {
+  parent: keyVault
+  name: cookieSecretName
+  properties: {
+    value: cookieSecret
+  }
+}
+
 // Key Vault Secrets Officer role definition ID
 var keyVaultSecretsOfficerRoleId = 'b86a8fe4-44ce-4948-aee5-eccb2c155cd7'
 
@@ -78,3 +96,5 @@ output id string = keyVault.id
 output vaultUri string = keyVault.properties.vaultUri
 #disable-next-line outputs-should-not-contain-secrets
 output postgresSecretName string = (dbPassword != '') ? dbPasswordSecret.name : dbPasswordSecretName
+#disable-next-line outputs-should-not-contain-secrets
+output cookieSecretNameOut string = (cookieSecret != '') ? chatbotCookieSecret.name : cookieSecretName

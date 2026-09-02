@@ -27,11 +27,17 @@ import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
 import { useChatbotSize } from "./useChatbotSize";
+import { useConversationRehydrate } from "./useConversationRehydrate";
 
 // Counter stays hidden during normal use; appears once the draft approaches
 // the cap so the user is not surprised by a hard stop.
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
+
+// Shown in every widget state: the assistant is generative and can be wrong,
+// so attribution and verification are the user's job.
+const FOOT_DISCLAIMER =
+  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
 
 const hasBeenIntroduced = (): boolean => {
   if (typeof window === "undefined") return true;
@@ -67,7 +73,21 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, deleteHistory, stop } = useChatStream();
+  const {
+    state,
+    messages,
+    sendMessage,
+    stop,
+    seedMessages,
+    startNewConversation,
+  } = useChatStream();
+  // `deleteHistory` is intentionally not wired to any control: the DELETE
+  // endpoint stays available for API / data-deletion requests, but the widget
+  // offers only "Nueva conversación", which detaches from the thread without
+  // destroying it.
+  const { historyLoading } = useConversationRehydrate({
+    onLoaded: seedMessages,
+  });
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
@@ -243,7 +263,7 @@ export function ChatbotWidget() {
             onClick={() => {
               if (isBusy) return;
               markIntroduced();
-              void deleteHistory();
+              startNewConversation();
               // Return focus to the input so the user can immediately
               // start a new message; the click would otherwise leave
               // focus on this IconButton.
@@ -276,7 +296,9 @@ export function ChatbotWidget() {
           bgcolor: theme.palette.background.default,
         }}
       >
-        {messages.length === 0 ? (
+        {/* Suppressed while the rehydrate is in flight, so a persisted thread
+            does not flash "¿En qué puedo ayudarte?" before the seed lands. */}
+        {messages.length === 0 && !historyLoading ? (
           <Box
             display="flex"
             alignItems="center"
@@ -356,6 +378,11 @@ export function ChatbotWidget() {
             {numberFormatter.format(CHATBOT_MAX_USER_INPUT_CHARS)}
           </Typography>
         ) : null}
+      </Box>
+      <Box sx={{ px: 1, pb: 0.5, display: "flex", justifyContent: "center" }}>
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {FOOT_DISCLAIMER}
+        </Typography>
       </Box>
     </Paper>
   );

@@ -293,3 +293,49 @@ param frontDoorWafMode = 'Detection'
 // - Default: 100 (suitable for most applications)
 // - Increase for high-traffic APIs, decrease for stricter protection
 param frontDoorRateLimitThreshold = 100
+
+// ============================================
+// Chatbot (optional AI feature)
+// ============================================
+
+// Master switch for the AI assistant. Off by default, and that default is
+// deliberate: the platform is a digital public good and must stay fully usable
+// with no AI and no cloud AI dependency, so a deployer opts in rather than out.
+//
+// Setting this to true provisions an Azure OpenAI account, a chat deployment and
+// an embedding deployment, and grants the App Service inference access via
+// managed identity. It also switches on the API's chatbot routes and, separately,
+// requires VITE_CHATBOT_ENABLED=true at web BUILD time for the widget to appear.
+//
+// Three gates must clear before this can work, and they are sequential:
+//   1. Azure Policy exemption (UNDP subscriptions deny AI resources outright)
+//   2. RBAC: the deploying principal needs User Access Administrator or Owner
+//      to create the role assignment — Contributor is not sufficient
+//   3. Model quota (TPM) in the chosen region — granted separately from RBAC
+// See docs/infrastructure/chatbot-ai-access-requirements.md before enabling.
+//
+// deploy.sh sets this from ENABLE_CHATBOT in the environment.
+param enableChatbot = false
+
+// Region for the Azure OpenAI account. Empty means "use the resource group's
+// region". Override when that region does not offer BOTH gpt-4o-mini and
+// text-embedding-3-large — model availability is regional, and a missing model
+// surfaces as a deployment failure rather than a fallback.
+param openAiLocation = ''
+
+// Model deployments. Versions are pinned rather than tracking latest: a silent
+// model swap changes answer quality with no code change and no signal.
+param openAiChatModelName = 'gpt-4o-mini'
+param openAiChatModelVersion = '2024-07-18'
+param openAiEmbeddingModelName = 'text-embedding-3-large'
+param openAiEmbeddingModelVersion = '1'
+
+// Capacity in thousands of tokens per minute. Embeddings are sized higher than
+// chat because corpus ingestion is bursty — a single ingest run embeds every
+// chunk of a document, while chat load is spread across user turns.
+//
+// ⚠️ Changing the embedding model or its output dimensionality invalidates every
+// stored vector: the column is vector(1024) and the corpus must be re-ingested,
+// not migrated. See the re-embed playbook in docs/operations/runbook.md.
+param openAiChatCapacity = 30
+param openAiEmbeddingCapacity = 50

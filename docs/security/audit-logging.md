@@ -59,7 +59,9 @@ Pino is configured to redact the following fields from all log output:
 | `req.headers.cookie`        | May contain session or auth cookies                                              |
 | `req.body.password`         | Defense-in-depth; passwords are not stored, but this prevents accidental leakage |
 
-Redacted fields appear as `"[Redacted]"` in log output. Token values, credential material, and passwords are never written to logs in any form.
+The logger is configured with `remove: true` (`apps/api/src/app.ts`), so these paths are **omitted entirely** from log output rather than replaced with a placeholder — do not expect a `"[Redacted]"` marker when grepping logs or writing assertions against them. Token values, credential material, and passwords are never written to logs in any form.
+
+Redaction covers request-derived fields. Values that arrive as environment variables — `DATABASE_URL`, `JWT_SECRET`, `AZURE_OPENAI_API_KEY` — are never passed to the logger in the first place, so they fall outside this list by construction rather than by rule.
 
 ---
 

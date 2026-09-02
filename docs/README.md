@@ -98,6 +98,7 @@ and regenerated.
 | [Frontend Auth Recovery](./security/frontend-auth-recovery.md) | Recovery flow when OIDC login succeeds but `GET /users/me` fails      |
 | [RBAC and Authorization](./security/rbac.md)                   | Role model, authorization plugins, permission matrix                  |
 | [Sensitive Data Handling](./security/sensitive-data.md)        | PII inventory, encryption at rest/transit, compliance considerations  |
+| [Chatbot and RAG Security](./security/chatbot.md)              | AI trust boundaries, tool-argument validation, corpus visibility      |
 | [Secrets Management](./security/secrets.md)                    | Managed identities, Key Vault, env var classification, anti-patterns  |
 | [Infrastructure Hardening](./security/hardening.md)            | TLS, CORS, security headers, network isolation, WAF, input validation |
 | [Audit and Logging](./security/audit-logging.md)               | Log structure, redaction, security events, database audit trail       |

@@ -232,6 +232,51 @@ param azureAuthApiAppId string = ''
 param azureAuthFrontAppId string = ''
 
 
+// --------- Chatbot (optional AI feature) ---------
+//
+// Off by default, and the default is load-bearing: the platform is a digital
+// public good that must remain fully usable with no AI and no cloud AI
+// dependency. Enabling this provisions an Azure OpenAI account with two model
+// deployments and grants the App Service inference access.
+//
+// Before setting this to true, read
+// docs/infrastructure/chatbot-ai-access-requirements.md — in UNDP-governed
+// subscriptions an Azure Policy denies AI resource creation outright until an
+// exemption is granted, which no role assignment can bypass.
+@description('Enable the AI chatbot: provisions Azure OpenAI, its chat + embedding deployments, and the App Service role assignment. Requires an Azure Policy exemption in UNDP-governed subscriptions.')
+param enableChatbot bool = false
+
+@description('Location for the Azure OpenAI account. Defaults to the resource group location, but model availability is regional — override when the RG region does not offer both models.')
+param openAiLocation string = ''
+
+@description('Chat model deployment name')
+param openAiChatDeploymentName string = 'chat'
+
+@description('Chat model to deploy')
+param openAiChatModelName string = 'gpt-4o-mini'
+
+@description('Chat model version')
+param openAiChatModelVersion string = '2024-07-18'
+
+@description('Chat capacity in thousands of tokens per minute')
+param openAiChatCapacity int = 30
+
+@description('Embedding model deployment name')
+param openAiEmbeddingDeploymentName string = 'embeddings'
+
+@description('Embedding model to deploy. Must emit 1024-dimensional vectors to match the vector(1024) column.')
+param openAiEmbeddingModelName string = 'text-embedding-3-large'
+
+@description('Embedding model version')
+param openAiEmbeddingModelVersion string = '1'
+
+@description('Embedding capacity in thousands of tokens per minute')
+param openAiEmbeddingCapacity int = 50
+
+@secure()
+@description('Secret used to sign the chatbot cookies (COOKIE_SECRET). Stored in Key Vault and referenced by the App Service. Supplied by deploy.sh; leave empty to preserve an existing value.')
+param chatbotCookieSecret string = ''
+
 // --------- Key Vault ---------
 // We can create up to 1 key vault per deployment
 module keyVault 'modules/keyVault.bicep' = {
@@ -240,6 +285,7 @@ module keyVault 'modules/keyVault.bicep' = {
     skuName: keyVaultSkuName
     location: location
     dbPassword: dbPassword
+    cookieSecret: chatbotCookieSecret
     devGroupObjectId: devGroupObjectId
     // The module's dev-group grant is a role assignment too, so it follows enableRoleAssignments.
     enableDevGroupAccess: enableRoleAssignments && enableDevGroupKeyVaultAccess
@@ -317,6 +363,23 @@ module staticWebApp 'modules/staticWebApp.bicep' = {
   }
 }
 
+// --------- Azure OpenAI (chatbot) ---------
+module openAi 'modules/openai.bicep' = if (enableChatbot) {
+  name: 'openAiDeployment'
+  params: {
+    location: openAiLocation != '' ? openAiLocation : location
+    chatDeploymentName: openAiChatDeploymentName
+    chatModelName: openAiChatModelName
+    chatModelVersion: openAiChatModelVersion
+    chatCapacity: openAiChatCapacity
+    embeddingDeploymentName: openAiEmbeddingDeploymentName
+    embeddingModelName: openAiEmbeddingModelName
+    embeddingModelVersion: openAiEmbeddingModelVersion
+    embeddingCapacity: openAiEmbeddingCapacity
+    tags: tags
+  }
+}
+
 // --------- Container Registry ---------
 module acr 'modules/acr.bicep' = {
   name: 'acrDeployment'
@@ -346,6 +409,14 @@ module appService 'modules/appService.bicep' = {
     azureAuthClientId: azureAuthApiAppId
     azureAuthTenantType: azureAuthTenantType
     azureAuthTenantSubdomain: azureAuthTenantSubdomain
+    enableChatbot: enableChatbot
+    // `!` asserts the conditional module is present: these branches are only
+    // evaluated when enableChatbot is true, which is exactly when the module
+    // deployed. Same pattern as the Front Door hostname above.
+    openAiEndpoint: enableChatbot ? openAi!.outputs.endpoint : ''
+    openAiChatDeploymentName: enableChatbot ? openAi!.outputs.chatDeploymentNameOut : ''
+    openAiEmbeddingDeploymentName: enableChatbot ? openAi!.outputs.embeddingDeploymentNameOut : ''
+    cookieSecret: enableChatbot ? existingKeyVault.getSecret(keyVault.outputs.cookieSecretNameOut) : ''
     tags: tags
   }
 }
@@ -361,6 +432,28 @@ module appServiceAcrPull 'modules/acrRoleAssignment.bicep' = if (enableRoleAssig
   ]
   params: {
     acrName: acr.outputs.name
+    principalId: appService.outputs.principalId
+  }
+}
+
+// Role assignment to allow App Service to call Azure OpenAI without an API key.
+//
+// Gated on enableRoleAssignments like the others, but note the consequence when
+// that is false and the chatbot is on: the resources deploy, the app settings
+// point at them, and every chatbot request fails with 401 until someone with
+// User Access Administrator creates this assignment by hand. That is the most
+// common chatbot rollout failure — see
+// docs/infrastructure/chatbot-ai-access-requirements.md section 3.
+module appServiceOpenAiUser 'modules/openAiRoleAssignment.bicep' = if (enableRoleAssignments && enableChatbot) {
+  name: 'appServiceOpenAiUser'
+  scope: resourceGroup()
+  #disable-next-line no-unnecessary-dependson
+  dependsOn: [
+    appService
+    openAi
+  ]
+  params: {
+    openAiAccountName: openAi!.outputs.name
     principalId: appService.outputs.principalId
   }
 }
