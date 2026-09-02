@@ -20,6 +20,7 @@ import type { FastifyInstance } from "fastify";
 import { type PrismaClient, Prisma } from "@repo/database";
 import { EmissionFactorStatus } from "@repo/types";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { resolveTestRateUnitMagnitudes } from "@test/factories/emissionFactorFactory.js";
 
 describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
   let app: FastifyInstance;
@@ -69,6 +70,11 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           dimensionValue1Id: null,
           dimensionValue2Id: null,
           rateMeasurementUnitId: rateMeasurementUnit.id,
+          // Derived from the rate unit, as every production write path does.
+          ...(await resolveTestRateUnitMagnitudes(
+            prisma,
+            rateMeasurementUnit.id
+          )),
           source: "DEFRA 2025",
           gasDetails: {},
           value: valueWithExtraDecimals,
@@ -116,6 +122,11 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
             dimensionValue1Id: null,
             dimensionValue2Id: null,
             rateMeasurementUnitId: rateMeasurementUnit.id,
+            // Derived from the rate unit, as every production write path does.
+            ...(await resolveTestRateUnitMagnitudes(
+              prisma,
+              rateMeasurementUnit.id
+            )),
             source: "DEFRA 2025",
             gasDetails: {},
             value: invalidValue,
@@ -154,6 +165,11 @@ describe("DECIMAL(28, 10) Precision Constraints - Integration Tests", () => {
           dimensionValue1Id: null,
           dimensionValue2Id: null,
           rateMeasurementUnitId: rateMeasurementUnit.id,
+          // Derived from the rate unit, as every production write path does.
+          ...(await resolveTestRateUnitMagnitudes(
+            prisma,
+            rateMeasurementUnit.id
+          )),
           source: "DEFRA 2025",
           gasDetails: {},
           value: validValue,

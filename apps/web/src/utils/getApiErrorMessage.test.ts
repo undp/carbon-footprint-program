@@ -146,7 +146,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   ["EMISSION_FACTOR_NOT_FOUND", "El factor de emisión no fue encontrado."],
   [
     "EMISSION_FACTOR_DUPLICATE",
-    "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
+    "Ya existe un factor de emisión activo con la misma sub-categoría, variables, fuente, año y familia de unidades (por ejemplo kg/kg y kg/ton son la misma familia).",
   ],
   [
     "SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR",
@@ -157,12 +157,25 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "La unidad de tasa seleccionada no fue encontrada.",
   ],
   [
-    "EMISSION_FACTOR_SOURCE_CONFLICT",
-    "Todos los factores de emisión activos de esta sub-categoría deben usar la misma fuente.",
-  ],
-  [
     "EMISSION_FACTOR_GAS_DETAILS_MISMATCH",
     "La suma del desglose GEI debe coincidir con el valor declarado.",
+  ],
+  // Catalog factor rejected while saving a footprint line
+  [
+    "CATALOG_EMISSION_FACTOR_NOT_FOUND",
+    "El factor de emisión elegido ya no está disponible en el catálogo. Vuelve a seleccionar un factor en esa línea para guardar.",
+  ],
+  [
+    "CATALOG_EMISSION_FACTOR_NOT_IN_METHODOLOGY",
+    "El factor de emisión elegido ya no pertenece a la metodología de esta huella. Vuelve a seleccionar un factor en esa línea.",
+  ],
+  [
+    "CATALOG_EMISSION_FACTOR_DIMENSION_MISMATCH",
+    "El factor de emisión elegido no corresponde a las variables seleccionadas en la línea. Revisa las variables o elige otro factor.",
+  ],
+  [
+    "CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH",
+    "El factor de emisión elegido no se puede expresar en la unidad de la línea. Cambia la unidad de medida o elige otro factor.",
   ],
   // Emission factor dimensions
   ["EMISSION_FACTOR_DIMENSION_NOT_FOUND", "La dimensión no fue encontrada."],

@@ -25,6 +25,15 @@ const DEFAULT_GAS_DETAILS: GetAllEmissionFactorsResponse[number]["gasDetails"] =
 
 /**
  * Creates a test emission factor with sensible defaults.
+ *
+ * The numerator/denominator magnitude pair is derived from the rate unit, the
+ * same way every production write path derives it, so a factory-built factor
+ * lands in the same unit family the unique index would put it in. Passing the
+ * pair by hand is not offered: a wrong pair would silently make two factors in
+ * one family look like two families.
+ *
+ * `year` defaults to null, meaning transversal. A test about vintages should say
+ * which year it means.
  */
 export async function createTestEmissionFactor(
   prisma: PrismaClient,
@@ -34,11 +43,17 @@ export async function createTestEmissionFactor(
     dimensionValue1Id: bigint | null;
     dimensionValue2Id: bigint | null;
     source: string;
+    year: number | null;
     gasDetails: object;
     value: string;
     status: string;
   }>
 ): Promise<EmissionFactor> {
+  const family = await resolveTestRateUnitMagnitudes(
+    prisma,
+    rateMeasurementUnitId
+  );
+
   return await prisma.emissionFactor.create({
     data: {
       subcategoryId,
@@ -46,6 +61,9 @@ export async function createTestEmissionFactor(
       dimensionValue2Id: overrides?.dimensionValue2Id ?? null,
       rateMeasurementUnitId,
       source: overrides?.source ?? `Test Source`,
+      year: overrides?.year ?? null,
+      numeratorMagnitudeId: family.numeratorMagnitudeId,
+      denominatorMagnitudeId: family.denominatorMagnitudeId,
       gasDetails: overrides?.gasDetails ?? DEFAULT_GAS_DETAILS,
       value: new Prisma.Decimal(overrides?.value ?? "1.5"),
       status:
@@ -55,6 +73,53 @@ export async function createTestEmissionFactor(
       updatedAt: null,
     },
   });
+}
+
+/** The unit family of a rate unit, for tests that build factors directly. */
+export async function resolveTestRateUnitMagnitudes(
+  prisma: PrismaClient,
+  rateMeasurementUnitId: bigint
+): Promise<{ numeratorMagnitudeId: bigint; denominatorMagnitudeId: bigint }> {
+  const rateUnit = await prisma.rateMeasurementUnit.findUnique({
+    where: { id: rateMeasurementUnitId },
+    select: {
+      numeratorMeasurementUnit: { select: { magnitudeId: true } },
+      denominatorMeasurementUnit: { select: { magnitudeId: true } },
+    },
+  });
+
+  if (!rateUnit) {
+    throw new Error(
+      `Rate measurement unit ${rateMeasurementUnitId} not found. Ensure the database is seeded.`
+    );
+  }
+
+  return {
+    numeratorMagnitudeId: rateUnit.numeratorMeasurementUnit.magnitudeId,
+    denominatorMagnitudeId: rateUnit.denominatorMeasurementUnit.magnitudeId,
+  };
+}
+
+/**
+ * Looks up a rate unit by abbreviation, for tests that need a specific unit
+ * family (`kg/kg` and `kg/ton` are one family; `kg/kWh` is another).
+ */
+export async function getTestRateMeasurementUnitIdByAbbreviation(
+  prisma: PrismaClient,
+  abbreviation: string
+): Promise<bigint> {
+  const unit = await prisma.rateMeasurementUnit.findUnique({
+    where: { abbreviation },
+    select: { id: true },
+  });
+
+  if (!unit) {
+    throw new Error(
+      `Rate measurement unit '${abbreviation}' not found. Ensure the database is seeded.`
+    );
+  }
+
+  return unit.id;
 }
 
 /**

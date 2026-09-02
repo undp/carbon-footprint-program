@@ -72,6 +72,7 @@ export const methodologyExportSelect = {
             select: {
               id: true,
               source: true,
+              year: true,
               value: true,
               gasDetails: true,
               dimensionValue1: { select: { id: true, value: true } },

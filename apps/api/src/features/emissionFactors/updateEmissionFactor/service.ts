@@ -15,10 +15,10 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
-  validateSourceConsistency,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
 } from "../helpers.js";
+import { resolveRateUnitMagnitudeFamily } from "../../measurementUnits/helpers.js";
 
 export const updateEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -43,6 +43,8 @@ export const updateEmissionFactorService = async (
           id: true,
           subcategoryId: true,
           source: true,
+          year: true,
+          rateMeasurementUnitId: true,
           dimensionValue1Id: true,
           dimensionValue2Id: true,
           gasDetails: true,
@@ -52,19 +54,6 @@ export const updateEmissionFactorService = async (
 
       if (!existing) {
         throw new EmissionFactorNotFoundError(id);
-      }
-
-      if (data.source !== undefined || data.subcategoryId !== undefined) {
-        const targetSubcategoryId =
-          data.subcategoryId !== undefined
-            ? BigInt(data.subcategoryId)
-            : existing.subcategoryId;
-        await validateSourceConsistency(
-          tx,
-          targetSubcategoryId,
-          data.source ?? existing.source,
-          emissionFactorId
-        );
       }
 
       if (data.gasDetails !== undefined || data.value !== undefined) {
@@ -88,6 +77,7 @@ export const updateEmissionFactorService = async (
       if (data.rateMeasurementUnitId !== undefined)
         updateData.rateMeasurementUnitId = BigInt(data.rateMeasurementUnitId);
       if (data.source !== undefined) updateData.source = data.source;
+      if (data.year !== undefined) updateData.year = data.year;
       if (data.gasDetails !== undefined)
         updateData.gasDetails = data.gasDetails;
       if (data.value !== undefined)
@@ -128,31 +118,47 @@ export const updateEmissionFactorService = async (
         }
       }
 
-      // Check uniqueness when any of the uniqueness-key fields change
-      const subcategoryChanged = data.subcategoryId !== undefined;
+      // The denormalized unit family is re-derived on every update, not just
+      // when the rate unit changes: it is the column the unique index compares,
+      // so leaving a stale pair behind would let the row drift out of the
+      // identity the index is enforcing.
+      const effectiveRateUnitId =
+        data.rateMeasurementUnitId !== undefined
+          ? BigInt(data.rateMeasurementUnitId)
+          : existing.rateMeasurementUnitId;
+      const family = await resolveRateUnitMagnitudeFamily(
+        tx,
+        effectiveRateUnitId
+      );
+      updateData.numeratorMagnitudeId = family.numeratorMagnitudeId;
+      updateData.denominatorMagnitudeId = family.denominatorMagnitudeId;
+
       const dim1Changed = data.dimensionValue1Name !== undefined;
       const dim2Changed = data.dimensionValue2Name !== undefined;
 
-      if (subcategoryChanged || dim1Changed || dim2Changed) {
-        const effectiveSubcategoryId =
-          updateData.subcategoryId != null
-            ? BigInt(updateData.subcategoryId as bigint)
-            : existing.subcategoryId;
-        const effectiveDim1Id = dim1Changed
-          ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
-          : existing.dimensionValue1Id;
-        const effectiveDim2Id = dim2Changed
-          ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
-          : existing.dimensionValue2Id;
-
-        await checkDuplicateEmissionFactor(
-          tx,
-          effectiveSubcategoryId,
-          effectiveDim1Id,
-          effectiveDim2Id,
-          emissionFactorId
-        );
-      }
+      // Normalization applies to the comparison, not to what is stored: a value
+      // the maintainer put in a slot the subcategory does not require is real
+      // data and stays on the row. It simply does not earn the factor a
+      // separate identity.
+      await checkDuplicateEmissionFactor(
+        tx,
+        {
+          subcategoryId:
+            updateData.subcategoryId != null
+              ? BigInt(updateData.subcategoryId as bigint)
+              : existing.subcategoryId,
+          dimensionValue1Id: dim1Changed
+            ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
+            : existing.dimensionValue1Id,
+          dimensionValue2Id: dim2Changed
+            ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
+            : existing.dimensionValue2Id,
+          year: data.year !== undefined ? data.year : existing.year,
+          source: data.source ?? existing.source,
+          ...family,
+        },
+        emissionFactorId
+      );
 
       await tx.emissionFactor.update({
         where: { id: emissionFactorId },
@@ -177,6 +183,7 @@ export const updateEmissionFactorService = async (
         id: emissionFactor.id.toString(),
         value: emissionFactor.value.toString(),
         source: emissionFactor.source,
+        year: emissionFactor.year,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,
         dimensionValue1Id:

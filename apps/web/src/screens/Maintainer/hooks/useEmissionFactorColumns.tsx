@@ -489,20 +489,8 @@ export const useEmissionFactorColumns = ({
         flex: 0.15,
         minWidth: 150,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
+          const { index: rowIndex } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const subcategoryId = formRow?.subcategoryId;
-
-          const allRows = getValues();
-          const otherRowsWithSameSubcategory = subcategoryId
-            ? allRows.filter(
-                (r) => r.subcategoryId === subcategoryId && r.id !== formRow?.id
-              )
-            : [];
-          const isSourceLocked = otherRowsWithSameSubcategory.length > 0;
-          const lockedSource = isSourceLocked
-            ? otherRowsWithSameSubcategory[0]?.source
-            : undefined;
 
           return (
             <EmissionFactorSourceCell
@@ -514,8 +502,35 @@ export const useEmissionFactorColumns = ({
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
-              isSourceLocked={isSourceLocked}
-              lockedSource={lockedSource}
+            />
+          );
+        },
+      },
+      {
+        field: "year",
+        headerName: "Año",
+        description:
+          "Año de reporte al que aplica el factor. Déjalo en blanco solo si el factor es transversal, es decir aplica a todos los años.",
+        flex: 0.07,
+        minWidth: 90,
+        renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
+          const { index: rowIndex } = getFormRow(params.row.id);
+          const editing = isEditing(params.row.id);
+
+          // Blank is a real answer here, not an empty field: it declares the
+          // factor transversal. EditableNumberCell already maps an empty input
+          // to null, which is exactly that choice.
+          return (
+            <EditableNumberCell
+              rowIndex={rowIndex}
+              fieldName="year"
+              isEditing={editing}
+              onChange={(value) => onCellChange(rowIndex, "year", value)}
+              onClick={
+                !viewOnly && !editing
+                  ? () => onStartEditRow(params.row.id)
+                  : undefined
+              }
             />
           );
         },
@@ -553,7 +568,6 @@ export const useEmissionFactorColumns = ({
     [
       viewOnly,
       getFormRow,
-      getValues,
       isEditing,
       onCellChange,
       onStartEditRow,
