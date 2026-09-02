@@ -345,6 +345,112 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       });
     });
 
+    it("carries source, year and the canonical factor ID through every converted unit", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      const factors = body.categories
+        .flatMap((cat) => cat.subcategories)
+        .flatMap((sub) => sub.emissionFactors);
+
+      const converted = factors.filter(
+        (ef) => ef.originalEmissionFactorId !== null
+      );
+      expect(converted.length).toBeGreaterThan(0);
+
+      // A converted unit is one catalog factor written another way, not a
+      // second catalog identity: it keeps the vintage and points at the same
+      // canonical row, which is what a CATALOG line-sync selection sends.
+      for (const factor of converted) {
+        const original = factors.find(
+          (candidate) => candidate.id === factor.originalEmissionFactorId
+        );
+        expect(original).toBeDefined();
+        expect(factor.source).toBe(original!.source);
+        expect(factor.year).toBe(original!.year);
+        expect(factor.baseEmissionFactorId).toBe(original!.id);
+      }
+    });
+
+    it("sets baseEmissionFactorId to its own ID on a canonical factor", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      const body = JSON.parse(
+        response.body
+      ) as GetCarbonInventoryMethodologyResponse;
+
+      const originals = body.categories
+        .flatMap((cat) => cat.subcategories)
+        .flatMap((sub) => sub.emissionFactors)
+        .filter((ef) => ef.originalEmissionFactorId === null);
+
+      expect(originals.length).toBeGreaterThan(0);
+      // Stable across both kinds of item, so the client never has to branch on
+      // whether it is looking at an original or a conversion.
+      for (const factor of originals) {
+        expect(factor.baseEmissionFactorId).toBe(factor.id);
+      }
+    });
+
+    it("exposes the seeded vintages: DEFRA dated 2025 and IPCC transversal", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}/methodology`,
+      });
+
+      const factors = (
+        JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse
+      ).categories
+        .flatMap((cat) => cat.subcategories)
+        .flatMap((sub) => sub.emissionFactors);
+
+      // The reviewed classification: provider in `source`, reporting year in
+      // `year`, and null year only where the factor was confirmed transversal.
+      const defra = factors.filter((ef) => ef.source === "DEFRA");
+      expect(defra.length).toBeGreaterThan(0);
+      expect(defra.every((ef) => ef.year === 2025)).toBe(true);
+
+      const ipcc = factors.filter((ef) => ef.source === "IPCC");
+      expect(ipcc.length).toBeGreaterThan(0);
+      expect(ipcc.every((ef) => ef.year === null)).toBe(true);
+
+      // No factor should still be carrying its year inside the provider name.
+      expect(factors.some((ef) => /(?:19|20)\d{2}/.test(ef.source))).toBe(
+        false
+      );
+    });
+
     it("should include originalEmissionFactorId in emission factors with correct relationships", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
@@ -754,6 +860,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         dimensionValue2Id: null,
         rateMeasurementUnitId: 1n,
         source: "TEST",
+        year: 2025,
         gasDetails: {},
         value: { toString: () => "not-a-number" } as unknown as Prisma.Decimal,
         rateMeasurementUnit: null,
@@ -771,6 +878,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         dimensionValue2Id: null,
         rateMeasurementUnitId: 5n,
         source: "TEST",
+        year: 2025,
         gasDetails: {},
         value: new Prisma.Decimal("2.5"),
         rateMeasurementUnit: null,
@@ -788,6 +896,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         dimensionValue2Id: null,
         rateMeasurementUnitId: 5n,
         source: "TEST",
+        year: 2025,
         gasDetails: {},
         value: new Prisma.Decimal("2.5"),
         rateMeasurementUnit: {
@@ -818,6 +927,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         dimensionValue2Id: null,
         rateMeasurementUnitId: 5n,
         source: "TEST",
+        year: 2025,
         gasDetails: { co2: 1 },
         value: new Prisma.Decimal("2"),
         rateMeasurementUnit: {
