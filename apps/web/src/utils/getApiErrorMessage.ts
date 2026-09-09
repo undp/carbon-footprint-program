@@ -47,8 +47,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // Subcategories
   SUBCATEGORY_NAME_ALREADY_EXISTS:
     "Ya existe una sub-categoría con este nombre en esta categoría.",
+  // No "vuelve a intentarlo": positions are server-assigned under the category
+  // lock, so this can only fire on a position written outside that path (seed
+  // data, a manual fix) and the next attempt fails identically.
   SUBCATEGORY_POSITION_ALREADY_EXISTS:
-    "Ya existe una sub-categoría con esta posición en esta categoría. Vuelve a intentarlo.",
+    "Ya existe una sub-categoría con esta posición en esta categoría.",
   CATEGORY_NOT_FOUND_FOR_SUBCATEGORY:
     "La categoría asociada no fue encontrada.",
   CATEGORY_FROM_DIFFERENT_METHODOLOGY:
