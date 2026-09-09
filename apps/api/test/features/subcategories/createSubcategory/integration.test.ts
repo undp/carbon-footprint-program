@@ -177,6 +177,10 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       const holderReleased = new Promise<void>((resolve) => {
         releaseHolder = resolve;
       });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
 
       const holder = prisma.$transaction(
         async (tx) => {
@@ -191,10 +195,17 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
               status: SubcategoryStatus.ACTIVE,
             },
           });
+          holderLocked();
           await holderReleased;
         },
         { timeout: 20000 }
       );
+
+      // The request must not start until the holder owns the lock and has
+      // taken position 2. Starting both and hoping the holder wins makes the
+      // interleaving a race: if the request got there first it would take
+      // position 2 itself and the holder's insert would be the one rejected.
+      await holderHasLock;
 
       const requestPromise = app.inject({
         method: "POST",
@@ -202,6 +213,8 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
         payload: buildSubcategoryPayload(category.id.toString()),
       });
 
+      // Only to let the request reach the lock and block on it, so the test
+      // exercises the waiting path rather than a sequential one.
       await new Promise((resolve) => setTimeout(resolve, 300));
       releaseHolder();
       await holder;
