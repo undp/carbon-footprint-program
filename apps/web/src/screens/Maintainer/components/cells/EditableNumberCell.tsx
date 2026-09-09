@@ -46,8 +46,13 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
           onChange(null);
           return;
         }
-        const parsed = Number(localValue);
-        onChange(Number.isNaN(parsed) ? null : parsed);
+        // An unparseable entry is forwarded as NaN, not folded into null. The
+        // empty string is the only input that means null, and for a field where
+        // null carries meaning of its own — an emission factor's blank year
+        // declares it transversal — silently turning "2o25" into null would
+        // store a typo as a deliberate declaration. NaN fails the resolver
+        // instead, so the cell shows the error and nothing is saved.
+        onChange(Number(localValue));
       }}
       onKeyDown={(e) => e.stopPropagation()}
       error={!!fieldError}
@@ -89,7 +94,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
           "&:hover": onClick ? { backgroundColor: "grey.100" } : {},
         }}
       >
-        {formValue ?? ""}
+        {Number.isFinite(formValue) ? formValue : ""}
       </Typography>
     );
   }
