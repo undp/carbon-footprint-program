@@ -38,8 +38,26 @@ PGPASSWORD="${PGPASSWORD:-}"
 TEMPLATE_DB="${TEMPLATE_DB:-testdb}"
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-MIGRATION_DIR="$REPO_ROOT/packages/database/src/prisma/migrations/20260901120000_add_emission_factor_year"
+MIGRATIONS_ROOT="$REPO_ROOT/packages/database/src/prisma/migrations"
+
+# Prisma stamps the timestamp when the migration is generated, so it cannot be
+# hardcoded here. Resolve it by name and fail with a readable message: a missing
+# directory would otherwise surface as a bare `mv: cannot stat` from stage(),
+# with nothing pointing at the timestamp as the cause.
+shopt -s nullglob
+migration_matches=("$MIGRATIONS_ROOT"/*_add_emission_factor_year)
+shopt -u nullglob
+if [[ ${#migration_matches[@]} -ne 1 ]]; then
+  echo "Expected exactly one *_add_emission_factor_year migration under" >&2
+  echo "$MIGRATIONS_ROOT, found ${#migration_matches[@]}." >&2
+  exit 1
+fi
+MIGRATION_DIR="${migration_matches[0]}"
 MIGRATION_SQL="$MIGRATION_DIR/migration.sql"
+if [[ ! -f "$MIGRATION_SQL" ]]; then
+  echo "No migration.sql in $MIGRATION_DIR." >&2
+  exit 1
+fi
 
 # Prisma takes a URL, not PG* variables, so the credentials have to be encoded:
 # a restored-production password containing @ / : # ? or % otherwise makes the
