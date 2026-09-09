@@ -614,6 +614,64 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("EMISSION_FACTOR_DUPLICATE");
     });
+
+    it("should still allow editing a factor whose only sibling differs in a non-required dimension slot", async () => {
+      // The duplicate lookup ignores a slot the subcategory does not require,
+      // while the index compares the raw columns — so two rows like these are
+      // legal and the migration does not rewrite them. Re-checking on every
+      // PATCH would find each row's sibling and leave both un-editable, even
+      // for a change that does not touch the identity at all.
+      const { subcategory, rateUnitId } = await buildBaseSubcategory(
+        "Update Optional Slot Sibling"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const valueA = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "A" }
+      );
+      const valueB = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "B" }
+      );
+
+      await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+        source: "Test Optional Slot Source",
+        year: 2025,
+        dimensionValue1Id: valueA.id,
+      });
+      const efB = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        {
+          source: "Test Optional Slot Source",
+          year: 2025,
+          dimensionValue1Id: valueB.id,
+        }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${efB.id.toString()}`,
+        payload: { value: 2 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const updated = await prisma.emissionFactor.findUniqueOrThrow({
+        where: { id: efB.id },
+        select: { value: true, dimensionValue1Id: true },
+      });
+      expect(updated.value.toString()).toBe("2");
+      // The value parked in the optional slot is data, not a normalization
+      // target: the update must not clear it.
+      expect(updated.dimensionValue1Id).toBe(valueB.id);
+    });
   });
 
   describe("Reference validation", () => {
