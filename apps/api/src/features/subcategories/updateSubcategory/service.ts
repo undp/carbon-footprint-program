@@ -125,6 +125,7 @@ export const updateSubcategoryService = async (
           icon: true,
           description: true,
           explanation: true,
+          position: true,
           category: {
             select: { id: true, name: true, color: true },
           },
@@ -148,6 +149,7 @@ export const updateSubcategoryService = async (
         icon: IconNameSchema.parse(subcategory.icon),
         description: subcategory.description,
         explanation: subcategory.explanation,
+        position: subcategory.position,
         category: {
           id: subcategory.category.id.toString(),
           name: subcategory.category.name,

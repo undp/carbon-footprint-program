@@ -52,6 +52,7 @@ export const CreateSubcategoryResponseSchema = SubcategoryBaseSchema.pick({
   icon: true,
   description: true,
   explanation: true,
+  position: true,
 }).extend({
   category: CategoryBaseSchema.pick({ id: true, name: true, color: true }),
   measurementUnits: z.array(
