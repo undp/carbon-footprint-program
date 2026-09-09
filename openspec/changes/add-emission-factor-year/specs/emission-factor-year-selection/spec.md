@@ -108,6 +108,8 @@ For `CATALOG`, the API SHALL load the selected factor and derive source, year, c
 
 For `CUSTOM` and `DIRECT`, the API SHALL apply their dedicated validation and calculation paths. They SHALL NOT create a dated catalog-factor snapshot or participate in catalog-year warnings.
 
+The line's `inputType` SHALL remain the capture-mode field it already is and SHALL NOT be used to derive the factor variant. The API SHALL reject a request whose `inputType` contradicts its variant: `DIRECT` pairs only with the `DIRECT` variant, and `SIMPLIFIED` and `EXPERT` pair only with `CATALOG` or `CUSTOM`.
+
 #### Scenario: A valid catalog factor is applied in a compatible unit
 
 - **GIVEN** an ACTIVE canonical `DEFRA (2023)` factor in `kg/kWh` belongs to the inventory methodology

@@ -110,6 +110,10 @@ DIRECT  { totalEmissions }
 
 Line dimensions, quantity and other common fields remain outside that discriminated factor selection.
 
+`CarbonInventoryLineInput.inputType` is kept and is **not** merged into this union, because the two answer different questions: `inputType` records which capture mode the organization used (`SIMPLIFIED` versus `EXPERT`), a distinction the factor variants do not carry, while the variant records how the factor was obtained. The server derives the factor path from the variant alone and never reads `inputType` to decide it.
+
+Since both are client-authored, they are constrained rather than left to drift: `DIRECT` pairs only with a `DIRECT` variant, and `SIMPLIFIED` and `EXPERT` pair only with `CATALOG` or `CUSTOM`. A request that violates the pairing — `inputType: DIRECT` alongside a `CATALOG` variant, for instance — is rejected rather than reconciled, so neither field can silently win over the other.
+
 For `CATALOG`, the server loads the factor and inventory methodology inside the sync transaction and validates:
 
 - the factor exists and is ACTIVE;

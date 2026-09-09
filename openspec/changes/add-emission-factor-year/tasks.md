@@ -55,6 +55,8 @@
 - [x] 6.5 Update saved-line reads and `getEmissionFactors/service.ts` to return `emissionFactorId`/base factor ID and `appliedFactorYear`, so reload restores the exact catalog choice and warning state can be derived.
 - [x] 6.6 Update `duplicateCarbonInventory/service.ts` to copy `appliedFactorYear` with the other immutable snapshots. Updating `carbon_inventory.year` SHALL NOT rewrite factors or results and SHALL NOT invoke a bulk resolution path.
 
+- [ ] 6.7 Reject a sync request whose `inputType` contradicts its factor variant: `DIRECT` only with `DIRECT`, `SIMPLIFIED` and `EXPERT` only with `CATALOG` or `CUSTOM`. Keep `inputType` as the capture-mode field; do not derive the variant from it or the reverse.
+
 ## 7. Web — ranking in the existing Factor selector
 
 - [x] 7.1 Add factor `year` and canonical/base factor ID to `MethodologyEmissionFactor` and the emission-editor models.
