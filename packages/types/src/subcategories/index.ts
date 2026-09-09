@@ -6,3 +6,5 @@ export * from "./createSubcategory/schemas.js";
 export * from "./createSubcategory/types.js";
 export * from "./updateSubcategory/schemas.js";
 export * from "./updateSubcategory/types.js";
+export * from "./swapSubcategoryPositions/schemas.js";
+export * from "./swapSubcategoryPositions/types.js";

@@ -27,6 +27,8 @@ interface UseSubcategoryColumnsParams {
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
   onConfigureVariables?: (rowId: string) => void;
+  onMoveUp: (row: SubcategoryForm) => void;
+  onMoveDown: (row: SubcategoryForm) => void;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -42,6 +44,8 @@ export const useSubcategoryColumns = ({
   onDelete,
   onOpenExplanation,
   onConfigureVariables,
+  onMoveUp,
+  onMoveDown,
   rows,
   categories,
   allMeasurementUnits,
@@ -55,8 +59,35 @@ export const useSubcategoryColumns = ({
     [editingRowId]
   );
 
+  // Positions are unique per category, not across the grid, so a row's
+  // neighbours are its siblings inside its own category.
+  const siblingsByCategory = useMemo(() => {
+    const groups = new Map<string, SubcategoryForm[]>();
+    for (const row of rows) {
+      groups.set(row.categoryId, [...(groups.get(row.categoryId) ?? []), row]);
+    }
+    for (const siblings of groups.values()) {
+      siblings.sort((a, b) => a.position - b.position);
+    }
+    return groups;
+  }, [rows]);
+
   return useMemo<GridColDef<Subcategory>[]>(
     () => [
+      {
+        field: "position",
+        headerName: "Pos.",
+        width: 60,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          const formRow = rows[getRowIndex(params.row.id)];
+          // A row that has not been created yet has no position to show.
+          return formRow && formRow.position > 0 ? formRow.position : "—";
+        },
+      },
       {
         field: "icon",
         headerName: "Ícono",
@@ -267,12 +298,24 @@ export const useSubcategoryColumns = ({
             );
           }
 
+          const siblings = formRow
+            ? (siblingsByCategory.get(formRow.categoryId) ?? [])
+            : [];
+          const siblingIdx = siblings.findIndex((r) => r.id === rowId);
+          const isFirstInCategory = siblingIdx === 0;
+          const isLastInCategory = siblingIdx === siblings.length - 1;
+          const cannotMove = anyEditing || isNewRow || !formRow;
+
           return (
             <ActionButtons
               isActiveRow={anyEditing && !editing}
               isEditing={editing}
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
+              onMoveUp={formRow ? () => onMoveUp(formRow) : undefined}
+              onMoveDown={formRow ? () => onMoveDown(formRow) : undefined}
+              moveUpDisabled={cannotMove || isFirstInCategory}
+              moveDownDisabled={cannotMove || isLastInCategory}
               onDelete={formRow ? () => onDelete(formRow) : undefined}
               onConfigureVariables={
                 !isNewRow && onConfigureVariables
@@ -300,6 +343,9 @@ export const useSubcategoryColumns = ({
       onCancelEditRow,
       onDelete,
       onConfigureVariables,
+      onMoveUp,
+      onMoveDown,
+      siblingsByCategory,
     ]
   );
 };

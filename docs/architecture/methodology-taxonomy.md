@@ -128,7 +128,7 @@ Subcategories are ordered by `position` ascending — never alphabetically, sinc
 | 10  | Uso de productos de la organización               | cat. 11          |
 | 11  | Emisiones provenientes de otras fuentes           | otras categorías |
 
-Two GHG categories are split in two here (business travel into travel + lodging, commuting into commuting + remote work) because each half is captured with different activity data. Their descriptions state the GHG Protocol and ISO 14064-1 category each one maps to. The order ships as seed data (`tools/seed/src/data/*/methodologies.json`, one `position` per subcategory); subcategories created later through the maintainer are appended last.
+Two GHG categories are split in two here (business travel into travel + lodging, commuting into commuting + remote work) because each half is captured with different activity data. Their descriptions state the GHG Protocol and ISO 14064-1 category each one maps to. The order ships as seed data (`tools/seed/src/data/*/methodologies.json`, one `position` per subcategory, numbered 1..N inside each category and validated by the seed). Subcategories created later through the maintainer are appended last and can then be reordered from the maintainer grid, which swaps two positions through `POST /api/subcategories/swap-positions` — the same mechanism the categories grid uses. A move only ever swaps siblings inside one category, since positions are unique per category rather than per methodology.
 
 ---
 
