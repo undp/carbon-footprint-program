@@ -65,7 +65,7 @@ export const getEmissionFactorDimensionsService = async (
       },
     },
     where: whereClause,
-    orderBy: [{ category: { position: "asc" } }, { name: "asc" }],
+    orderBy: [{ category: { position: "asc" } }, { position: "asc" }],
   });
 
   return subcategories.map((sub) => ({

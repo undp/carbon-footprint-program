@@ -77,7 +77,7 @@ export const getAllEmissionFactorsService = async (
     where: whereClause,
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
-      { subcategory: { name: "asc" } },
+      { subcategory: { position: "asc" } },
     ],
   });
 
