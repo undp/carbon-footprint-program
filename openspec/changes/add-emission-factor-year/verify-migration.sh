@@ -17,6 +17,11 @@
 #
 # TEMPLATE_DB must be a database seeded with the *pre-change* catalog (sources
 # still carrying their year, duplicate kg/kg + kg/ton representations present).
+#
+# Both fixtures below abort when their SELECT matches nothing, rather than
+# inserting zero rows: subcategory names and unit abbreviations are
+# per-deployment catalog data, and an un-injected defect would otherwise be
+# reported as a migration failure.
 
 set -euo pipefail
 
@@ -29,7 +34,7 @@ REPO_ROOT="$(git rev-parse --show-toplevel)"
 MIGRATION_DIR="$REPO_ROOT/packages/database/src/prisma/migrations/20260901120000_add_emission_factor_year"
 MIGRATION_SQL="$MIGRATION_DIR/migration.sql"
 
-psql_db() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$1" -tAq "${@:2}"; }
+psql_db() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$1" -tAq -v ON_ERROR_STOP=1 "${@:2}"; }
 admin() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -q -c "$1"; }
 
 # A database at the migration head *before* this change, so `migrate deploy`
@@ -108,27 +113,46 @@ assert_zero() {
 echo "1. An unclassified source stops the migration instead of defaulting to transversal"
 stage efyear_check_unclassified
 psql_db efyear_check_unclassified -c "
-  INSERT INTO emission_factor (subcategory_id, rate_measurement_unit_id, source, gas_details, value, status)
-  SELECT s.id, rmu.id, 'Fuente Nueva Sin Clasificar', '{}', 1.0, 'ACTIVE'
-  FROM subcategory s, rate_measurement_unit rmu
-  WHERE rmu.abbreviation = 'kg/kWh' ORDER BY s.id LIMIT 1;" >/dev/null
+  DO \$\$
+  DECLARE inserted int;
+  BEGIN
+    INSERT INTO emission_factor (subcategory_id, rate_measurement_unit_id, source, gas_details, value, status)
+    SELECT s.id, rmu.id, 'Fuente Nueva Sin Clasificar', '{}', 1.0, 'ACTIVE'
+    FROM subcategory s, rate_measurement_unit rmu
+    WHERE rmu.abbreviation = 'kg/kWh' ORDER BY s.id LIMIT 1;
+    GET DIAGNOSTICS inserted = ROW_COUNT;
+    IF inserted <> 1 THEN
+      RAISE EXCEPTION 'fixture inserted no row: no kg/kWh rate unit in this database';
+    END IF;
+  END
+  \$\$;" >/dev/null
 expect_abort efyear_check_unclassified "Unclassified emission factor source" \
   "aborts and names the unclassified source"
 
 echo "2. Same-family factors whose values disagree go to methodology review"
 stage efyear_check_conflict
 psql_db efyear_check_conflict -c "
-  -- Same subcategory, dimensions, source and family as an existing kg/ton
-  -- factor, but not the same number once converted to a common unit.
-  INSERT INTO emission_factor (subcategory_id, dimension_value_1_id, rate_measurement_unit_id, source, gas_details, value, status)
-  SELECT ef.subcategory_id, ef.dimension_value_1_id, target.id, ef.source, '{}', 0.99, 'ACTIVE'
-  FROM emission_factor ef
-  JOIN subcategory s ON s.id = ef.subcategory_id
-  JOIN rate_measurement_unit orig ON orig.id = ef.rate_measurement_unit_id,
-       rate_measurement_unit target
-  WHERE s.name = 'Procesos industriales - Vidrio'
-    AND orig.abbreviation = 'kg/ton' AND target.abbreviation = 'kg/g'
-  ORDER BY ef.id LIMIT 1;" >/dev/null
+  DO \$\$
+  DECLARE inserted int;
+  BEGIN
+    -- Same subcategory, dimensions, source and family as an existing kg/ton
+    -- factor, but not the same number once converted to a common unit.
+    INSERT INTO emission_factor (subcategory_id, dimension_value_1_id, rate_measurement_unit_id, source, gas_details, value, status)
+    SELECT ef.subcategory_id, ef.dimension_value_1_id, target.id, ef.source, '{}', 0.99, 'ACTIVE'
+    FROM emission_factor ef
+    JOIN subcategory s ON s.id = ef.subcategory_id
+    JOIN rate_measurement_unit orig ON orig.id = ef.rate_measurement_unit_id,
+         rate_measurement_unit target
+    WHERE s.name = 'Procesos industriales - Vidrio'
+      AND ef.status = 'ACTIVE'
+      AND orig.abbreviation = 'kg/ton' AND target.abbreviation = 'kg/g'
+    ORDER BY ef.id LIMIT 1;
+    GET DIAGNOSTICS inserted = ROW_COUNT;
+    IF inserted <> 1 THEN
+      RAISE EXCEPTION 'fixture inserted no row: no ACTIVE kg/ton factor under subcategory \"Procesos industriales - Vidrio\", or no kg/g unit. Subcategory names are per-deployment catalog data — point this check at a mass/mass subcategory that exists here.';
+    END IF;
+  END
+  \$\$;" >/dev/null
 expect_abort efyear_check_conflict "disagree after unit conversion" \
   "aborts rather than silently choosing one value"
 
