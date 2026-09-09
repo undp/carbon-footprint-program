@@ -236,8 +236,9 @@ erDiagram
 		timestamptz updated_at  ""  
 		BIGINT created_by FK ""  
 		BIGINT updated_by FK ""
-		%% UNIQUE(category_id, name)
-		%% UNIQUE(category_id, position)
+		%% UNIQUE(category_id, name) WHERE status <> 'DELETED'
+		%% UNIQUE(category_id, position) WHERE status <> 'DELETED'
+		%% (both partial: a deleted subcategory frees its name and its position)
 	}
 
 	emission_factor_dimension {
