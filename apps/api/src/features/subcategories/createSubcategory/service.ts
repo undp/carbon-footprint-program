@@ -60,6 +60,7 @@ export const createSubcategoryService = async (
           icon: true,
           description: true,
           explanation: true,
+          position: true,
           category: {
             select: { id: true, name: true, color: true },
           },
