@@ -229,7 +229,9 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
       expect(body).toHaveLength(1);
 
       const row = body[0];
-      expect(row.id).toBe(emissionFactor.id.toString());
+      // One row per applied vintage: the factor, the year it was applied under
+      // — none here, so transversal — and the value that was applied.
+      expect(row.id).toBe(`${emissionFactor.id}-transversal-2.5`);
       expect(row.activityParameter).toBe("TestValue1 / TestValue2");
       expect(row.factorValue).toBe(2.5);
       expect(row.gasBreakdownLines).toEqual(
@@ -388,10 +390,67 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
 
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetEmissionFactorsResponse;
-      // Both lines reference the same emission factor id — only one row is
+      // Both lines applied the same vintage of the same factor — one row is
       // returned instead of two.
       expect(body).toHaveLength(1);
-      expect(body[0].id).toBe(emissionFactor.id.toString());
+      expect(body[0].id).toBe(`${emissionFactor.id}-transversal-1`);
+    });
+
+    it("keeps one row per applied vintage of the same catalog factor", async () => {
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "EXPERT",
+        methodologyVersionId,
+      });
+
+      const emissionFactor = await prisma.emissionFactor.create({
+        data: {
+          subcategoryId: subcategoryDim1OnlyId,
+          dimensionValue1Id: selectionOnlyId,
+          rateMeasurementUnitId: rateUnitId,
+          ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
+          source: "Re-dated Factor",
+          year: 2025,
+          gasDetails: {},
+          value: new Prisma.Decimal(2),
+          updatedAt: null,
+        },
+      });
+
+      // The catalog row was re-dated between the two saves, so each line holds
+      // the vintage it actually applied.
+      for (const vintage of [
+        { year: 2024, value: new Prisma.Decimal(1) },
+        { year: 2025, value: new Prisma.Decimal(2) },
+      ]) {
+        const line = await createCarbonInventoryLine(
+          prisma,
+          inventory.id,
+          subcategoryDim1OnlyId
+        );
+        const input = await createCarbonInventoryLineInput(prisma, line.id, {
+          inputType: "EXPERT",
+          selection1Id: selectionOnlyId,
+        });
+        await createCarbonInventoryLineFactor(prisma, input.id, {
+          appliedFactorValue: vintage.value,
+          appliedFactorRateUnitId: rateUnitId,
+          emissionFactorId: emissionFactor.id,
+          appliedFactorYear: vintage.year,
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emission-factors`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetEmissionFactorsResponse;
+      expect(body).toHaveLength(2);
+      expect(body.map((row) => row.appliedFactorYear).sort()).toEqual([
+        2024, 2025,
+      ]);
+      expect(new Set(body.map((row) => row.id)).size).toBe(2);
     });
 
     it("skips a line with no active input", async () => {

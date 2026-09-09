@@ -384,6 +384,7 @@ export async function createCarbonInventoryLineFactor(
     appliedFactorRateUnitId: bigint;
     emissionFactorId?: bigint | null;
     appliedFactorSource?: string | null;
+    appliedFactorYear?: number | null;
     derivationDetails?: Prisma.InputJsonValue;
   }
 ) {
@@ -395,6 +396,7 @@ export async function createCarbonInventoryLineFactor(
       appliedFactorRateUnitId: options.appliedFactorRateUnitId,
       emissionFactorId: options.emissionFactorId ?? null,
       appliedFactorSource: options.appliedFactorSource ?? null,
+      appliedFactorYear: options.appliedFactorYear ?? null,
       derivationDetails: options.derivationDetails ?? undefined,
       createdById: id,
       updatedAt: null,
