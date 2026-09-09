@@ -60,7 +60,8 @@ export JWT_SECRET="dev-only-dummy-secret-change-me"
 # by every caller. A deployed instance that IS reached directly should set
 # "false" explicitly — same behaviour, but it records the decision and silences
 # the warning. See docs/security/hardening.md ("Proxy Trust") per topology.
-# export TRUST_PROXY=""   # <ip-or-cidr>[,...] | <hops 0-10> | loopback | true | false
+# export TRUST_PROXY=""   # <ip-or-cidr>[,...] | linklocal | loopback | true | false
+#                         # (a bare hop count like "1" is rejected — fails the boot)
 
 # JWKS — what the API uses to validate access tokens (when AUTH_PROVIDER="jwks").
 # The API reads these as-is; it does NOT derive them from any provider settings.
