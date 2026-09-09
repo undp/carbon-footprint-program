@@ -1,6 +1,6 @@
 import fp from "fastify-plugin";
 import { buildStorageConfig } from "@/config/environment.js";
-import { createStorageAdapter } from "@repo/storage";
+import { createStorageAdapter, StorageProvider } from "@repo/storage";
 
 export default fp(
   async (fastify) => {
@@ -8,6 +8,17 @@ export default fp(
 
     const config = buildStorageConfig();
     const { provider } = config;
+
+    // Which credential mode is active is the first thing an operator reaches
+    // for when S3 auth misbehaves, and it is not otherwise visible anywhere.
+    if (config.provider === StorageProvider.MINIO) {
+      fastify.log.info(
+        config.minio.credentials
+          ? "S3 credentials: static keys (MINIO_ACCESS_KEY / MINIO_SECRET_KEY)"
+          : "S3 credentials: AWS SDK default chain (keyless — task role, instance profile, AWS_* env, SSO)"
+      );
+    }
+
     const storage = await createStorageAdapter(config);
     fastify.decorate("storage", storage);
 

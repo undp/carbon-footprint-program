@@ -94,9 +94,16 @@ The legacy Bicep templates already provision the storage account, container, and
 
 Required env vars when `STORAGE_PROVIDER=minio`:
 
-- `MINIO_ENDPOINT` — full endpoint URL (e.g. `http://minio:9000` inside docker-compose, `http://localhost:9000` on the host).
-- `MINIO_ACCESS_KEY` — S3 access key id / MinIO root user.
-- `MINIO_SECRET_KEY` — S3 secret access key / MinIO root password.
+- `MINIO_ENDPOINT` — full endpoint URL (e.g. `http://minio:9000` inside docker-compose, `http://localhost:9000` on the host). Startup aborts if it is missing.
+
+Credentials — `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY` — are **optional but both-or-neither** (setting exactly one aborts boot):
+
+- **Both set** → the adapter signs with those static keys (`MINIO_ACCESS_KEY` = S3 access key id / MinIO root user, `MINIO_SECRET_KEY` = S3 secret access key / MinIO root password). Use this for MinIO, on-prem S3, an explicit AWS IAM key, **and Google Cloud Storage** (see the caveat below).
+- **Both unset** → **keyless**: the adapter builds the S3 client with no explicit credentials, so the AWS SDK v3 **default credential provider chain** supplies them — an ECS/EKS **task/pod IAM role**, an EC2 **instance profile**, `AWS_*` env vars, SSO, etc. This is the best-practice path on AWS: no long-lived access key to provision, rotate, or leak.
+
+Keyless mode **resolves the chain at boot and aborts if it comes up empty**, so a deployment that merely forgot the keys fails immediately with an actionable message instead of booting green and returning 500s on the first upload. The startup log also records which mode is active (`S3 credentials: static keys …` / `S3 credentials: AWS SDK default chain …`) — check it first when S3 auth misbehaves.
+
+> **Keyless is AWS-only.** Google Cloud Storage's S3-interoperability (XML) API authenticates **only** with HMAC keys — it has no equivalent of the AWS default credential chain. GCS deployments must therefore set **both** `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY` to a GCS HMAC key pair. (A truly keyless GCS path — Workload Identity via the native Google SDK — would require a separate native GCS adapter and is out of scope for the S3 adapter.)
 
 Optional:
 
@@ -146,22 +153,22 @@ The relay is MinIO-only (Azure serves SAS URLs directly over HTTPS; enabling it 
 
 ## Env var reference
 
-| Variable                       | Provider | Required    | Default     | Notes                                                   |
-| ------------------------------ | -------- | ----------- | ----------- | ------------------------------------------------------- |
-| `STORAGE_PROVIDER`             | both     | yes         | —           | `azure_blob_storage` or `minio`                         |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Azure    | yes (Azure) | —           | Storage account name                                    |
-| `AZURE_STORAGE_CONTAINER_NAME` | Azure    | no          | `files`     | Container name                                          |
-| `AZURE_STORAGE_TENANT_ID`      | Azure    | no          | —           | Service Principal; all three → `ClientSecretCredential` |
-| `AZURE_STORAGE_CLIENT_ID`      | Azure    | no          | —           | Service Principal; all three → `ClientSecretCredential` |
-| `AZURE_STORAGE_CLIENT_SECRET`  | Azure    | no          | —           | Service Principal; all three → `ClientSecretCredential` |
-| `MINIO_ENDPOINT`               | MinIO    | yes (MinIO) | —           | Endpoint URL                                            |
-| `MINIO_ACCESS_KEY`             | MinIO    | yes (MinIO) | —           | S3 access key id                                        |
-| `MINIO_SECRET_KEY`             | MinIO    | yes (MinIO) | —           | S3 secret access key                                    |
-| `MINIO_BUCKET`                 | MinIO    | no          | `files`     | Bucket name                                             |
-| `MINIO_REGION`                 | MinIO    | no          | `us-east-1` | S3 client region                                        |
-| `MINIO_FORCE_PATH_STYLE`       | MinIO    | no          | `true`      | Path-style URLs                                         |
-| `MINIO_RELAY_ENABLED`          | MinIO    | no          | `false`     | Enable the storage relay (keeps MinIO internal)         |
-| `API_ORIGIN`                   | MinIO    | if relay    | —           | API public origin; relay appends `/api/storage`         |
+| Variable                       | Provider | Required     | Default     | Notes                                                                                                             |
+| ------------------------------ | -------- | ------------ | ----------- | ----------------------------------------------------------------------------------------------------------------- |
+| `STORAGE_PROVIDER`             | both     | yes          | —           | `azure_blob_storage` or `minio`                                                                                   |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | Azure    | yes (Azure)  | —           | Storage account name                                                                                              |
+| `AZURE_STORAGE_CONTAINER_NAME` | Azure    | no           | `files`     | Container name                                                                                                    |
+| `AZURE_STORAGE_TENANT_ID`      | Azure    | no           | —           | Service Principal; all three → `ClientSecretCredential`                                                           |
+| `AZURE_STORAGE_CLIENT_ID`      | Azure    | no           | —           | Service Principal; all three → `ClientSecretCredential`                                                           |
+| `AZURE_STORAGE_CLIENT_SECRET`  | Azure    | no           | —           | Service Principal; all three → `ClientSecretCredential`                                                           |
+| `MINIO_ENDPOINT`               | MinIO    | yes (MinIO)  | —           | Endpoint URL                                                                                                      |
+| `MINIO_ACCESS_KEY`             | MinIO    | both/neither | —           | S3 access key id. Both-or-neither with secret; unset both = keyless (AWS default chain). Required for GCS (HMAC). |
+| `MINIO_SECRET_KEY`             | MinIO    | both/neither | —           | S3 secret access key. Both-or-neither with access key.                                                            |
+| `MINIO_BUCKET`                 | MinIO    | no           | `files`     | Bucket name                                                                                                       |
+| `MINIO_REGION`                 | MinIO    | no           | `us-east-1` | S3 client region                                                                                                  |
+| `MINIO_FORCE_PATH_STYLE`       | MinIO    | no           | `true`      | Path-style URLs                                                                                                   |
+| `MINIO_RELAY_ENABLED`          | MinIO    | no           | `false`     | Enable the storage relay (keeps MinIO internal)                                                                   |
+| `API_ORIGIN`                   | MinIO    | if relay     | —           | API public origin; relay appends `/api/storage`                                                                   |
 
 ## Switching storage providers
 
@@ -227,6 +234,7 @@ CI partitions this into three legs (Vitest projects) instead of running the full
 ## Operational notes
 
 - **Presigned URL expiry**: defaults to 15 minutes (`PRESIGNED_URL_EXPIRY_MINUTES` in `apps/api/src/config/constants.ts`). Tune there if your country deployment needs a different default.
+- **Presigned URL lifetime under keyless auth**: a SigV4 URL signed with **temporary** credentials dies with the underlying STS session (~6 h on ECS), regardless of the expiry requested. Under static keys a 7-day URL really lasts 7 days; under a task role it does not. The 15-minute default is comfortably inside that window, but keep any per-call `expiresInMinutes` override (`generateReadUrl` / `createReadUrlSigner`) well under the session lifetime — otherwise URLs expire unpredictably early, and only in the keyless deployment.
 - **Copy semantics**: `storage.copyObject` returns only after the copy is complete in the backend. Azure polls via `beginCopyFromURL`; S3 returns synchronously from `CopyObjectCommand`. Callers can rely on the awaited promise.
 - **Deletes are idempotent**: `storage.deleteObject` succeeds when the path does not exist (no thrown errors, no 404 handling needed at callsites).
 - **Path-style URLs**: required by MinIO out of the box. Override `MINIO_FORCE_PATH_STYLE=false` only if your S3-compatible store explicitly needs virtual-hosted-style URLs.

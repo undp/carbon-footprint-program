@@ -208,20 +208,61 @@ class MinioAdapter implements StorageAdapter {
   }
 }
 
-/** Builds a MinIO / S3-compatible adapter from resolved configuration. */
-export function createMinioAdapter(
+/**
+ * Builds a MinIO / S3-compatible adapter from resolved configuration.
+ *
+ * Async because the keyless path resolves the AWS SDK default credential chain
+ * once, up front, so a misconfiguration fails at boot rather than on the first
+ * upload — see the comment on that branch below.
+ */
+export async function createMinioAdapter(
   config: MinioStorageConfig,
   expiryMinutes: number = DEFAULT_PRESIGNED_URL_EXPIRY_MINUTES
-): StorageAdapter {
+): Promise<StorageAdapter> {
   const s3 = new S3Client({
     endpoint: config.endpoint,
     region: config.region,
     forcePathStyle: config.forcePathStyle,
-    credentials: {
-      accessKeyId: config.accessKey,
-      secretAccessKey: config.secretKey,
-    },
+    // When static credentials are configured, sign with them (MinIO, on-prem
+    // S3, Google Cloud Storage HMAC keys, or an explicit AWS IAM key). When
+    // they are absent, omit the `credentials` key ENTIRELY — do not pass
+    // `credentials: { accessKeyId: undefined, … }`, which would disable the
+    // fallback — so the AWS SDK v3 default credential chain (ECS/EKS task role,
+    // EC2 instance profile, env vars, SSO, …) supplies them. That is the
+    // keyless best-practice path on AWS. The pair is nested in a single
+    // optional object, so a half-set state cannot reach here.
+    ...(config.credentials
+      ? {
+          credentials: {
+            accessKeyId: config.credentials.accessKey,
+            secretAccessKey: config.credentials.secretKey,
+          },
+        }
+      : {}),
   });
+
+  // Keyless: resolve the default chain NOW so "deliberately keyless" and "forgot
+  // the keys" stop looking identical at boot. Without this the container starts
+  // green, passes /health and serves traffic, then every upload 500s with an
+  // opaque `CredentialsProviderError: Could not load credentials from any
+  // providers` — a message naming neither an env var nor a deployment mode. The
+  // SDK memoises the resolved provider, so this costs one resolution, not one
+  // per request.
+  if (!config.credentials) {
+    try {
+      await s3.config.credentials();
+    } catch (cause) {
+      throw new Error(
+        "STORAGE_PROVIDER=minio could not resolve any S3 credentials. " +
+          "MINIO_ACCESS_KEY / MINIO_SECRET_KEY are both unset (keyless mode), " +
+          "and the AWS SDK default credential chain found nothing either. " +
+          "Either set both keys — for MinIO, on-prem S3, or Google Cloud " +
+          "Storage HMAC keys — or make ambient AWS credentials available: an " +
+          "ECS/EKS task role, an EC2 instance profile, AWS_* env vars, or SSO.",
+        { cause }
+      );
+    }
+  }
 
   return new MinioAdapter(
     s3,
