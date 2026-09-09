@@ -1,4 +1,4 @@
-import { orderBy } from "lodash-es";
+import { partition } from "lodash-es";
 import { useMemo } from "react";
 import { useCarbonInventoryMethodology } from "@/api/query/carbonInventories/methodologies/useCarbonInventoryMethodology";
 import { useCarbonInventorySubcategoriesSummary } from "@/api/query/carbonInventories/subcategories/useCarbonInventorySubcategoriesSummary";
@@ -49,7 +49,11 @@ export const useSubcategoryPreselectionData = (
       synonyms: category.synonyms,
       position: category.position,
       explanation: category.explanation,
-      subcategories: orderBy(
+      // The API already returns the subcategories in GHG order, and both
+      // groups have to keep it. A partition says that outright: sorting on
+      // `isRecommended` alone would leave the order inside each group riding
+      // on the sort being stable, which nothing here states or tests.
+      subcategories: partition(
         category.subcategories.map((subcategory) => {
           const summary = subcategoriesSummaryMap.get(subcategory.id);
           return {
@@ -62,9 +66,8 @@ export const useSubcategoryPreselectionData = (
             isRecommended: recommendedIds.includes(subcategory.id),
           };
         }),
-        ["isRecommended"],
-        ["desc"]
-      ),
+        (subcategory) => subcategory.isRecommended
+      ).flat(),
     }));
   }, [methodology, subcategoriesSummary, recommendations]);
 
