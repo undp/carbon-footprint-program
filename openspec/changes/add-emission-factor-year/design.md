@@ -152,6 +152,7 @@ Transversal factors, custom/manual factors, direct totals, incomplete lines and 
 
 - **Classification is a migration gate.** Incorrectly assigning `null` makes a factor eligible for all years. The production migration must not guess from a missing source suffix.
 - **Canonical-unit consolidation can reveal inconsistent catalog values.** Existing same-family factors expressed in different units must be converted and compared. Disagreements require methodology review; the migration must not silently choose one.
+- **Consolidation touches saved lines, not just the catalog.** Retiring a duplicate representation orphans every `carbon_inventory_line_factor` that referenced it. Re-pointing those references is part of the consolidation step, not an optional cleanup, because the resulting damage is silent: the numbers still reconcile and only the selection disappears.
 - **The methodology payload grows with each vintage.** The endpoint already expands factors into compatible units. A later optimization may send canonical factors plus conversion metadata, but it does not change this feature's selection contract.
 - **More valid providers means fewer automatic selections.** This is intentional: equal-ranked scientific sources require an explicit organization choice unless a separate preferred-source policy is introduced later.
 - **The magnitude pair is denormalized.** API writes and migration backfill must derive both IDs from the selected rate unit. Drift caused by unsupported direct database edits or future rate-unit relationship changes is an accepted trade-off for avoiding another table.
@@ -160,10 +161,10 @@ Transversal factors, custom/manual factors, direct totals, incomplete lines and 
 ## Migration Plan
 
 1. Obtain and review an explicit `year`/`null` classification for every seed and production factor. Parse only recognized trailing years, then block if any row remains unclassified.
-2. Detect rows that collapse to the same new business key after unit conversion. Automatically consolidate only mathematically equivalent values; send discrepancies for methodology review.
+2. Detect rows that collapse to the same new business key after unit conversion. Automatically consolidate only mathematically equivalent values; send discrepancies for methodology review. Before soft-deleting a retired representation, re-point every `carbon_inventory_line_factor.emission_factor_id` that references it at the surviving canonical row. A line left pointing at a `DELETED` factor keeps its value/source/unit snapshots intact, so the loss is invisible to a snapshot spot-check, but the methodology payload returns only ACTIVE factors and the saved selection can no longer be restored by ID.
 3. Add nullable `year`, `numerator_magnitude_id` and `denominator_magnitude_id`; backfill the magnitude pair, normalize non-required dimension slots, then make both magnitude IDs required.
 4. Replace the old partial index with the source/year/family index using `NULLS NOT DISTINCT`.
-5. Add `carbon_inventory_line_factor.applied_factor_year` and backfill it from the linked catalog factor without changing existing value/source/unit/result snapshots.
+5. Add `carbon_inventory_line_factor.applied_factor_year` and backfill it from the linked catalog factor — already re-pointed in step 2, so the year is read from the surviving canonical row — without changing existing value/source/unit/result snapshots.
 6. Update shared contracts and API writes so catalog factor snapshots are server-derived; remove source-consistency validation.
 7. Update seed, maintainer, methodology payload/duplication/export and the capture selector.
 8. Add the derived subcategory warning. Do not add any year-change re-resolution flow.

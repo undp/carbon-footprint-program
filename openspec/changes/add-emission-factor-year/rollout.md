@@ -61,6 +61,19 @@ only ordering requirement is the usual one: migrate first.
    `applied_factor_year` must match the year of the factor each line already
    pointed at. Nothing should have been recalculated.
 
+   Check `emission_factor_id` too, not only the snapshots. Every referenced
+   factor must still be ACTIVE:
+
+   ```sql
+   SELECT count(*) FROM carbon_inventory_line_factor clf
+   JOIN emission_factor ef ON ef.id = clf.emission_factor_id
+   WHERE ef.status = 'DELETED';
+   ```
+
+   A non-zero result is a consolidation that retired a representation without
+   re-pointing its references. The snapshots above still look correct in that
+   case; what breaks is the saved selection, which comes back empty on reload.
+
 ## 11.4 — Loading more vintages
 
 Additional years and providers are data, not code, and they are deliberately

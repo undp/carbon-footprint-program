@@ -15,6 +15,8 @@
 - [x] 2.6 Add `applied_factor_year` and backfill it from each linked `emission_factor`. Do not recompute or overwrite existing applied value, unit, source or result snapshots.
 - [x] 2.7 Run the migration on both a current-data database and a fresh seeded database. Verify: different years succeed; different sources in the same year succeed; different families succeed; the same source/year/family under compatible exact units is rejected; null dimensions/year cannot bypass uniqueness.
 
+- [ ] 2.8 Before the migration soft-deletes a retired same-family representation, re-point every `carbon_inventory_line_factor.emission_factor_id` that references it at the surviving canonical factor. A line left on a `DELETED` factor keeps its snapshots but loses its saved selection, because the methodology payload returns only ACTIVE factors and task 7.7 restores the choice by ID.
+
 ## 3. Shared schemas and request contracts
 
 - [x] 3.1 Add nullable integer `year` to `packages/types/src/baseSchemas/emissionFactor.ts`, factor create/update forms and responses. Do not expose `numeratorMagnitudeId` or `denominatorMagnitudeId` as writable client fields, and do not add a blocking API validation solely because `source` contains a likely year.
