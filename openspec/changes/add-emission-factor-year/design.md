@@ -53,7 +53,7 @@ The maintainer recommends entering only the provider/factor name in `source`, be
 
 **Choice**: the active-factor business key is:
 
-`(subcategory, normalized required dimension values, year, source, numerator magnitude, denominator magnitude)`.
+`(subcategory, normalized required dimension values, year, normalized source, numerator magnitude, denominator magnitude)`.
 
 `kg/kg` and `kg/ton` share the `mass/mass` family. Only one canonical factor is stored for that key; compatible representations are calculated from measurement-unit base factors. In contrast, `kg/kWh`, `kg/m3` and `kg/ton` belong to `mass/energy`, `mass/volume` and `mass/mass`, so they may coexist.
 
@@ -65,7 +65,7 @@ No `unitFamilyKey` string or unit-family table is introduced. The magnitude pair
 
 The partial unique index is:
 
-`(subcategory_id, dimension_value_1_id, dimension_value_2_id, year, source, numerator_magnitude_id, denominator_magnitude_id) NULLS NOT DISTINCT WHERE status <> 'DELETED'`.
+`(subcategory_id, dimension_value_1_id, dimension_value_2_id, year, lower(source), numerator_magnitude_id, denominator_magnitude_id) NULLS NOT DISTINCT WHERE status <> 'DELETED'`.
 
 **Rationale**: exact units would recreate the original duplicate problem (`kg/kg` versus `kg/ton`), while omitting the magnitudes would incorrectly merge non-convertible domains. The denormalized pair allows database enforcement without a cross-table index and is more explicit than an opaque string key.
 
@@ -74,6 +74,10 @@ The partial unique index is:
 **Choice**: remove `validateSourceConsistency` and its error mapping/tests rather than scoping it by year.
 
 Source participates in the uniqueness key, so transversal factors from `IPCC` and `Kool, A.`, or dated factors labeled `DEFRA (2025)` and `IPCC (2025)`, are valid alternatives for the same activity and unit family. A second factor with the same source, year, dimensions and family is still a duplicate.
+
+Removing that validation makes `source` load-bearing: it is the only field that distinguishes two otherwise identical rows, and it is maintainer-entered free text. So it is normalized on write — trimmed, inner whitespace collapsed to single spaces, rejected when empty — and compared case-insensitively by both the application duplicate check and the partial unique index, which is why the index keys on `lower(source)`. Stored casing is preserved, because provider names are proper nouns and the UI shows them as entered; only the comparison folds case.
+
+Without that, `DEFRA `, `Defra` and `DEFRA` are three distinct identities describing one provider. They pass the duplicate check and the constraint, they land in the same winning rank, and Decision 5 then refuses to preselect any of them — so every organization capturing that activity is asked to choose between options that look identical on screen. The migration's provider/year split also matches `factor-classification.md` by exact string, so an untrimmed value in production reaches the preflight as an unclassified source.
 
 **Rationale**: provider choice is product-visible information, not a subcategory invariant. Enforcing one source would prevent the accepted multi-provider use case.
 

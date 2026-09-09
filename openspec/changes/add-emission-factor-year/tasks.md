@@ -17,6 +17,8 @@
 
 - [ ] 2.8 Before the migration soft-deletes a retired same-family representation, re-point every `carbon_inventory_line_factor.emission_factor_id` that references it at the surviving canonical factor. A line left on a `DELETED` factor keeps its snapshots but loses its saved selection, because the methodology payload returns only ACTIVE factors and task 7.7 restores the choice by ID.
 
+- [ ] 2.9 Key the partial unique index on `lower("source")` rather than the raw column, so two spellings of one provider cannot become two identities. Normalize existing `source` values (trim, collapse inner whitespace) in the same migration, before the index is created.
+
 ## 3. Shared schemas and request contracts
 
 - [x] 3.1 Add nullable integer `year` to `packages/types/src/baseSchemas/emissionFactor.ts`, factor create/update forms and responses. Do not expose `numeratorMagnitudeId` or `denominatorMagnitudeId` as writable client fields, and do not add a blocking API validation solely because `source` contains a likely year.
@@ -25,6 +27,8 @@
 - [x] 3.4 Replace the ambiguous sync factor fields in `packages/types/src/carbonInventories/syncCarbonInventoryLines/schemas.ts` with a discriminated union equivalent to `CATALOG { emissionFactorId, appliedRateMeasurementUnitId }`, `CUSTOM { source, value, rateMeasurementUnitId }`, and `DIRECT { totalEmissions }`, alongside common line fields.
 - [x] 3.5 Add `appliedFactorYear` to saved-line and factors-used response schemas. Do not add a persisted match/fallback boolean.
 
+- [ ] 3.6 Normalize `source` in `packages/types/src/baseSchemas/emissionFactor.ts`: trim, collapse inner whitespace and reject empty. `source` now carries factor identity, so the schema is the single place that guarantees its shape for the API, the seed and the maintainer form.
+
 ## 4. API — emission-factor maintenance and uniqueness
 
 - [x] 4.1 Add a shared helper that loads and returns a rate unit's numerator/denominator magnitude IDs; reuse it for create, update, seed/migration verification and catalog sync validation.
@@ -32,6 +36,8 @@
 - [x] 4.3 Remove `validateSourceConsistency`, its error type/message mapping and all call sites. Multiple sources in the same dated or transversal rank are valid.
 - [x] 4.4 Update `createEmissionFactor/service.ts` and `updateEmissionFactor/service.ts` to validate dimensions, derive both magnitude IDs from the selected rate unit and persist them with `year`. Keep `P2002` mapped to the duplicate-factor error.
 - [x] 4.5 Return `year` from factor mappers/listing and preserve `year` plus both magnitude IDs in `duplicateMethodology/helpers.ts`.
+
+- [ ] 4.6 Compare `source` case-insensitively in `checkDuplicateEmissionFactor`, matching the `lower("source")` index, so the application rejects the duplicate before `P2002` does.
 
 ## 5. API — methodology payload, exports and seed
 
