@@ -14,6 +14,7 @@ import {
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
 } from "../errors.js";
+import { getNextSubcategoryPosition } from "../helpers.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -73,14 +74,10 @@ export const updateSubcategoryService = async (
         }
 
         if (BigInt(data.categoryId) !== targetSubcategory.categoryId) {
-          const { _max } = await tx.subcategory.aggregate({
-            where: {
-              categoryId: BigInt(data.categoryId),
-              status: { not: SubcategoryStatus.DELETED },
-            },
-            _max: { position: true },
-          });
-          newPosition = (_max.position ?? 0) + 1;
+          newPosition = await getNextSubcategoryPosition(
+            tx,
+            BigInt(data.categoryId)
+          );
         }
       }
 
@@ -170,13 +167,16 @@ export const updateSubcategoryService = async (
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("name")) {
-          throw new SubcategoryNameAlreadyExistsError();
-        }
-        // A concurrent move/create into the same destination category can claim
-        // the computed position first; surface it as a conflict, not a 500.
-        if (duplicatedFields.includes("position")) {
+        // Substring match for the same reason as createSubcategory: the helper
+        // yields column names on some Prisma/adapter versions and the index
+        // name on others, and an exact match turns these 409s into 500s.
+        if (duplicatedFields.some((field) => field.includes("position"))) {
+          // getNextSubcategoryPosition locks the destination category, so a
+          // collision here means a position was written outside that path.
           throw new SubcategoryPositionAlreadyExistsError();
+        }
+        if (duplicatedFields.some((field) => field.includes("name"))) {
+          throw new SubcategoryNameAlreadyExistsError();
         }
       }
     }
