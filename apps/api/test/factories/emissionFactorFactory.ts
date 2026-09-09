@@ -11,6 +11,11 @@ import {
   GetAllEmissionFactorsResponse,
   EmissionFactorStatus,
 } from "@repo/types";
+import { RateMeasurementUnitNotFoundError } from "@/features/emissionFactors/errors.js";
+import {
+  resolveRateUnitMagnitudeFamily,
+  type RateUnitMagnitudeFamily,
+} from "@/features/measurementUnits/helpers.js";
 
 const DEFAULT_GAS_DETAILS: GetAllEmissionFactorsResponse[number]["gasDetails"] =
   {
@@ -75,29 +80,29 @@ export async function createTestEmissionFactor(
   });
 }
 
-/** The unit family of a rate unit, for tests that build factors directly. */
+/**
+ * The unit family of a rate unit, for tests that build factors directly.
+ *
+ * Delegates to the production resolver rather than repeating its query: a test
+ * factor has to land in the family the unique index would put it in, and a
+ * second copy of the derivation would keep building rows in the old family the
+ * day production's own changes — the drift the shared helper exists to prevent.
+ * Only the failure message is test-specific.
+ */
 export async function resolveTestRateUnitMagnitudes(
   prisma: PrismaClient,
   rateMeasurementUnitId: bigint
-): Promise<{ numeratorMagnitudeId: bigint; denominatorMagnitudeId: bigint }> {
-  const rateUnit = await prisma.rateMeasurementUnit.findUnique({
-    where: { id: rateMeasurementUnitId },
-    select: {
-      numeratorMeasurementUnit: { select: { magnitudeId: true } },
-      denominatorMeasurementUnit: { select: { magnitudeId: true } },
-    },
-  });
-
-  if (!rateUnit) {
-    throw new Error(
-      `Rate measurement unit ${rateMeasurementUnitId} not found. Ensure the database is seeded.`
-    );
+): Promise<RateUnitMagnitudeFamily> {
+  try {
+    return await resolveRateUnitMagnitudeFamily(prisma, rateMeasurementUnitId);
+  } catch (error) {
+    if (error instanceof RateMeasurementUnitNotFoundError) {
+      throw new Error(
+        `Rate measurement unit ${rateMeasurementUnitId} not found. Ensure the database is seeded.`
+      );
+    }
+    throw error;
   }
-
-  return {
-    numeratorMagnitudeId: rateUnit.numeratorMeasurementUnit.magnitudeId,
-    denominatorMagnitudeId: rateUnit.denominatorMeasurementUnit.magnitudeId,
-  };
 }
 
 /**
