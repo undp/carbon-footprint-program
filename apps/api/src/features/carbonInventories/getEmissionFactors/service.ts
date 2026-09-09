@@ -133,10 +133,14 @@ export const getEmissionFactorsService = async (
       ? buildGasBreakdownLines(emissionFactor.gasDetails)
       : [];
 
-    // Build source detail from the emission factor source or manual factor source
+    // The line's own snapshot comes first, for the same reason the applied year
+    // does: the catalog row may have been renamed since, and pairing today's
+    // provider with the vintage that was applied describes a factor that never
+    // existed. The catalog row is only a fallback for rows saved before the
+    // snapshot existed.
     const source =
-      emissionFactor?.source ??
       factor?.appliedFactorSource ??
+      emissionFactor?.source ??
       input.manualFactorSource ??
       "";
     const { factorSource, factorSourceDetail } = parseFactorSource(source);
