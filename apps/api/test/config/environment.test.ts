@@ -539,8 +539,10 @@ describe("parseEnv — TRUST_PROXY", () => {
   // TRUST_PROXY feeds Fastify's `trustProxy` option, which decides whether
   // X-Forwarded-For may set `request.ip` — the rate limiter's bucket key. The
   // parser has to hand back each of the shapes Fastify accepts, because the
-  // correct one differs per topology: an allowlist behind a known proxy, a hop
-  // count behind a chain, false when the API is reached directly.
+  // correct one differs per topology: an allowlist behind a known proxy, a
+  // named range, false when the API is reached directly. Hop counts were a
+  // supported shape until Fastify removed them; they are now rejected, and the
+  // tests below are what keeps that rejection from regressing into silence.
 
   it("reports an unset variable as undefined, not false", () => {
     // undefined means "never configured" and false means "configured to trust
@@ -576,48 +578,48 @@ describe("parseEnv — TRUST_PROXY", () => {
     expect(parse({ TRUST_PROXY: "False" }).TRUST_PROXY).toBe(false);
   });
 
-  it("parses a bare integer as a hop count, as a number", () => {
-    // Fastify distinguishes number from string here: 1 means "one proxy hop",
-    // while "1" would be read as an address. The coercion is load-bearing.
-    expect(parse({ TRUST_PROXY: "1" }).TRUST_PROXY).toBe(1);
-    expect(parse({ TRUST_PROXY: "2" }).TRUST_PROXY).toBe(2);
-    expect(parse({ TRUST_PROXY: " 3 " }).TRUST_PROXY).toBe(3);
-    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
+  it("rejects a bare integer, the hop count Fastify no longer honours", () => {
+    // Fastify 5.12.1 (GHSA-3m5p-2c4r-xxw2) made a numeric trustProxy trust
+    // NOTHING instead of counting hops, because counting hops cannot validate
+    // the immediate peer. Forwarding one would therefore boot a deployment that
+    // looks configured while the rate limiter silently shares a single bucket
+    // across every caller, so the value is refused here instead.
+    //
+    // Every documented count is covered — 1 (App Service) and 2 (Front Door)
+    // were the recommended values, so these are the strings really in the wild.
+    for (const hops of ["0", "1", "2", "10", "11", "10000", " 3 "]) {
+      expect(() => parse({ TRUST_PROXY: hops })).toThrow(
+        /Hop counts are no longer supported/
+      );
+    }
   });
 
-  it("accepts the hop-count boundaries", () => {
-    // 0 (trust nothing, spelled as a count) and the documented ceiling.
-    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(0);
-    expect(parse({ TRUST_PROXY: "10" }).TRUST_PROXY).toBe(10);
-  });
-
-  it("refuses a hop count above the bound instead of trusting the whole chain", () => {
-    // The reason a bound exists: proxy-addr walks the full X-Forwarded-For
-    // chain when the count exceeds its length and returns the leftmost entry,
-    // which the caller controls. So "10000" — a plausible typo for "1" — would
-    // be `true` by another name, letting anyone pick their own rate-limit key.
-    expect(() => parse({ TRUST_PROXY: "11" })).toThrow(
-      /Invalid TRUST_PROXY hop count: "11"/
+  it("names the replacement in the hop-count rejection", () => {
+    // The message is the entire migration path for an operator whose deploy
+    // just stopped booting, so it has to say what to write instead rather than
+    // only what is wrong.
+    expect(() => parse({ TRUST_PROXY: "1" })).toThrow(/10\.0\.0\.0\/8/);
+    expect(() => parse({ TRUST_PROXY: "1" })).toThrow(/loopback/);
+    expect(() => parse({ TRUST_PROXY: "1" })).toThrow(
+      /docs\/security\/hardening\.md/
     );
-    expect(() => parse({ TRUST_PROXY: "10000" })).toThrow(/between 0 and 10/);
   });
 
-  it("refuses digit strings that are not safe integers", () => {
-    // Past MAX_SAFE_INTEGER a value stops round-tripping, and a long enough
-    // digit string overflows to Infinity. Neither is a hop count, and neither
-    // must be allowed to reach proxy-addr.
+  it("rejects digit strings that were never a hop count either", () => {
+    // These used to fail the safe-integer guard; they now fail as hop counts.
+    // What matters is that a digit string never reaches proxy-addr.
     expect(() => parse({ TRUST_PROXY: "9007199254740993" })).toThrow(
-      /Invalid TRUST_PROXY hop count/
+      /Invalid TRUST_PROXY value/
     );
     expect(() => parse({ TRUST_PROXY: "9".repeat(400) })).toThrow(
-      /Invalid TRUST_PROXY hop count/
+      /Invalid TRUST_PROXY value/
     );
   });
 
   it("fails the boot rather than falling back to a posture nobody chose", () => {
-    // Falling back to false would quietly restore the shared rate-limit bucket;
-    // clamping to the maximum would trust more hops than were asked for. Both
-    // are silent, so an out-of-range value stops startup instead.
+    // Falling back to false would quietly restore the shared rate-limit bucket,
+    // and handing the count to Fastify would do the same while looking
+    // configured. Both are silent, so the value stops startup instead.
     expect(() =>
       parse({
         NODE_ENV: "production",
