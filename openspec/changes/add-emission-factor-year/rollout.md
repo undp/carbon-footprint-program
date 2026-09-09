@@ -40,10 +40,18 @@ only ordering requirement is the usual one: migrate first.
      ./verify-migration.sh
    ```
 
-   The third check prints the resulting classification, how many duplicate unit
-   representations were retired, and asserts no duplicate business key survives.
-   Read those numbers before continuing; a surprising count means the production
-   catalog differs from what was reviewed.
+   Run it from a checkout where the migration has been generated: the script
+   resolves it by name under `packages/database/src/prisma/migrations` and stops
+   if it is not there.
+
+   The third check prints the resulting classification and how many duplicate
+   unit representations this migration retired — as a delta, since a restored
+   copy already contains factors maintainers soft-deleted through the UI. It
+   then asserts that no duplicate business key survives, that every active
+   factor carries its magnitude pair, and that no saved line still points at a
+   retired factor. A non-zero exit means one of those failed; surprising numbers
+   in the printed output mean the production catalog differs from what was
+   reviewed, even when every assertion passes.
 
 3. **Migrate**, then bring the stack up:
 
