@@ -8,6 +8,7 @@ import { InputType, Prisma } from "@repo/database";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
+import { DataIntegrityError } from "@/errors/index.js";
 import { MissingFilesError } from "@/features/files/errors.js";
 import {
   isSameMagnitudeFamily,
@@ -171,6 +172,8 @@ export async function resolveCatalogFactor(
       ? factor.value
       : await convertToRateUnit(tx, factor, appliedRateUnitId);
 
+  assertStorableAppliedFactorValue(appliedValue, selection.emissionFactorId);
+
   return {
     emissionFactorId: factor.id,
     appliedFactorValue: appliedValue,
@@ -179,6 +182,26 @@ export async function resolveCatalogFactor(
     appliedFactorYear: factor.year,
     manual: null,
   };
+}
+
+/**
+ * `applied_factor_value` is `Decimal(28, 10)`, so 18 integer digits is all the
+ * column can take. A conversion between distant units can exceed that, and the
+ * write is inside the sync transaction: caught here it is a typed data error
+ * naming the factor, left to Postgres it is a numeric overflow that rolls the
+ * whole save back with nothing to act on.
+ */
+const MAX_APPLIED_FACTOR_VALUE = new Prisma.Decimal(10).pow(18);
+
+function assertStorableAppliedFactorValue(
+  appliedValue: Prisma.Decimal,
+  emissionFactorId: string
+): void {
+  if (appliedValue.abs().gte(MAX_APPLIED_FACTOR_VALUE)) {
+    throw new DataIntegrityError(
+      `Applied factor value ${appliedValue.toString()} for emission factor ${emissionFactorId} does not fit applied_factor_value (Decimal(28, 10))`
+    );
+  }
 }
 
 async function convertToRateUnit(
