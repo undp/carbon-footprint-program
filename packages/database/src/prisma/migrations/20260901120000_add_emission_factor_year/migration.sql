@@ -32,33 +32,63 @@ ALTER TABLE "emission_factor"
 ALTER TABLE "carbon_inventory_line_factor"
   ADD COLUMN "applied_factor_year" INTEGER;
 
--- 2. Preflight: every distinct non-deleted source must appear in the reviewed
+-- 2. The reviewed classification, written once.
+--
+--    The preflight and the split both read this table instead of each carrying
+--    its own copy of the list. That is the point: with two copies, adding a
+--    source to the allowlist and forgetting its UPDATE would pass the preflight
+--    and leave the factor at year = NULL — "confirmed transversal", which is
+--    exactly what this migration refuses to infer. Extending it for a new
+--    deployment's catalog is now a single row.
+CREATE TEMP TABLE "emission_factor_year_classification" (
+  "legacy_source" TEXT PRIMARY KEY,
+  "source"        TEXT NOT NULL,
+  "year"          INTEGER
+);
+
+INSERT INTO "emission_factor_year_classification" ("legacy_source", "source", "year") VALUES
+  ('DEFRA 2025',  'DEFRA',    2025),
+  ('EcoAct 2020', 'EcoAct',   2020),
+  -- Reviewed and confirmed transversal: the provider name is already clean and
+  -- the year stays NULL on purpose.
+  ('IPCC',        'IPCC',     NULL),
+  ('Kool, A.',    'Kool, A.', NULL);
+
+-- 3. Preflight: every distinct non-deleted source must appear in the reviewed
 --    classification. A missing suffix is not evidence of transversality, so an
 --    unclassified source stops the migration instead of defaulting to NULL.
 DO $$
 DECLARE
   unclassified TEXT;
 BEGIN
-  SELECT string_agg(DISTINCT quote_literal("source"), ', ' ORDER BY quote_literal("source"))
+  SELECT string_agg(DISTINCT quote_literal(ef."source"), ', ' ORDER BY quote_literal(ef."source"))
   INTO unclassified
-  FROM "emission_factor"
-  WHERE "status" <> 'DELETED'
-    AND "source" NOT IN ('DEFRA 2025', 'EcoAct 2020', 'IPCC', 'Kool, A.');
+  FROM "emission_factor" ef
+  WHERE ef."status" <> 'DELETED'
+    AND NOT EXISTS (
+      SELECT 1
+      FROM "emission_factor_year_classification" c
+      WHERE c."legacy_source" = ef."source"
+    );
 
   IF unclassified IS NOT NULL THEN
     RAISE EXCEPTION
-      'Unclassified emission factor source(s): %. Classify each one as dated (integer year) or transversal (NULL) in factor-classification.md and extend this migration before deploying.',
+      'Unclassified emission factor source(s): %. Classify each one as dated (integer year) or transversal (NULL) in factor-classification.md and add it to emission_factor_year_classification in this migration before deploying.',
       unclassified;
   END IF;
 END $$;
 
--- 3. Split provider from reporting year using the reviewed map only.
-UPDATE "emission_factor" SET "source" = 'DEFRA',  "year" = 2025 WHERE "source" = 'DEFRA 2025';
-UPDATE "emission_factor" SET "source" = 'EcoAct', "year" = 2020 WHERE "source" = 'EcoAct 2020';
--- 'IPCC' and 'Kool, A.' were reviewed and confirmed transversal: provider name
--- already clean, year stays NULL.
+-- 4. Split provider from reporting year using that map only. Deleted rows are
+--    included too, so retired catalog history keeps the same shape as live rows.
+UPDATE "emission_factor" ef
+SET "source" = c."source",
+    "year" = c."year"
+FROM "emission_factor_year_classification" c
+WHERE c."legacy_source" = ef."source";
 
--- 4. Backfill the unit family from each factor's own rate unit.
+DROP TABLE "emission_factor_year_classification";
+
+-- 5. Backfill the unit family from each factor's own rate unit.
 --
 --    Dimension slots are deliberately left exactly as they are. Normalizing the
 --    non-required ones to NULL would have matched the application's uniqueness
@@ -102,7 +132,7 @@ ALTER TABLE "emission_factor"
     FOREIGN KEY ("denominator_magnitude_id") REFERENCES "magnitude"("id")
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- 5. Consolidate rows that collapse into one identity under the new key.
+-- 6. Consolidate rows that collapse into one identity under the new key.
 --    Only mathematically equivalent values may merge: the canonical value is
 --    compared in base units (value * numerator baseFactor / denominator
 --    baseFactor). Any group that disagrees is a methodology question, not a
@@ -210,7 +240,7 @@ UPDATE "emission_factor"
 SET "status" = 'DELETED'
 WHERE "id" IN (SELECT "id" FROM ranked WHERE "id" <> "survivor_id");
 
--- 6. Replace the old identity with the source/year/family one. NULLS NOT
+-- 7. Replace the old identity with the source/year/family one. NULLS NOT
 --    DISTINCT is what makes a missing dimension or a transversal year behave as
 --    a real value instead of a free pass through the constraint.
 DROP INDEX "emission_factor_unique_subcategory_dims_source";
@@ -227,7 +257,7 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_year_source_family"
   ) NULLS NOT DISTINCT
   WHERE "status" <> 'DELETED';
 
--- 7. Backfill the applied year from the catalog row each captured line already
+-- 8. Backfill the applied year from the catalog row each captured line already
 --    references. Custom factors and direct totals have no emission_factor_id, so
 --    they correctly stay NULL and never join the year-mismatch warning.
 UPDATE "carbon_inventory_line_factor" lf
