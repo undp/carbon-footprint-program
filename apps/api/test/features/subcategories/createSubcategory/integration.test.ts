@@ -213,6 +213,66 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       expect(body.position).toBe(3);
     });
 
+    it("should reject a category soft-deleted while the request waits for the lock", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Subcategory Lock Ordering",
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Lock Ordering Parent",
+        position: 1,
+      });
+
+      // The category status has to be read from the *locked* row. Here a
+      // holder soft-deletes the category and keeps the row lock. The request
+      // arrives while that is still uncommitted, so under READ COMMITTED it
+      // would see the category as ACTIVE if it checked the status before
+      // locking — and would insert an ACTIVE subcategory under a DELETED
+      // category. Locking first makes it block, then read DELETED once the
+      // holder commits.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          // The update itself takes the row lock and holds it until commit.
+          await tx.category.update({
+            where: { id: category.id },
+            data: { status: CategoryStatus.DELETED },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "POST",
+        url: "/api/subcategories/",
+        payload: buildSubcategoryPayload(category.id.toString()),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(404);
+
+      const orphanCount = await prisma.subcategory.count({
+        where: { categoryId: category.id },
+      });
+      expect(orphanCount).toBe(0);
+    });
+
     it("should create measurement unit associations", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Subcategory With Units",
