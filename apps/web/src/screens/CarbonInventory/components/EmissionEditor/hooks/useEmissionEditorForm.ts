@@ -153,6 +153,18 @@ export const useEmissionEditorForm = ({
         null,
         { shouldDirty: true }
       );
+      // The catalog identity and its vintage go with the factor. Left behind,
+      // they keep a line with no factor inside the year-mismatch warning.
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.emissionFactorId`,
+        null,
+        { shouldDirty: true }
+      );
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.appliedFactorYear`,
+        null,
+        { shouldDirty: true }
+      );
       setValue(
         `subcategories.${subcategoryId}.lines.${lineId}.factorValue`,
         null,
