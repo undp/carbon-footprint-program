@@ -56,14 +56,16 @@ Fastify's `trustProxy` decides whether `X-Forwarded-For` may set `request.ip`. I
 per deployment through the **`TRUST_PROXY`** environment variable (`apps/api/src/config/environment.ts`,
 wired into the Fastify constructor in `apps/api/src/app.ts`).
 
-| `TRUST_PROXY`               | Effect                                                    | Use when                                                       |
-| --------------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
-| _unset_                     | Trusts nothing, **and warns at boot in production**       | Nothing — this is the "nobody decided" state                   |
-| `false`                     | Trusts nothing; `request.ip` is the TCP peer address      | The API is reached directly. Say it explicitly to stop warning |
-| `10.0.0.0/8,192.168.0.0/16` | Trust only these senders; comma-separated IPs or CIDRs    | **Preferred.** You know your proxy's address range             |
-| `1`                         | Trust that many proxy hops in front of the API (max `10`) | A known-depth chain whose addresses are not fixed              |
-| `loopback` / `uniquelocal`  | Fastify's named ranges                                    | A sidecar or same-host proxy                                   |
-| `true`                      | Trust the whole forwarded chain                           | Last resort — see the warning below                            |
+| `TRUST_PROXY`               | Effect                                                 | Use when                                                       |
+| --------------------------- | ------------------------------------------------------ | -------------------------------------------------------------- |
+| _unset_                     | Trusts nothing, **and warns at boot in production**    | Nothing — this is the "nobody decided" state                   |
+| `false`                     | Trusts nothing; `request.ip` is the TCP peer address   | The API is reached directly. Say it explicitly to stop warning |
+| `10.0.0.0/8,192.168.0.0/16` | Trust only these senders; comma-separated IPs or CIDRs | **Preferred.** You know your proxy's address range             |
+| `linklocal`                 | Fastify's `169.254.0.0/16` + `fe80::/10` range         | **Azure App Service** — the platform front end. See below      |
+| `loopback` / `uniquelocal`  | Fastify's other named ranges                           | A sidecar or same-host proxy                                   |
+| `true`                      | Trust the whole forwarded chain                        | Last resort — see the warning below                            |
+| `0`                         | Same as `false` — trust nothing, decision recorded     | Accepted; `false` is the clearer spelling                      |
+| `1`, `2`, any other integer | **Rejected — the API refuses to boot**                 | Never; removed upstream. See "Hop counts" below                |
 
 **Unset and `false` behave identically at runtime but are not the same setting.** Unset means
 nobody considered the question, and produces the boot warning below; `false` records a decision
@@ -89,73 +91,124 @@ autoscaling. So:
   `false` records the decision and is silent.
 - **Set to `true` while the API is internet-facing**, the opposite failure appears: a caller
   forges the header, mints a fresh bucket per request, and evades the limit entirely. Prefer an
-  address allowlist or a hop count over `true`, which trusts whatever the caller sent when no
-  proxy overwrote it.
-- **Set to a hop count larger than the real chain**, you get `true` by another name — proxy-addr
-  walks the whole chain and returns the caller-controlled leftmost entry. This is why the hop
-  count is capped at **10** and why an out-of-range or non-integer value **fails the boot**
-  instead of falling back: `TRUST_PROXY=10000`, a plausible typo for `1`, would otherwise hand
-  every caller its own rate-limit key silently. Falling back to `false` would restore the shared
-  bucket and clamping would trust more hops than were asked for — both are postures the operator
-  did not choose, so neither is applied.
+  address allowlist over `true`, which trusts whatever the caller sent when no proxy overwrote
+  it.
+- **Set to a hop count**, the boot now **fails** with a message naming the replacement. Hop
+  counts were supported until Fastify 5.12.1 removed them
+  ([GHSA-3m5p-2c4r-xxw2](https://github.com/advisories/GHSA-3m5p-2c4r-xxw2)); a numeric
+  `trustProxy` there trusts **nothing** rather than erroring, so passing one through would boot a
+  deployment that looks configured while the rate limiter quietly returns to a single shared
+  bucket. Refusing the value is the only option that is not silent. See
+  [Hop counts are no longer supported](#hop-counts-are-no-longer-supported).
 
 The effective default is `false`, so a deployment that upgrades without setting the variable
 keeps its previous behaviour rather than silently starting to trust a header.
 
 Per topology: **self-hosted** — set it to your reverse proxy's address or range. **Azure App
 Service without Front Door** — the platform front end still proxies to the container, so
-`request.ip` without `TRUST_PROXY` is the platform's address, not the visitor's; `1` trusts that
-single hop. **Azure with Front Door** — `2`, or the Front Door / App Service front-end ranges.
-On Azure the value is supplied by the `apiTrustProxy` parameter in `infra/main.bicep`, which
-emits the app setting; it defaults to empty so redeploying the template does not change request
-handling on its own.
+`request.ip` without `TRUST_PROXY` is the platform's address, not the visitor's; use
+**`linklocal`**, which is the measured address of that front end (evidence below). **Azure with
+Front Door** — `linklocal` alone stops at Front Door's own address, so the value has to name the
+Front Door backend ranges as well; re-measure the chain rather than assuming it. On Azure the
+value is supplied by the `apiTrustProxy` parameter in `infra/main.bicep`, which emits the app
+setting; it defaults to empty so redeploying the template does not change request handling on its
+own.
 
-> **Verify the hop count against the real deployment before setting it.** Trusting fewer hops
-> than exist leaves the shared bucket in place; trusting more lets a caller forge the header and
-> select its own bucket. The parameter is deliberately not derived from `enableFrontDoor`,
-> because the hop count is a property of the actual request path.
+> **Verify the value against the real deployment before setting it.** Trusting less than the real
+> chain leaves the shared bucket in place; trusting more lets a caller forge the header and select
+> its own bucket. The parameter is deliberately not derived from `enableFrontDoor`, because what
+> sits in front of the API is a property of the actual request path.
+>
+> **And re-verify it when the network path changes — a subnet trust goes stale silently.** This is
+> the one way `linklocal` is _worse_ than the hop count it replaces. If the peer stops matching the
+> range — VNet integration, a private endpoint, a change of platform front-end address — trust
+> reverts to nothing, `request.ip` becomes the peer again, and the shared rate-limit bucket comes
+> back with nothing failing and nothing logged. A hop count did not have that failure mode. Treat
+> any change to the request path as invalidating the value, and re-run the two-request bucketing
+> check below. A VNet-integrated deployment most likely wants `linklocal,<private-range>` rather
+> than `linklocal` alone.
 
 **Measured on plain App Service** (no Front Door), from two clients in different locations, via
 [issue #571](https://github.com/undp/carbon-footprint-program/issues/571). Client addresses are
 shown in the documentation range; the link-local front-end address is verbatim:
 
-| What the container sees  | Value                                        |
-| ------------------------ | -------------------------------------------- |
-| `x-forwarded-for`        | `203.0.113.9:61784` — one entry, with a port |
-| `x-client-ip`            | `203.0.113.9` — already port-free            |
-| socket peer              | `169.254.129.4` — link-local, the front end  |
-| `request.ips`            | `["169.254.129.4", "203.0.113.9:61784"]`     |
-| `request.ip` (trust `1`) | `203.0.113.9:61784`                          |
-| rate-limit key           | `203.0.113.9`                                |
+| What the container sees    | Value                                        |
+| -------------------------- | -------------------------------------------- |
+| `x-forwarded-for`          | `203.0.113.9:61784` — one entry, with a port |
+| `x-client-ip`              | `203.0.113.9` — already port-free            |
+| socket peer                | `169.254.129.4` — link-local, the front end  |
+| `request.ips`              | `["169.254.129.4", "203.0.113.9:61784"]`     |
+| `request.ip` (`linklocal`) | `203.0.113.9:61784`                          |
+| rate-limit key             | `203.0.113.9`                                |
 
-Two entries in the chain means **one hop**, so `1` is correct and evidenced for plain App Service
-— including the demo, confirmed to run without Front Door. `2` would walk past the front end into
-the caller-controlled part of the header. No `X-Azure-*` headers are present without Front Door,
-which is also how you tell the topology apart. The socket peer being identical for both clients is
-the shared-bucket failure itself: with `TRUST_PROXY` unset, every caller keys on that one address.
+The socket peer is `169.254.129.4` — inside `169.254.0.0/16`, which is exactly Fastify's
+**`linklocal`** range — so `linklocal` is the evidenced value for plain App Service, including the
+demo, confirmed to run without Front Door. It resolves `request.ip` to the same address the old
+`1` did, and it is strictly safer: trust is granted by _who_ the immediate peer is, so a caller
+reaching the container by any route other than the platform front end is not trusted at all,
+whereas a hop count would have believed their forwarded header. No `X-Azure-*` headers are present
+without Front Door, which is also how you tell the topology apart. The socket peer being identical
+for both clients is the shared-bucket failure itself: with `TRUST_PROXY` unset, every caller keys
+on that one address.
 
 This is App Service platform behaviour rather than a property of one instance, so it transfers
 between deployments with the same topology — but only that far. Adding Front Door, a proxy in
 front of the API, or reaching the API through another service changes the chain and requires
-re-measuring rather than incrementing.
+re-measuring rather than assuming.
 
-> **A hop count is only safe while the origin cannot be reached by a shorter path.** It assumes
-> every request traverses the same number of proxies. If the backend is _also_ reachable
-> directly — bypassing the proxy you are counting — a caller taking the short route supplies the
-> forwarded header themselves, and the count that was correct for the long route now trusts
-> caller-supplied data.
+#### Hop counts are no longer supported
+
+`TRUST_PROXY=1` and `TRUST_PROXY=2` used to be the recommended Azure values. **They are now
+rejected and the API refuses to boot.** Replace them:
+
+| Was | Use instead                                                          |
+| --- | -------------------------------------------------------------------- |
+| `0` | Nothing — accepted as `false`. `false` is the clearer spelling.      |
+| `1` | `linklocal` — the App Service front end (measured above)             |
+| `2` | `linklocal` **plus** the Front Door backend ranges; re-measure first |
+
+**Why it was removed.** A hop count is only safe while the origin cannot be reached by a shorter
+path. It assumes every request traverses the same number of proxies, so if the backend is _also_
+reachable directly — bypassing the proxy being counted — a caller taking the short route supplies
+the forwarded header themselves, and the count that was correct for the long route now trusts
+caller-supplied data. Fastify removed the feature in 5.12.1 for exactly this reason
+([GHSA-3m5p-2c4r-xxw2](https://github.com/advisories/GHSA-3m5p-2c4r-xxw2)): hop-count-only trust
+cannot validate the immediate peer.
+
+This was never theoretical on Azure: **App Service keeps its `*.azurewebsites.net` hostname
+publicly reachable even when Front Door is deployed in front of it.** A deployment that set `2`
+for the Front Door path was trusting one attacker-controlled entry for anyone calling the
+`azurewebsites.net` name directly. The same applies self-hosted whenever the API container's port
+is published alongside the reverse proxy.
+
+An allowlist or named range does not have this failure mode: it validates _who_ sent the header
+rather than assuming _how many_ hops it crossed, so it degrades safely when a request arrives by
+an unexpected route. Worth doing regardless of proxy trust: restrict the origin so only the proxy
+can reach it (Front Door private link, or an App Service access restriction on the Front Door
+`X-Azure-FDID`).
+
+**Upgrading a deployment that set a hop count.** Fastify treats a numeric `trustProxy` as trusting
+nothing rather than erroring, so the API would have started and served traffic with the rate
+limiter back on one shared bucket, reporting nothing. The boot failure is deliberate: it surfaces
+the migration instead. Run `DRY_RUN=true ./infra/deploy.sh` before deploying to catch the value
+without a crash-looping container.
+
+> **Audit the live app settings before this reaches an environment — do not wait for a deploy.**
+> The boot failure is not confined to the deploy path. An App Service already carrying
+> `TRUST_PROXY=1` will crash-loop on its **next platform restart**, with no deploy involved and
+> nobody watching. And the "immediate" path below (`az webapp config appsettings set`) writes the
+> app setting directly, bypassing `deploy.sh`'s pre-flight entirely. So check the running
+> configuration of every environment first:
 >
-> This is not theoretical on Azure: **App Service keeps its `*.azurewebsites.net` hostname
-> publicly reachable even when Front Door is deployed in front of it.** A deployment that sets
-> `2` for the Front Door path is trusting one attacker-controlled entry for anyone who calls the
-> `azurewebsites.net` name directly. The same applies self-hosted whenever the API container's
-> port is published alongside the reverse proxy.
+> ```bash
+> az webapp config appsettings list \
+>   --resource-group "$AZURE_RESOURCE_GROUP" \
+>   --name "<app-service-name>" \
+>   --query "[?name=='TRUST_PROXY']"
+> ```
 >
-> Mitigations, in order of preference: restrict the origin so only the proxy can reach it (Front
-> Door private link, or an App Service access restriction on the Front Door `X-Azure-FDID`), or
-> use an **IP/CIDR allowlist** instead of a hop count — an allowlist validates _who_ sent the
-> header rather than assuming _how many_ hops it crossed, so it degrades safely when a request
-> arrives by an unexpected route.
+> Self-hosted, check the deployment's env file for a numeric `TRUST_PROXY`. `0` is safe and needs
+> no change; any other integer has to be replaced before the API restarts.
 
 **A forwarded address is not always a bare IP.** Azure App Service appends the client's IP **and
 ephemeral port** to `X-Forwarded-For` (`203.0.113.9:51234`), and proxy-addr passes that through
@@ -191,13 +244,13 @@ reach the API — the setting would appear configured and do nothing.
 
 ```bash
 # Durable: set it where the template will keep it, then redeploy.
-API_TRUST_PROXY=1 ./infra/deploy.sh          # or edit the environment's .bicepparam
+API_TRUST_PROXY=linklocal ./infra/deploy.sh   # or edit the environment's .bicepparam
 
 # Immediate: apply to a running App Service without a full redeploy.
 az webapp config appsettings set \
   --resource-group "$AZURE_RESOURCE_GROUP" \
   --name "<app-service-name>" \
-  --settings TRUST_PROXY=1
+  --settings TRUST_PROXY=linklocal
 
 # Confirm it took, and that the boot warning is gone.
 az webapp config appsettings list \
@@ -246,8 +299,8 @@ from a second location should show the counter starting fresh, since a different
 different bucket.
 
 This is worth doing per deployment: it exercises the value that deployment actually received,
-which the boot warning cannot tell you, and it is the check that distinguishes a correct hop count
-from a plausible wrong one.
+which the boot warning cannot tell you, and it is the check that distinguishes a correct proxy
+allowlist from a plausible wrong one.
 
 ---
 

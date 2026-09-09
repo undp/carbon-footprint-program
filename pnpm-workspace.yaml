@@ -49,7 +49,7 @@ catalogs:
 overrides:
   "exceljs>uuid": ^11.1.1
   "@hookform/devtools>uuid": ^11.1.1
-  # --- Transitive security patches (pnpm audit --prod, 2026-08-04) ---
+  # --- Transitive security patches (pnpm audit --prod, reviewed 2026-09-09) ---
   # Caret ranges only: a bare '>=' override value resolves to the global max
   # (e.g. brace-expansion 5.x, fast-uri 4.x) and would jump across majors.
   # Move the floor to the patched version even though the caret range already
@@ -60,10 +60,11 @@ overrides:
   # parent-scoped pins rot as soon as the chain changes (exactly what happened with
   # '@prisma/dev>@hono/node-server' below, which had to be removed by hand). Narrow
   # with '@<major>' only when several major lines coexist in the tree and an open
-  # range would jump majors. The one exception is breaking a specific vendor's exact
-  # pin, which has to be scoped to that parent ('@prisma/dev>valibot').
+  # range would jump majors. Scope to a parent only when some *other* consumer of the
+  # same package must keep its own resolution; breaking a lone vendor's exact pin
+  # ('deepmerge-ts', 'mysql2') needs no scope, since nothing else in the tree wants
+  # that package. No parent-scoped override survives today.
   "@fastify/static": ^10.1.2 # GHSA-83w8-p2f5-377r + GHSA-8pvw-jcv7-9cmj (@fastify/swagger-ui>@fastify/static)
-  "@prisma/dev>valibot": ^1.4.2 # GHSA-5qjj-4xww-7phc — @prisma/dev pins 1.2.0 exactly, must be forced
   "brace-expansion@1": ^1.1.18 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver/unzipper)
   "brace-expansion@2": ^2.1.4 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver>readdir-glob>minimatch)
   "brace-expansion@5": ^5.0.9 # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (@fastify/static>glob>minimatch)
@@ -73,20 +74,27 @@ overrides:
   # https://github.com/prisma/prisma/pull/30054 (open, community-authored, targets `v7`).
   # Drop this override once a published @prisma/config ships deepmerge-ts >= 8.
   "deepmerge-ts": ^8.0.1 # GHSA-ggr8-5vv4-36mx / CVE-2026-40345 (@prisma/client>prisma>@prisma/config)
-  "fast-uri@3": ^3.1.5 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 (fastify>ajv/fast-json-stringify; prisma>ajv)
+  "fast-uri@3": ^3.1.6 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 + GHSA-f65p-4m7j-42xc + GHSA-jqff-g426-hqxp + GHSA-fph4-wmhf-6fwf + GHSA-5jgf-p345-68v8 (fastify>ajv/fast-json-stringify; prisma>ajv; @fastify/swagger>json-schema-resolver)
   "fast-xml-parser": ^5.10.1 # GHSA-8r6m-32jq-jx6q (@azure/storage-blob>@azure/core-xml)
-  "find-my-way": ^9.6.1 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
+  "find-my-way": ^9.7.0 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
   # mysql2 is dead weight here — the CLI only loads it for MySQL datasources and
   # this deployment is Postgres-only — but prisma pins it exactly (3.15.3), so it
   # ships in the api image and both `pnpm audit --prod` and the Trivy image scan
   # flag it. The floor has to be forced past the vendor pin.
   "mysql2": ^3.22.0 # GHSA-3f6p-5ww8-9rcr (@prisma/client>prisma>mysql2)
-  "nanoid@3": ^3.3.17 # GHSA-2v37-7h3g-55p8 (@tailwindcss/vite>vite>postcss>nanoid)
-  "postcss@8": ^8.5.18 # GHSA-r28c-9q8g-f849 (@tailwindcss/vite>vite>postcss)
+  "nanoid@3": ^3.3.18 # GHSA-2v37-7h3g-55p8 (@tailwindcss/vite>vite>postcss>nanoid)
   # Removed '@prisma/dev>@hono/node-server' pin: Prisma 7.9 (@prisma/dev 0.24.14)
   # drops @hono/node-server entirely, resolving GHSA-frvp-7c67-39w9.
+  # Removed '@prisma/dev>valibot' pin: @prisma/dev 0.24.17 moved its exact pin from
+  # the vulnerable 1.2.0 to 1.4.2 — the very version the override forced — so the
+  # override can no longer change the outcome (GHSA-5qjj-4xww-7phc, patched 1.4.2).
+  # Removed 'postcss@8' pin: postcss reaches the tree only through vite, which now
+  # requires '^8.5.23'. That floor is already above the whole vulnerable range
+  # (GHSA-r28c-9q8g-f849, '<=8.5.17'), so no resolution can regress into it.
+  # Both were verified by comparing every declared parent range against the
+  # advisory's vulnerable range, not just against the current lockfile pin.
 
-# --- Accepted advisories (reviewed 2026-08-04) ---
+# --- Accepted advisories (reviewed 2026-09-09) ---
 # None. GHSA-mh99-v99m-4gvg (CVE-2026-14257) used to be ignored here because its
 # vulnerable range was '<=5.0.7', crossing majors with no backport on the 1.x / 2.x
 # lines, and forcing those to 5.x is impossible (5.x is ESM-first and its CJS entry

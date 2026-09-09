@@ -87,7 +87,7 @@ function getLoggerOptions() {
 export function warnIfProxyTrustUnconfigured(
   log: Pick<FastifyBaseLogger, "warn">,
   isProd: boolean,
-  trustProxy: boolean | number | string | undefined
+  trustProxy: boolean | string | undefined
 ): void {
   if (!isProd || trustProxy !== undefined) return;
 
@@ -96,9 +96,9 @@ export function warnIfProxyTrustUnconfigured(
       "the TCP connection. If this API is behind a load balancer, CDN or " +
       "reverse proxy (Azure App Service, Front Door, nginx), every client " +
       "resolves to the same address and the rate limiter applies ONE shared " +
-      "bucket to all of them. Set TRUST_PROXY to the proxy's IP/CIDR or a " +
-      "hop count. Set it to false explicitly to record that the API really " +
-      "is reached directly and silence this warning."
+      "bucket to all of them. Set TRUST_PROXY to the proxy's IP/CIDR " +
+      "allowlist or a named range. Set it to false explicitly to record that " +
+      "the API really is reached directly and silence this warning."
   );
 }
 

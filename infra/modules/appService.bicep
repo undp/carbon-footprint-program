@@ -32,14 +32,19 @@ param allowedOrigin string
 // Empty is the default deliberately: it reproduces the behaviour every existing
 // deployment already has, so a redeploy of this template changes nothing on its
 // own. Setting it is a per-deployment decision because the correct value depends
-// on how many proxies sit in front:
-//   '1'  App Service alone — trust the single platform hop
-//   '2'  App Service behind Front Door
-// Verify against the deployment before setting it: trusting more hops than
-// actually exist lets a caller forge X-Forwarded-For and pick its own bucket.
-// An IP/CIDR allowlist is accepted too and is preferable where the proxy
-// addresses are known and stable. See docs/security/hardening.md, "Proxy Trust".
-@description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing. "1" = App Service alone; "2" = behind Front Door; or an IP/CIDR allowlist.')
+// on what sits in front:
+//   'linklocal'  App Service alone — its front end proxies from 169.254.0.0/16
+//   '10.0.0.0/8' or another IP/CIDR allowlist
+// Behind Front Door, name its backend ranges alongside linklocal.
+//
+// Hop counts ('1', '2') are REJECTED and fail the API boot: Fastify 5.12.1
+// removed hop-count trust (GHSA-3m5p-2c4r-xxw2) because counting hops cannot
+// validate the immediate peer. An allowlist or named range validates WHO sent
+// the header, so it degrades safely when a request arrives by an unexpected
+// route. Verify against the deployment before setting it: trusting more than
+// the real chain lets a caller forge X-Forwarded-For and pick its own bucket.
+// See docs/security/hardening.md, "Proxy Trust".
+@description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing. "linklocal" = App Service front end; or an IP/CIDR allowlist. Hop counts such as "1" are rejected and fail the boot.')
 param trustProxy string = ''
 
 @description('Enable managed identity credentials for container registry')
