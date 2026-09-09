@@ -18,15 +18,22 @@ export const EmissionFactorStatusSchema = z
  * Bounded because the year is part of the factor's identity and drives the
  * vintage ranking: an unbounded integer lets a typo win the recommendation and
  * flag every line that uses it as mismatched.
+ *
+ * The messages are in Spanish because this schema is also the maintainer form's
+ * resolver: `EmissionFactorFormSchema` reuses it and the grid renders the issue
+ * message straight into the Año cell. The type message covers a non-numeric
+ * entry too — the cell forwards an unparseable value as `NaN` precisely so it is
+ * rejected here instead of collapsing into `null`, which would read as a
+ * deliberate transversal declaration.
  */
 export const EmissionFactorYearSchema = z
-  .number()
-  .int()
+  .number({ error: "El año debe ser un número entero" })
+  .int({ error: "El año debe ser un número entero" })
   .min(EMISSION_FACTOR_YEAR_MIN, {
-    message: `Year must be greater than or equal to ${EMISSION_FACTOR_YEAR_MIN}`,
+    error: `El año debe ser mayor o igual a ${EMISSION_FACTOR_YEAR_MIN}`,
   })
   .max(EMISSION_FACTOR_YEAR_MAX, {
-    message: `Year must be less than or equal to ${EMISSION_FACTOR_YEAR_MAX}`,
+    error: `El año debe ser menor o igual a ${EMISSION_FACTOR_YEAR_MAX}`,
   })
   .nullable()
   .describe(
