@@ -177,6 +177,10 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH",
     "El factor de emisión elegido no se puede expresar en la unidad de la línea. Cambia la unidad de medida o elige otro factor.",
   ],
+  [
+    "FACTOR_SELECTION_INPUT_TYPE_MISMATCH",
+    "Una línea con emisiones totales declaradas no puede además usar un factor de emisión. Vuelve a cargar la pantalla e intenta de nuevo.",
+  ],
   // Emission factor dimensions
   ["EMISSION_FACTOR_DIMENSION_NOT_FOUND", "La dimensión no fue encontrada."],
   ["DIMENSION_NOT_CONFIGURED", "La dimensión no está configurada."],
