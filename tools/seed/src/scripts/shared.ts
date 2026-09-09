@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EmissionFactorYearSchema } from "@repo/types";
 
 const HEX_RGB_REGEX = /^#[0-9A-Fa-f]{3}$/;
 const HEX_RGBA_REGEX = /^#[0-9A-Fa-f]{4}$/;
@@ -79,7 +80,13 @@ export const FullMethodologyDataSchema = z.array(
                   // transversal — applicable to every reporting year — so it
                   // has to be written out. Omitting the key is a data error,
                   // not a shorthand for transversal.
-                  year: z.number().int().nullable(),
+                  //
+                  // Shares the API's schema rather than restating it: the year
+                  // is part of a factor's identity and drives the vintage
+                  // ranking, so a seed typo like 20255 is exactly as damaging
+                  // as one sent over HTTP and has to be rejected by the same
+                  // bounds.
+                  year: EmissionFactorYearSchema,
                   value: z.number(),
                 })
               )
