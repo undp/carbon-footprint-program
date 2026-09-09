@@ -8,6 +8,7 @@ import {
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
+  assertFactorSelectionMatchesInputType,
   createLineInput,
   createLineFactor,
   createLineResult,
@@ -109,6 +110,12 @@ export const syncCarbonInventoryLinesService = async (
         );
       subcategoryIdByLineId.set(item.id, line.subcategoryId);
     }
+  }
+
+  // A contradictory line is rejected before anything is written, so the request
+  // cannot half-apply: the factor variant and the input type have to agree.
+  for (const item of [...request.create, ...request.update]) {
+    assertFactorSelectionMatchesInputType(item, item.inputType);
   }
 
   // Execute all operations in a transaction

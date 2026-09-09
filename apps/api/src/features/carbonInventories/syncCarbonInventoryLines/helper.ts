@@ -20,6 +20,7 @@ import {
   CatalogEmissionFactorNotInMethodologyError,
   CatalogEmissionFactorUnitFamilyMismatchError,
   CrossInventoryFileLinkingError,
+  FactorSelectionInputTypeMismatchError,
   FileAlreadyLinkedError,
 } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
@@ -214,6 +215,32 @@ async function convertToRateUnit(
     target.numeratorMeasurementUnit.baseFactor,
     target.denominatorMeasurementUnit.baseFactor
   );
+}
+
+/**
+ * Rejects a line whose factor variant contradicts its input type.
+ *
+ * A DIRECT line declares its total and has no factor; SIMPLIFIED and EXPERT
+ * compute one from a factor. The two arrive in separate fields, so a request can
+ * state both — and the pair persists silently: a declared total that no result
+ * row ever reads, or a factor snapshot with no result behind it. Either way the
+ * line shows a number in the editor and contributes zero to every aggregate.
+ *
+ * A line with no selection at all is still being filled in and is left alone.
+ */
+export function assertFactorSelectionMatchesInputType(
+  item: ItemData,
+  inputType: InputType
+): void {
+  const selection = item.factorSelection;
+  if (selection === null) return;
+
+  const isDirectSelection = selection.type === FactorSelectionType.DIRECT;
+  const isDirectInput = inputType === InputType.DIRECT;
+
+  if (isDirectSelection !== isDirectInput) {
+    throw new FactorSelectionInputTypeMismatchError(selection.type, inputType);
+  }
 }
 
 /**

@@ -120,6 +120,12 @@ export const CatalogEmissionFactorDimensionMismatchError = createError(
   422
 );
 
+export const FactorSelectionInputTypeMismatchError = createError(
+  "FACTOR_SELECTION_INPUT_TYPE_MISMATCH",
+  "A %s factor selection cannot be saved on a line whose input type is %s",
+  422
+);
+
 export const CatalogEmissionFactorUnitFamilyMismatchError = createError(
   "CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH",
   "The requested applied rate unit is not convertible from the selected emission factor's unit family (factor ID: %s)",
