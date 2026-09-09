@@ -84,7 +84,7 @@ export const getEmissionFactorsService = async (
   });
 
   const result: GetEmissionFactorsResponse = [];
-  const seenEmissionFactorIds = new Set<bigint>();
+  const seenAppliedVintages = new Set<string>();
 
   for (const line of lines) {
     const input = line.inputs[0];
@@ -93,10 +93,22 @@ export const getEmissionFactorsService = async (
     const factor = input.factor;
     const emissionFactor = factor?.emissionFactor;
 
-    // Skip duplicate emission factors
-    if (emissionFactor) {
-      if (seenEmissionFactorIds.has(emissionFactor.id)) continue;
-      seenEmissionFactorIds.add(emissionFactor.id);
+    // What the summary lists is an applied vintage, not a catalog row: the year
+    // and the value are snapshotted per line, so two lines can hold two
+    // vintages of the same factor after a maintainer re-dates it. Deduplicating
+    // on the catalog id alone would drop one of them, and with it its year
+    // warning.
+    const appliedVintageKey = emissionFactor
+      ? [
+          emissionFactor.id.toString(),
+          factor?.appliedFactorYear ?? "",
+          factor?.appliedFactorValue.toString() ?? "",
+        ].join("-")
+      : null;
+
+    if (appliedVintageKey !== null) {
+      if (seenAppliedVintages.has(appliedVintageKey)) continue;
+      seenAppliedVintages.add(appliedVintageKey);
     }
 
     // Determine factor value: prefer lineFactor, fall back to manual input
@@ -145,10 +157,9 @@ export const getEmissionFactorsService = async (
       "";
     const { factorSource, factorSourceDetail } = parseFactorSource(source);
 
-    // Use emission factor ID if available, otherwise use line ID for manual factors
-    const rowId = emissionFactor
-      ? String(emissionFactor.id)
-      : `manual-${line.id}`;
+    // One row per applied vintage, so the id has to carry the vintage too;
+    // manual factors stay keyed on their line.
+    const rowId = appliedVintageKey ?? `manual-${line.id}`;
 
     result.push({
       id: rowId,
