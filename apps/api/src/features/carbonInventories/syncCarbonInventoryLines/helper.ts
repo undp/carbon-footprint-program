@@ -13,6 +13,7 @@ import {
   isSameMagnitudeFamily,
   resolveRateUnitMagnitudeFamily,
 } from "@/features/measurementUnits/helpers.js";
+import { RateMeasurementUnitNotFoundError } from "@/features/emissionFactors/errors.js";
 import {
   CatalogEmissionFactorDimensionMismatchError,
   CatalogEmissionFactorNotFoundError,
@@ -199,9 +200,10 @@ async function convertToRateUnit(
   });
 
   // resolveRateUnitMagnitudeFamily already proved the unit exists, so a miss
-  // here would mean the row vanished mid-transaction.
-  if (!target)
-    throw new CatalogEmissionFactorNotFoundError(appliedRateUnitId.toString());
+  // here would mean the row vanished mid-transaction. It is the rate unit that
+  // is gone, not the factor: saying otherwise sends the user off to reselect a
+  // catalog factor that is perfectly fine.
+  if (!target) throw new RateMeasurementUnitNotFoundError();
 
   // Decimal all the way: this value is persisted as the applied snapshot and
   // multiplied into the stored result, so a rounding here is permanent.
