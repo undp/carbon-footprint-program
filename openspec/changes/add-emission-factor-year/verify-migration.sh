@@ -12,7 +12,7 @@
 # injects one defect each, and checks the migration's own behaviour.
 #
 # Usage:
-#   PGHOST=localhost PGPORT=5431 PGUSER=testuser PGPASSWORD=... \
+#   PGHOST=localhost PGPORT=5432 PGUSER=testuser PGPASSWORD=... \
 #   TEMPLATE_DB=testdb ./verify-migration.sh
 #
 # TEMPLATE_DB must be a database seeded with the *pre-change* catalog (sources
@@ -26,13 +26,34 @@
 set -euo pipefail
 
 PGHOST="${PGHOST:-localhost}"
-PGPORT="${PGPORT:-5431}"
+PGPORT="${PGPORT:-5432}"
 PGUSER="${PGUSER:-testuser}"
+# Defaulted like the rest: a host using .pgpass, trust or peer auth needs no
+# password, and every direct psql call below works without one. Left unset it
+# would trip `set -u` inside stage(), after the migration directory has already
+# been moved aside.
+PGPASSWORD="${PGPASSWORD:-}"
 TEMPLATE_DB="${TEMPLATE_DB:-testdb}"
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 MIGRATION_DIR="$REPO_ROOT/packages/database/src/prisma/migrations/20260901120000_add_emission_factor_year"
 MIGRATION_SQL="$MIGRATION_DIR/migration.sql"
+
+# Prisma takes a URL, not PG* variables, so the credentials have to be encoded:
+# a restored-production password containing @ / : # ? or % otherwise makes the
+# URL parse into a different host or database, and the resulting error looks
+# like a network problem rather than a quoting bug.
+urlencode() {
+  local LC_ALL=C s="$1" out="" c i
+  for ((i = 0; i < ${#s}; i++)); do
+    c="${s:i:1}"
+    case "$c" in
+    [A-Za-z0-9._~-]) out+="$c" ;;
+    *) out+="$(printf '%%%02X' "'$c")" ;;
+    esac
+  done
+  printf '%s' "$out"
+}
 
 psql_db() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$1" -tAq -v ON_ERROR_STOP=1 "${@:2}"; }
 admin() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -q -c "$1"; }
@@ -53,7 +74,7 @@ stage() {
   trap 'mv "$parked" "$MIGRATION_DIR" 2>/dev/null || true' EXIT INT TERM
   mv "$MIGRATION_DIR" "$parked"
   (cd "$REPO_ROOT/packages/database" &&
-    DATABASE_URL="postgresql://$PGUSER:$PGPASSWORD@$PGHOST:$PGPORT/$db" \
+    DATABASE_URL="postgresql://$(urlencode "$PGUSER"):$(urlencode "$PGPASSWORD")@$PGHOST:$PGPORT/$db" \
       pnpm exec prisma migrate deploy >/dev/null)
   mv "$parked" "$MIGRATION_DIR"
   trap - EXIT INT TERM
