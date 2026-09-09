@@ -12,7 +12,7 @@ import { DataIntegrityError } from "@/errors/index.js";
 import { MissingFilesError } from "@/features/files/errors.js";
 import {
   isSameMagnitudeFamily,
-  resolveRateUnitMagnitudeFamily,
+  type RateUnitMagnitudeFamily,
 } from "@/features/measurementUnits/helpers.js";
 import { RateMeasurementUnitNotFoundError } from "@/features/emissionFactors/errors.js";
 import {
@@ -59,6 +59,108 @@ export type ResolvedFactor = {
   } | null;
 };
 
+/** A rate unit's family plus the base factors a conversion into it needs. */
+type RateUnitConversion = RateUnitMagnitudeFamily & {
+  numeratorBaseFactor: number;
+  denominatorBaseFactor: number;
+};
+
+/**
+ * The part of factor resolution that is the same for every line of a request.
+ *
+ * A sync writes one subcategory at a time, so its lines share a subcategory's
+ * required dimensions and keep reusing the same handful of rate units. Read per
+ * line, that was a dimension query and two rate-unit queries each — a 40-line
+ * save spending over a hundred round-trips inside the transaction, against
+ * Prisma's five-second budget. Read once, it is a single query plus one per
+ * distinct unit.
+ */
+export type FactorResolutionContext = {
+  methodologyVersionId: bigint | null;
+  /** Required dimension positions, keyed by subcategory id. */
+  requiredDimensionPositions: Map<string, Set<number>>;
+  /** Rate units already read in this request, keyed by id. */
+  rateUnits: Map<string, RateUnitConversion>;
+};
+
+/**
+ * Loads the shared part of factor resolution for every subcategory a request
+ * touches. Called inside the sync transaction, so what it reads is what the
+ * writes are validated against.
+ */
+export async function loadFactorResolutionContext(
+  tx: Prisma.TransactionClient,
+  methodologyVersionId: bigint | null,
+  subcategoryIds: bigint[]
+): Promise<FactorResolutionContext> {
+  const requiredDimensionPositions = new Map<string, Set<number>>();
+
+  if (subcategoryIds.length > 0) {
+    const dimensions = await tx.emissionFactorDimension.findMany({
+      where: {
+        subcategoryId: { in: [...new Set(subcategoryIds)] },
+        isRequired: true,
+        status: "ACTIVE",
+      },
+      select: { subcategoryId: true, position: true },
+    });
+
+    for (const dimension of dimensions) {
+      const key = dimension.subcategoryId.toString();
+      const positions =
+        requiredDimensionPositions.get(key) ?? new Set<number>();
+      positions.add(dimension.position);
+      requiredDimensionPositions.set(key, positions);
+    }
+  }
+
+  return {
+    methodologyVersionId,
+    requiredDimensionPositions,
+    rateUnits: new Map(),
+  };
+}
+
+/**
+ * Reads a rate unit once per request.
+ *
+ * Both things the resolution needs from it — the magnitude family it has to
+ * share with the factor, and the base factors the conversion multiplies by —
+ * come from the same row, so they are read together.
+ */
+async function loadRateUnit(
+  tx: Prisma.TransactionClient,
+  context: FactorResolutionContext,
+  rateUnitId: bigint
+): Promise<RateUnitConversion> {
+  const key = rateUnitId.toString();
+  const cached = context.rateUnits.get(key);
+  if (cached) return cached;
+
+  const rateUnit = await tx.rateMeasurementUnit.findUnique({
+    where: { id: rateUnitId },
+    select: {
+      numeratorMeasurementUnit: {
+        select: { magnitudeId: true, baseFactor: true },
+      },
+      denominatorMeasurementUnit: {
+        select: { magnitudeId: true, baseFactor: true },
+      },
+    },
+  });
+
+  if (!rateUnit) throw new RateMeasurementUnitNotFoundError();
+
+  const conversion: RateUnitConversion = {
+    numeratorMagnitudeId: rateUnit.numeratorMeasurementUnit.magnitudeId,
+    denominatorMagnitudeId: rateUnit.denominatorMeasurementUnit.magnitudeId,
+    numeratorBaseFactor: rateUnit.numeratorMeasurementUnit.baseFactor,
+    denominatorBaseFactor: rateUnit.denominatorMeasurementUnit.baseFactor,
+  };
+  context.rateUnits.set(key, conversion);
+  return conversion;
+}
+
 /**
  * Loads the selected catalog factor and derives its applied snapshot.
  *
@@ -77,8 +179,8 @@ export type ResolvedFactor = {
 export async function resolveCatalogFactor(
   tx: Prisma.TransactionClient,
   selection: Extract<FactorSelection, { type: "CATALOG" }>,
-  context: {
-    methodologyVersionId: bigint | null;
+  context: FactorResolutionContext,
+  line: {
     subcategoryId: bigint;
     dimensionValue1Id: bigint | null;
     dimensionValue2Id: bigint | null;
@@ -119,7 +221,7 @@ export async function resolveCatalogFactor(
   }
 
   if (
-    factor.subcategoryId !== context.subcategoryId ||
+    factor.subcategoryId !== line.subcategoryId ||
     factor.subcategory.category.methodologyVersionId !==
       context.methodologyVersionId
   ) {
@@ -131,24 +233,15 @@ export async function resolveCatalogFactor(
   // Only the dimensions the subcategory requires take part: an optional slot is
   // not part of the factor's identity, so it must not be able to reject a valid
   // selection either.
-  const requiredPositions = new Set(
-    (
-      await tx.emissionFactorDimension.findMany({
-        where: {
-          subcategoryId: context.subcategoryId,
-          isRequired: true,
-          status: "ACTIVE",
-        },
-        select: { position: true },
-      })
-    ).map((dimension) => dimension.position)
-  );
+  const requiredPositions =
+    context.requiredDimensionPositions.get(line.subcategoryId.toString()) ??
+    new Set<number>();
 
   if (
     (requiredPositions.has(1) &&
-      factor.dimensionValue1Id !== context.dimensionValue1Id) ||
+      factor.dimensionValue1Id !== line.dimensionValue1Id) ||
     (requiredPositions.has(2) &&
-      factor.dimensionValue2Id !== context.dimensionValue2Id)
+      factor.dimensionValue2Id !== line.dimensionValue2Id)
   ) {
     throw new CatalogEmissionFactorDimensionMismatchError(
       selection.emissionFactorId
@@ -156,12 +249,9 @@ export async function resolveCatalogFactor(
   }
 
   const appliedRateUnitId = BigInt(selection.appliedRateMeasurementUnitId);
-  const appliedFamily = await resolveRateUnitMagnitudeFamily(
-    tx,
-    appliedRateUnitId
-  );
+  const appliedRateUnit = await loadRateUnit(tx, context, appliedRateUnitId);
 
-  if (!isSameMagnitudeFamily(appliedFamily, factor)) {
+  if (!isSameMagnitudeFamily(appliedRateUnit, factor)) {
     throw new CatalogEmissionFactorUnitFamilyMismatchError(
       selection.emissionFactorId
     );
@@ -170,7 +260,7 @@ export async function resolveCatalogFactor(
   const appliedValue =
     appliedRateUnitId === factor.rateMeasurementUnitId
       ? factor.value
-      : await convertToRateUnit(tx, factor, appliedRateUnitId);
+      : convertToRateUnit(factor, appliedRateUnit);
 
   assertStorableAppliedFactorValue(appliedValue, selection.emissionFactorId);
 
@@ -204,8 +294,7 @@ function assertStorableAppliedFactorValue(
   }
 }
 
-async function convertToRateUnit(
-  tx: Prisma.TransactionClient,
+function convertToRateUnit(
   factor: {
     value: Prisma.Decimal;
     rateMeasurementUnit: {
@@ -213,30 +302,16 @@ async function convertToRateUnit(
       denominatorMeasurementUnit: { baseFactor: number };
     };
   },
-  appliedRateUnitId: bigint
-): Promise<Prisma.Decimal> {
-  const target = await tx.rateMeasurementUnit.findUnique({
-    where: { id: appliedRateUnitId },
-    select: {
-      numeratorMeasurementUnit: { select: { baseFactor: true } },
-      denominatorMeasurementUnit: { select: { baseFactor: true } },
-    },
-  });
-
-  // resolveRateUnitMagnitudeFamily already proved the unit exists, so a miss
-  // here would mean the row vanished mid-transaction. It is the rate unit that
-  // is gone, not the factor: saying otherwise sends the user off to reselect a
-  // catalog factor that is perfectly fine.
-  if (!target) throw new RateMeasurementUnitNotFoundError();
-
+  target: RateUnitConversion
+): Prisma.Decimal {
   // Decimal all the way: this value is persisted as the applied snapshot and
   // multiplied into the stored result, so a rounding here is permanent.
   return convertEmissionFactorValueDecimal(
     factor.value,
     factor.rateMeasurementUnit.numeratorMeasurementUnit.baseFactor,
     factor.rateMeasurementUnit.denominatorMeasurementUnit.baseFactor,
-    target.numeratorMeasurementUnit.baseFactor,
-    target.denominatorMeasurementUnit.baseFactor
+    target.numeratorBaseFactor,
+    target.denominatorBaseFactor
   );
 }
 
@@ -276,18 +351,16 @@ export function assertFactorSelectionMatchesInputType(
 export async function resolveFactorSelection(
   tx: Prisma.TransactionClient,
   item: ItemData,
-  context: {
-    methodologyVersionId: bigint | null;
-    subcategoryId: bigint;
-  }
+  context: FactorResolutionContext,
+  subcategoryId: bigint
 ): Promise<ResolvedFactor | null> {
   const selection = item.factorSelection;
   if (selection === null) return null;
 
   switch (selection.type) {
     case FactorSelectionType.CATALOG:
-      return await resolveCatalogFactor(tx, selection, {
-        ...context,
+      return await resolveCatalogFactor(tx, selection, context, {
+        subcategoryId,
         dimensionValue1Id: mapBigIntField(item.dimensionValue1Id),
         dimensionValue2Id: mapBigIntField(item.dimensionValue2Id),
       });
@@ -295,7 +368,7 @@ export async function resolveFactorSelection(
     case FactorSelectionType.CUSTOM: {
       const rateUnitId = BigInt(selection.rateMeasurementUnitId);
       // Validates existence; a custom factor has no family to match against.
-      await resolveRateUnitMagnitudeFamily(tx, rateUnitId);
+      await loadRateUnit(tx, context, rateUnitId);
       const value = mapDecimalField(selection.value);
       return {
         emissionFactorId: null,

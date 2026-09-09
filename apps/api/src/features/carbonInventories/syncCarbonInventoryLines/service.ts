@@ -9,6 +9,7 @@ import {
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
   assertFactorSelectionMatchesInputType,
+  loadFactorResolutionContext,
   createLineInput,
   createLineFactor,
   createLineResult,
@@ -126,6 +127,17 @@ export const syncCarbonInventoryLinesService = async (
   const userId = user ? BigInt(user.id) : null;
 
   await prismaClient.$transaction(async (tx) => {
+    // Read once for the whole request, inside the transaction so the writes are
+    // still validated against what the transaction sees.
+    const factorContext = await loadFactorResolutionContext(
+      tx,
+      carbonInventory.methodologyVersionId,
+      [
+        ...request.create.map((item) => BigInt(item.subcategoryId)),
+        ...request.update.map((item) => subcategoryIdByLineId.get(item.id)!),
+      ]
+    );
+
     // 1. CREATE operations
     for (const createItem of request.create) {
       const line = await tx.carbonInventoryLine.create({
@@ -144,10 +156,12 @@ export const syncCarbonInventoryLinesService = async (
       const inputType = createItem.inputType;
       // Resolved inside the transaction so the catalog row cannot be edited or
       // deleted between validation and the write.
-      const resolvedFactor = await resolveFactorSelection(tx, createItem, {
-        methodologyVersionId: carbonInventory.methodologyVersionId,
-        subcategoryId: BigInt(createItem.subcategoryId),
-      });
+      const resolvedFactor = await resolveFactorSelection(
+        tx,
+        createItem,
+        factorContext,
+        BigInt(createItem.subcategoryId)
+      );
       const newInput = await createLineInput(
         tx,
         line.id,
@@ -189,10 +203,12 @@ export const syncCarbonInventoryLinesService = async (
       });
 
       const inputType = updateItem.inputType;
-      const resolvedFactor = await resolveFactorSelection(tx, updateItem, {
-        methodologyVersionId: carbonInventory.methodologyVersionId,
-        subcategoryId: subcategoryIdByLineId.get(updateItem.id)!,
-      });
+      const resolvedFactor = await resolveFactorSelection(
+        tx,
+        updateItem,
+        factorContext,
+        subcategoryIdByLineId.get(updateItem.id)!
+      );
       const newInput = await createLineInput(
         tx,
         lineId,
