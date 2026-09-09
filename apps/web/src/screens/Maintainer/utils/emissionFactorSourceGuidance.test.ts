@@ -28,6 +28,18 @@ describe("looksLikeSourceContainsYear", () => {
   it("does not flag a longer digit run that merely contains a year", () => {
     expect(looksLikeSourceContainsYear("Ref 120250")).toBe(false);
   });
+
+  it("does not flag a standard whose number is part of its name", () => {
+    // "PAS 2050" is a real standard, and 2050 is inside the year bounds, so a
+    // maintainer who followed the warning would store a factor that outranks
+    // every real vintage.
+    expect(looksLikeSourceContainsYear("PAS 2050")).toBe(false);
+    expect(looksLikeSourceContainsYear("pas  2050")).toBe(false);
+  });
+
+  it("still flags a name that merely opens with a standard's", () => {
+    expect(looksLikeSourceContainsYear("PAS 2050 2019")).toBe(true);
+  });
 });
 
 describe("extractYearFromSource", () => {
@@ -37,6 +49,10 @@ describe("extractYearFromSource", () => {
 
   it("returns null when there is nothing that looks like a year", () => {
     expect(extractYearFromSource("DEFRA")).toBeNull();
+  });
+
+  it("returns null for a standard whose number is part of its name", () => {
+    expect(extractYearFromSource("PAS 2050")).toBeNull();
   });
 });
 
@@ -78,6 +94,10 @@ describe("buildSourceYearWarning", () => {
 
   it("does not leave a separator stranded where the year was", () => {
     expect(buildSourceYearWarning("DEFRA - 2025")).toContain('"DEFRA"');
+  });
+
+  it("does not advise moving a standard's own number into the Año column", () => {
+    expect(buildSourceYearWarning("PAS 2050")).toBeNull();
   });
 
   it("falls back to the original name when it is only a year", () => {
