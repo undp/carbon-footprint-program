@@ -88,7 +88,20 @@ WHERE c."legacy_source" = ef."source";
 
 DROP TABLE "emission_factor_year_classification";
 
--- 5. Backfill the unit family from each factor's own rate unit.
+-- 5. Bound the year in the database, not only in the API schema.
+--
+--    EmissionFactorYearSchema already rejects an out-of-range year over HTTP,
+--    but the seeds write straight through Prisma, and a typo like 20255 does not
+--    merely look wrong: it sorts to the top of the vintage ranking and marks
+--    every line that uses it as mismatched. The bounds mirror
+--    EMISSION_FACTOR_YEAR_MIN / EMISSION_FACTOR_YEAR_MAX in
+--    packages/constants/src/emissionFactor.ts and have to be kept in step with
+--    them by hand — SQL cannot import a constant.
+ALTER TABLE "emission_factor"
+  ADD CONSTRAINT "emission_factor_year_range"
+    CHECK ("year" IS NULL OR "year" BETWEEN 1900 AND 2100);
+
+-- 6. Backfill the unit family from each factor's own rate unit.
 --
 --    Dimension slots are deliberately left exactly as they are. Normalizing the
 --    non-required ones to NULL would have matched the application's uniqueness
@@ -132,7 +145,7 @@ ALTER TABLE "emission_factor"
     FOREIGN KEY ("denominator_magnitude_id") REFERENCES "magnitude"("id")
     ON DELETE RESTRICT ON UPDATE CASCADE;
 
--- 6. Consolidate rows that collapse into one identity under the new key.
+-- 7. Consolidate rows that collapse into one identity under the new key.
 --    Only mathematically equivalent values may merge: the canonical value is
 --    compared in base units (value * numerator baseFactor / denominator
 --    baseFactor). Any group that disagrees is a methodology question, not a
@@ -240,7 +253,7 @@ UPDATE "emission_factor"
 SET "status" = 'DELETED'
 WHERE "id" IN (SELECT "id" FROM ranked WHERE "id" <> "survivor_id");
 
--- 7. Replace the old identity with the source/year/family one. NULLS NOT
+-- 8. Replace the old identity with the source/year/family one. NULLS NOT
 --    DISTINCT is what makes a missing dimension or a transversal year behave as
 --    a real value instead of a free pass through the constraint.
 DROP INDEX "emission_factor_unique_subcategory_dims_source";
@@ -257,7 +270,7 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_year_source_family"
   ) NULLS NOT DISTINCT
   WHERE "status" <> 'DELETED';
 
--- 8. Backfill the applied year from the catalog row each captured line already
+-- 9. Backfill the applied year from the catalog row each captured line already
 --    references. Custom factors and direct totals have no emission_factor_id, so
 --    they correctly stay NULL and never join the year-mismatch warning.
 UPDATE "carbon_inventory_line_factor" lf
