@@ -15,7 +15,7 @@ import {
   getTestMeasurementUnitIds,
 } from "@test/factories/subcategoryFactory.js";
 import type { CreateSubcategoryResponse } from "@repo/types";
-import { CategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 
@@ -153,6 +153,64 @@ describe("POST /api/subcategories/ - Integration Tests", () => {
       });
 
       expect(dbRecord!.position).toBe(2);
+    });
+
+    it("should wait for a concurrent create in the same category", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Subcategory Concurrent Position",
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Concurrent Position Parent",
+        position: 1,
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Concurrent Existing Subcategory",
+        position: 1,
+      });
+
+      // Reproduces the race the category row lock exists for: a transaction
+      // holds position 2 uncommitted while the request computes its own. With
+      // the lock the request blocks, then reads MAX(position) = 2 and appends
+      // 3. Without it, it computes 2 as well and the partial unique index
+      // rejects it with a 409 about a position the client never supplied.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT "id" FROM "category" WHERE "id" = ${category.id} FOR UPDATE`;
+          await tx.subcategory.create({
+            data: {
+              categoryId: category.id,
+              name: "Test - Concurrent Holder Subcategory",
+              icon: "FACTORY",
+              description: "Holds position 2 until the request is in flight",
+              position: 2,
+              status: SubcategoryStatus.ACTIVE,
+            },
+          });
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      const requestPromise = app.inject({
+        method: "POST",
+        url: "/api/subcategories/",
+        payload: buildSubcategoryPayload(category.id.toString()),
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateSubcategoryResponse;
+      expect(body.position).toBe(3);
     });
 
     it("should create measurement unit associations", async () => {
