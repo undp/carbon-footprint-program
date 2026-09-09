@@ -130,7 +130,7 @@ const factor = (fixture: FactorFixture) => {
 const recommend = (
   factors: MethodologyEmissionFactor[],
   inventoryYear: number | null
-) => recommendCatalogFactor(factors, null, null, "kg/kWh", inventoryYear);
+) => recommendCatalogFactor(factors, null, null, "kg/kWh", inventoryYear, []);
 
 describe("buildFactorOptionLabel", () => {
   it("appends the year to a dated factor", () => {
@@ -303,7 +303,8 @@ describe("recommendCatalogFactor", () => {
       null,
       null,
       "kg/kWh",
-      2023
+      2023,
+      []
     );
 
     expect(result.recommended).toBeNull();
@@ -321,7 +322,8 @@ describe("getCatalogFactorOptions", () => {
       ],
       null,
       null,
-      "kg/kWh"
+      "kg/kWh",
+      []
     );
 
     expect(options.map((o) => o.label)).toEqual([
@@ -339,7 +341,8 @@ describe("getCatalogFactorOptions", () => {
       ],
       null,
       null,
-      "kg/kWh"
+      "kg/kWh",
+      []
     );
 
     // Two vintages share a source, so a source-keyed selector would collapse
@@ -353,8 +356,56 @@ describe("getCatalogFactorOptions", () => {
         [factor({ source: "DEFRA", year: 2025 })],
         null,
         null,
-        null
+        null,
+        []
       )
     ).toEqual([]);
+  });
+
+  it("hides a factor left blank on a required dimension", () => {
+    // The API matches a required position exactly, so a blank there is not a
+    // wildcard: offering the factor would hand the user a choice the save
+    // rejects with a dimension mismatch.
+    const options = getCatalogFactorOptions(
+      [
+        factor({
+          source: "DEFRA",
+          year: 2025,
+          baseEmissionFactorId: "11",
+          dimensionValue1Id: null,
+        }),
+        factor({
+          source: "IPCC",
+          year: 2025,
+          baseEmissionFactorId: "12",
+          dimensionValue1Id: "7",
+        }),
+      ],
+      "7",
+      null,
+      "kg/kWh",
+      [1]
+    );
+
+    expect(options.map((o) => o.id)).toEqual(["12"]);
+  });
+
+  it("still treats a blank optional dimension as applying to any value", () => {
+    const options = getCatalogFactorOptions(
+      [
+        factor({
+          source: "DEFRA",
+          year: 2025,
+          baseEmissionFactorId: "11",
+          dimensionValue1Id: null,
+        }),
+      ],
+      "7",
+      null,
+      "kg/kWh",
+      []
+    );
+
+    expect(options.map((o) => o.id)).toEqual(["11"]);
   });
 });
