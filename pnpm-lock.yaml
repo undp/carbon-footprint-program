@@ -131,7 +131,7 @@ importers:
         specifier: workspace:*
         version: link:../../packages/utils
       fastify:
-        specifier: ^5.12.1
+        specifier: ^5.12.3
         version: 5.12.3
       fastify-plugin:
         specifier: ^6.0.0
