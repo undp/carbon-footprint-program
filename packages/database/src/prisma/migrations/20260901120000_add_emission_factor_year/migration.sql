@@ -148,8 +148,10 @@ ALTER TABLE "emission_factor"
 -- 7. Consolidate rows that collapse into one identity under the new key.
 --    Only mathematically equivalent values may merge: the canonical value is
 --    compared in base units (value * numerator baseFactor / denominator
---    baseFactor). Any group that disagrees is a methodology question, not a
---    migration one, so it aborts here.
+--    baseFactor), within a relative tolerance so that rounding in a conversion
+--    that is not a power of ten does not read as disagreement. Any group that
+--    disagrees beyond that is a methodology question, not a migration one, so it
+--    aborts here.
 --
 --    The surviving row is the one with the largest denominator baseFactor, so a
 --    mass/mass pair keeps "kg/ton" over the equivalent "kg/kg": that is the
@@ -182,20 +184,30 @@ BEGIN
            "dimension_value_2_id",
            "year",
            "source",
-           count(DISTINCT base_value) AS distinct_values
+           min(base_value) AS min_base_value,
+           max(base_value) AS max_base_value
     FROM canonical
     GROUP BY "subcategory_id", "dimension_value_1_id", "dimension_value_2_id",
              "year", "source", "numerator_magnitude_id", "denominator_magnitude_id"
-    HAVING count(DISTINCT base_value) > 1
+    -- Relative tolerance rather than exact equality. The canonical value runs a
+    -- Decimal(28, 10) through unit base factors that are not powers of ten (a
+    -- day is 24 hours, a gallon 3.78541 litres), so the same factor written as
+    -- 1 kg/d and as 0.0416666667 kg/h lands a few digits apart and would read as
+    -- two distinct values. Aborting there would block the migration on a catalog
+    -- that is in fact consistent, while 1e-6 is still orders of magnitude
+    -- tighter than any real methodology disagreement.
+    HAVING max(base_value) - min(base_value) >
+           1e-6 * greatest(abs(max(base_value)), abs(min(base_value)))
   )
   SELECT string_agg(
-           format('subcategory %s / dims (%s, %s) / year %s / source %s: %s distinct canonical values',
+           format('subcategory %s / dims (%s, %s) / year %s / source %s: canonical values from %s to %s',
                   "subcategory_id",
                   coalesce("dimension_value_1_id"::TEXT, 'null'),
                   coalesce("dimension_value_2_id"::TEXT, 'null'),
                   coalesce("year"::TEXT, 'transversal'),
                   quote_literal("source"),
-                  distinct_values),
+                  min_base_value,
+                  max_base_value),
            '; ')
   INTO conflicting
   FROM conflicts;
