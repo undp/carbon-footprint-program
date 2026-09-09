@@ -54,18 +54,39 @@ stage() {
   trap - EXIT INT TERM
 }
 
+# `prisma migrate deploy` wraps a migration file in one transaction; psql does
+# not. Without --single-transaction every statement before the failing one
+# auto-commits, so this check would pass on a migration that aborts halfway and
+# leaves its new columns behind — the opposite of what rollout.md tells the
+# operator was verified. The rollback is therefore asserted, not assumed.
+#
+# `|| true` would also swallow a connection failure and report it as "the
+# migration did not abort", so the exit status is inspected instead: psql exits
+# 2 when it cannot connect and 3 on a script error under ON_ERROR_STOP.
 expect_abort() {
   local db="$1" needle="$2" label="$3"
-  local output
+  local output status=0 leftovers
   output="$(psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d "$db" \
-    -v ON_ERROR_STOP=1 -f "$MIGRATION_SQL" 2>&1 || true)"
-  if grep -q "$needle" <<<"$output"; then
-    echo "  PASS  $label"
-  else
+    --single-transaction -v ON_ERROR_STOP=1 -f "$MIGRATION_SQL" 2>&1)" || status=$?
+  if [[ "$status" -eq 2 ]]; then
+    echo "  ERROR $label — could not connect to $db; this is not a migration result"
+    echo "$output" | tail -5 | sed 's/^/        /'
+    exit 1
+  fi
+  if ! grep -q "$needle" <<<"$output"; then
     echo "  FAIL  $label — expected the migration to abort with: $needle"
     echo "$output" | tail -5 | sed 's/^/        /'
     exit 1
   fi
+  leftovers="$(psql_db "$db" -c "
+    SELECT count(*) FROM information_schema.columns
+    WHERE table_name = 'emission_factor'
+      AND column_name IN ('year', 'numerator_magnitude_id', 'denominator_magnitude_id');")"
+  if [[ "$leftovers" != "0" ]]; then
+    echo "  FAIL  $label — aborted, but left $leftovers new column(s) behind"
+    exit 1
+  fi
+  echo "  PASS  $label"
 }
 
 echo "1. An unclassified source stops the migration instead of defaulting to transversal"
