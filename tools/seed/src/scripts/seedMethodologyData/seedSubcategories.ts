@@ -106,6 +106,39 @@ export async function seedSubcategories(
     },
   });
 
+  // Create a map of subcategories by full path for lookup
+  const subcategoriesByFullPath = new Map(
+    subcategories.map((subcategory) => [
+      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
+      subcategory,
+    ])
+  );
+
+  // skipDuplicates drops a row that collides with any partial unique index, not
+  // only the one on (category, name): since positions became unique per category
+  // too, a row whose position is already held by an unrelated subcategory
+  // disappears without an error. Name those rows — a bare count says neither
+  // which row nor which constraint.
+  const missingSubcategories = subcategoriesData.filter(
+    (subcategory) =>
+      !subcategoriesByFullPath.has(
+        `${subcategory.countryIsoCode}:${subcategory.methodologyVersionName}:${subcategory.categoryName}:${subcategory.name}`
+      )
+  );
+
+  if (missingSubcategories.length > 0) {
+    const details = missingSubcategories
+      .map(
+        (subcategory) =>
+          `'${subcategory.name}' (category '${subcategory.categoryName}', position ${subcategory.position})`
+      )
+      .join(", ");
+
+    throw new Error(
+      `${missingSubcategories.length} subcategories were not created for dataset ${dataset}: ${details}. A row is skipped when its (category, name) or (category, position) is already taken by an existing subcategory.`
+    );
+  }
+
   if (subcategories.length !== subcategoriesData.length)
     throw new Error(
       `Expected ${subcategoriesData.length} subcategories but found ${subcategories.length} for dataset ${dataset}`
@@ -122,14 +155,6 @@ export async function seedSubcategories(
   const measurementUnits = await prisma.measurementUnit.findMany();
   const measurementUnitsByAbbreviation = new Map(
     measurementUnits.map((mu) => [mu.abbreviation, mu])
-  );
-
-  // Create a map of subcategories by full path for lookup
-  const subcategoriesByFullPath = new Map(
-    subcategories.map((subcategory) => [
-      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
-      subcategory,
-    ])
   );
 
   // Prepare SubcategoryMeasurementUnit records
