@@ -3,6 +3,58 @@ import { z } from "zod";
 import { checkForDuplicates, type SeedsDataset } from "@/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
 
+export interface PositionedSubcategory {
+  countryIsoCode: string;
+  methodologyVersionName: string;
+  categoryName: string;
+  position: number;
+}
+
+/**
+ * Authored positions must run 1..N inside each category.
+ *
+ * Uniqueness alone accepts [1, 2, 4] and [2, 3, 4]. The authored order is
+ * published as a numbered table in the docs and carried into the methodology
+ * export, so a subcategory dropped from the JSON without renumbering would
+ * leave a permanent hole users can see. Gaps that appear at runtime from soft
+ * deletes are expected and fine — this is only about authored seed data.
+ */
+export function checkPositionsAreContiguous(
+  data: PositionedSubcategory[]
+): void {
+  const positionsByCategory = new Map<string, number[]>();
+
+  for (const row of data) {
+    const key = [
+      row.countryIsoCode,
+      row.methodologyVersionName,
+      row.categoryName,
+    ].join(" > ");
+
+    positionsByCategory.set(key, [
+      ...(positionsByCategory.get(key) ?? []),
+      row.position,
+    ]);
+  }
+
+  const offenders = [...positionsByCategory.entries()]
+    .map(([key, positions]) => ({
+      key,
+      sorted: [...positions].sort((a, b) => a - b),
+    }))
+    .filter(({ sorted }) =>
+      sorted.some((position, index) => position !== index + 1)
+    )
+    .map(({ key, sorted }) => `${key} (${sorted.join(", ")})`);
+
+  if (offenders.length > 0) {
+    throw new Error(
+      `Subcategory positions must run 1..N with no gaps inside each category. ` +
+        `Offending categories: ${offenders.join("; ")}. Please renumber and try again.`
+    );
+  }
+}
+
 export async function seedSubcategories(
   prisma: PrismaClient,
   nestedData: z.infer<typeof FullMethodologyDataSchema>,
@@ -44,6 +96,8 @@ export async function seedSubcategories(
     "categoryName",
     "position",
   ]);
+
+  checkPositionsAreContiguous(subcategoriesData);
 
   // Fetch categories with their methodology versions and countries to map by full path
   const categories = await prisma.category.findMany({
