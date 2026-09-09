@@ -38,6 +38,7 @@ export const methodologyExportSelect = {
         select: {
           id: true,
           name: true,
+          position: true,
           description: true,
           subcategoryMeasurementUnits: {
             select: {
