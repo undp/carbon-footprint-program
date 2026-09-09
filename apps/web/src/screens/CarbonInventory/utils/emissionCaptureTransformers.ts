@@ -31,6 +31,19 @@ function mapFactorSelection(
       : { type: FactorSelectionType.DIRECT, totalEmissions };
   }
 
+  // The canonical factor ID decides the variant, never the source text: a
+  // catalog factor whose provider happens to be named like the custom label
+  // would otherwise be sent as a custom factor, with the client's own value, and
+  // skip every catalog check the API performs.
+  if (line.baseFactorId !== null) {
+    if (line.factorRateMeasurementUnitId === null) return null;
+    return {
+      type: FactorSelectionType.CATALOG,
+      emissionFactorId: line.baseFactorId,
+      appliedRateMeasurementUnitId: line.factorRateMeasurementUnitId,
+    };
+  }
+
   const isCustomFactor =
     !!line.factorSource && CUSTOM_FACTOR_SOURCES.includes(line.factorSource);
 
@@ -46,15 +59,7 @@ function mapFactorSelection(
     };
   }
 
-  if (line.baseFactorId === null || line.factorRateMeasurementUnitId === null) {
-    return null;
-  }
-
-  return {
-    type: FactorSelectionType.CATALOG,
-    emissionFactorId: line.baseFactorId,
-    appliedRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-  };
+  return null;
 }
 
 /**
