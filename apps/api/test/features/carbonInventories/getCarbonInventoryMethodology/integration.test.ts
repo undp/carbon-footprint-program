@@ -494,6 +494,25 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
     it("should have subcategories ordered by position", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
+
+      // Named against their position order on purpose: a name-based ordering
+      // returns Alpha, Mike, Zulu. Re-querying the subcategories and sorting
+      // them by `position` here would only re-apply the rule the endpoint
+      // itself uses, so it would pass even with the order authored wrong.
+      const category = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Subcategory Ordering Category",
+        position: 998,
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Zulu",
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Alpha",
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Mike",
+      });
+
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
@@ -510,22 +529,18 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      for (const category of body.categories) {
-        const subcategories = await prisma.subcategory.findMany({
-          where: {
-            categoryId: BigInt(category.id),
-            status: SubcategoryStatus.ACTIVE,
-          },
-          select: { id: true, position: true },
-        });
-        const expectedIds = subcategories
-          .sort((a, b) => a.position - b.position)
-          .map((subcategory) => subcategory.id.toString());
+      const orderingCategory = body.categories.find(
+        (cat) => cat.id === category.id.toString()
+      );
+      expect(orderingCategory).toBeDefined();
+      expect(orderingCategory!.subcategories.map((sub) => sub.name)).toEqual([
+        "Test - Ordering Zulu",
+        "Test - Ordering Alpha",
+        "Test - Ordering Mike",
+      ]);
 
-        expect(category.subcategories.map((sub) => sub.id)).toEqual(
-          expectedIds
-        );
-      }
+      // Cascades to the subcategories created above.
+      await prisma.category.delete({ where: { id: category.id } });
     });
 
     it("should have dimensions ordered by position", async () => {
