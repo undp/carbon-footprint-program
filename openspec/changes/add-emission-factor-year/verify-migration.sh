@@ -89,6 +89,22 @@ expect_abort() {
   echo "  PASS  $label"
 }
 
+failures=0
+
+# Check 3 used to print three numbers and then report success unconditionally,
+# including for the query labelled "must be 0". Anything it reports is now
+# compared, so the exit status means what rollout.md says it means.
+assert_zero() {
+  local db="$1" label="$2" query="$3" actual
+  actual="$(psql_db "$db" -c "$query")"
+  if [[ "$actual" == "0" ]]; then
+    echo "  PASS  $label"
+  else
+    echo "  FAIL  $label — expected 0, got $actual"
+    failures=$((failures + 1))
+  fi
+}
+
 echo "1. An unclassified source stops the migration instead of defaulting to transversal"
 stage efyear_check_unclassified
 psql_db efyear_check_unclassified -c "
@@ -118,26 +134,49 @@ expect_abort efyear_check_conflict "disagree after unit conversion" \
 
 echo "3. Clean current data migrates to the reviewed classification"
 stage efyear_check_clean
+# Captured before the migration: a restored copy of production already holds
+# factors maintainers soft-deleted through the UI, so the raw DELETED count
+# afterwards is not the number of representations this change retired.
+deleted_before="$(psql_db efyear_check_clean -c \
+  "SELECT count(*) FROM emission_factor WHERE status = 'DELETED';")"
 psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d efyear_check_clean -q \
-  -v ON_ERROR_STOP=1 -f "$MIGRATION_SQL" >/dev/null
+  --single-transaction -v ON_ERROR_STOP=1 -f "$MIGRATION_SQL" >/dev/null
 echo "  classification after migration:"
 psql_db efyear_check_clean -c "
   SELECT '    ' || source || ' -> ' || coalesce(year::text, 'transversal') ||
          ' (' || count(*) || ')'
   FROM emission_factor WHERE status = 'ACTIVE'
   GROUP BY source, year ORDER BY source;"
-echo "  retired duplicate representations (soft-deleted):"
-psql_db efyear_check_clean -c "
-  SELECT '    ' || count(*) FROM emission_factor WHERE status = 'DELETED';"
-echo "  duplicate business keys among active factors (must be 0):"
-psql_db efyear_check_clean -c "
-  SELECT '    ' || coalesce(sum(extra), 0) FROM (
+deleted_after="$(psql_db efyear_check_clean -c \
+  "SELECT count(*) FROM emission_factor WHERE status = 'DELETED';")"
+echo "  duplicate representations retired here: $((deleted_after - deleted_before))"
+echo "    ($deleted_before factor(s) were already deleted before the migration ran)"
+echo "  compare both against factor-classification.md before continuing."
+
+assert_zero efyear_check_clean "no duplicate business key survives" "
+  SELECT coalesce(sum(extra), 0) FROM (
     SELECT count(*) - 1 AS extra FROM emission_factor
     WHERE status = 'ACTIVE'
     GROUP BY subcategory_id, dimension_value_1_id, dimension_value_2_id,
-             year, source, numerator_magnitude_id, denominator_magnitude_id
+             year, lower(source), numerator_magnitude_id, denominator_magnitude_id
     HAVING count(*) > 1
   ) dupes;"
+
+assert_zero efyear_check_clean "every active factor carries its magnitude pair" "
+  SELECT count(*) FROM emission_factor
+  WHERE status = 'ACTIVE'
+    AND (numerator_magnitude_id IS NULL OR denominator_magnitude_id IS NULL);"
+
+assert_zero efyear_check_clean "no saved line points at a retired factor" "
+  SELECT count(*) FROM carbon_inventory_line_factor clf
+  JOIN emission_factor ef ON ef.id = clf.emission_factor_id
+  WHERE ef.status = 'DELETED';"
+
+if ((failures > 0)); then
+  echo "$failures migration check(s) failed. The staged databases were kept for"
+  echo "inspection: efyear_check_unclassified, efyear_check_conflict, efyear_check_clean."
+  exit 1
+fi
 
 for db in efyear_check_unclassified efyear_check_conflict efyear_check_clean; do
   admin "DROP DATABASE IF EXISTS $db;"
