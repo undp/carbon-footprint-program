@@ -165,4 +165,63 @@ describe("GET /api/admin/reduction-plan - Integration Tests", () => {
     )!;
     expect(withoutUpdatedAtRow.updatedAt).toBeNull();
   });
+
+  it("orders by category position, then subcategory position, then title", async () => {
+    // Every name here is deliberately at odds with its position, so each of
+    // the three ordering keys is doing visible work: by category name the
+    // Alpha category would come first, by subcategory name Sub Alpha would
+    // precede Sub Zulu, and by title alone the order would be Alfa, Mike,
+    // Yankee, Zeta.
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: `Test - Ordering ${Date.now()}`,
+      status: MethodologyVersionStatus.PUBLISHED,
+    });
+
+    const firstCategory = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Category Zulu",
+      position: 1,
+    });
+    const secondCategory = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Category Alpha",
+      position: 2,
+    });
+
+    const firstSubcategory = await createTestSubcategory(
+      prisma,
+      firstCategory.id,
+      { name: "Test - Sub Zulu", position: 1 }
+    );
+    const secondSubcategory = await createTestSubcategory(
+      prisma,
+      firstCategory.id,
+      { name: "Test - Sub Alpha", position: 2 }
+    );
+    const otherCategorySubcategory = await createTestSubcategory(
+      prisma,
+      secondCategory.id,
+      { name: "Test - Sub Mike", position: 1 }
+    );
+
+    await createInitiative(firstSubcategory.id, "Zeta", null);
+    await createInitiative(firstSubcategory.id, "Yankee", null);
+    await createInitiative(secondSubcategory.id, "Mike", null);
+    await createInitiative(otherCategorySubcategory.id, "Alfa", null);
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/admin/reduction-plan?methodologyVersionId=${methodology.id.toString()}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetAllReductionPlanInitiativesResponse;
+
+    expect(body.map((row) => row.title)).toEqual([
+      "Yankee",
+      "Zeta",
+      "Mike",
+      "Alfa",
+    ]);
+  });
 });

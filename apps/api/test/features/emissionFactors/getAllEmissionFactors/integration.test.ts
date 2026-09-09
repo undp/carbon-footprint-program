@@ -118,4 +118,64 @@ describe("GET /api/emission-factors/ - Integration Tests", () => {
     const deletedEf = body.find((e) => e.source === "Deleted EF Source");
     expect(deletedEf).toBeUndefined();
   });
+
+  it("should order by category position, then subcategory position", async () => {
+    // Names are at odds with positions on purpose: ordering by name would
+    // return Sub Alpha, Sub Mike, Sub Zulu.
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - EF Ordering",
+    });
+    const firstCategory = await createTestCategory(prisma, methodology.id, {
+      name: "Test - EF Category Zulu",
+      position: 1,
+    });
+    const secondCategory = await createTestCategory(prisma, methodology.id, {
+      name: "Test - EF Category Alpha",
+      position: 2,
+    });
+
+    const firstSubcategory = await createTestSubcategory(
+      prisma,
+      firstCategory.id,
+      { name: "Test - EF Sub Zulu", position: 1 }
+    );
+    const secondSubcategory = await createTestSubcategory(
+      prisma,
+      firstCategory.id,
+      { name: "Test - EF Sub Alpha", position: 2 }
+    );
+    const otherCategorySubcategory = await createTestSubcategory(
+      prisma,
+      secondCategory.id,
+      { name: "Test - EF Sub Mike", position: 1 }
+    );
+
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+    await createTestEmissionFactor(prisma, firstSubcategory.id, rateUnitId, {
+      source: "Ordering Zulu",
+    });
+    await createTestEmissionFactor(prisma, secondSubcategory.id, rateUnitId, {
+      source: "Ordering Alpha",
+    });
+    await createTestEmissionFactor(
+      prisma,
+      otherCategorySubcategory.id,
+      rateUnitId,
+      { source: "Ordering Mike" }
+    );
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/emission-factors/?methodologyVersionId=${methodology.id.toString()}`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as GetAllEmissionFactorsResponse;
+
+    expect(body.map((ef) => ef.subcategoryName)).toEqual([
+      "Test - EF Sub Zulu",
+      "Test - EF Sub Alpha",
+      "Test - EF Sub Mike",
+    ]);
+  });
 });
