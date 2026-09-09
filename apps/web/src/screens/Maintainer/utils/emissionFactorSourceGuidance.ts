@@ -8,8 +8,31 @@
  * does contain a number is legitimate, so nothing here ever blocks a save.
  */
 
+import { NORMATIVA_OPTIONS } from "../constants";
+
+/** Case- and whitespace-insensitive form, so "pas  2050" matches "PAS 2050". */
+const normalizeName = (source: string): string =>
+  source.trim().replace(/\s+/g, " ").toLowerCase();
+
 /** Years a factor could plausibly report on; anything outside is not a vintage. */
 const PLAUSIBLE_YEAR_PATTERN = /(?:^|[^\d])((?:19|20)\d{2})(?:[^\d]|$)/;
+
+/**
+ * Names whose number is part of the standard, not a vintage. "PAS 2050" is a
+ * real standard the maintainer already offers as a methodology regulation, and
+ * the pattern above cannot tell its 2050 from a reporting year.
+ *
+ * Getting this wrong is worse than missing a warning: telling the maintainer to
+ * put 2050 in the Año column stores a factor that wins the vintage ranking over
+ * every real one, and the year bounds cannot catch it because 2050 is inside
+ * them. The number is left inside the name instead.
+ *
+ * Matched on the whole name rather than as a substring, so a name that merely
+ * opens with a standard's — "PAS 2050 2019" — is still flagged.
+ */
+const STANDARD_NAMES_WITH_NUMBERS = new Set(
+  NORMATIVA_OPTIONS.map((option) => normalizeName(option.value))
+);
 
 /**
  * The same shape, but keeping the character before the year in a group and
@@ -39,13 +62,19 @@ const stripYears = (source: string): string =>
 
 /** True when the name appears to carry a four-digit reporting year. */
 export const looksLikeSourceContainsYear = (source: string): boolean =>
-  PLAUSIBLE_YEAR_PATTERN.test(source);
+  extractYearFromSource(source) !== null;
 
 /**
  * The year the name appears to carry, or null. Used to phrase the warning with
  * the actual number the user typed rather than a generic hint.
+ *
+ * This is the single gate for the whole heuristic: a name it rejects produces no
+ * warning at all, which is why the standard-name exemption lives here rather
+ * than in each caller.
  */
 export const extractYearFromSource = (source: string): number | null => {
+  if (STANDARD_NAMES_WITH_NUMBERS.has(normalizeName(source))) return null;
+
   const match = PLAUSIBLE_YEAR_PATTERN.exec(source);
   return match ? Number(match[1]) : null;
 };
