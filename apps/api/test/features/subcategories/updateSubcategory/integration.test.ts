@@ -17,7 +17,7 @@ import {
 } from "@test/factories/subcategoryFactory.js";
 import { updateSubcategoryService } from "@/features/subcategories/updateSubcategory/service.js";
 import type { UpdateSubcategoryResponse } from "@repo/types";
-import { SubcategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -405,6 +405,74 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       });
       expect(moved.categoryId).toBe(newCategory.id);
       expect(moved.position).toBe(2);
+    });
+
+    it("should reject a destination category soft-deleted while the request waits for the lock", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Move Into Vanishing Category",
+        position: 1,
+      });
+
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const newCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Vanishing Target Category",
+          position: 4,
+        }
+      );
+
+      // Same lock ordering as createSubcategory: the destination category's
+      // status has to come from the locked row. A holder soft-deletes it and
+      // keeps the lock, so a request that checked the status first would still
+      // see ACTIVE and move the subcategory into a DELETED category.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: newCategory.id },
+            data: { status: CategoryStatus.DELETED },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: newCategory.id.toString(),
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(404);
+
+      const unmoved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: subcategory.id },
+      });
+      expect(unmoved.categoryId).toBe(categoryId);
     });
 
     it("should keep the position when the update does not change the category", async () => {

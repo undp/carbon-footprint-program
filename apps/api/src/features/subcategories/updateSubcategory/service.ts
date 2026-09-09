@@ -14,7 +14,7 @@ import {
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
 } from "../errors.js";
-import { getNextSubcategoryPosition } from "../helpers.js";
+import { getNextSubcategoryPosition, lockCategory } from "../helpers.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -54,15 +54,13 @@ export const updateSubcategoryService = async (
 
       // Validate the target category belongs to the same methodology.
       if (data.categoryId !== undefined) {
-        const newCategory = await tx.category.findFirst({
-          where: {
-            id: BigInt(data.categoryId),
-            status: CategoryStatus.ACTIVE,
-          },
-          select: { methodologyVersionId: true },
-        });
+        const newCategoryId = BigInt(data.categoryId);
 
-        if (!newCategory) {
+        // Locked before the status is read, for the same reason as
+        // createSubcategory. See lockCategory.
+        const newCategory = await lockCategory(tx, newCategoryId);
+
+        if (!newCategory || newCategory.status !== CategoryStatus.ACTIVE) {
           throw new CategoryNotFoundForSubcategoryError();
         }
 
@@ -73,11 +71,8 @@ export const updateSubcategoryService = async (
           throw new CategoryFromDifferentMethodologyError();
         }
 
-        if (BigInt(data.categoryId) !== targetSubcategory.categoryId) {
-          newPosition = await getNextSubcategoryPosition(
-            tx,
-            BigInt(data.categoryId)
-          );
+        if (newCategoryId !== targetSubcategory.categoryId) {
+          newPosition = await getNextSubcategoryPosition(tx, newCategoryId);
         }
       }
 
@@ -173,8 +168,9 @@ export const updateSubcategoryService = async (
         // yields column names on some Prisma/adapter versions and the index
         // name on others, and an exact match turns these 409s into 500s.
         if (duplicatedFields.some((field) => field.includes("position"))) {
-          // getNextSubcategoryPosition locks the destination category, so a
-          // collision here means a position was written outside that path.
+          // The destination category is locked before the position is
+          // computed, so a collision here means a position was written
+          // outside that path.
           throw new SubcategoryPositionAlreadyExistsError();
         }
         if (duplicatedFields.some((field) => field.includes("name"))) {

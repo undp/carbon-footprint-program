@@ -12,7 +12,7 @@ import {
   SubcategoryNameAlreadyExistsError,
   SubcategoryPositionAlreadyExistsError,
 } from "../errors.js";
-import { getNextSubcategoryPosition } from "../helpers.js";
+import { getNextSubcategoryPosition, lockCategory } from "../helpers.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
@@ -28,23 +28,21 @@ export const createSubcategoryService = async (
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
-      const category = await tx.category.findFirst({
-        where: {
-          id: BigInt(data.categoryId),
-          status: CategoryStatus.ACTIVE,
-        },
-        select: { id: true },
-      });
+      const categoryId = BigInt(data.categoryId);
 
-      if (!category) {
+      // Locked before the status is read, so a concurrent soft-delete cannot
+      // slip between the check and the insert. See lockCategory.
+      const category = await lockCategory(tx, categoryId);
+
+      if (!category || category.status !== CategoryStatus.ACTIVE) {
         throw new CategoryNotFoundForSubcategoryError();
       }
 
-      const position = await getNextSubcategoryPosition(tx, category.id);
+      const position = await getNextSubcategoryPosition(tx, categoryId);
 
       const newSubcategory = await tx.subcategory.create({
         data: {
-          categoryId: category.id,
+          categoryId,
           name: data.name,
           icon: data.icon,
           description: data.description,
@@ -108,9 +106,9 @@ export const createSubcategoryService = async (
         // 500s (that arm was dead for months on the dimension service). The two
         // index names are disjoint on these substrings.
         if (duplicatedFields.some((field) => field.includes("position"))) {
-          // getNextSubcategoryPosition locks the category, so a collision here
-          // means a position was written outside that path (seed data, a manual
-          // fix). Surfaced as a 409 rather than a 500.
+          // The category is locked before the position is computed, so a
+          // collision here means a position was written outside that path
+          // (seed data, a manual fix). Surfaced as a 409 rather than a 500.
           throw new SubcategoryPositionAlreadyExistsError();
         }
         if (duplicatedFields.some((field) => field.includes("name"))) {
