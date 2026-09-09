@@ -101,7 +101,7 @@ export const getEmissionFactorsService = async (
     const appliedVintageKey = emissionFactor
       ? [
           emissionFactor.id.toString(),
-          factor?.appliedFactorYear ?? "",
+          factor?.appliedFactorYear ?? "transversal",
           factor?.appliedFactorValue.toString() ?? "",
         ].join("-")
       : null;
