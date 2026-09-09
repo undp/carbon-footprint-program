@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { Prisma } from "@repo/database";
 import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 
 interface LockedCategoryRow {
@@ -25,15 +25,19 @@ export interface LockedCategory {
  * concurrent soft-delete either commits before the lock is granted and is seen
  * here, or waits until this transaction ends.
  *
- * The lock is held until the transaction ends, so callers must run inside one.
+ * The lock is only held to the end of the enclosing transaction, so the
+ * parameter is the transaction client — outside a transaction Postgres releases
+ * the lock as soon as this statement finishes and the guarantee is gone. (The
+ * type documents that requirement; a full PrismaClient stays structurally
+ * assignable to it, so it is not a hard barrier.)
  *
  * Returns null when no such category row exists.
  */
 export async function lockCategory(
-  prismaClient: PrismaClient | Prisma.TransactionClient,
+  tx: Prisma.TransactionClient,
   categoryId: bigint
 ): Promise<LockedCategory | null> {
-  const rows = await prismaClient.$queryRaw<LockedCategoryRow[]>`
+  const rows = await tx.$queryRaw<LockedCategoryRow[]>`
     SELECT "status", "methodology_version_id"
     FROM "category"
     WHERE "id" = ${categoryId}
@@ -62,17 +66,17 @@ export async function lockCategory(
  * accumulate over delete/create cycles. Order is what matters here, not
  * contiguity.
  *
- * Callers must already hold the parent category lock (see `lockCategory`) and
- * hold it until the transaction ends. Without it two concurrent creates in the
- * same category both read the same max under READ COMMITTED, both attempt the
- * same position, and the partial unique index rejects the loser with a 409
- * about a field the client never filled in.
+ * Callers must already hold the parent category lock (see `lockCategory`),
+ * which is why the parameter is the transaction client. Without the lock two
+ * concurrent creates in the same category both read the same max under READ
+ * COMMITTED, both attempt the same position, and the partial unique index
+ * rejects the loser with a 409 about a field the client never filled in.
  */
 export async function getNextSubcategoryPosition(
-  prismaClient: PrismaClient | Prisma.TransactionClient,
+  tx: Prisma.TransactionClient,
   categoryId: bigint
 ): Promise<number> {
-  const { _max } = await prismaClient.subcategory.aggregate({
+  const { _max } = await tx.subcategory.aggregate({
     where: {
       categoryId,
       status: { not: SubcategoryStatus.DELETED },
