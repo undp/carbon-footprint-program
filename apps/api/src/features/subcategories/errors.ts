@@ -29,3 +29,15 @@ export const CategoryFromDifferentMethodologyError = createError(
   "Target category must belong to the same methodology version",
   422
 );
+
+export const SameSubcategoryError = createError(
+  "SAME_SUBCATEGORY",
+  "Both subcategory IDs must be different",
+  422
+);
+
+export const SubcategoriesFromDifferentCategoriesError = createError(
+  "SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES",
+  "Both subcategories must belong to the same category (Subcategory IDs: %s, %s)",
+  422
+);

@@ -8,6 +8,7 @@ import {
   useAddSubcategory,
   useUpdateSubcategory,
   useDeleteSubcategory,
+  useSwapSubcategoryPositions,
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import {
@@ -66,6 +67,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const addMutation = useAddSubcategory();
   const updateMutation = useUpdateSubcategory();
   const deleteMutation = useDeleteSubcategory();
+  const swapMutation = useSwapSubcategoryPositions();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
@@ -231,6 +233,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       icon: "",
       description: "",
       explanation: null,
+      // The server appends the row last on create; until then there is no
+      // position to show or move.
+      position: 0,
       measurementUnitIds: [],
     };
     fieldArray.prepend(newRow);
@@ -272,6 +277,74 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       enqueueSnackbar,
       setEditingRowId,
     ]
+  );
+
+  const handleMove = useCallback(
+    async (row: SubcategoryForm, direction: "up" | "down") => {
+      if (isNewRow(row.id)) return;
+
+      // Positions are unique per category, so a move only ever swaps with the
+      // adjacent subcategory inside the same category.
+      const rows = form.getValues("subcategories");
+      const siblings = rows
+        .filter((r) => r.categoryId === row.categoryId)
+        .sort((a, b) => a.position - b.position);
+      const siblingIdx = siblings.findIndex((r) => r.id === row.id);
+
+      if (direction === "up" && siblingIdx <= 0) return;
+      if (
+        direction === "down" &&
+        (siblingIdx === -1 || siblingIdx >= siblings.length - 1)
+      )
+        return;
+
+      const neighbor =
+        siblings[direction === "up" ? siblingIdx - 1 : siblingIdx + 1];
+      if (!neighbor || isNewRow(neighbor.id)) return;
+
+      try {
+        await swapMutation.mutateAsync({
+          subcategoryIdA: row.id,
+          subcategoryIdB: neighbor.id,
+        });
+        const updatedRows = rows.map((r) => {
+          if (r.id === row.id) return { ...r, position: neighbor.position };
+          if (r.id === neighbor.id) return { ...r, position: row.position };
+          return r;
+        });
+
+        // The grid renders this array directly, and the server returns
+        // subcategories grouped by category. Swapping the two slots keeps that
+        // grouping while moving the row where the user expects it; re-sorting
+        // the whole array by position would interleave the categories, since
+        // positions only have to be unique within one.
+        const rowIdx = rows.findIndex((r) => r.id === row.id);
+        const neighborIdx = rows.findIndex((r) => r.id === neighbor.id);
+        const movedRow = updatedRows[rowIdx];
+        const movedNeighbor = updatedRows[neighborIdx];
+        if (movedRow && movedNeighbor) {
+          updatedRows[rowIdx] = movedNeighbor;
+          updatedRows[neighborIdx] = movedRow;
+        }
+
+        form.reset({ subcategories: updatedRows });
+      } catch (error) {
+        void enqueueSnackbar({
+          message: getApiErrorMessage(error, "Error al mover sub-categoría"),
+          variant: "error",
+        });
+      }
+    },
+    [form, isNewRow, swapMutation, enqueueSnackbar]
+  );
+
+  const handleMoveUp = useCallback(
+    (row: SubcategoryForm) => void handleMove(row, "up"),
+    [handleMove]
+  );
+  const handleMoveDown = useCallback(
+    (row: SubcategoryForm) => void handleMove(row, "down"),
+    [handleMove]
   );
 
   // --- Exit edit mode ---
@@ -364,6 +437,8 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     onOpenExplanation: handleOpenExplanation,
+    onMoveUp: handleMoveUp,
+    onMoveDown: handleMoveDown,
     rows: currentRows,
     categories: categoryOptions,
     allMeasurementUnits: measurementUnits ?? [],
