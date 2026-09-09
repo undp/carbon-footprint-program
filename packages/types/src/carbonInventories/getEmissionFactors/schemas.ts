@@ -10,7 +10,11 @@ export const GetEmissionFactorsParamsSchema = z.object({
 
 const ItemSchema = z
   .object({
-    id: z.string().describe("Emission factor ID"),
+    id: z
+      .string()
+      .describe(
+        "Row identity: the applied vintage of a catalog factor (its ID, applied year and applied value), or `manual-<lineId>` for a custom factor"
+      ),
     categoryName: CategoryBaseSchema.shape.name,
     categorySynonyms: CategoryBaseSchema.shape.synonyms,
     categoryPosition: CategoryBaseSchema.shape.position,
