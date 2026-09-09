@@ -103,6 +103,36 @@ async function buildDimensionIdentityFilter(
 }
 
 /**
+ * True when an update actually moves the factor to a different identity.
+ *
+ * The duplicate check below is deliberately stricter than the database index: it
+ * ignores a dimension slot the subcategory does not require, while the index
+ * compares the raw columns. That asymmetry is right for a create — it rejects a
+ * little more than the constraint would, never less — but on an update it would
+ * strand data. Two ACTIVE rows differing only in an optional slot are legal
+ * under the index and are not rewritten by the migration, so re-checking on
+ * every PATCH would find each row's sibling and make both permanently
+ * un-editable, even for a change as innocent as the value.
+ *
+ * So the check runs only when the identity moves. If it does not, any conflict
+ * predates this request and the update cannot be the thing that introduced it.
+ */
+export function emissionFactorIdentityChanged(
+  current: EmissionFactorIdentity,
+  next: EmissionFactorIdentity
+): boolean {
+  return (
+    current.subcategoryId !== next.subcategoryId ||
+    current.dimensionValue1Id !== next.dimensionValue1Id ||
+    current.dimensionValue2Id !== next.dimensionValue2Id ||
+    current.year !== next.year ||
+    current.source !== next.source ||
+    current.numeratorMagnitudeId !== next.numeratorMagnitudeId ||
+    current.denominatorMagnitudeId !== next.denominatorMagnitudeId
+  );
+}
+
+/**
  * Checks that no other ACTIVE emission factor already occupies this factor's
  * identity:
  *

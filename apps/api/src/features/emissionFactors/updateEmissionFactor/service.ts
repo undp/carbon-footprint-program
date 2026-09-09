@@ -15,6 +15,7 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
+  emissionFactorIdentityChanged,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
 } from "../helpers.js";
@@ -47,6 +48,8 @@ export const updateEmissionFactorService = async (
           rateMeasurementUnitId: true,
           dimensionValue1Id: true,
           dimensionValue2Id: true,
+          numeratorMagnitudeId: true,
+          denominatorMagnitudeId: true,
           gasDetails: true,
           value: true,
         },
@@ -136,29 +139,40 @@ export const updateEmissionFactorService = async (
       const dim1Changed = data.dimensionValue1Name !== undefined;
       const dim2Changed = data.dimensionValue2Name !== undefined;
 
-      // Normalization applies to the comparison, not to what is stored: a value
-      // the maintainer put in a slot the subcategory does not require is real
-      // data and stays on the row. It simply does not earn the factor a
-      // separate identity.
-      await checkDuplicateEmissionFactor(
-        tx,
-        {
-          subcategoryId:
-            updateData.subcategoryId != null
-              ? BigInt(updateData.subcategoryId as bigint)
-              : existing.subcategoryId,
-          dimensionValue1Id: dim1Changed
-            ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
-            : existing.dimensionValue1Id,
-          dimensionValue2Id: dim2Changed
-            ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
-            : existing.dimensionValue2Id,
-          year: data.year !== undefined ? data.year : existing.year,
-          source: data.source ?? existing.source,
-          ...family,
-        },
-        emissionFactorId
-      );
+      const currentIdentity = {
+        subcategoryId: existing.subcategoryId,
+        dimensionValue1Id: existing.dimensionValue1Id,
+        dimensionValue2Id: existing.dimensionValue2Id,
+        year: existing.year,
+        source: existing.source,
+        numeratorMagnitudeId: existing.numeratorMagnitudeId,
+        denominatorMagnitudeId: existing.denominatorMagnitudeId,
+      };
+
+      const nextIdentity = {
+        subcategoryId:
+          updateData.subcategoryId != null
+            ? BigInt(updateData.subcategoryId as bigint)
+            : existing.subcategoryId,
+        dimensionValue1Id: dim1Changed
+          ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
+          : existing.dimensionValue1Id,
+        dimensionValue2Id: dim2Changed
+          ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
+          : existing.dimensionValue2Id,
+        year: data.year !== undefined ? data.year : existing.year,
+        source: data.source ?? existing.source,
+        ...family,
+      };
+
+      // Only when the identity actually moves — see
+      // `emissionFactorIdentityChanged`. Normalization applies to the
+      // comparison, not to what is stored: a value the maintainer put in a slot
+      // the subcategory does not require is real data and stays on the row. It
+      // simply does not earn the factor a separate identity.
+      if (emissionFactorIdentityChanged(currentIdentity, nextIdentity)) {
+        await checkDuplicateEmissionFactor(tx, nextIdentity, emissionFactorId);
+      }
 
       await tx.emissionFactor.update({
         where: { id: emissionFactorId },
