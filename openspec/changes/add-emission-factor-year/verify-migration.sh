@@ -17,6 +17,8 @@
 #
 # TEMPLATE_DB must be a database seeded with the *pre-change* catalog (sources
 # still carrying their year, duplicate kg/kg + kg/ton representations present).
+# Open sessions against it are terminated before each staged copy, so point it
+# at a restored copy and never at a database anyone is using.
 #
 # Both fixtures below abort when their SELECT matches nothing, rather than
 # inserting zero rows: subcategory names and unit abbreviations are
@@ -63,6 +65,13 @@ admin() { psql -h "$PGHOST" -p "$PGPORT" -U "$PGUSER" -d postgres -q -c "$1"; }
 stage() {
   local db="$1"
   admin "DROP DATABASE IF EXISTS $db;"
+  # CREATE DATABASE ... TEMPLATE refuses to run while any session is connected
+  # to the template, and a local dev API pool holds one against testdb by
+  # default. stage() runs three times, so the template has to stay idle for the
+  # whole run; evicting once per stage is clearer than failing three times with
+  # "source database is being accessed by other users".
+  admin "SELECT pg_terminate_backend(pid) FROM pg_stat_activity
+         WHERE datname = '$TEMPLATE_DB' AND pid <> pg_backend_pid();"
   admin "CREATE DATABASE $db TEMPLATE $TEMPLATE_DB;"
   local parked
   parked="$(mktemp -d)/pending"
