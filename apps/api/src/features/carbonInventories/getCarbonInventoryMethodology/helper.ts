@@ -100,11 +100,22 @@ export const convertEmissionFactorValueDecimal = (
     newDenBaseFactor
   );
 
-  return originalValue
+  const convertedValue = originalValue
     .mul(new Prisma.Decimal(originalNumBaseFactor))
     .mul(new Prisma.Decimal(newDenBaseFactor))
     .div(new Prisma.Decimal(originalDenBaseFactor))
     .div(new Prisma.Decimal(newNumBaseFactor));
+
+  // Usable inputs do not guarantee a usable result, and this value is either
+  // displayed or persisted: neither caller can do anything with a non-finite
+  // one, so it stops here rather than reaching a column or a chart.
+  if (!convertedValue.isFinite()) {
+    throw new DataIntegrityError(
+      `Conversion result is not finite: ${convertedValue.toString()} (computed from originalValue=${originalValue.toString()}, originalNumBaseFactor=${originalNumBaseFactor}, originalDenBaseFactor=${originalDenBaseFactor}, newNumBaseFactor=${newNumBaseFactor}, newDenBaseFactor=${newDenBaseFactor})`
+    );
+  }
+
+  return convertedValue;
 };
 
 /**
@@ -184,6 +195,7 @@ export const convertEmissionFactorValue = (
     );
   }
 
+  // The decimal conversion is the one that bounds the result, for both callers.
   const convertedValue = convertEmissionFactorValueDecimal(
     value,
     originalNumBaseFactor,
@@ -191,13 +203,6 @@ export const convertEmissionFactorValue = (
     newNumBaseFactor,
     newDenBaseFactor
   );
-
-  // Validate the result is finite before returning
-  if (!convertedValue.isFinite()) {
-    throw new DataIntegrityError(
-      `Conversion result is not finite: ${convertedValue.toString()} (computed from originalValue=${originalValue}, originalNumBaseFactor=${originalNumBaseFactor}, originalDenBaseFactor=${originalDenBaseFactor}, newNumBaseFactor=${newNumBaseFactor}, newDenBaseFactor=${newDenBaseFactor})`
-    );
-  }
 
   return convertedValue.toString();
 };
