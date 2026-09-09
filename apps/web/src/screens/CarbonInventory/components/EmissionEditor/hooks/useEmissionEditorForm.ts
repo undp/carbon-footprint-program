@@ -383,12 +383,19 @@ export const useEmissionEditorForm = ({
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
       // A choice the organization already made is never overwritten by a newer
-      // recommendation — only an empty selection is filled in.
-      const hasCatalogFactorSelected = formLine.baseFactorId !== null;
+      // recommendation — only an empty selection is filled in. A line captured
+      // before the snapshot carried a catalog id has no `baseFactorId` to show
+      // that choice, so the loaded snapshot answers for it: without this, an
+      // edit to the quantity replaces a historical factor with the current
+      // vintage, which is the very thing the unchanged selection exists to
+      // prevent.
+      const hasFactorAlready =
+        formLine.baseFactorId !== null ||
+        (formLine.loadedFactor?.factorValue ?? null) !== null;
 
       if (
         !isOwnFactorSelected &&
-        !hasCatalogFactorSelected &&
+        !hasFactorAlready &&
         areAllRequiredFieldsSelected
       ) {
         const autoLoadedFactorId = determineAutoLoadFactorId(formLine);
