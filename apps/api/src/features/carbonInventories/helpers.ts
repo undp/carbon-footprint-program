@@ -173,7 +173,12 @@ export async function fetchCategoryData(
           color: true,
           subcategories: {
             select: { id: true, name: true, icon: true },
-            orderBy: { position: "asc" },
+            // No status filter: a soft-deleted subcategory that still holds
+            // captured lines must keep counting toward the totals below. That
+            // means DELETED rows are in scope, and positions are unique only
+            // among non-DELETED ones, so a DELETED row can share a position
+            // with an active one — `id` breaks the tie deterministically.
+            orderBy: [{ position: "asc" }, { id: "asc" }],
           },
         },
         orderBy: { position: "asc" },
