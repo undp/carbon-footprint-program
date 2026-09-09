@@ -385,16 +385,37 @@ fi
 # Mirrors the rules in apps/api/src/config/environment.ts. Deliberately the
 # looser of the two — this is a pre-flight, and the app stays authoritative.
 validate_trust_proxy() {
-  local value="$1" entry address prefix octet
-  case "$value" in
+  local value="$1" entry address prefix octet lowered all_integers
+  # Lowercased to match the app, which compares against a lowercased value. A
+  # case-sensitive check here would fail the pre-flight on 'FALSE' or
+  # 'LinkLocal' and then let the app accept them — a pre-flight stricter than
+  # the thing it guards is its own kind of wrong.
+  lowered="$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')"
+  case "$lowered" in
     true | false | loopback | linklocal | uniquelocal) return 0 ;;
   esac
+  # '0' means trust zero hops, i.e. trust nothing — the same posture as 'false',
+  # so the app folds it rather than rejecting it. Mirrored here.
+  if [[ "$value" =~ ^0+$ ]]; then
+    return 0
+  fi
   # Hop counts were valid until Fastify 5.12.1 removed them
   # (GHSA-3m5p-2c4r-xxw2); the API now refuses to boot on one. Rejected here so
   # the migration lands in the operator's terminal rather than as a
   # crash-looping container. Reported separately: a deployment carrying '1' is
   # migrating, not typing nonsense, so it gets the replacement value.
-  if [[ "$value" =~ ^[0-9]+$ ]]; then
+  #
+  # Checked per entry, like the app: a bare integer is also a valid short-form
+  # IPv4, so '1,2' would otherwise pass as an allowlist and skip the migration
+  # message. Only an all-integer list counts as a hop count.
+  all_integers=1
+  local IFS=','
+  for entry in $value; do
+    entry="$(echo "$entry" | tr -d '[:space:]')"
+    [[ "$entry" =~ ^[0-9]+$ ]] || { all_integers=0; break; }
+  done
+  unset IFS
+  if [ "$all_integers" -eq 1 ]; then
     return 2
   fi
   # Empty list entries: a leading, trailing or doubled comma. Word splitting
@@ -449,7 +470,8 @@ if [ -n "$trust_proxy_value" ]; then
     log "       the rate limit is ONE bucket shared by every caller."
     log "       Replace it: 'linklocal' for plain App Service (its front end"
     log "       proxies from 169.254.0.0/16), or an explicit IP/CIDR allowlist."
-    log "       Behind Front Door, name its backend ranges as well."
+    log "       Behind Front Door, name its backend ranges as well. Use 'false'"
+    log "       if the API really is reached directly ('0' is read as false)."
     log "       See docs/security/hardening.md, \"Hop counts are no longer supported\"."
     exit 1
   elif [ "$trust_proxy_status" -ne 0 ]; then

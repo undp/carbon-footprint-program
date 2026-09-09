@@ -587,11 +587,39 @@ describe("parseEnv — TRUST_PROXY", () => {
     //
     // Every documented count is covered — 1 (App Service) and 2 (Front Door)
     // were the recommended values, so these are the strings really in the wild.
-    for (const hops of ["0", "1", "2", "10", "11", "10000", " 3 "]) {
+    // "1,2" is here because a bare integer is also a valid short-form IPv4 to
+    // proxy-addr, so a list of them would otherwise pass as an allowlist and
+    // skip the migration message entirely.
+    for (const hops of ["1", "2", "10", "11", "10000", " 3 ", "1,2"]) {
       expect(() => parse({ TRUST_PROXY: hops })).toThrow(
         /Hop counts are no longer supported/
       );
     }
+  });
+
+  it("folds a zero hop count to false instead of failing the boot", () => {
+    // 0 is the one hop count that is not a migration: trusting zero hops is
+    // trusting nothing, which is exactly what false means, so the deployment's
+    // behaviour is identical either way. Refusing to boot would break it for no
+    // security gain, and the hop-count message — "would silently share one
+    // bucket" — describes the opposite of the posture 0 actually asks for.
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: " 0 " }).TRUST_PROXY).toBe(false);
+    expect(parse({ TRUST_PROXY: "00" }).TRUST_PROXY).toBe(false);
+  });
+
+  it("keeps a zero hop count distinguishable from unset", () => {
+    // It has to land as false, not undefined: the operator did record a
+    // decision, so the production boot warning must stay silent for it.
+    expect(parse({ TRUST_PROXY: "0" }).TRUST_PROXY).not.toBeUndefined();
+  });
+
+  it("still accepts an allowlist that merely contains a short form", () => {
+    // The per-entry hop-count check must not swallow a real allowlist. Only an
+    // all-integer list is a hop count; a mixed one stays an allowlist.
+    expect(parse({ TRUST_PROXY: "10.0.0.0/8,1.0" }).TRUST_PROXY).toBe(
+      "10.0.0.0/8,1.0"
+    );
   });
 
   it("names the replacement in the hop-count rejection", () => {

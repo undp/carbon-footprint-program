@@ -126,7 +126,10 @@ const isValidTrustProxyEntry = (entry: string): boolean => {
  *   operator who never considered this from one who decided against it.
  * - `"false"` → `false` (trust nothing) — a deliberate choice, not a default
  * - `"true"` → `true` (trust the whole `X-Forwarded-For` chain)
- * - a bare integer → **rejected**; see {@link TRUST_PROXY_HOPS_REMOVED_IN}
+ * - `"0"` → `false`. Trusting zero hops *is* trusting nothing, so this records
+ *   the same decision `false` does and is honoured rather than rejected.
+ * - any other bare integer, alone or as every entry of a list → **rejected**;
+ *   Fastify no longer honours hop counts (GHSA-3m5p-2c4r-xxw2)
  * - anything else → a comma-separated IP/CIDR allowlist, or one of Fastify's
  *   named ranges (`loopback`, `linklocal`, `uniquelocal`), shape-checked per
  *   entry and then passed through verbatim (Fastify splits and trims it itself)
@@ -150,7 +153,24 @@ const parseTrustProxy = (
   if (lowered === "true") return true;
   if (lowered === "false") return false;
 
-  if (/^\d+$/.test(trimmed)) {
+  const entries = trimmed.split(",").map((entry) => entry.trim());
+  const isBareInteger = (entry: string): boolean => /^\d+$/.test(entry);
+
+  // Zero hops is trust-nothing, which is exactly what `false` means. Rejecting
+  // it would fail the boot of a deployment whose behaviour would not change at
+  // all, and the hop-count message below — "would silently share one bucket" —
+  // describes the opposite of the posture that operator chose. So it is
+  // honoured, and the decision stays recorded (not `undefined`, so no warning).
+  if (entries.length === 1 && isBareInteger(trimmed) && Number(trimmed) === 0) {
+    return false;
+  }
+
+  // Anchored per entry, not on the whole value: a bare integer is also a valid
+  // short-form IPv4 to proxy-addr ("1" compiles as 1.0.0.0), so "1,2" would
+  // otherwise slip through as an allowlist instead of getting the migration
+  // message. Every entry has to be an integer, so a genuine allowlist that
+  // merely contains a short form keeps working.
+  if (entries.every(isBareInteger)) {
     throw new Error(
       `Invalid TRUST_PROXY value: "${trimmed}". Hop counts are no longer ` +
         `supported: ${TRUST_PROXY_HOPS_REMOVED_IN} makes a numeric trustProxy ` +
@@ -159,12 +179,11 @@ const parseTrustProxy = (
         `silently share one rate-limit bucket across every caller. Replace it ` +
         `with the proxy's IP/CIDR allowlist ("10.0.0.0/8,192.168.0.0/16"), a ` +
         `named range (${TRUST_PROXY_NAMED_RANGES.join(", ")}), or false if ` +
-        `the API really is reached directly. See docs/security/hardening.md, ` +
-        `"Proxy Trust".`
+        `the API really is reached directly (0 is accepted as false). See ` +
+        `docs/security/hardening.md, "Proxy Trust".`
     );
   }
 
-  const entries = trimmed.split(",").map((entry) => entry.trim());
   if (entries.some((entry) => !isValidTrustProxyEntry(entry))) {
     throw new Error(
       `Invalid TRUST_PROXY value: "${trimmed}". Expected false, true, a ` +
@@ -220,7 +239,8 @@ export interface ApiEnv {
    * Fastify's `trustProxy`: which `X-Forwarded-*` senders may set `request.ip`.
    * The union Fastify accepts — `false` (trust nothing), `true` (trust the
    * chain), or an IP/CIDR/named-range string. Hop counts are rejected at parse
-   * time; see {@link TRUST_PROXY_HOPS_REMOVED_IN}.
+   * time (`"0"` excepted — it is folded to `false`), because Fastify no longer
+   * honours them; see the `TRUST_PROXY_HOPS_REMOVED_IN` note above.
    *
    * `undefined` means **not configured**, which is distinct from an explicit
    * `false` even though both end up trusting nothing. Only the unconfigured
