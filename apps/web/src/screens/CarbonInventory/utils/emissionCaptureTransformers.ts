@@ -83,8 +83,13 @@ function isFactorUnchanged(line: EmissionCaptureFormLine): boolean {
   )
     return false;
 
+  // `baseFactorId` and not `emissionFactorId`: the catalog selection is built
+  // from the former, so it is the field a restated save would send. The two are
+  // kept in step by convention only — `resetFactorValueFields` clears one and
+  // leaves the other — and comparing the field that is not sent is how a false
+  // "unchanged" would get through.
   return (
-    line.emissionFactorId === loaded.emissionFactorId &&
+    line.baseFactorId === loaded.emissionFactorId &&
     line.factorSource === loaded.factorSource &&
     toNullableNumber(line.factorValue) === loaded.factorValue &&
     line.factorRateMeasurementUnitId === loaded.factorRateMeasurementUnitId
