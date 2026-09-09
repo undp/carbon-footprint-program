@@ -950,11 +950,11 @@
         <h1>Año de factores de emisión</h1>
         <p class="hero-lead">
           Estado actualizado de <code>add-emission-factor-year</code>: decisiones
-          acordadas, comportamiento esperado y trabajo pendiente antes de cargar
+          acordadas, comportamiento esperado y estado de avance antes de cargar
           nuevos factores históricos.
         </p>
         <div class="hero-meta">
-          <span><strong>Estado:</strong> OpenSpec válido · 4/4 artefactos completos</span>
+          <span><strong>Estado:</strong> OpenSpec válido · clasificación aprobada</span>
           <span><strong>Alcance:</strong> catálogo, captura, auditoría y migración</span>
           <span><strong>Resultado:</strong> decisiones cerradas + tareas de preparación</span>
         </div>
@@ -979,7 +979,7 @@
           <a href="#ejemplo">3. Caso explicado</a>
           <a href="#modelo">4. Cambios de esquema</a>
           <a href="#comportamiento">5. Comportamiento esperado</a>
-          <a href="#implementacion">6. Qué queda pendiente</a>
+          <a href="#implementacion">6. Estado de implementación</a>
           <a href="#glosario">7. Glosario</a>
           <a href="#fuentes">8. Evidencia revisada</a>
         </nav>
@@ -1007,22 +1007,23 @@
               <span class="summary-label">factores en testing</span>
             </div>
             <div class="summary-stat">
-              <span class="summary-number">2</span>
-              <span class="summary-label">tareas de preparación de datos</span>
+              <span class="summary-number">16</span>
+              <span class="summary-label">grupos de unidad consolidados</span>
             </div>
             <div class="summary-stat">
-              <span class="summary-number">4/4</span>
-              <span class="summary-label">artefactos OpenSpec completos</span>
+              <span class="summary-number">0</span>
+              <span class="summary-label">casos escalados a metodología</span>
             </div>
           </div>
 
           <div class="callout">
             <strong>Estado para ejecutar el plan</strong>
             <p>
-              La implementación puede comenzar. Antes de ejecutar la migración
-              sobre datos reales deben completarse dos tareas: clasificar cada
-              factor como fechado o transversal y revisar los factores que se
-              vuelven duplicados al agrupar unidades compatibles.
+              La preparación de datos está cerrada: cada factor quedó clasificado
+              como fechado o transversal y las colisiones de unidad compatible se
+              consolidaron. Antes de migrar producción queda un paso, descrito en
+              <code>rollout.md</code>: confirmar que el catálogo productivo no
+              contiene fuentes fuera del mapa revisado.
             </p>
           </div>
         </section>
@@ -1322,13 +1323,14 @@
 
         <section class="section" id="implementacion">
           <p class="section-kicker">Estado de avance</p>
-          <h2>Qué queda pendiente</h2>
+          <h2>Estado de implementación</h2>
           <p class="section-intro">
-            Las decisiones y los artefactos están listos, pero la funcionalidad aún
-            no está implementada en el esquema, API o web. Éste es el orden pendiente.
+            Las decisiones, los artefactos y la preparación de datos están
+            cerrados. La implementación avanza en la cadena de PRs de esquema,
+            servidor y web; lo que sigue abierto son pasos de despliegue.
           </p>
 
-          <h3>Completado</h3>
+          <h3>Cerrado</h3>
           <ol class="checklist">
             <li>Propuesta, diseño, specs y tareas actualizados.</li>
             <li>Validación estricta de OpenSpec aprobada.</li>
@@ -1338,36 +1340,57 @@
             <li>Regla de advertencia por subcategoría documentada.</li>
             <li>Contrato de guardado con servidor autoritativo definido.</li>
             <li>Selector “Factor”, etiquetas y opción “Otro” definidos.</li>
+            <li>
+              Clasificación de cada factor como fechado o transversal, aprobada
+              por metodología el 2026-09-01 y registrada en
+              <code>factor-classification.md</code>.
+            </li>
+            <li>
+              Auditoría de colisiones de unidad: 16 grupos <code>mass/mass</code>,
+              todos equivalentes al convertirlos y consolidados en
+              <code>kg/ton</code>, sin casos escalados a metodología.
+            </li>
+            <li>
+              Ambos archivos seed actualizados con la clasificación revisada.
+            </li>
           </ol>
 
-          <h3 style="margin-top: 2rem">Preparación antes de migrar datos reales</h3>
-          <ul class="pending-list">
-            <li>Clasificar cada factor existente con año explícito o nulo transversal confirmado.</li>
-            <li>Auditar colisiones entre unidades de la misma familia, por ejemplo kg/kg y kg/ton.</li>
-            <li>Comparar valores convertidos y escalar a metodología los que no sean equivalentes.</li>
-            <li>Actualizar ambos archivos seed con la clasificación revisada.</li>
-          </ul>
+          <h3 style="margin-top: 2rem">En implementación</h3>
+          <p>
+            Esquema, contratos compartidos, autoridad del servidor y web se
+            implementan en la cadena de PRs que sigue a este plan.
+            <code>tasks.md</code> es la fuente de verdad del avance por tarea;
+            esta página no lo duplica para no quedar desfasada respecto de él.
+          </p>
 
-          <h3>Pendiente de implementación</h3>
+          <h3 style="margin-top: 2rem">Abierto antes de producción</h3>
           <ul class="pending-list">
-            <li>Crear columnas, backfill e índice parcial <code>NULLS NOT DISTINCT</code>.</li>
-            <li>Actualizar schemas compartidos y el seed técnico.</li>
-            <li>Eliminar <code>validateSourceConsistency</code> y alinear duplicados.</li>
-            <li>Implementar los payloads CATALOG, CUSTOM y DIRECT.</li>
-            <li>Validar y convertir factores de catálogo en el servidor.</li>
-            <li>Actualizar el selector “Factor”, ranking y restauración por ID.</li>
-            <li>Agregar aviso no bloqueante por subcategoría y aviso del nombre en mantenedor.</li>
-            <li>Actualizar resumen, duplicación, exports y Excel.</li>
-            <li>Ejecutar pruebas de migración, API, web, lint y type-check.</li>
-            <li>Observar tamaño del payload antes de cargar nuevos vintages.</li>
+            <li>
+              Confirmar que el catálogo productivo no tiene fuentes fuera del mapa
+              revisado. La clasificación se aprobó sobre el seed, y la migración
+              aborta ante cualquier <code>source</code> no listado.
+            </li>
+            <li>
+              Correr <code>verify-migration.sh</code> sobre una copia restaurada de
+              producción y leer los tres chequeos antes de migrar.
+            </li>
+            <li>
+              Desplegar esquema y contrato antes del cliente web que envía la
+              unión nueva, según <code>rollout.md</code>.
+            </li>
+            <li>
+              Observar el tamaño del payload de metodología antes de cargar
+              vintages adicionales.
+            </li>
           </ul>
 
           <div class="callout">
-            <strong>Orden recomendado</strong>
+            <strong>Qué significa “abierto”</strong>
             <p>
-              Estas tareas no impiden comenzar a programar. Conviene completarlas
-              antes de ejecutar la migración productiva para que el backfill y el
-              índice nuevo se apliquen sobre datos ya revisados.
+              Son pasos de despliegue, no código pendiente. El único que puede
+              detener la migración es el primero: una fuente productiva sin
+              clasificar es una decisión de metodología, no un valor que la
+              migración pueda inferir.
             </p>
           </div>
         </section>
