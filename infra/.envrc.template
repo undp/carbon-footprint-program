@@ -74,8 +74,9 @@ export FRONTEND_CUSTOM_DOMAIN=""
 #   <ip/cidr>[,...]  an explicit allowlist, e.g. "10.0.0.0/8,192.168.0.0/16"
 #
 # Hop counts ("1", "2") are REJECTED and fail the API boot — Fastify 5.12.1
-# removed them (GHSA-3m5p-2c4r-xxw2). Behind Front Door, name its backend ranges
-# alongside linklocal rather than counting hops.
+# removed them (GHSA-3m5p-2c4r-xxw2). "0" is the exception: zero hops is
+# trust-nothing, so it is accepted as "false". Behind Front Door, name its
+# backend ranges alongside linklocal rather than counting hops.
 #
 # Pick it from the real request path, not by guessing: trusting less than the
 # real chain keeps the shared bucket, trusting more lets a caller forge

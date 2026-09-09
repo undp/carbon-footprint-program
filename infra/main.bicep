@@ -159,7 +159,8 @@ param appServiceSkuName string = 'F1'
 // docs/security/hardening.md.
 //
 // Hop counts ("1", "2") are REJECTED and fail the API boot: Fastify 5.12.1
-// removed them (GHSA-3m5p-2c4r-xxw2). Use "linklocal" for plain App Service.
+// removed them (GHSA-3m5p-2c4r-xxw2). "0" is accepted, as it means the same as
+// "false". Use "linklocal" for plain App Service.
 @description('Fastify trustProxy for the API (TRUST_PROXY). Empty = trust nothing (current behaviour). "linklocal" = App Service front end; or an IP/CIDR allowlist. Hop counts such as "1" are rejected and fail the boot.')
 param apiTrustProxy string = ''
 

@@ -64,7 +64,8 @@ wired into the Fastify constructor in `apps/api/src/app.ts`).
 | `linklocal`                 | Fastify's `169.254.0.0/16` + `fe80::/10` range         | **Azure App Service** — the platform front end. See below      |
 | `loopback` / `uniquelocal`  | Fastify's other named ranges                           | A sidecar or same-host proxy                                   |
 | `true`                      | Trust the whole forwarded chain                        | Last resort — see the warning below                            |
-| `1`, `2`, any integer       | **Rejected — the API refuses to boot**                 | Never; removed upstream. See "Hop counts" below                |
+| `0`                         | Same as `false` — trust nothing, decision recorded     | Accepted; `false` is the clearer spelling                      |
+| `1`, `2`, any other integer | **Rejected — the API refuses to boot**                 | Never; removed upstream. See "Hop counts" below                |
 
 **Unset and `false` behave identically at runtime but are not the same setting.** Unset means
 nobody considered the question, and produces the boot warning below; `false` records a decision
@@ -117,6 +118,15 @@ own.
 > chain leaves the shared bucket in place; trusting more lets a caller forge the header and select
 > its own bucket. The parameter is deliberately not derived from `enableFrontDoor`, because what
 > sits in front of the API is a property of the actual request path.
+>
+> **And re-verify it when the network path changes — a subnet trust goes stale silently.** This is
+> the one way `linklocal` is _worse_ than the hop count it replaces. If the peer stops matching the
+> range — VNet integration, a private endpoint, a change of platform front-end address — trust
+> reverts to nothing, `request.ip` becomes the peer again, and the shared rate-limit bucket comes
+> back with nothing failing and nothing logged. A hop count did not have that failure mode. Treat
+> any change to the request path as invalidating the value, and re-run the two-request bucketing
+> check below. A VNet-integrated deployment most likely wants `linklocal,<private-range>` rather
+> than `linklocal` alone.
 
 **Measured on plain App Service** (no Front Door), from two clients in different locations, via
 [issue #571](https://github.com/undp/carbon-footprint-program/issues/571). Client addresses are
@@ -153,6 +163,7 @@ rejected and the API refuses to boot.** Replace them:
 
 | Was | Use instead                                                          |
 | --- | -------------------------------------------------------------------- |
+| `0` | Nothing — accepted as `false`. `false` is the clearer spelling.      |
 | `1` | `linklocal` — the App Service front end (measured above)             |
 | `2` | `linklocal` **plus** the Front Door backend ranges; re-measure first |
 
@@ -179,8 +190,25 @@ can reach it (Front Door private link, or an App Service access restriction on t
 **Upgrading a deployment that set a hop count.** Fastify treats a numeric `trustProxy` as trusting
 nothing rather than erroring, so the API would have started and served traffic with the rate
 limiter back on one shared bucket, reporting nothing. The boot failure is deliberate: it surfaces
-the migration while an operator is still watching the deploy. Run `DRY_RUN=true ./infra/deploy.sh`
-before deploying to catch the value without a crash-looping container.
+the migration instead. Run `DRY_RUN=true ./infra/deploy.sh` before deploying to catch the value
+without a crash-looping container.
+
+> **Audit the live app settings before this reaches an environment — do not wait for a deploy.**
+> The boot failure is not confined to the deploy path. An App Service already carrying
+> `TRUST_PROXY=1` will crash-loop on its **next platform restart**, with no deploy involved and
+> nobody watching. And the "immediate" path below (`az webapp config appsettings set`) writes the
+> app setting directly, bypassing `deploy.sh`'s pre-flight entirely. So check the running
+> configuration of every environment first:
+>
+> ```bash
+> az webapp config appsettings list \
+>   --resource-group "$AZURE_RESOURCE_GROUP" \
+>   --name "<app-service-name>" \
+>   --query "[?name=='TRUST_PROXY']"
+> ```
+>
+> Self-hosted, check the deployment's env file for a numeric `TRUST_PROXY`. `0` is safe and needs
+> no change; any other integer has to be replaced before the API restarts.
 
 **A forwarded address is not always a bare IP.** Azure App Service appends the client's IP **and
 ephemeral port** to `X-Forwarded-For` (`203.0.113.9:51234`), and proxy-addr passes that through

@@ -233,6 +233,7 @@ param appServiceSkuName = 'F1'
 //            silences the production boot warning
 //
 // ⚠️ Hop counts ('1', '2') are REJECTED — the API refuses to boot on one.
+// ('0' is the exception: zero hops is trust-nothing, so it is read as 'false'.)
 // Fastify 5.12.1 removed hop-count trust (GHSA-3m5p-2c4r-xxw2) because counting
 // hops cannot validate the immediate peer: App Service keeps its
 // *.azurewebsites.net hostname publicly reachable even behind Front Door, so a
