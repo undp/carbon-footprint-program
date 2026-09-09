@@ -47,10 +47,10 @@ export const EmissionEditorFactorSourceCell: FC<
     name: `subcategories.${subcategoryId}.lines.${lineId}.baseFactorId`,
   }) as string | null;
 
-  const value =
-    factorSource && CUSTOM_FACTOR_SOURCES.includes(factorSource)
-      ? factorSource
-      : baseFactorId;
+  const isCustomSelection =
+    !!factorSource && CUSTOM_FACTOR_SOURCES.includes(factorSource);
+
+  const value = isCustomSelection ? factorSource : baseFactorId;
 
   const measurementUnitId = useWatch({
     name: `subcategories.${subcategoryId}.lines.${lineId}.measurementUnitId`,
@@ -83,6 +83,16 @@ export const EmissionEditorFactorSourceCell: FC<
     ]
   );
 
+  // A saved line can hold a factor the catalog no longer offers: the maintainer
+  // retired it, or it stopped matching the line's unit or dimensions. Without an
+  // option to render, MUI would show an empty cell — indistinguishable from a
+  // line that never had a factor — so the state is named instead, and disabled
+  // so it cannot be chosen again.
+  const isUnavailableCatalogSelection =
+    !isCustomSelection &&
+    baseFactorId !== null &&
+    !catalogOptions.some((option) => option.id === baseFactorId);
+
   const selectElement = (
     <Select
       id={`factorSource_${lineId}`}
@@ -101,6 +111,11 @@ export const EmissionEditorFactorSourceCell: FC<
         },
       }}
     >
+      {isUnavailableCatalogSelection && (
+        <MenuItem value={baseFactorId} disabled>
+          Factor no disponible
+        </MenuItem>
+      )}
       {catalogOptions.map((option) => (
         <MenuItem key={option.id} value={option.id}>
           {option.label}
