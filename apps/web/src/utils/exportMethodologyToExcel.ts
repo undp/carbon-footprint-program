@@ -76,6 +76,7 @@ function fillSubcategoriesSheet(
     for (const subcategory of category.subcategories) {
       sheet.addRow({
         category: display(category.name),
+        position: subcategory.position,
         subcategory: display(subcategory.name),
         description: display(subcategory.description),
         measurementUnits: display(
@@ -194,6 +195,7 @@ export async function buildMethodologyWorkbook(
 
   const subcategoriesSheet = addSheet(workbook, "Subcategorías", [
     { header: "Categoría", key: "category", width: 30 },
+    { header: "Posición", key: "position", width: 10 },
     { header: "Nombre", key: "subcategory", width: 30 },
     { header: "Descripción", key: "description", width: 60 },
     { header: "Unidades aceptadas", key: "measurementUnits", width: 40 },
