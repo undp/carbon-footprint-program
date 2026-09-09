@@ -18,6 +18,8 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -478,6 +480,83 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
       expect(response.statusCode).toBe(403);
       const body = JSON.parse(response.body) as ApiErrorResponse;
       expect(body.code).toBe("FORBIDDEN");
+    });
+  });
+
+  describe("Ordering", () => {
+    it("orders rows by category position, then subcategory position", async () => {
+      // Names are at odds with positions and the lines are created in reverse,
+      // so neither name order nor insertion order can produce the expected
+      // sequence.
+      const firstCategory = await createTestCategory(
+        prisma,
+        methodologyVersionId,
+        { name: "Test - EF Order Category Zulu", position: 996 }
+      );
+      const secondCategory = await createTestCategory(
+        prisma,
+        methodologyVersionId,
+        { name: "Test - EF Order Category Alpha", position: 997 }
+      );
+
+      const firstSubcategory = await createTestSubcategory(
+        prisma,
+        firstCategory.id,
+        { name: "Test - EF Order Sub Zulu", position: 1 }
+      );
+      const secondSubcategory = await createTestSubcategory(
+        prisma,
+        firstCategory.id,
+        { name: "Test - EF Order Sub Alpha", position: 2 }
+      );
+      const otherCategorySubcategory = await createTestSubcategory(
+        prisma,
+        secondCategory.id,
+        { name: "Test - EF Order Sub Mike", position: 1 }
+      );
+
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+
+      for (const subcategoryId of [
+        otherCategorySubcategory.id,
+        secondSubcategory.id,
+        firstSubcategory.id,
+      ]) {
+        const line = await createCarbonInventoryLine(
+          prisma,
+          inventory.id,
+          subcategoryId
+        );
+        const input = await createCarbonInventoryLineInput(prisma, line.id, {
+          inputType: "SIMPLIFIED",
+          manualFactor: new Prisma.Decimal(3),
+        });
+        await prisma.carbonInventoryLineInput.update({
+          where: { id: input.id },
+          data: { manualFactorRateUnitId: rateUnitId },
+        });
+      }
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emission-factors`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as GetEmissionFactorsResponse;
+
+      expect(body.map((row) => row.subcategoryName)).toEqual([
+        "Test - EF Order Sub Zulu",
+        "Test - EF Order Sub Alpha",
+        "Test - EF Order Sub Mike",
+      ]);
+
+      // Cascades to the subcategories and their inventory lines.
+      await prisma.category.delete({ where: { id: firstCategory.id } });
+      await prisma.category.delete({ where: { id: secondCategory.id } });
     });
   });
 });
