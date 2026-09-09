@@ -59,7 +59,7 @@
 
 - [x] 7.1 Add factor `year` and canonical/base factor ID to `MethodologyEmissionFactor` and the emission-editor models.
 - [x] 7.2 In `EmissionEditor/services/emissionFactorService.ts`, implement pure helpers to filter by activity/dimensions and unit family and rank by exact year, transversal, nearest earlier, then nearest later.
-- [x] 7.3 Return a recommendation only when the winning rank has exactly one canonical factor. If multiple sources tie, return the complete winning candidates with no selection; never break ties by array order, source or ID.
+- [x] 7.3 Return a recommendation only when the winning rank has exactly one canonical factor. If more than one candidate ties, from different sources or from the same source, return the complete winning candidates with no selection; never break ties by array order, source or ID.
 - [x] 7.4 Replace `determineAutoLoadFactorSource` with the new ranking and thread the already-available inventory year into it.
 - [x] 7.5 Keep the current single control labeled `Factor`. Render dated catalog options as `DEFRA (2025)` and transversal options with only their source, such as `IPCC`; do not write `Transversal` in the option or create a separate year/vintage selector. Preserve the existing `Otro` option in the same list and its custom-factor fields.
 - [x] 7.6 When saving a catalog selection, send only its canonical `emissionFactorId` and desired compatible applied rate unit. Adapt custom and direct lines to their discriminated variants.
@@ -90,6 +90,8 @@
 - [x] 10.7 Maintainer guidance: detect a likely four-digit year in the factor/source name, show the recommendation and prove it does not block saving.
 - [x] 10.8 Web year-mismatch warning: exact affected/eligible counts; distinct sorted years; exclusions for transversal/custom/direct/incomplete/inactive lines; clearing after individual correction; no blocking behavior.
 - [x] 10.9 Year change/duplication regression: verify factor IDs, snapshots and calculated results remain byte-for-byte unchanged after re-dating.
+
+- [ ] 10.10 Cover the same-source tie: two candidates from one provider in the winning rank, differing only in a non-required dimension slot, preselect nothing.
 
 ## 11. Validation and rollout
 

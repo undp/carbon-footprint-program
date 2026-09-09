@@ -9,7 +9,7 @@ For an activity with completed required dimensions, the platform SHALL filter ca
 3. factors at the greatest year below `Y`;
 4. factors at the smallest year above `Y`.
 
-The platform SHALL preselect a factor only when the winning rank contains exactly one candidate. If multiple providers remain in the winning rank, it SHALL preselect none and require the organization to choose. Database order, source text and factor ID SHALL NOT be used as implicit tie-breakers.
+The platform SHALL preselect a factor only when the winning rank contains exactly one candidate. If more than one candidate remains in the winning rank, whether from different providers or from the same provider, it SHALL preselect none and require the organization to choose. Database order, source text and factor ID SHALL NOT be used as implicit tie-breakers.
 
 #### Scenario: One exact-year candidate exists
 
@@ -41,6 +41,13 @@ The platform SHALL preselect a factor only when the winning rank contains exactl
 - **WHEN** the organization completes the activity's required fields
 - **THEN** neither factor SHALL be preselected
 - **AND** the organization SHALL be asked to choose between both labeled candidates
+
+#### Scenario: Two candidates from one provider require a choice
+
+- **GIVEN** a 2023 footprint whose winning rank holds two `DEFRA (2023)` factors differing only in a dimension slot the subcategory does not require
+- **WHEN** the organization completes the activity's required fields
+- **THEN** neither factor SHALL be preselected
+- **AND** the shared source SHALL NOT be treated as evidence that the tie can be resolved automatically
 
 #### Scenario: Several transversal providers require a choice
 

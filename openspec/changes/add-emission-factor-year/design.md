@@ -90,7 +90,7 @@ Without that, `DEFRA `, `Defra` and `DEFRA` are three distinct identities descri
 3. the maximum year below `Y`;
 4. the minimum year above `Y`.
 
-If the winning rank contains exactly one canonical factor, preselect it. If it contains factors from several sources, preselect none and ask the organization to choose. Do not use row order, database ID or source alphabetically as a hidden tie-breaker.
+If the winning rank contains exactly one canonical factor, preselect it. If it contains more than one, preselect none and ask the organization to choose — whether the candidates come from different providers or from the same one. A same-source tie is reachable rather than hypothetical: Decision 3 keeps a value a maintainer entered in a non-required dimension slot on the row, and the migration is forbidden from erasing it, so a rank can legitimately hold two rows of one provider that differ only in that slot. Do not use row order, database ID or source alphabetically as a hidden tie-breaker.
 
 The current selector remains a single control labeled `Factor`; no separate year or vintage selector is added. Its dated catalog options combine source and year as `DEFRA (2025)`. A transversal option displays only its source, such as `IPCC`; transversality is inferred from its null year and is not written in the option text. The existing `Otro` option remains in that same selector and continues opening the custom-factor fields. Compatible applied units remain a separate presentation/conversion choice, not separate factor options.
 
