@@ -184,6 +184,8 @@ BEGIN
            "dimension_value_2_id",
            "year",
            "source",
+           "numerator_magnitude_id",
+           "denominator_magnitude_id",
            min(base_value) AS min_base_value,
            max(base_value) AS max_base_value
     FROM canonical
@@ -200,12 +202,18 @@ BEGIN
            1e-6 * greatest(abs(max(base_value)), abs(min(base_value)))
   )
   SELECT string_agg(
-           format('subcategory %s / dims (%s, %s) / year %s / source %s: canonical values from %s to %s',
+           -- The unit family is part of the grouping key, so it has to be part
+           -- of the message too: without it, two different families conflicting
+           -- under one (subcategory, dims, year, source) print as two identical
+           -- lines and the operator cannot tell which one to review.
+           format('subcategory %s / dims (%s, %s) / year %s / source %s / family (%s, %s): canonical values from %s to %s',
                   "subcategory_id",
                   coalesce("dimension_value_1_id"::TEXT, 'null'),
                   coalesce("dimension_value_2_id"::TEXT, 'null'),
                   coalesce("year"::TEXT, 'transversal'),
                   quote_literal("source"),
+                  "numerator_magnitude_id",
+                  "denominator_magnitude_id",
                   min_base_value,
                   max_base_value),
            '; ')
