@@ -59,6 +59,39 @@ if [[ ! -f "$MIGRATION_SQL" ]]; then
   exit 1
 fi
 
+# stage() moves the migration under test out of the working tree, so any exit
+# between the two moves has to put it back. The previous trap silenced its own
+# failure, which meant the one case it guarded — the restore itself failing —
+# ended with the operator told nothing and the migration missing.
+PARKED_DIR=""
+PARKED_TMP=""
+STAGED_DBS=()
+
+cleanup() {
+  local status=$?
+  if [[ -n "$PARKED_DIR" ]]; then
+    if mv "$PARKED_DIR" "$MIGRATION_DIR"; then
+      echo "Restored $MIGRATION_DIR" >&2
+    else
+      echo "CANNOT RESTORE the migration under test:" >&2
+      echo "  parked at:  $PARKED_DIR" >&2
+      echo "  belongs at: $MIGRATION_DIR" >&2
+      echo "  Move it back before committing anything." >&2
+      status=1
+    fi
+    PARKED_DIR=""
+  fi
+  if [[ -n "$PARKED_TMP" ]]; then
+    rm -rf "$PARKED_TMP"
+    PARKED_TMP=""
+  fi
+  if [[ "$status" -ne 0 && ${#STAGED_DBS[@]} -gt 0 ]]; then
+    echo "Staged databases kept for inspection: ${STAGED_DBS[*]}" >&2
+  fi
+  exit "$status"
+}
+trap cleanup EXIT INT TERM
+
 # Prisma takes a URL, not PG* variables, so the credentials have to be encoded:
 # a restored-production password containing @ / : # ? or % otherwise makes the
 # URL parse into a different host or database, and the resulting error looks
@@ -91,20 +124,21 @@ stage() {
   admin "SELECT pg_terminate_backend(pid) FROM pg_stat_activity
          WHERE datname = '$TEMPLATE_DB' AND pid <> pg_backend_pid();"
   admin "CREATE DATABASE $db TEMPLATE $TEMPLATE_DB;"
-  local parked
-  parked="$(mktemp -d)/pending"
+  STAGED_DBS+=("$db")
   # The migration under test is moved aside so `migrate deploy` stops at the
   # commit before it. Everything between the two moves can fail — a wrong
-  # DATABASE_URL, an unreachable server, a Ctrl-C — and with `set -e` and no
-  # trap the script would exit before the second one, leaving the migration in
-  # an unnamed temp directory and gone from the working tree.
-  trap 'mv "$parked" "$MIGRATION_DIR" 2>/dev/null || true' EXIT INT TERM
-  mv "$MIGRATION_DIR" "$parked"
+  # DATABASE_URL, an unreachable server, a Ctrl-C — so the paths live in the
+  # variables the cleanup trap reads.
+  PARKED_TMP="$(mktemp -d)"
+  PARKED_DIR="$PARKED_TMP/pending"
+  mv "$MIGRATION_DIR" "$PARKED_DIR"
   (cd "$REPO_ROOT/packages/database" &&
     DATABASE_URL="postgresql://$(urlencode "$PGUSER"):$(urlencode "$PGPASSWORD")@$PGHOST:$PGPORT/$db" \
       pnpm exec prisma migrate deploy >/dev/null)
-  mv "$parked" "$MIGRATION_DIR"
-  trap - EXIT INT TERM
+  mv "$PARKED_DIR" "$MIGRATION_DIR"
+  PARKED_DIR=""
+  rm -rf "$PARKED_TMP"
+  PARKED_TMP=""
 }
 
 # `prisma migrate deploy` wraps a migration file in one transaction; psql does
@@ -245,13 +279,13 @@ assert_zero efyear_check_clean "no saved line points at a retired factor" "
   WHERE ef.status = 'DELETED';"
 
 if ((failures > 0)); then
-  echo "$failures migration check(s) failed. The staged databases were kept for"
-  echo "inspection: efyear_check_unclassified, efyear_check_conflict, efyear_check_clean."
+  echo "$failures migration check(s) failed."
   exit 1
 fi
 
-for db in efyear_check_unclassified efyear_check_conflict efyear_check_clean; do
+for db in "${STAGED_DBS[@]}"; do
   admin "DROP DATABASE IF EXISTS $db;"
 done
+STAGED_DBS=()
 
 echo "All migration checks passed."
