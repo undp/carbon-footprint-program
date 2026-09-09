@@ -848,4 +848,369 @@ describe("Catalog factor authority and snapshots - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
   });
+  /**
+   * The whole request resolves against one set of lookups.
+   *
+   * Required dimension positions, catalog rows, rate units and stored snapshots
+   * are loaded once per sync rather than once per line. That is invisible when a
+   * request holds a single line of a single subcategory, which is what makes it
+   * worth pinning: the collapse is only correct if each subcategory keeps its own
+   * required positions, and if every variant in one batch still gets the answer
+   * it would have got alone.
+   */
+  describe("One resolution context serves the whole request", () => {
+    /**
+     * A second subcategory in the same methodology whose only dimension is
+     * *optional*, with a factor bound to one of its values.
+     *
+     * The asymmetry is the point: position 1 is required in the first
+     * subcategory and optional here, so a shared lookup that mixed the two up
+     * would reject a valid selection on this side.
+     */
+    async function addOptionalDimensionSubcategory(methodologyId: bigint) {
+      const category = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Authority Category 2",
+        position: 2,
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Authority Subcategory 2",
+      });
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false, name: "Combustible" }
+      );
+      const diesel = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Diésel" }
+      );
+      const gas = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Gas" }
+      );
+      const factor = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        kgPerKgId,
+        {
+          dimensionValue1Id: diesel.id,
+          source: "DEFRA",
+          year: 2022,
+          value: "0.25",
+        }
+      );
+
+      return { subcategory, diesel, gas, factor };
+    }
+
+    const readSnapshot = async (lineId: string) =>
+      await prisma.carbonInventoryLineFactor.findFirstOrThrow({
+        where: { lineInput: { line: { id: BigInt(lineId) }, isActive: true } },
+        select: {
+          emissionFactorId: true,
+          appliedFactorValue: true,
+          appliedFactorSource: true,
+          appliedFactorYear: true,
+        },
+      });
+
+    it("keeps each subcategory's required positions to itself", async () => {
+      const scenario = await buildScenario();
+      const second = await addOptionalDimensionSubcategory(
+        scenario.methodology.id
+      );
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [
+          {
+            subcategoryId: scenario.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            dimensionValue1Id: scenario.clinker.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: tonId.toString(),
+            quantity: 10,
+            factorSelection: {
+              type: FactorSelectionType.CATALOG,
+              emissionFactorId: scenario.factor.id.toString(),
+              appliedRateMeasurementUnitId: kgPerTonId.toString(),
+            },
+            comment: null,
+          },
+          {
+            subcategoryId: second.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            // Deliberately not the value the factor is bound to. Position 1 is
+            // optional here, so it is not part of the factor's identity and
+            // must not reject the selection.
+            dimensionValue1Id: second.gas.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: kgId.toString(),
+            quantity: 4,
+            factorSelection: {
+              type: FactorSelectionType.CATALOG,
+              emissionFactorId: second.factor.id.toString(),
+              appliedRateMeasurementUnitId: kgPerKgId.toString(),
+            },
+            comment: null,
+          },
+        ],
+        update: [],
+        delete: [],
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      expect(body.created).toHaveLength(2);
+      expect(body.created[0].factorValue).toBe(520);
+      expect(body.created[1].factorValue).toBe(0.25);
+      expect(body.created[1].factorSource).toBe("DEFRA");
+    });
+
+    it("still rejects a mismatch on a position its own subcategory requires", async () => {
+      const scenario = await buildScenario();
+      const second = await addOptionalDimensionSubcategory(
+        scenario.methodology.id
+      );
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [
+          {
+            subcategoryId: second.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            dimensionValue1Id: second.gas.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: kgId.toString(),
+            quantity: 4,
+            factorSelection: {
+              type: FactorSelectionType.CATALOG,
+              emissionFactorId: second.factor.id.toString(),
+              appliedRateMeasurementUnitId: kgPerKgId.toString(),
+            },
+            comment: null,
+          },
+          {
+            subcategoryId: scenario.subcategory.id.toString(),
+            inputType: "SIMPLIFIED",
+            // Cal, while the factor is bound to Clinker — and position 1 *is*
+            // required in this subcategory.
+            dimensionValue1Id: scenario.other.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: tonId.toString(),
+            quantity: 10,
+            factorSelection: {
+              type: FactorSelectionType.CATALOG,
+              emissionFactorId: scenario.factor.id.toString(),
+              appliedRateMeasurementUnitId: kgPerTonId.toString(),
+            },
+            comment: null,
+          },
+        ],
+        update: [],
+        delete: [],
+      });
+
+      expect(response.statusCode).toBe(422);
+      expect(JSON.parse(response.body)).toMatchObject({
+        code: "CATALOG_EMISSION_FACTOR_DIMENSION_MISMATCH",
+      });
+
+      // The batch is one transaction: the valid line of the other subcategory
+      // does not survive its neighbour's rejection either.
+      expect(await prisma.carbonInventoryLine.count()).toBe(0);
+    });
+
+    it("answers each variant of a mixed batch on its own terms", async () => {
+      const scenario = await buildScenario();
+
+      const captureLine = (quantity: number) => ({
+        subcategoryId: scenario.subcategory.id.toString(),
+        inputType: "SIMPLIFIED",
+        dimensionValue1Id: scenario.clinker.id.toString(),
+        dimensionValue2Id: null,
+        measurementUnitId: tonId.toString(),
+        quantity,
+        factorSelection: {
+          type: FactorSelectionType.CATALOG,
+          emissionFactorId: scenario.factor.id.toString(),
+          appliedRateMeasurementUnitId: kgPerTonId.toString(),
+        },
+        comment: null,
+      });
+
+      const captured = await sync(scenario.carbonInventory.id, {
+        create: [captureLine(10), captureLine(20), captureLine(30)],
+        update: [],
+        delete: [],
+      });
+      expect(captured.statusCode).toBe(200);
+      const [kept, restated, replaced] = (
+        JSON.parse(captured.body) as SyncCarbonInventoryLinesResponse
+      ).created;
+
+      // The maintainer corrects the factor between the two saves, so "kept the
+      // snapshot" and "read the catalog again" now give different answers.
+      await prisma.emissionFactor.update({
+        where: { id: scenario.factor.id },
+        data: { value: "999", source: "IPCC revisado", year: 2024 },
+      });
+
+      const updateLine = (
+        id: string,
+        factorSelection: Record<string, unknown>
+      ) => ({
+        id,
+        inputType: "SIMPLIFIED",
+        dimensionValue1Id: scenario.clinker.id.toString(),
+        dimensionValue2Id: null,
+        measurementUnitId: tonId.toString(),
+        quantity: 5,
+        factorSelection,
+        comment: null,
+      });
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [captureLine(40)],
+        update: [
+          updateLine(kept.id, { type: FactorSelectionType.UNCHANGED }),
+          updateLine(restated.id, {
+            type: FactorSelectionType.CATALOG,
+            emissionFactorId: scenario.factor.id.toString(),
+            appliedRateMeasurementUnitId: kgPerTonId.toString(),
+          }),
+          updateLine(replaced.id, {
+            type: FactorSelectionType.CUSTOM,
+            source: "Otro",
+            value: 7.25,
+            rateMeasurementUnitId: kgPerTonId.toString(),
+          }),
+        ],
+        delete: [],
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const keptSnapshot = await readSnapshot(kept.id);
+      expect(keptSnapshot.appliedFactorValue.toString()).toBe("520");
+      expect(keptSnapshot.appliedFactorSource).toBe("IPCC");
+      expect(keptSnapshot.appliedFactorYear).toBe(2022);
+
+      const restatedSnapshot = await readSnapshot(restated.id);
+      expect(restatedSnapshot.appliedFactorValue.toString()).toBe("999");
+      expect(restatedSnapshot.appliedFactorSource).toBe("IPCC revisado");
+      expect(restatedSnapshot.appliedFactorYear).toBe(2024);
+
+      const replacedSnapshot = await readSnapshot(replaced.id);
+      expect(replacedSnapshot.emissionFactorId).toBeNull();
+      expect(replacedSnapshot.appliedFactorValue.toString()).toBe("7.25");
+      expect(replacedSnapshot.appliedFactorSource).toBe("Otro");
+
+      // The create in the same call reads the catalog as it stands now.
+      const created = (
+        JSON.parse(response.body) as SyncCarbonInventoryLinesResponse
+      ).created[0];
+      expect(created.factorValue).toBe(999);
+      expect(created.appliedFactorYear).toBe(2024);
+    });
+
+    it("rejects an unchanged factor when a required dimension moved", async () => {
+      const scenario = await buildScenario();
+
+      const captured = await sync(
+        scenario.carbonInventory.id,
+        syncPayload({
+          subcategoryId: scenario.subcategory.id,
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 10,
+          factorSelection: {
+            type: FactorSelectionType.CATALOG,
+            emissionFactorId: scenario.factor.id.toString(),
+            appliedRateMeasurementUnitId: kgPerTonId.toString(),
+          },
+        })
+      );
+      expect(captured.statusCode).toBe(200);
+      const line = (
+        JSON.parse(captured.body) as SyncCarbonInventoryLinesResponse
+      ).created[0];
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [],
+        update: [
+          {
+            id: line.id,
+            inputType: "SIMPLIFIED",
+            // Cal now, captured as Clinker — the snapshot describes a factor
+            // that has nothing to do with this line any more.
+            dimensionValue1Id: scenario.other.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: tonId.toString(),
+            quantity: 10,
+            factorSelection: { type: FactorSelectionType.UNCHANGED },
+            comment: null,
+          },
+        ],
+        delete: [],
+      });
+
+      expect(response.statusCode).toBe(422);
+      expect(JSON.parse(response.body)).toMatchObject({
+        code: "UNCHANGED_FACTOR_DIMENSION_CHANGED",
+      });
+    });
+
+    it("rejects an unchanged factor on a line with a direct total", async () => {
+      const scenario = await buildScenario();
+
+      const captured = await sync(
+        scenario.carbonInventory.id,
+        syncPayload({
+          subcategoryId: scenario.subcategory.id,
+          dimensionValue1Id: scenario.clinker.id,
+          measurementUnitId: tonId,
+          quantity: 10,
+          factorSelection: {
+            type: FactorSelectionType.CATALOG,
+            emissionFactorId: scenario.factor.id.toString(),
+            appliedRateMeasurementUnitId: kgPerTonId.toString(),
+          },
+        })
+      );
+      expect(captured.statusCode).toBe(200);
+      const line = (
+        JSON.parse(captured.body) as SyncCarbonInventoryLinesResponse
+      ).created[0];
+
+      const response = await sync(scenario.carbonInventory.id, {
+        create: [],
+        update: [
+          {
+            id: line.id,
+            // A direct total stores its emissions on the input and has no
+            // factor to keep: accepting the pair would preserve the snapshot
+            // and write no result at all.
+            inputType: "DIRECT",
+            dimensionValue1Id: scenario.clinker.id.toString(),
+            dimensionValue2Id: null,
+            measurementUnitId: tonId.toString(),
+            quantity: 10,
+            factorSelection: { type: FactorSelectionType.UNCHANGED },
+            comment: null,
+          },
+        ],
+        delete: [],
+      });
+
+      // The variant is not DIRECT, so the input-type guard already refuses the
+      // pair — UNCHANGED needs no rule of its own for it.
+      expect(response.statusCode).toBe(422);
+      expect(JSON.parse(response.body)).toMatchObject({
+        code: "FACTOR_SELECTION_INPUT_TYPE_MISMATCH",
+      });
+    });
+  });
 });
