@@ -62,8 +62,8 @@ export const useSubcategoryPreselectionData = (
             isRecommended: recommendedIds.includes(subcategory.id),
           };
         }),
-        ["isRecommended", "name"],
-        ["desc", "asc"]
+        ["isRecommended"],
+        ["desc"]
       ),
     }));
   }, [methodology, subcategoriesSummary, recommendations]);

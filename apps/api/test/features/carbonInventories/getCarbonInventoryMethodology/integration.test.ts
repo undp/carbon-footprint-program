@@ -492,7 +492,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       expect(positions).toEqual(sortedPositions);
     });
 
-    it("should have subcategories ordered by name", async () => {
+    it("should have subcategories ordered by position", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -510,11 +510,22 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      body.categories.forEach((category) => {
-        const subcategoryNames = category.subcategories.map((sub) => sub.name);
-        const sortedNames = [...subcategoryNames].sort();
-        expect(subcategoryNames).toEqual(sortedNames);
-      });
+      for (const category of body.categories) {
+        const subcategories = await prisma.subcategory.findMany({
+          where: {
+            categoryId: BigInt(category.id),
+            status: SubcategoryStatus.ACTIVE,
+          },
+          select: { id: true, position: true },
+        });
+        const expectedIds = subcategories
+          .sort((a, b) => a.position - b.position)
+          .map((subcategory) => subcategory.id.toString());
+
+        expect(category.subcategories.map((sub) => sub.id)).toEqual(
+          expectedIds
+        );
+      }
     });
 
     it("should have dimensions ordered by position", async () => {
