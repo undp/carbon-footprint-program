@@ -32,8 +32,8 @@ export const getAllReductionPlanInitiativesService = async (
     where,
     include: adminReductionPlanInitiativeInclude,
     orderBy: [
-      { subcategory: { category: { name: "asc" } } },
-      { subcategory: { name: "asc" } },
+      { subcategory: { category: { position: "asc" } } },
+      { subcategory: { position: "asc" } },
       { title: "asc" },
     ],
   });

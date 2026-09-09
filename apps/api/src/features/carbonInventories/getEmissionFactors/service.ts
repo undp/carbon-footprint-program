@@ -79,7 +79,7 @@ export const getEmissionFactorsService = async (
     },
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
-      { subcategory: { name: "asc" } },
+      { subcategory: { position: "asc" } },
     ],
   });
 
