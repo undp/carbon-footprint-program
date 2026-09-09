@@ -13,6 +13,7 @@ import {
 import {
   getCompatibleRateUnitId,
   getAvailableFactors,
+  getRequiredDimensionPositions,
   recommendCatalogFactor,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
@@ -140,6 +141,13 @@ export const useEmissionEditorForm = ({
     return isTotalManualEmissionsModeActive && rows.length > 0 ? rows[0] : null;
   }, [rows, isTotalManualEmissionsModeActive]);
 
+  // Only the required positions take part in matching a factor to a line, the
+  // same rule the API applies when it resolves the selection.
+  const requiredDimensionPositions = useMemo(
+    () => getRequiredDimensionPositions(subcategory.dimensions),
+    [subcategory.dimensions]
+  );
+
   // Form actions - now local only, no API calls
   const handleAddLine = useCallback(() => {
     // Add line locally - will be persisted on form submit
@@ -258,7 +266,8 @@ export const useEmissionEditorForm = ({
         emissionFactors,
         line.dimensionValue1Id,
         line.dimensionValue2Id,
-        compatibleRateUnitId
+        compatibleRateUnitId,
+        requiredDimensionPositions
       ).find((candidate) => candidate.baseEmissionFactorId === selection);
 
       if (!factor) {
@@ -312,7 +321,14 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
+    [
+      emissionFactors,
+      rateMeasurementUnits,
+      setValue,
+      subcategoryId,
+      getValues,
+      requiredDimensionPositions,
+    ]
   );
 
   /**
@@ -330,9 +346,15 @@ export const useEmissionEditorForm = ({
         line.dimensionValue1Id,
         line.dimensionValue2Id,
         getCompatibleRateUnitId(line.measurementUnitId, rateMeasurementUnits),
-        inventoryYear
+        inventoryYear,
+        requiredDimensionPositions
       ).recommended?.baseEmissionFactorId ?? null,
-    [emissionFactors, rateMeasurementUnits, inventoryYear]
+    [
+      emissionFactors,
+      rateMeasurementUnits,
+      inventoryYear,
+      requiredDimensionPositions,
+    ]
   );
 
   const tryToLoadDetermineFactorPlatform = useCallback(

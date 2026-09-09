@@ -4,6 +4,7 @@ import { Select, MenuItem, Tooltip } from "@mui/material";
 import {
   getCompatibleRateUnitId,
   getCatalogFactorOptions,
+  getRequiredDimensionPositions,
 } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
@@ -72,7 +73,8 @@ export const EmissionEditorFactorSourceCell: FC<
         emissionFactors,
         dimensionValue1Id,
         dimensionValue2Id,
-        getCompatibleRateUnitId(measurementUnitId, rateMeasurementUnits)
+        getCompatibleRateUnitId(measurementUnitId, rateMeasurementUnits),
+        getRequiredDimensionPositions(dimensions)
       ),
     [
       emissionFactors,
@@ -80,6 +82,7 @@ export const EmissionEditorFactorSourceCell: FC<
       measurementUnitId,
       dimensionValue1Id,
       dimensionValue2Id,
+      dimensions,
     ]
   );
 

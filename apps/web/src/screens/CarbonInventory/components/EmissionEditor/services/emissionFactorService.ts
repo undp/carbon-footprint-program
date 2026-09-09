@@ -27,20 +27,50 @@ export const getCompatibleRateUnitId = (
   );
 };
 
+/** The dimension positions a subcategory requires, in the shape this file needs. */
+export const getRequiredDimensionPositions = (
+  dimensions: { position: number; isRequired: boolean }[]
+): number[] => dimensions.filter((d) => d.isRequired).map((d) => d.position);
+
+/**
+ * Whether a factor's value at one dimension position fits the line's selection.
+ *
+ * A required position is part of the factor's identity and has to match exactly,
+ * the same equality the API applies when it resolves the selection: a factor
+ * left blank there is not a wildcard, and offering it would hand the user a
+ * choice the save then rejects. An optional position never rejects a factor on
+ * the server, so a blank still reads as "applies to any value".
+ */
+const matchesDimension = (
+  factorValueId: string | null,
+  lineValueId: string | null,
+  isRequired: boolean
+): boolean =>
+  isRequired
+    ? factorValueId === lineValueId
+    : factorValueId === null || factorValueId === lineValueId;
+
 export const getAvailableFactors = (
   emissionFactors: MethodologyEmissionFactor[],
   dimensionValue1Id: string | null,
   dimensionValue2Id: string | null,
-  rateMeasurementUnitId: string | null
+  rateMeasurementUnitId: string | null,
+  requiredDimensionPositions: readonly number[]
 ): MethodologyEmissionFactor[] => {
   if (!rateMeasurementUnitId) return [];
 
   return emissionFactors.filter(
     (ef) =>
-      (ef.dimensionValue1Id === null ||
-        ef.dimensionValue1Id === dimensionValue1Id) &&
-      (ef.dimensionValue2Id === null ||
-        ef.dimensionValue2Id === dimensionValue2Id) &&
+      matchesDimension(
+        ef.dimensionValue1Id,
+        dimensionValue1Id,
+        requiredDimensionPositions.includes(1)
+      ) &&
+      matchesDimension(
+        ef.dimensionValue2Id,
+        dimensionValue2Id,
+        requiredDimensionPositions.includes(2)
+      ) &&
       ef.rateMeasurementUnitId === rateMeasurementUnitId
   );
 };
@@ -196,13 +226,15 @@ export const recommendCatalogFactor = (
   dimensionValue1Id: string | null,
   dimensionValue2Id: string | null,
   rateMeasurementUnitId: string | null,
-  inventoryYear: number | null
+  inventoryYear: number | null,
+  requiredDimensionPositions: readonly number[]
 ): FactorRecommendation => {
   const compatible = getAvailableFactors(
     emissionFactors,
     dimensionValue1Id,
     dimensionValue2Id,
-    rateMeasurementUnitId
+    rateMeasurementUnitId,
+    requiredDimensionPositions
   );
 
   const ranked = rankCatalogFactorsByYear(compatible, inventoryYear);
@@ -227,14 +259,16 @@ export const getCatalogFactorOptions = (
   emissionFactors: MethodologyEmissionFactor[],
   dimensionValue1Id: string | null,
   dimensionValue2Id: string | null,
-  rateMeasurementUnitId: string | null
+  rateMeasurementUnitId: string | null,
+  requiredDimensionPositions: readonly number[]
 ): { id: string; label: string }[] =>
   toCanonicalFactors(
     getAvailableFactors(
       emissionFactors,
       dimensionValue1Id,
       dimensionValue2Id,
-      rateMeasurementUnitId
+      rateMeasurementUnitId,
+      requiredDimensionPositions
     )
   )
     .sort((a, b) => {
