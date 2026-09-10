@@ -34,10 +34,11 @@ interface UseSubcategoryColumnsParams {
   onMoveUp: (row: SubcategoryForm) => void;
   onMoveDown: (row: SubcategoryForm) => void;
   /**
-   * Reorder is off while the form is not in server order — see
-   * `isMoveBlocked` in useMaintainerRowReorder. The arrows are computed from
-   * `position`, the grid renders in form-array order, and the two only agree
-   * once the listing refetch has been replayed into the form.
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered. The arrows are
+   * computed from `position` over every row, the grid renders in form-array
+   * order and only the rows it was told to show, and the two only agree once
+   * the listing refetch has been replayed into an unfiltered grid.
    */
   moveDisabled: boolean;
   rows: SubcategoryForm[];
