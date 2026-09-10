@@ -1,12 +1,4 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import {
   Box,
@@ -34,6 +26,7 @@ import {
   type CategoriesFormValues,
 } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
+import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
 import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
 import { CategoryForm } from "@repo/types";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
@@ -122,20 +115,25 @@ export const CategoriesMaintainerScreen: FC = () => {
   const currentRows = form.watch("categories");
 
   // --- Sync form with server data ---
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
-  useEffect(() => {
-    form.reset({ categories: [] });
-  }, [methodologyVersionId, form]);
-
-  useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
-    if (!categories) return;
-    form.reset({ categories: categories.map(toFormCategory) });
-  }, [categories, form]);
+  // The shared hook, like the subcategories grid: it keeps `editingRowId` in
+  // its dependencies, so a refetch that lands while a row is being edited is
+  // replayed once the user leaves edit mode. Reading the id off a ref instead
+  // dropped that refetch for good — and since a reorder is repainted by the
+  // swap's own refetch and nothing else, the grid could keep the pre-swap
+  // positions and send the same pair again on the next click.
+  const toFormData = useCallback(
+    (data: unknown[]) =>
+      (data as typeof categories & object).map(toFormCategory),
+    []
+  );
+  useMaintainerFormSync({
+    form,
+    fieldName: "categories",
+    editingRowId,
+    methodologyVersionId,
+    serverData: categories,
+    toFormData,
+  });
 
   const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
 
