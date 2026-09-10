@@ -154,7 +154,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
 
     try {
       if (row && hasRealChanges && row.icon) {
-        await updateMutation.mutateAsync({
+        const result = await updateMutation.mutateAsync({
           subcategoryId: row.id,
           data: {
             categoryId: row.categoryId,
@@ -165,6 +165,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             measurementUnitIds: row.measurementUnitIds,
           },
         });
+        // Replayed like the create path above, and for the same reason: a move
+        // to another category is appended last there, so the row's position
+        // changed. The mutation's invalidation is not awaited, and the arrows
+        // are re-enabled as soon as edit mode ends — reading the old position
+        // they would send the wrong pair to the swap endpoint.
+        fieldArray.update(rowIndex, toFormSubcategory(result));
         form.reset({ subcategories: form.getValues("subcategories") });
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
