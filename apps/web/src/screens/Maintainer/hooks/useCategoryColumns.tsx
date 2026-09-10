@@ -65,7 +65,7 @@ export const useCategoryColumns = ({
       },
       {
         field: "icon",
-        headerName: "Icono",
+        headerName: "Ícono",
         width: 60,
         headerAlign: "center",
         align: "center",
