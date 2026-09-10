@@ -19,6 +19,8 @@
 
 - [ ] 2.9 Key the partial unique index on `lower("source")` rather than the raw column, so two spellings of one provider cannot become two identities. Normalize existing `source` values (trim, collapse inner whitespace) in the same migration, before the index is created.
 
+- [ ] 2.10 Retire the duplicate same-family representations the unit-family audit lists, before the unique index of 2.5 is created: keep the canonical `kg/ton` row, soft-delete its compatible `kg/kg` twin and re-point the references as in 2.8. Section 2 has no other step that removes a collision, so `CREATE UNIQUE INDEX` would run while every audited group is still present and fail on real data.
+
 ## 3. Shared schemas and request contracts
 
 - [x] 3.1 Add nullable integer `year` to `packages/types/src/baseSchemas/emissionFactor.ts`, factor create/update forms and responses. Do not expose `numeratorMagnitudeId` or `denominatorMagnitudeId` as writable client fields, and do not add a blocking API validation solely because `source` contains a likely year.
