@@ -155,7 +155,7 @@ describe("buildFactorYearMismatchMessage", () => {
     );
   });
 
-  it("reads correctly with a single mismatching year and a single line", () => {
+  it("agrees in number with a single mismatching year and a single line", () => {
     const message = buildFactorYearMismatchMessage({
       affectedCount: 1,
       eligibleCount: 1,
@@ -163,8 +163,8 @@ describe("buildFactorYearMismatchMessage", () => {
       inventoryYear: 2023,
     });
 
-    expect(message).toContain("1 de 1 línea con factor de catálogo fechado");
-    expect(message).toContain("usan factores de 2020");
-    expect(message).toContain("Los cálculos no fueron modificados");
+    expect(message).toBe(
+      "1 de 1 línea con factor de catálogo fechado usa el factor de 2020, distinto del año 2023 de la huella. Los cálculos no fueron modificados; revisa las fuentes si corresponde."
+    );
   });
 });
