@@ -2,6 +2,22 @@
 
 # Sync Carbon Inventory Lines - Batch create, update, and delete operations
 # This endpoint allows atomic synchronization of multiple line changes in a single request
+#
+# A line states how its factor was chosen through `factorSelection`, a tagged
+# union. The variants carry disjoint data, so catalog validation cannot be
+# bypassed by dressing a custom factor up as a catalog one:
+#
+#   CATALOG    the canonical emission_factor row plus the unit to express it in.
+#              Value, source and year are NOT sent — the server reads all three
+#              from the row, so a request cannot persist a number the catalog
+#              disagrees with.
+#   CUSTOM     a factor the organization typed in itself.
+#   DIRECT     a total in tons, declared with no factor at all.
+#   UNCHANGED  update only: keep the snapshot the line already has. The server
+#              copies it verbatim and never reads the catalog.
+#
+# `factorSelection: null` means the line is still incomplete.
+# `inputType` is DIRECT for a declared total, SIMPLIFIED otherwise.
 
 ### Sync Lines - Create only (new empty lines)
 POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
@@ -11,15 +27,12 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": null
     }
   ],
@@ -28,7 +41,7 @@ Content-Type: application/json
 }
 
 
-### Sync Lines - Create with data (SIMPLIFIED mode - with factor)
+### Sync Lines - Create with a catalog factor (SIMPLIFIED mode)
 POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
 Content-Type: application/json
 
@@ -36,15 +49,16 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": "1",
       "dimensionValue2Id": null,
       "measurementUnitId": "1",
       "quantity": 100.5,
-      "factorSource": "Metodología GEI",
-      "baseFactorId": "1",
-      "appliedFactorValue": 2.5,
-      "appliedFactorRateMeasurementUnitId": "1",
-      "manualTotalEmissions": null,
+      "factorSelection": {
+        "type": "CATALOG",
+        "emissionFactorId": "1",
+        "appliedRateMeasurementUnitId": "1"
+      },
       "comment": "Line created via sync"
     }
   ],
@@ -61,15 +75,15 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "1",
+      "inputType": "DIRECT",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": 500000,
+      "factorSelection": {
+        "type": "DIRECT",
+        "totalEmissions": 500
+      },
       "comment": "Manual total emissions entry"
     }
   ],
@@ -86,28 +100,22 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": null
     },
     {
       "subcategoryId": "2",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": null
     }
   ],
@@ -125,16 +133,43 @@ Content-Type: application/json
   "update": [
     {
       "id": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": "2",
       "dimensionValue2Id": null,
       "measurementUnitId": "1",
       "quantity": 250.75,
-      "factorSource": "Metodología GEI",
-      "baseFactorId": "1",
-      "appliedFactorValue": 3.2,
-      "appliedFactorRateMeasurementUnitId": "1",
-      "manualTotalEmissions": null,
+      "factorSelection": {
+        "type": "CATALOG",
+        "emissionFactorId": "1",
+        "appliedRateMeasurementUnitId": "1"
+      },
       "comment": "Updated via sync"
+    }
+  ],
+  "delete": []
+}
+
+
+### Sync Lines - Update everything except the factor
+# The quantity changes but the factor does not, so the line keeps the exact
+# snapshot it already had: same value, unit, source, year and catalog id. The
+# catalog is not consulted, which is why this still works after the factor has
+# been edited or retired.
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "1",
+      "inputType": "SIMPLIFIED",
+      "dimensionValue1Id": "2",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 999.5,
+      "factorSelection": { "type": "UNCHANGED" },
+      "comment": "Only the quantity changed"
     }
   ],
   "delete": []
@@ -150,15 +185,15 @@ Content-Type: application/json
   "update": [
     {
       "id": "1",
+      "inputType": "DIRECT",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": 1000000,
+      "factorSelection": {
+        "type": "DIRECT",
+        "totalEmissions": 1000
+      },
       "comment": "Switched to manual emissions"
     }
   ],
@@ -166,7 +201,7 @@ Content-Type: application/json
 }
 
 
-### Sync Lines - Update line to EXPERT mode (custom factor source)
+### Sync Lines - Update line to a custom factor
 POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
 Content-Type: application/json
 
@@ -175,15 +210,17 @@ Content-Type: application/json
   "update": [
     {
       "id": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": "1",
       "dimensionValue2Id": null,
       "measurementUnitId": "1",
       "quantity": 100,
-      "factorSource": "Otro",
-      "baseFactorId": null,
-      "appliedFactorValue": 5.5,
-      "appliedFactorRateMeasurementUnitId": "1",
-      "manualTotalEmissions": null,
+      "factorSelection": {
+        "type": "CUSTOM",
+        "source": "Otro",
+        "value": 5.5,
+        "rateMeasurementUnitId": "1"
+      },
       "comment": "Custom emission factor"
     }
   ],
@@ -213,30 +250,28 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "1",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": "New line created in batch"
     }
   ],
   "update": [
     {
       "id": "3",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": "1",
       "dimensionValue2Id": null,
       "measurementUnitId": "1",
       "quantity": 150,
-      "factorSource": "Metodología GEI",
-      "baseFactorId": "1",
-      "appliedFactorValue": 2.0,
-      "appliedFactorRateMeasurementUnitId": "1",
-      "manualTotalEmissions": null,
+      "factorSelection": {
+        "type": "CATALOG",
+        "emissionFactorId": "1",
+        "appliedRateMeasurementUnitId": "1"
+      },
       "comment": "Existing line updated in batch"
     }
   ],
@@ -276,15 +311,12 @@ Content-Type: application/json
   "create": [
     {
       "subcategoryId": "999999",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": null
     }
   ],
@@ -302,15 +334,12 @@ Content-Type: application/json
   "update": [
     {
       "id": "999999",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": null
     }
   ],
@@ -341,18 +370,67 @@ Content-Type: application/json
   "update": [
     {
       "id": "100",
+      "inputType": "SIMPLIFIED",
       "dimensionValue1Id": null,
       "dimensionValue2Id": null,
       "measurementUnitId": null,
       "quantity": null,
-      "factorSource": null,
-      "baseFactorId": null,
-      "appliedFactorValue": null,
-      "appliedFactorRateMeasurementUnitId": null,
-      "manualTotalEmissions": null,
+      "factorSelection": null,
       "comment": "This should fail - line from different inventory"
     }
   ],
+  "delete": []
+}
+
+
+### Error Case - Catalog factor that is not in this methodology
+# Returns 422 CATALOG_EMISSION_FACTOR_NOT_IN_METHODOLOGY. The same shape returns
+# 404 CATALOG_EMISSION_FACTOR_NOT_FOUND when the factor was retired.
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [],
+  "update": [
+    {
+      "id": "1",
+      "inputType": "SIMPLIFIED",
+      "dimensionValue1Id": "1",
+      "dimensionValue2Id": null,
+      "measurementUnitId": "1",
+      "quantity": 10,
+      "factorSelection": {
+        "type": "CATALOG",
+        "emissionFactorId": "999999",
+        "appliedRateMeasurementUnitId": "1"
+      },
+      "comment": "This should fail - factor from another methodology"
+    }
+  ],
+  "delete": []
+}
+
+
+### Error Case - UNCHANGED on a create
+# Rejected at the schema: a line being created has no snapshot to keep, so the
+# variant is not part of the create union.
+POST {{baseUrl}}/api/carbon-inventories/1/lines/sync HTTP/1.1
+Content-Type: application/json
+
+{
+  "create": [
+    {
+      "subcategoryId": "1",
+      "inputType": "SIMPLIFIED",
+      "dimensionValue1Id": null,
+      "dimensionValue2Id": null,
+      "measurementUnitId": null,
+      "quantity": null,
+      "factorSelection": { "type": "UNCHANGED" },
+      "comment": null
+    }
+  ],
+  "update": [],
   "delete": []
 }
 

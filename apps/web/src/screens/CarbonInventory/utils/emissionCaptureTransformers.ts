@@ -3,10 +3,64 @@ import {
   SyncCreateLineItem,
   SyncUpdateLineItem,
   SyncDeleteLineItem,
+  FactorSelectionType,
   InputTypeSchema,
+  type FactorSelection,
 } from "@repo/types";
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
 import { toNullableNumber } from "@/utils/number";
+
+/**
+ * Translates a form line into the factor variant the API expects, or null while
+ * the line is still incomplete.
+ *
+ * A catalog selection deliberately sends only its canonical factor ID and the
+ * unit it wants the value in. The value, source and year the editor displays are
+ * for the user's benefit; the API re-reads all three from the catalog row, so
+ * sending them would be at best redundant and at worst a way to persist a number
+ * the catalog does not agree with.
+ */
+function mapFactorSelection(
+  line: EmissionCaptureFormLine
+): FactorSelection | null {
+  if (line.isManualTotalEmissions) {
+    const totalEmissions = toNullableNumber(line.manualTotalEmissions);
+    return totalEmissions === null
+      ? null
+      : { type: FactorSelectionType.DIRECT, totalEmissions };
+  }
+
+  // The canonical factor ID decides the variant, never the source text: a
+  // catalog factor whose provider happens to be named like the custom label
+  // would otherwise be sent as a custom factor, with the client's own value, and
+  // skip every catalog check the API performs.
+  if (line.baseFactorId !== null) {
+    if (line.factorRateMeasurementUnitId === null) return null;
+    return {
+      type: FactorSelectionType.CATALOG,
+      emissionFactorId: line.baseFactorId,
+      appliedRateMeasurementUnitId: line.factorRateMeasurementUnitId,
+    };
+  }
+
+  const isCustomFactor =
+    !!line.factorSource && CUSTOM_FACTOR_SOURCES.includes(line.factorSource);
+
+  if (isCustomFactor) {
+    const value = toNullableNumber(line.factorValue);
+    if (value === null || line.factorRateMeasurementUnitId === null)
+      return null;
+    return {
+      type: FactorSelectionType.CUSTOM,
+      source: line.factorSource!,
+      value,
+      rateMeasurementUnitId: line.factorRateMeasurementUnitId,
+    };
+  }
+
+  return null;
+}
 
 /**
  * Maps common fields shared between create and update requests
@@ -20,11 +74,7 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
     quantity: toNullableNumber(line.quantity),
-    factorSource: line.factorSource,
-    baseFactorId: line.baseFactorId ?? null,
-    appliedFactorValue: toNullableNumber(line.factorValue),
-    appliedFactorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
-    manualTotalEmissions: toNullableNumber(line.manualTotalEmissions),
+    factorSelection: mapFactorSelection(line),
     comment: line.comment,
   };
 }

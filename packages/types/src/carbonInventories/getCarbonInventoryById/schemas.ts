@@ -40,6 +40,16 @@ const LineItemSchema = z
     factorRateMeasurementUnitId: IdSchema.nullable().describe(
       "The ID of the rate measurement unit of the factor"
     ),
+    emissionFactorId: IdSchema.nullable().describe(
+      "The canonical catalog factor applied to this line; null for custom factors and direct totals. Reload restores the selection from this, not from the source text."
+    ),
+    appliedFactorYear: z
+      .number()
+      .int()
+      .nullable()
+      .describe(
+        "The reporting year of the catalog factor applied when the line was saved. Null for transversal catalog factors, custom factors and direct totals. Whether it mismatches the footprint year is derived at read time, never stored."
+      ),
     comment: z.string().nullable().describe("Comment for the line"),
     manualTotalEmissions: z
       .number()

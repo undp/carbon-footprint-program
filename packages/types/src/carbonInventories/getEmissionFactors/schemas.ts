@@ -10,7 +10,11 @@ export const GetEmissionFactorsParamsSchema = z.object({
 
 const ItemSchema = z
   .object({
-    id: z.string().describe("Emission factor ID"),
+    id: z
+      .string()
+      .describe(
+        "Row identity: the applied vintage of a catalog factor (its ID, applied year and applied value), or `manual-<lineId>` for a custom factor"
+      ),
     categoryName: CategoryBaseSchema.shape.name,
     categorySynonyms: CategoryBaseSchema.shape.synonyms,
     categoryPosition: CategoryBaseSchema.shape.position,
@@ -38,6 +42,9 @@ const ItemSchema = z
         "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e of <gas>/<denominator>` where the denominator is derived from `rateUnit`."
       ),
     factorSource: EmissionFactorBaseSchema.shape.source,
+    appliedFactorYear: EmissionFactorBaseSchema.shape.year.describe(
+      "The reporting year snapshotted when the factor was applied. Null for a transversal catalog factor or a custom factor, neither of which can mismatch the footprint year."
+    ),
     factorSourceDetail: z
       .string()
       .nullable()
