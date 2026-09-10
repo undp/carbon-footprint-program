@@ -17,10 +17,13 @@
 -- a `source` outside that map aborts the whole transaction rather than being
 -- silently treated as transversal.
 --
--- Captured inventories are deliberately left alone. Each
--- carbon_inventory_line_factor keeps its applied value, unit and source exactly
--- as declared; it only gains applied_factor_year, backfilled from the factor it
--- already points at. No result is recomputed.
+-- Captured inventories keep every number they declared. Each
+-- carbon_inventory_line_factor keeps its applied value and unit exactly as
+-- captured, and no result is recomputed. Its provenance is split the same way
+-- the catalog is: the row gains applied_factor_year and its applied_factor_source
+-- loses the year suffix it used to carry, so the snapshot states the vintage
+-- once, in the column that means it. A source the reviewed map does not cover is
+-- left byte for byte as captured.
 
 -- 1. New columns. Both magnitude IDs start nullable so existing rows can be
 --    backfilled before the NOT NULL constraints land.
@@ -85,8 +88,6 @@ SET "source" = c."source",
     "year" = c."year"
 FROM "emission_factor_year_classification" c
 WHERE c."legacy_source" = ef."source";
-
-DROP TABLE "emission_factor_year_classification";
 
 -- 5. Bound the year in the database, not only in the API schema.
 --
@@ -290,10 +291,39 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_year_source_family"
   ) NULLS NOT DISTINCT
   WHERE "status" <> 'DELETED';
 
--- 9. Backfill the applied year from the catalog row each captured line already
---    references. Custom factors and direct totals have no emission_factor_id, so
---    they correctly stay NULL and never join the year-mismatch warning.
+-- 9. Split the captured snapshot the same way the catalog was split.
+--
+--    The line gains the applied year from the catalog row it already references.
+--    Custom factors and direct totals have no emission_factor_id, so they
+--    correctly stay NULL and never join the year-mismatch warning.
+--
+--    applied_factor_source is split in the same statement, using the same
+--    reviewed map. Filling the year while leaving "DEFRA 2025" in the source
+--    would leave every historical line carrying its vintage twice, in two
+--    columns that then have to agree forever, and any reader that renders the
+--    snapshot as source plus year would print "DEFRA 2025 (2025)". Splitting is
+--    the only way to keep the snapshot and the catalog saying the same thing,
+--    and this migration is the only place that can do it: nothing downstream
+--    knows the legacy format.
+--
+--    A source outside the map is left exactly as captured. Those are the strings
+--    a user typed for a custom factor, not catalog provenance, so the coalesce
+--    protects them and the year stays NULL for lines with no catalog link.
+--
+--    The map is read through a correlated subquery, not a join: the row being
+--    updated is not part of the FROM clause's join tree, so a LEFT JOIN could
+--    not match on lf."applied_factor_source".
 UPDATE "carbon_inventory_line_factor" lf
-SET "applied_factor_year" = ef."year"
+SET "applied_factor_year" = ef."year",
+    "applied_factor_source" = coalesce(
+      (
+        SELECT c."source"
+        FROM "emission_factor_year_classification" c
+        WHERE c."legacy_source" = lf."applied_factor_source"
+      ),
+      lf."applied_factor_source"
+    )
 FROM "emission_factor" ef
 WHERE ef."id" = lf."emission_factor_id";
+
+DROP TABLE "emission_factor_year_classification";
