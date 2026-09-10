@@ -1,0 +1,115 @@
+# Rollout (tasks 11.3–11.4)
+
+These are deployment-time steps, not code. They are written down here because the
+order matters and because the classification gate in step 1 is a decision, not a
+command.
+
+## Why order matters
+
+This change is a breaking contract change in both directions at once:
+
+- the API cannot start against an un-migrated database — `emission_factor`
+  gains two NOT NULL columns and `carbon_inventory_line_factor` a new one;
+- the web client sends the new discriminated `factorSelection` union, which an
+  old API would reject, and the old flat fields, which the new API rejects.
+
+The repository's compose deployment already sequences this correctly, because
+`api` and `web` come up together from one `up` and migrations are a separate
+manual profile. There is no window in which a new web talks to an old API, so the
+only ordering requirement is the usual one: migrate first.
+
+## Steps
+
+1. **Confirm the classification still holds** (gate for 11.4 as much as 11.3).
+   Run, against the production database:
+
+   ```sql
+   SELECT DISTINCT source FROM emission_factor WHERE status <> 'DELETED';
+   ```
+
+   Every value must appear in `factor-classification.md`. Anything else is
+   unclassified: the migration will abort on it by design, and the fix is a
+   methodology decision (dated with which year, or confirmed transversal),
+   recorded in that file and added to the migration's map — not a guess.
+
+2. **Run the migration checks against a restored copy of production**, not
+   against production:
+
+   ```bash
+   PGHOST=... PGPORT=... PGUSER=... PGPASSWORD=... TEMPLATE_DB=<restored copy> \
+     ./verify-migration.sh
+   ```
+
+   Run it from a checkout where the migration has been generated: the script
+   resolves it by name under `packages/database/src/prisma/migrations` and stops
+   if it is not there.
+
+   The third check prints the resulting classification and how many duplicate
+   unit representations this migration retired — as a delta, since a restored
+   copy already contains factors maintainers soft-deleted through the UI. It
+   then asserts that no duplicate business key survives, that every active
+   factor carries its magnitude pair, and that no saved line still points at a
+   retired factor. A non-zero exit means one of those failed; surprising numbers
+   in the printed output mean the production catalog differs from what was
+   reviewed, even when every assertion passes.
+
+3. **Migrate**, then bring the stack up:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+     --profile migrate run --rm migrate
+   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+     up -d --build
+   ```
+
+   Both flags matter. `--env-file` is not optional: `migrate` maps
+   `DATABASE_URL=${MIGRATION_DATABASE_URL:-}` with a soft default, so without it
+   the one-shot starts with an empty URL and fails at `validate:version`. And
+   `migrate` is a profile-gated one-shot with `restart: "no"`, so it is invoked
+   with `run --rm`, not `up`.
+
+   The migration runs in a single transaction, so an abort leaves the database
+   exactly as it was — verified: a failed preflight rolled back cleanly with no
+   columns left behind.
+
+4. **Spot-check reproducibility** on a captured inventory that existed before the
+   migration: its lines must keep the same applied value, unit and source, and
+   `applied_factor_year` must match the year of the factor each line already
+   pointed at. Nothing should have been recalculated.
+
+   Check `emission_factor_id` too, not only the snapshots. Every referenced
+   factor must still be ACTIVE:
+
+   ```sql
+   SELECT count(*) FROM carbon_inventory_line_factor clf
+   JOIN emission_factor ef ON ef.id = clf.emission_factor_id
+   WHERE ef.status = 'DELETED';
+   ```
+
+   A non-zero result is a consolidation that retired a representation without
+   re-pointing its references. The snapshots above still look correct in that
+   case; what breaks is the saved selection, which comes back empty on reload.
+
+## 11.4 — Loading more vintages
+
+Additional years and providers are data, not code, and they are deliberately
+**not** part of this change. Load them only after steps 1–4 pass, and watch one
+thing specifically first:
+
+**Methodology payload size.** `GET /carbon-inventories/:id/methodology` expands
+every canonical factor into each unit of its family. Adding a second vintage of
+DEFRA roughly doubles that subcategory's factor array. The current payload is
+fine, and the design notes the eventual optimization (send canonical factors plus
+conversion metadata and let the client convert), but that is a separate change.
+Measure the response size after the first new vintage lands rather than after
+five.
+
+A second consequence is intentional and worth telling the methodology team about
+before they load anything: **more providers means fewer automatic selections.**
+Capture preselects a factor only when the winning year rank holds exactly one
+canonical factor. Adding `IPCC (2025)` next to `DEFRA (2025)` for the same
+activity turns a silent default into an explicit choice for every organization
+capturing that activity. That is the intended behaviour — the platform will not
+pick between two legitimate scientific sources — but it is a visible change in
+how much typing capture requires, so it should be a deliberate decision rather
+than a side effect of loading a file.
