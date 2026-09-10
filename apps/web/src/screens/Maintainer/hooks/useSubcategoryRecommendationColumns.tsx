@@ -1,4 +1,4 @@
-import { FC, useMemo } from "react";
+import { FC, useCallback, useMemo } from "react";
 import {
   Box,
   Chip,
@@ -109,6 +109,33 @@ export const useSubcategoryRecommendationColumns = ({
     [subcategories]
   );
 
+  /**
+   * The selected subcategories in the order the rest of the app shows them.
+   *
+   * The options arrive as the API returns them — category position, then
+   * subcategory position, i.e. the GHG Protocol order — while a row's
+   * `subcategoryIds` are in whatever order they were saved. Alphabetising them
+   * here made these cells disagree with the picker they are edited in and with
+   * the maintainer grid.
+   */
+  const subcategoryOrderById = useMemo(
+    () => new Map(subcategories.map((sc, index) => [sc.id, index])),
+    [subcategories]
+  );
+
+  const selectedInDisplayOrder = useCallback(
+    (subcategoryIds: string[]) =>
+      subcategoryIds
+        .map((id) => subcategoriesById.get(id))
+        .filter((sc): sc is SubcategoryOption => sc !== undefined)
+        .sort(
+          (a, b) =>
+            (subcategoryOrderById.get(a.id) ?? 0) -
+            (subcategoryOrderById.get(b.id) ?? 0)
+        ),
+    [subcategoriesById, subcategoryOrderById]
+  );
+
   const rowIndexById = useMemo(
     () => new Map(rows.map((r, i) => [r.id, i])),
     [rows]
@@ -211,10 +238,8 @@ export const useSubcategoryRecommendationColumns = ({
         minWidth: 320,
         sortable: false,
         valueGetter: (_, row: SubcategoryRecommendationRow) =>
-          row.subcategoryIds
-            .map((id) => subcategoriesById.get(id)?.name)
-            .filter((name): name is string => !!name)
-            .sort((a, b) => a.localeCompare(b))
+          selectedInDisplayOrder(row.subcategoryIds)
+            .map((sc) => sc.name)
             .join(", "),
         renderCell: (
           params: GridRenderCellParams<SubcategoryRecommendationRow>
@@ -222,10 +247,9 @@ export const useSubcategoryRecommendationColumns = ({
           const rowIndex = rowIndexById.get(params.row.id) ?? -1;
           if (rowIndex < 0) return null;
 
-          const selectedSubcategories = params.row.subcategoryIds
-            .map((id) => subcategoriesById.get(id))
-            .filter((sc): sc is SubcategoryOption => sc !== undefined)
-            .sort((a, b) => a.name.localeCompare(b.name));
+          const selectedSubcategories = selectedInDisplayOrder(
+            params.row.subcategoryIds
+          );
           const preview = selectedSubcategories.slice(0, 3);
           const hidden = selectedSubcategories.slice(preview.length);
           const remaining = hidden.length;
@@ -351,7 +375,7 @@ export const useSubcategoryRecommendationColumns = ({
     [
       rowIndexById,
       sectors,
-      subcategoriesById,
+      selectedInDisplayOrder,
       nullSubsectorLabel,
       onChangeSector,
       onChangeSubsector,

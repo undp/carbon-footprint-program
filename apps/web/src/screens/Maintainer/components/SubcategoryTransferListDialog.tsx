@@ -47,9 +47,13 @@ const groupByCategory = (
     list.push(sc);
     map.set(sc.categoryName, list);
   }
-  return [...map.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([categoryName, items]) => ({ categoryName, items }));
+  // Insertion order, not alphabetical: the options come in the API's order —
+  // category position, then subcategory position — and re-sorting by name only
+  // looked right while the categories were called "Alcance 1/2/3".
+  return [...map.entries()].map(([categoryName, items]) => ({
+    categoryName,
+    items,
+  }));
 };
 
 const SubcategoryTransferListDialogContent: FC<
