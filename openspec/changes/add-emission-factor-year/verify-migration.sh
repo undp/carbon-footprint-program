@@ -90,7 +90,9 @@ cleanup() {
   fi
   exit "$status"
 }
-trap cleanup EXIT INT TERM
+# HUP included: `migrate deploy` takes minutes, and an SSH drop during it would
+# otherwise leave the tracked migration directory inside a mktemp temp dir.
+trap cleanup EXIT INT TERM HUP
 
 # Prisma takes a URL, not PG* variables, so the credentials have to be encoded:
 # a restored-production password containing @ / : # ? or % otherwise makes the
