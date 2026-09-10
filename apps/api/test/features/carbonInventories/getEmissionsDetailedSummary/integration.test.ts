@@ -19,7 +19,10 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { createTestCategory } from "@test/factories/categoryFactory.js";
+import {
+  createTestCategory,
+  cleanupTestCategories,
+} from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import { IconNameSchema, SubcategoryStatus } from "@repo/types";
 import type {
@@ -71,6 +74,7 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestCategories(prisma);
   });
 
   /** Flattens the nested category → subcategory response into a single list. */
@@ -372,9 +376,6 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
         activeSubcategory.id.toString(),
         deletedSubcategory.id.toString(),
       ]);
-
-      // Cascades to the subcategories and their inventory lines.
-      await prisma.category.delete({ where: { id: category.id } });
     });
   });
 
