@@ -14,6 +14,9 @@ import { ActionButtons } from "../components/ActionButtons";
 import type { MeasurementUnit, Subcategory } from "../types";
 import type { EditableSubcategoryField } from "./useSubcategoriesForm";
 
+/** A form row that already has a place in its category's sequence. */
+type PositionedSubcategoryRow = SubcategoryForm & { position: number };
+
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
@@ -71,8 +74,14 @@ export const useSubcategoryColumns = ({
   // Positions are unique per category, not across the grid, so a row's
   // neighbours are its siblings inside its own category.
   const siblingsByCategory = useMemo(() => {
-    const groups = new Map<string, SubcategoryForm[]>();
-    for (const row of rows) {
+    const groups = new Map<string, PositionedSubcategoryRow[]>();
+    // A row the server has not created yet has no position, so it is not in the
+    // sequence the arrows walk — leaving it in would make the first real row of
+    // its category look like it has a neighbour above it.
+    const positionedRows = rows.filter(
+      (row): row is PositionedSubcategoryRow => row.position !== null
+    );
+    for (const row of positionedRows) {
       // Pushed, not re-spread: `rows` is form.watch output, so this runs on
       // every keystroke in an editing row, and copying each group per member
       // makes that quadratic in the number of subcategories.
@@ -100,10 +109,12 @@ export const useSubcategoryColumns = ({
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          // A row that has not been created yet has no position to show.
-          // Read off the grid row, which is the same form row the rest of this
-          // hook looks up by index — no scan needed for a field it carries.
-          return params.row.position > 0 ? params.row.position : "—";
+          // Read off the form row like every other column here: the grid row is
+          // typed as the server `Subcategory`, whose position is never null,
+          // while the rows the grid actually holds are form rows — and a row
+          // the server has not created yet has no position to show.
+          const formRow = rows[getRowIndex(params.row.id)];
+          return formRow?.position ?? "—";
         },
       },
       {

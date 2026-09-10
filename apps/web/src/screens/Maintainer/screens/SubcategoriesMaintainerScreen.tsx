@@ -240,7 +240,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       explanation: null,
       // The server appends the row last on create; until then there is no
       // position to show or move.
-      position: 0,
+      position: null,
       measurementUnitIds: [],
     };
     fieldArray.prepend(newRow);
