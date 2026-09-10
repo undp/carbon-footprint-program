@@ -56,6 +56,13 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "La categoría asociada no fue encontrada.",
   CATEGORY_FROM_DIFFERENT_METHODOLOGY:
     "La categoría debe pertenecer a la misma metodología.",
+  SUBCATEGORY_NOT_FOUND: "La sub-categoría no fue encontrada.",
+  SAME_SUBCATEGORY: "No se puede reordenar una sub-categoría consigo misma.",
+  // Also covers the case where the pair was moved out of its category while
+  // the reorder was in flight, which is why the copy points at reloading: the
+  // order on screen is the stale part, not the request.
+  SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES:
+    "Solo se pueden reordenar sub-categorías de la misma categoría. Si otra persona las movió, recarga la página.",
 
   // Emission factors
   EMISSION_FACTOR_NOT_FOUND: "El factor de emisión no fue encontrado.",
