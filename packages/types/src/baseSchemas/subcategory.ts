@@ -35,3 +35,5 @@ export const SubcategoryBaseSchema = z.object({
     "The ID of the user who updated the subcategory"
   ),
 });
+
+export type SubcategoryBase = z.infer<typeof SubcategoryBaseSchema>;

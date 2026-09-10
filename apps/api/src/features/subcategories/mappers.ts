@@ -1,8 +1,5 @@
 import type { Subcategory as PrismaSubcategory } from "@repo/database";
-import {
-  type SwapSubcategoryPositionsResponse,
-  IconNameSchema,
-} from "@repo/types";
+import { type SubcategoryBase, IconNameSchema } from "@repo/types";
 
 /**
  * Maps a Prisma Subcategory to the shared base shape.
@@ -10,14 +7,14 @@ import {
  */
 export function mapSubcategoryToBase(
   subcategory: PrismaSubcategory
-): SwapSubcategoryPositionsResponse["subcategories"][number] {
+): SubcategoryBase {
   return {
     id: subcategory.id.toString(),
     categoryId: subcategory.categoryId.toString(),
     name: subcategory.name,
     icon: IconNameSchema.parse(subcategory.icon),
     description: subcategory.description,
-    explanation: subcategory.explanation ?? null,
+    explanation: subcategory.explanation,
     position: subcategory.position,
     status: subcategory.status,
     createdAt: subcategory.createdAt.toISOString(),
