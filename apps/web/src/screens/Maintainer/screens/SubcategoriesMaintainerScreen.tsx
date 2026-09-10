@@ -14,10 +14,12 @@ import { useMeasurementUnits } from "@/api/query";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
+  type SubcategoriesFormValues,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
+import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
 import { useMaintainerExitEditMode } from "../hooks/useMaintainerExitEditMode";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 import { SubcategoryForm } from "@repo/types";
@@ -25,6 +27,9 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
+
+/** Positions are unique per category, not across the whole grid. */
+const getSubcategoryCategoryId = (row: SubcategoryForm) => row.categoryId;
 
 const SUBCATEGORIES_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "subcategories-maintainer",
@@ -279,58 +284,22 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     ]
   );
 
-  const handleMove = useCallback(
-    async (row: SubcategoryForm, direction: "up" | "down") => {
-      if (isNewRow(row.id)) return;
-
-      // Positions are unique per category, so a move only ever swaps with the
-      // adjacent subcategory inside the same category.
-      const rows = form.getValues("subcategories");
-      const siblings = rows
-        .filter((r) => r.categoryId === row.categoryId)
-        .sort((a, b) => a.position - b.position);
-      const siblingIdx = siblings.findIndex((r) => r.id === row.id);
-
-      if (direction === "up" && siblingIdx <= 0) return;
-      if (
-        direction === "down" &&
-        (siblingIdx === -1 || siblingIdx >= siblings.length - 1)
-      )
-        return;
-
-      const neighbor =
-        siblings[direction === "up" ? siblingIdx - 1 : siblingIdx + 1];
-      if (!neighbor || isNewRow(neighbor.id)) return;
-
-      try {
-        // The order is not repainted here. The mutation invalidates the
-        // listing and useMaintainerFormSync replays the refetch into the form,
-        // so a local swap would be a second writer for the same order — and
-        // the wrong one for a row that was just created: it sits first in the
-        // array while holding the highest position in its category, so
-        // swapping array slots would move it where the server never put it.
-        await swapMutation.mutateAsync({
-          subcategoryIdA: row.id,
-          subcategoryIdB: neighbor.id,
-        });
-      } catch (error) {
-        void enqueueSnackbar({
-          message: getApiErrorMessage(error, "Error al mover sub-categoría"),
-          variant: "error",
-        });
-      }
-    },
-    [form, isNewRow, swapMutation, enqueueSnackbar]
+  const swapSubcategories = useCallback(
+    (subcategoryIdA: string, subcategoryIdB: string) =>
+      swapMutation.mutateAsync({ subcategoryIdA, subcategoryIdB }),
+    [swapMutation]
   );
 
-  const handleMoveUp = useCallback(
-    (row: SubcategoryForm) => void handleMove(row, "up"),
-    [handleMove]
-  );
-  const handleMoveDown = useCallback(
-    (row: SubcategoryForm) => void handleMove(row, "down"),
-    [handleMove]
-  );
+  const { handleMoveUp, handleMoveDown } = useMaintainerRowReorder<
+    SubcategoriesFormValues,
+    SubcategoryForm
+  >({
+    form,
+    fieldName: "subcategories",
+    groupBy: getSubcategoryCategoryId,
+    swap: swapSubcategories,
+    errorMessage: "Error al mover sub-categoría",
+  });
 
   // --- Exit edit mode ---
   const { handleExitEditMode } = useMaintainerExitEditMode({
