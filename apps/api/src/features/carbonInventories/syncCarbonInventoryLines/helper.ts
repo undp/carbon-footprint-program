@@ -1,4 +1,5 @@
 import {
+  EmissionFactorDimensionStatus,
   EmissionFactorStatus,
   FactorSelectionType,
   FileStatus,
@@ -100,7 +101,7 @@ export async function loadFactorResolutionContext(
       where: {
         subcategoryId: { in: [...new Set(subcategoryIds)] },
         isRequired: true,
-        status: "ACTIVE",
+        status: EmissionFactorDimensionStatus.ACTIVE,
       },
       select: { subcategoryId: true, position: true },
     });
