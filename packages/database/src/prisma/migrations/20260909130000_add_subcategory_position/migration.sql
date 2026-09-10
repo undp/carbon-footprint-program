@@ -6,12 +6,23 @@
 -- ordering ships as seed data.
 ALTER TABLE "subcategory" ADD COLUMN "position" INTEGER;
 
+-- DELETED rows are numbered last, not in line with the live ones. The column is
+-- NOT NULL so they need a value, but they are excluded from the partial unique
+-- index below, so their positions are free to sit after (or collide with) the
+-- live ones. Numbering them in line would spend a slot each and leave the live
+-- sequence with holes -- a category holding Alpha (ACTIVE), Beta (DELETED),
+-- Gamma (ACTIVE) would show positions 1 and 3 in the maintainer's "Pos." column
+-- and in the methodology export, forever on any methodology the next migration
+-- does not renumber. `status = 'DELETED'` sorts false before true.
 UPDATE "subcategory" AS s
 SET "position" = alphabetical."position"
 FROM (
   SELECT
     "id",
-    ROW_NUMBER() OVER (PARTITION BY "category_id" ORDER BY "name") AS "position"
+    ROW_NUMBER() OVER (
+      PARTITION BY "category_id"
+      ORDER BY ("status" = 'DELETED'), "name"
+    ) AS "position"
   FROM "subcategory"
 ) AS alphabetical
 WHERE s."id" = alphabetical."id";
