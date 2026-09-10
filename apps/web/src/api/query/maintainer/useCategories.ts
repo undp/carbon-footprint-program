@@ -29,14 +29,19 @@ export const useAddCategory = () => {
   const queryClient = useQueryClient();
   return useMutation<CreateCategoryResponse, Error, CreateCategoryRequest>({
     mutationFn: (data) => apiClient.post("categories", { json: data }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
+    // Returned, not fire-and-forget: the row's position can change on the
+    // server (a create appends it last, a move to another category re-appends
+    // it there), and the arrows read the position out of the form. Leaving the
+    // refetch unawaited let useMaintainerFormSync reset the form from the
+    // pre-write listing the moment edit mode ended, which put the row back
+    // where it was — with the arrows already enabled over it.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
             MaintainerQueryKey.CategoriesUpdateDependency
           ),
-      });
-    },
+      }),
   });
 };
 
@@ -50,14 +55,19 @@ export const useUpdateCategory = () => {
   return useMutation<UpdateCategoryResponse, Error, UpdateCategoryVariables>({
     mutationFn: ({ id, data }) =>
       apiClient.patch(`categories/${id}`, { json: data }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
+    // Returned, not fire-and-forget: the row's position can change on the
+    // server (a create appends it last, a move to another category re-appends
+    // it there), and the arrows read the position out of the form. Leaving the
+    // refetch unawaited let useMaintainerFormSync reset the form from the
+    // pre-write listing the moment edit mode ended, which put the row back
+    // where it was — with the arrows already enabled over it.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
             MaintainerQueryKey.CategoriesUpdateDependency
           ),
-      });
-    },
+      }),
   });
 };
 

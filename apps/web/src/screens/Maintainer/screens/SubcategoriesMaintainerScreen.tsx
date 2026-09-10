@@ -174,9 +174,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
         });
         // Replayed like the create path above, and for the same reason: a move
         // to another category is appended last there, so the row's position
-        // changed. The mutation's invalidation is not awaited, and the arrows
-        // are re-enabled as soon as edit mode ends — reading the old position
-        // they would send the wrong pair to the swap endpoint.
+        // changed. The mutation awaits its own invalidation, so the listing has
+        // already been refetched here and the form sync that runs when edit
+        // mode ends replays the same order rather than reverting this row.
         fieldArray.update(rowIndex, toFormSubcategory(result));
         form.reset({ subcategories: form.getValues("subcategories") });
         void enqueueSnackbar({
