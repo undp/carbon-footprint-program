@@ -572,24 +572,37 @@ jobs:
 
   shellcheck:
     needs: check-draft
-    name: Shellcheck (infra scripts)
+    name: Shellcheck (operational scripts)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Lint the deployment scripts
-        # The infra scripts carry real logic (permission probing, JMESPath/jq
-        # queries, stack lifecycle decisions) and are the one part of the repo
-        # with no other static gate. shellcheck ships preinstalled on the ubuntu
-        # runner, so this adds no third-party action and no supply-chain surface.
+      - name: Lint the operational scripts
+        # These scripts carry real logic (permission probing, JMESPath/jq
+        # queries, stack lifecycle decisions, database staging) and are the one
+        # part of the repo with no other static gate: `format:check` does not
+        # cover `.sh` and nothing type-checks them. shellcheck ships preinstalled
+        # on the ubuntu runner, so this adds no third-party action and no
+        # supply-chain surface.
+        #
+        # The glob covers `openspec/changes/**` too. A change directory may ship
+        # a migration-verification script that an operator runs against a
+        # restored copy of production, which is exactly the risk profile the
+        # infra scripts have; leaving it beside the change it documents is worth
+        # more than moving it here, but only if the same gate applies. `nullglob`
+        # keeps the run green when no change ships one.
         #
         # -x follows `source`d files so lib/common.sh is analysed in context.
         # Severity `warning` gates on real defects and skips style-only advice —
         # raise it to `style` once the backlog it surfaces is worth clearing.
+        shell: bash
         run: |
+          shopt -s nullglob globstar
+          scripts=(infra/*.sh infra/lib/*.sh openspec/changes/**/*.sh)
+          printf 'linting %d script(s)\n' "${#scripts[@]}"
           shellcheck --version
-          shellcheck -x -S warning infra/*.sh infra/lib/*.sh
+          shellcheck -x -S warning "${scripts[@]}"
 
   docs-links:
     needs: check-draft

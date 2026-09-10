@@ -11,6 +11,11 @@
 # So this script stages three throwaway databases from a real pre-change one,
 # injects one defect each, and checks the migration's own behaviour.
 #
+# It lives beside the change it verifies rather than in infra/, because it is
+# meaningless once this migration ships. That is only defensible with the same
+# static gate the infra scripts get, so the CI shellcheck job globs
+# openspec/changes/**/*.sh as well: see .github/workflows/ci.yml.
+#
 # Usage:
 #   PGHOST=localhost PGPORT=5432 PGUSER=testuser PGPASSWORD=... \
 #   TEMPLATE_DB=testdb ./verify-migration.sh
