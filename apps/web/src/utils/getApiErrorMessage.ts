@@ -75,6 +75,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "El factor de emisión elegido no corresponde a las variables seleccionadas en la línea. Revisa las variables o elige otro factor.",
   CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH:
     "El factor de emisión elegido no se puede expresar en la unidad de la línea. Cambia la unidad de medida o elige otro factor.",
+  UNCHANGED_FACTOR_DIMENSION_CHANGED:
+    "Cambiaste las variables de la línea, así que su factor de emisión ya no corresponde. Vuelve a seleccionar un factor en esa línea.",
   FACTOR_SELECTION_INPUT_TYPE_MISMATCH:
     "Una línea con emisiones totales declaradas no puede además usar un factor de emisión. Vuelve a cargar la pantalla e intenta de nuevo.",
 

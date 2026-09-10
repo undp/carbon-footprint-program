@@ -178,6 +178,10 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "El factor de emisión elegido no se puede expresar en la unidad de la línea. Cambia la unidad de medida o elige otro factor.",
   ],
   [
+    "UNCHANGED_FACTOR_DIMENSION_CHANGED",
+    "Cambiaste las variables de la línea, así que su factor de emisión ya no corresponde. Vuelve a seleccionar un factor en esa línea.",
+  ],
+  [
     "FACTOR_SELECTION_INPUT_TYPE_MISMATCH",
     "Una línea con emisiones totales declaradas no puede además usar un factor de emisión. Vuelve a cargar la pantalla e intenta de nuevo.",
   ],

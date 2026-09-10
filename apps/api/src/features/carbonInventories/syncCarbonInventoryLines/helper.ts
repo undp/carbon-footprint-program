@@ -25,6 +25,7 @@ import {
   CrossInventoryFileLinkingError,
   FactorSelectionInputTypeMismatchError,
   FileAlreadyLinkedError,
+  UnchangedFactorDimensionChangedError,
 } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 import { convertEmissionFactorValueDecimal } from "../getCarbonInventoryMethodology/helper.js";
@@ -103,6 +104,8 @@ export type FactorResolutionContext = {
 /** The columns a preserved factor is rebuilt from. */
 const storedInputSelect = {
   lineId: true,
+  selection1Id: true,
+  selection2Id: true,
   manualFactor: true,
   manualFactorSource: true,
   manualFactorRateUnitId: true,
@@ -411,11 +414,34 @@ export function assertFactorSelectionMatchesInputType(
  */
 function resolveStoredFactor(
   context: FactorResolutionContext,
-  lineId: bigint
+  item: ItemData,
+  line: { subcategoryId: bigint; lineId: bigint }
 ): ResolvedFactor | null {
-  const input = context.storedInputs.get(lineId.toString());
+  const input = context.storedInputs.get(line.lineId.toString());
   const stored = input?.factor;
   if (!input || !stored) return null;
+
+  // A snapshot describes the line as it was captured, so a required dimension
+  // that moved leaves a catalog snapshot describing a different line: its
+  // quantity would be reported against another selection's factor, and the
+  // year-mismatch warning and the factor reference counts would both point at
+  // the wrong catalog row. This is the check a restated CATALOG selection gets
+  // from `resolveCatalogFactor`; reading the catalog is what `UNCHANGED`
+  // promises not to do, so it compares against what the line itself had.
+  if (stored.emissionFactorId !== null) {
+    const requiredPositions =
+      context.requiredDimensionPositions.get(line.subcategoryId.toString()) ??
+      new Set<number>();
+
+    if (
+      (requiredPositions.has(1) &&
+        input.selection1Id !== mapBigIntField(item.dimensionValue1Id)) ||
+      (requiredPositions.has(2) &&
+        input.selection2Id !== mapBigIntField(item.dimensionValue2Id))
+    ) {
+      throw new UnchangedFactorDimensionChangedError(line.lineId.toString());
+    }
+  }
 
   // A custom factor lives on the line input as well as in the snapshot, so it
   // has to be carried across to the new input or the next read would see a
@@ -464,7 +490,9 @@ export async function resolveFactorSelection(
   switch (selection.type) {
     case FactorSelectionType.UNCHANGED:
       // Unreachable from a create: the create schema has no UNCHANGED variant.
-      return lineId === undefined ? null : resolveStoredFactor(context, lineId);
+      return lineId === undefined
+        ? null
+        : resolveStoredFactor(context, item, { subcategoryId, lineId });
 
     case FactorSelectionType.CATALOG:
       return await resolveCatalogFactor(tx, selection, context, {
