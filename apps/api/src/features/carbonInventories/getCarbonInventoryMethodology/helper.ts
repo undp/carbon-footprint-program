@@ -80,11 +80,10 @@ type ConvertedEmissionFactor = {
  * Converts an emission factor value between rate units, in decimal arithmetic.
  * Formula: new_value = original_value * (original_num_baseFactor * new_den_baseFactor) / (original_den_baseFactor * new_num_baseFactor)
  *
- * This is the real implementation. `convertEmissionFactorValue` is the same
- * conversion for callers that already hold a string and only display the result;
- * it goes through a double and can round a value the column can hold. Anything
- * that *persists* the result has to use this one, because a rounded applied
- * factor becomes a rounded stored emission with no way back to the original.
+ * This is the real implementation, and the only place the arithmetic happens.
+ * `convertEmissionFactorValue` is the same conversion for callers that already
+ * hold a string and only display the result: it parses into a Decimal, delegates
+ * here and stringifies, so neither path turns the value into a double.
  */
 export const convertEmissionFactorValueDecimal = (
   originalValue: Prisma.Decimal,
