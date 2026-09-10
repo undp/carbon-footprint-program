@@ -64,7 +64,15 @@ export const useSubcategoryColumns = ({
   const siblingsByCategory = useMemo(() => {
     const groups = new Map<string, SubcategoryForm[]>();
     for (const row of rows) {
-      groups.set(row.categoryId, [...(groups.get(row.categoryId) ?? []), row]);
+      // Pushed, not re-spread: `rows` is form.watch output, so this runs on
+      // every keystroke in an editing row, and copying each group per member
+      // makes that quadratic in the number of subcategories.
+      const siblings = groups.get(row.categoryId);
+      if (siblings) {
+        siblings.push(row);
+      } else {
+        groups.set(row.categoryId, [row]);
+      }
     }
     for (const siblings of groups.values()) {
       siblings.sort((a, b) => a.position - b.position);

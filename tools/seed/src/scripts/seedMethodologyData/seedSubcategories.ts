@@ -31,10 +31,12 @@ export function checkPositionsAreContiguous(
       row.categoryName,
     ].join(" > ");
 
-    positionsByCategory.set(key, [
-      ...(positionsByCategory.get(key) ?? []),
-      row.position,
-    ]);
+    const positions = positionsByCategory.get(key);
+    if (positions) {
+      positions.push(row.position);
+    } else {
+      positionsByCategory.set(key, [row.position]);
+    }
   }
 
   const offenders = [...positionsByCategory.entries()]
