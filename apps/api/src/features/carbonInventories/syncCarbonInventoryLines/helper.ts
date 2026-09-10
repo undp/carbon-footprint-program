@@ -421,11 +421,15 @@ function resolveStoredFactor(
   // has to be carried across to the new input or the next read would see a
   // catalog-shaped line with no catalog row behind it.
   const manual =
-    input.manualFactor !== null && input.manualFactorRateUnitId !== null
+    input.manualFactor !== null
       ? {
           value: input.manualFactor,
           source: input.manualFactorSource ?? stored.appliedFactorSource,
-          rateUnitId: input.manualFactorRateUnitId,
+          // A line saved before the unit column was filled in has the factor
+          // without its unit. The snapshot is the same value in the same unit,
+          // so it answers for the column rather than dropping the factor.
+          rateUnitId:
+            input.manualFactorRateUnitId ?? stored.appliedFactorRateUnitId,
         }
       : null;
 
