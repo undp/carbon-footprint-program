@@ -15,23 +15,33 @@ export async function createTestSubcategory(
   // Positions are unique per category, so default to appending last. Counting
   // DELETED rows too keeps the generated position free even when a test has
   // soft-deleted a sibling.
-  const { _max } = await prisma.subcategory.aggregate({
-    where: { categoryId },
-    _max: { position: true },
-  });
+  //
+  // Read and write are wrapped in a transaction that locks the parent category
+  // first, exactly like createSubcategory: without it two factory calls for the
+  // same category — `Promise.all([createTestSubcategory(…), …])` — both read
+  // the same max and the partial unique index rejects the loser with an opaque
+  // P2002 about a field the test never set.
+  return await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT 1 FROM "category" WHERE "id" = ${categoryId} FOR UPDATE`;
 
-  return await prisma.subcategory.create({
-    data: {
-      categoryId,
-      name: overrides?.name ?? `Test - Subcategory ${randomSuffix}`,
-      icon: overrides?.icon ?? "FACTORY",
-      description: overrides?.description ?? "Test subcategory description",
-      explanation: overrides?.explanation ?? null,
-      position: overrides?.position ?? (_max.position ?? 0) + 1,
-      status: overrides?.status ?? SubcategoryStatus.ACTIVE,
-      createdById: null,
-      updatedById: null,
-    },
+    const { _max } = await tx.subcategory.aggregate({
+      where: { categoryId },
+      _max: { position: true },
+    });
+
+    return await tx.subcategory.create({
+      data: {
+        categoryId,
+        name: overrides?.name ?? `Test - Subcategory ${randomSuffix}`,
+        icon: overrides?.icon ?? "FACTORY",
+        description: overrides?.description ?? "Test subcategory description",
+        explanation: overrides?.explanation ?? null,
+        position: overrides?.position ?? (_max.position ?? 0) + 1,
+        status: overrides?.status ?? SubcategoryStatus.ACTIVE,
+        createdById: null,
+        updatedById: null,
+      },
+    });
   });
 }
 
