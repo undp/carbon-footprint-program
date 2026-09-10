@@ -206,6 +206,7 @@ function buildFactorsSheet(
     { width: 30 },
     { width: 30 },
     { width: 30 },
+    { width: 16 },
   ];
 
   const rows: (string | number)[][] = factorsData.map((factor) => {
@@ -226,6 +227,11 @@ function buildFactorsSheet(
       // format (see `factorNumFmtWithUnit`).
       display(factor.factorValue),
       display(source),
+      // The vintage the line applied, matching the on-screen table. A null year
+      // is a transversal or a custom factor, which has no vintage to disagree
+      // with the footprint year. The workbook is the copy that gets sent to a
+      // reviewer, so it has to carry the same information the screen shows.
+      display(factor.appliedFactorYear),
     ];
   });
 
@@ -250,6 +256,7 @@ function buildFactorsSheet(
       { name: "Parámetros de actividad", filterButton: true },
       { name: "Factor (Kg CO₂e/unidad)", filterButton: true },
       { name: "Fuente", filterButton: true },
+      { name: "Año del factor", filterButton: true },
     ],
     rows,
   });

@@ -92,7 +92,7 @@ const makeFactor = (overrides: Partial<Factor> = {}): Factor => ({
   rateUnit: "kg CO₂e/kWh",
   gasBreakdownLines: [{ value: 0.5, gas: "CO₂" }],
   factorSource: "SEN",
-  appliedFactorYear: null,
+  appliedFactorYear: 2022,
   factorSourceDetail: "Red nacional",
   ...overrides,
 });
@@ -333,6 +333,7 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(header.getCell(3).value).toBe("Parámetros de actividad");
     expect(header.getCell(4).value).toBe("Factor (Kg CO₂e/unidad)");
     expect(header.getCell(5).value).toBe("Fuente");
+    expect(header.getCell(6).value).toBe("Año del factor");
 
     // Row 2: synonyms present + source detail present.
     const row2 = worksheet.getRow(2);
@@ -344,6 +345,7 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(row2.getCell(4).value).toBe(0.5);
     expect(row2.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/kWh"');
     expect(row2.getCell(5).value).toBe("SEN - Red nacional");
+    expect(row2.getCell(6).value).toBe(2022);
 
     // Row 3: no synonyms + no source detail.
     const row3 = worksheet.getRow(3);
@@ -351,6 +353,9 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(row3.getCell(4).value).toBe(2.68);
     expect(row3.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/L"');
     expect(row3.getCell(5).value).toBe("IPCC");
+    // A transversal or custom factor has no vintage: same "-" the rest of the
+    // workbook uses for an absent value.
+    expect(row3.getCell(6).value).toBe("-");
   });
 
   it("keeps every decimal of a factor the app used to round away", async () => {
