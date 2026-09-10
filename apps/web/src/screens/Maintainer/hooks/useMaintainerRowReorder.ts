@@ -3,10 +3,16 @@ import { useSnackbar } from "notistack";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
-/** What a reorderable maintainer row has to expose. */
+/**
+ * What a reorderable maintainer row has to expose.
+ *
+ * `position` is null on a row the server has not created yet: it is assigned on
+ * create, so such a row has no place in the sequence and cannot be moved or be
+ * the neighbour of a move.
+ */
 export interface ReorderableRow {
   id: string;
-  position: number;
+  position: number | null;
 }
 
 interface UseMaintainerRowReorderOptions<
@@ -76,11 +82,17 @@ export const useMaintainerRowReorder = <
 
       const rows = form.getValues(fieldName) as TRow[];
       const groupKey = groupBy?.(row);
-      const siblings = (
-        groupBy
-          ? rows.filter((candidate) => groupBy(candidate) === groupKey)
-          : [...rows]
-      ).sort((a, b) => a.position - b.position);
+      // Rows without a position are not in the sequence yet, so they are left
+      // out rather than sorted to one end: keeping them in would make the
+      // first real row look like it has a neighbour above it, and the move
+      // would then silently do nothing.
+      const siblings = rows
+        .filter(
+          (candidate): candidate is TRow & { position: number } =>
+            candidate.position !== null &&
+            (!groupBy || groupBy(candidate) === groupKey)
+        )
+        .sort((a, b) => a.position - b.position);
 
       const index = siblings.findIndex((sibling) => sibling.id === row.id);
       if (index === -1) return;

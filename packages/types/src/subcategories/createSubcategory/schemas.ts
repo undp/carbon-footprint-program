@@ -43,9 +43,10 @@ export const SubcategoryFormSchema = z.strictObject({
     .nullable()
     .transform((v) => (v === "" ? null : v)),
   // Not editable in the grid: it is server-assigned on create and changed only
-  // through the swap endpoint. A row that has not been created yet carries 0,
-  // hence min(0) here where the base schema requires min(1).
-  position: z.number().int().min(0),
+  // through the swap endpoint, so a row that has not been created yet has no
+  // position at all — `null`, not a 0 every consumer would have to read as
+  // "not created yet". The ≥ 1 invariant stays the same as the base schema's.
+  position: z.number().int().min(1).nullable(),
   measurementUnitIds: z.array(MeasurementUnitBaseSchema.shape.id),
 });
 
