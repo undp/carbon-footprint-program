@@ -113,6 +113,11 @@ export const CategoriesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } = useCategoriesForm();
   const currentRows = form.watch("categories");
 
+  // Same reason as the subcategories grid: the arrows walk the full form array
+  // while the grid renders only the search matches, so a filtered grid would
+  // move rows the maintainer cannot see.
+  const [isFiltered, setIsFiltered] = useState(false);
+
   // --- Sync form with server data ---
   // The shared hook, like the subcategories grid: it keeps `editingRowId` in
   // its dependencies, so a refetch that lands while a row is being edited is
@@ -420,7 +425,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
-    moveDisabled: isMoveBlocked,
+    moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
   });
 
@@ -499,6 +504,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                 placeholder: "Buscar categoría...",
                 downloadFileName: "categorias",
                 disableExport: true,
+                onQueryChange: (query) => setIsFiltered(query.trim() !== ""),
               }}
               showToolbar
               loading={isLoading || isLoadingMethodologies}

@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Typography } from "@mui/material";
 import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
@@ -401,7 +401,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
-    moveDisabled: isMoveBlocked,
+    moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
     categories: categoryOptions,
     allMeasurementUnits: measurementUnits ?? [],
@@ -486,6 +486,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
           },
           placeholder: "Buscar subcategoría...",
           disableExport: true,
+          onQueryChange: (query) => setIsFiltered(query.trim() !== ""),
         }}
         showToolbar
         columns={columns}

@@ -23,8 +23,9 @@ interface UseCategoryColumnsParams {
   onMoveUp: (row: CategoryForm) => void;
   onMoveDown: (row: CategoryForm) => void;
   /**
-   * Reorder is off while the form is not in server order — see
-   * `isMoveBlocked` in useMaintainerRowReorder.
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered, which renders
+   * a different sequence than the one the arrows walk.
    */
   moveDisabled: boolean;
   rows: CategoryForm[];
