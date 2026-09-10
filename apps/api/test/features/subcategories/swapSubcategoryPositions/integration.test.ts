@@ -11,6 +11,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { SwapSubcategoryPositionsResponse } from "@repo/types";
 import { SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -117,6 +118,42 @@ describe("POST /api/subcategories/swap-positions - Integration Tests", () => {
 
       expect(dbSubA.position).toBe(3);
       expect(dbSubB.position).toBe(1);
+    });
+
+    it("should stamp the acting user on both swapped subcategories", async () => {
+      const user = await getTestLoggedUser(prisma);
+      const category = await createCategory("Swap Sub Audit");
+      const subA = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Swap Sub Audit A",
+        position: 1,
+      });
+      const subB = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Swap Sub Audit B",
+        position: 2,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/subcategories/swap-positions",
+        payload: {
+          subcategoryIdA: subA.id.toString(),
+          subcategoryIdB: subB.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      const [dbSubA, dbSubB] = await Promise.all([
+        prisma.subcategory.findUniqueOrThrow({ where: { id: subA.id } }),
+        prisma.subcategory.findUniqueOrThrow({ where: { id: subB.id } }),
+      ]);
+
+      // updatedAt is bumped by Prisma on any write; without the actor next to
+      // it the row claims it was last touched by whoever edited it before.
+      expect(dbSubA.updatedById).toBe(user.id);
+      expect(dbSubB.updatedById).toBe(user.id);
+      expect(dbSubA.updatedAt).not.toBeNull();
+      expect(dbSubB.updatedAt).not.toBeNull();
     });
 
     it("should reorder the listing the maintainer screen reads", async () => {

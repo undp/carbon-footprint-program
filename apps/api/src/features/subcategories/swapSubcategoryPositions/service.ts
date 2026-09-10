@@ -14,14 +14,20 @@ import {
   CategoryNotFoundForSubcategoryError,
   SubcategoryPositionAlreadyExistsError,
 } from "../errors.js";
+import { UserNotFoundError } from "../../users/errors.js";
 import { lockCategory, lockSubcategories } from "../helpers.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const swapSubcategoryPositionsService = async (
   prismaClient: PrismaClient,
   data: SwapSubcategoryPositionsRequest,
-  _user: User | null
+  user: User | null
 ): Promise<SwapSubcategoryPositionsResponse> => {
+  // TODO: remove this if when handlerFactory folder is improved
+  if (!user) {
+    throw new UserNotFoundError();
+  }
+
   const idA = BigInt(data.subcategoryIdA);
   const idB = BigInt(data.subcategoryIdB);
 
@@ -126,15 +132,21 @@ export const swapSubcategoryPositionsService = async (
         where: { id: idA },
         data: { position: tempPosition },
       });
+      // Steps 2 and 3 leave each row at its final position, so they are the
+      // writes that stamp the actor. `updatedAt` is bumped by Prisma on all
+      // three, and the response exposes it next to `updatedById`: without the
+      // actor the pair reads "updated just now, by whoever edited it last".
+      const updatedById = BigInt(user.id);
+
       // Step 2: move B to A's original position
       const bUpdated = await tx.subcategory.update({
         where: { id: idB },
-        data: { position: positionA },
+        data: { position: positionA, updatedById },
       });
       // Step 3: move A to B's original position
       const aUpdated = await tx.subcategory.update({
         where: { id: idA },
-        data: { position: positionB },
+        data: { position: positionB, updatedById },
       });
 
       return [aUpdated, bUpdated] as const;
