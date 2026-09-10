@@ -149,6 +149,18 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
         { id: third.id, position: 2 },
         { id: fourth.id, position: 3 },
       ]);
+
+      // Shifting a sibling is bookkeeping, not an edit: stamping the actor here
+      // would report every following subcategory as modified just now by
+      // whoever deleted one of their siblings, erasing who last edited each.
+      const shifted = await prisma.subcategory.findMany({
+        where: { id: { in: [third.id, fourth.id] } },
+        select: { updatedById: true },
+      });
+      expect(shifted.map(({ updatedById }) => updatedById)).toEqual([
+        null,
+        null,
+      ]);
     });
 
     it("should not shift subcategories of a different category", async () => {

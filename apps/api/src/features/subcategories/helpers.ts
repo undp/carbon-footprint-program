@@ -125,6 +125,52 @@ export async function getNextSubcategoryPosition(
   return (_max.position ?? 0) + 1;
 }
 
+/**
+ * Closes the hole a subcategory left behind in its category.
+ *
+ * Shared by `deleteSubcategory` (the row was soft-deleted) and
+ * `updateSubcategory` (the row moved to another category): both free one
+ * position, and the live sequence has to stay contiguous because positions are
+ * user-visible (the "Pos." column, the Excel export, the docs' 1..N tables) and
+ * the seed rejects authored gaps.
+ *
+ * Siblings are fetched sorted by position ASC so each one moves into a slot the
+ * previous update already freed: PostgreSQL checks the partial unique index
+ * after each row, not after the full statement, so a bulk `updateMany` would
+ * violate it.
+ *
+ * Only `position` is written. Shifting a sibling is bookkeeping, not an edit, so
+ * stamping the actor here would report every following subcategory as "modified
+ * just now" by whoever deleted or moved one of their siblings, erasing who last
+ * edited each one.
+ *
+ * Callers must already hold the parent category lock (see `lockCategory`), which
+ * is why the parameter is the transaction client: without it a concurrent create
+ * reads the pre-repack MAX and reopens the gap this call just closed.
+ */
+export async function repackSubcategoryPositions(
+  tx: Prisma.TransactionClient,
+  categoryId: bigint,
+  freedPosition: number
+): Promise<void> {
+  const toShift = await tx.subcategory.findMany({
+    where: {
+      categoryId,
+      status: SubcategoryStatus.ACTIVE,
+      position: { gt: freedPosition },
+    },
+    select: { id: true },
+    orderBy: { position: "asc" },
+  });
+
+  for (const sibling of toShift) {
+    await tx.subcategory.update({
+      where: { id: sibling.id },
+      data: { position: { decrement: 1 } },
+    });
+  }
+}
+
 interface LockedSubcategoryRow {
   id: bigint;
   category_id: bigint;
@@ -142,14 +188,14 @@ export interface LockedSubcategory {
 /**
  * Locks subcategory rows and returns what a reorder needs to validate.
  *
- * The parent category lock is not enough on its own. `updateSubcategory` locks
- * only the *destination* category when a subcategory moves, so a transaction
- * moving a row out of category C never contends with a lock on C: the row can
- * be reassigned to another category between the same-category check and the
- * position writes, and the writes then land on a row that no longer lives
- * where the caller decided it did. Locking the rows themselves closes that
- * window — a concurrent update either commits before the lock is granted and
- * is seen by the caller, or waits until this transaction ends.
+ * The parent category lock is not enough on its own, because *which* category
+ * to lock comes from an unlocked read: between that read and the lock being
+ * granted, a concurrent `updateSubcategory` can have moved the row into or out
+ * of that category, or a `deleteSubcategory` can have soft-deleted it. The
+ * writes would then land on a row that no longer lives where the caller decided
+ * it did. Locking the rows themselves and re-reading them closes that window —
+ * a concurrent write either commits before the lock is granted and is seen by
+ * the caller, or waits until this transaction ends.
  *
  * Rows are locked in id order so two callers asking for the same pair cannot
  * deadlock against each other, and only existing rows come back — a caller

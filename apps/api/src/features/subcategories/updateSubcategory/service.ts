@@ -14,7 +14,9 @@ import {
 import {
   getNextSubcategoryPosition,
   lockCategory,
+  repackSubcategoryPositions,
   rethrowSubcategoryUniqueViolation,
+  type LockedCategory,
 } from "../helpers.js";
 import { mapSubcategoryWithCategoryToResponse } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
@@ -40,6 +42,7 @@ export const updateSubcategoryService = async (
         select: {
           status: true,
           categoryId: true,
+          position: true,
           category: { select: { methodologyVersionId: true } },
         },
       });
@@ -52,14 +55,35 @@ export const updateSubcategoryService = async (
       // actually moves. Positions are unique per category, so keeping the old
       // one could collide with a subcategory already sitting there.
       let newPosition: number | undefined;
+      // The position the row frees in its old category, set only on a move: the
+      // source sequence has to be re-packed after the write below.
+      let freedPosition: number | undefined;
 
       // Validate the target category belongs to the same methodology.
       if (data.categoryId !== undefined) {
         const newCategoryId = BigInt(data.categoryId);
+        const isMove = newCategoryId !== targetSubcategory.categoryId;
 
         // Locked before the status is read, for the same reason as
         // createSubcategory. See lockCategory.
-        const newCategory = await lockCategory(tx, newCategoryId);
+        //
+        // A move locks both parents — the destination to append under, the
+        // source to re-pack under — in id order: this is the only path that
+        // holds two category locks, and two moves crossing between the same
+        // pair (A -> B and B -> A) would deadlock if each took its own
+        // destination first.
+        const categoryIdsToLock = isMove
+          ? [targetSubcategory.categoryId, newCategoryId].sort((a, b) =>
+              a < b ? -1 : 1
+            )
+          : [newCategoryId];
+
+        const lockedCategories = new Map<bigint, LockedCategory | null>();
+        for (const categoryId of categoryIdsToLock) {
+          lockedCategories.set(categoryId, await lockCategory(tx, categoryId));
+        }
+
+        const newCategory = lockedCategories.get(newCategoryId) ?? null;
 
         if (!newCategory || newCategory.status !== CategoryStatus.ACTIVE) {
           throw new CategoryNotFoundForSubcategoryError();
@@ -72,8 +96,9 @@ export const updateSubcategoryService = async (
           throw new CategoryFromDifferentMethodologyError();
         }
 
-        if (newCategoryId !== targetSubcategory.categoryId) {
+        if (isMove) {
           newPosition = await getNextSubcategoryPosition(tx, newCategoryId);
+          freedPosition = targetSubcategory.position;
         }
       }
 
@@ -98,6 +123,19 @@ export const updateSubcategoryService = async (
         where: { id: BigInt(id) },
         data: updateData,
       });
+
+      // A move leaves a hole behind it in the old category, and the live
+      // sequence has to stay contiguous the same way deleteSubcategory keeps it
+      // (see repackSubcategoryPositions). It runs after the write above so the
+      // row is already out of the way, and under the source category lock taken
+      // with the destination one.
+      if (freedPosition !== undefined) {
+        await repackSubcategoryPositions(
+          tx,
+          targetSubcategory.categoryId,
+          freedPosition
+        );
+      }
 
       // Sync measurement unit associations if provided
       if (data.measurementUnitIds !== undefined) {
