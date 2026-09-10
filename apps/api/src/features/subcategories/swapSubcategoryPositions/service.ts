@@ -20,6 +20,7 @@ import {
   lockSubcategories,
   rethrowSubcategoryUniqueViolation,
 } from "../helpers.js";
+import { requireBothReorderRows } from "../../../helpers/requireBothReorderRows.js";
 
 export const swapSubcategoryPositionsService = async (
   prismaClient: PrismaClient,
@@ -40,21 +41,12 @@ export const swapSubcategoryPositionsService = async (
 
   try {
     const [updatedA, updatedB] = await prismaClient.$transaction(async (tx) => {
-      /** Both ids have to resolve, or the request names a subcategory that is
-       * not there. Applied to the unlocked read and again to the locked one. */
-      const requireBoth = <T extends { id: bigint }>(rows: T[]) => {
-        const rowA = rows.find((row) => row.id === idA);
-        const rowB = rows.find((row) => row.id === idB);
-
-        if (!rowA || !rowB) {
-          const missingIds = [];
-          if (!rowA) missingIds.push(idA);
-          if (!rowB) missingIds.push(idB);
-          throw new SubcategoryNotFoundError(missingIds.join(", "));
-        }
-
-        return [rowA, rowB] as const;
-      };
+      const requireBoth = <T extends { id: bigint }>(rows: T[]) =>
+        requireBothReorderRows(
+          rows,
+          [idA, idB],
+          (missingIds) => new SubcategoryNotFoundError(missingIds)
+        );
 
       // Unlocked, and used for one thing only: finding the category to lock.
       // Every decision it could support is taken again below against the locked

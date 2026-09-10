@@ -15,10 +15,12 @@ import {
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
+  getNextCategoryPosition,
   lockCategories,
   lockMethodologyVersion,
   rethrowCategoryUniqueViolation,
 } from "../helpers.js";
+import { requireBothReorderRows } from "../../../helpers/requireBothReorderRows.js";
 
 export const swapCategoryPositionsService = async (
   prismaClient: PrismaClient,
@@ -39,21 +41,12 @@ export const swapCategoryPositionsService = async (
 
   try {
     const [updatedA, updatedB] = await prismaClient.$transaction(async (tx) => {
-      /** Both ids have to resolve, or the request names a category that is not
-       * there. Applied to the unlocked read and again to the locked one. */
-      const requireBoth = <T extends { id: bigint }>(rows: T[]) => {
-        const rowA = rows.find((row) => row.id === idA);
-        const rowB = rows.find((row) => row.id === idB);
-
-        if (!rowA || !rowB) {
-          const missingIds = [];
-          if (!rowA) missingIds.push(idA);
-          if (!rowB) missingIds.push(idB);
-          throw new CategoryNotFoundError(missingIds.join(", "));
-        }
-
-        return [rowA, rowB] as const;
-      };
+      const requireBoth = <T extends { id: bigint }>(rows: T[]) =>
+        requireBothReorderRows(
+          rows,
+          [idA, idB],
+          (missingIds) => new CategoryNotFoundError(missingIds)
+        );
 
       // Unlocked, and used for one thing only: finding the methodology version
       // to lock. Every decision it could support is taken again below against
@@ -121,17 +114,12 @@ export const swapCategoryPositionsService = async (
       const positionA = lockedA.position;
       const positionB = lockedB.position;
 
-      // Find a safe temp position to avoid the unique constraint during the
-      // swap. Same slot a create would claim, which is why the methodology
-      // version is locked above.
-      const aggregate = await tx.category.aggregate({
-        where: {
-          methodologyVersionId,
-          status: { not: CategoryStatus.DELETED },
-        },
-        _max: { position: true },
-      });
-      const tempPosition = (aggregate._max.position ?? 0) + 1;
+      // Same slot a create would claim, which is why the methodology version is
+      // locked above.
+      const tempPosition = await getNextCategoryPosition(
+        tx,
+        methodologyVersionId
+      );
 
       // Step 1: Move A out of the way
       await tx.category.update({
