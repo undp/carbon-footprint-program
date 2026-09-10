@@ -119,12 +119,16 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       expect(body.description).toBe("Original description");
     });
 
-    it("should update position", async () => {
+    it("should reject a position", async () => {
       const category = await createTestCategory(prisma, methodologyVersionId, {
-        name: "Test - Update Position",
+        name: "Test - Rejected Position Update",
         position: 1,
       });
 
+      // The order is changed only through /swap-positions, which swaps two
+      // adjacent siblings under the methodology version lock. Writing an
+      // arbitrary position here left the live sequence non-contiguous, which
+      // the grid's arrows, the Excel export and the seed all assume it is.
       const response = await app.inject({
         method: "PATCH",
         url: `/api/categories/${category.id}`,
@@ -133,9 +137,12 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(response.body) as UpdateCategoryResponse;
-      expect(body.position).toBe(5);
+      expect(response.statusCode).toBe(400);
+
+      const dbRecord = await prisma.category.findUnique({
+        where: { id: category.id },
+      });
+      expect(dbRecord!.position).toBe(1);
     });
   });
 
@@ -220,33 +227,6 @@ describe("PATCH /api/categories/:id - Integration Tests", () => {
       });
 
       expect(response.statusCode).toBe(400);
-    });
-
-    it("should return 409 when updating to a duplicate position", async () => {
-      await createTestCategory(prisma, methodologyVersionId, {
-        name: "Test - Position One",
-        position: 1,
-      });
-
-      const category2 = await createTestCategory(prisma, methodologyVersionId, {
-        name: "Test - Position Two",
-        position: 2,
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/categories/${category2.id}`,
-        payload: {
-          position: 1,
-        },
-      });
-
-      expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as {
-        code: string;
-        message: string;
-      };
-      expect(body.code).toBe("CATEGORY_POSITION_ALREADY_EXISTS");
     });
   });
 

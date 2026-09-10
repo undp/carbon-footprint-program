@@ -4,6 +4,9 @@ import { CategoryBaseSchema } from "../../baseSchemas/index.js";
 import { IconNameFormSchema } from "../../common/index.js";
 
 // Request Schema
+// No `position`: the server appends the category after the last one in its
+// methodology version, under the lock that keeps two creates from claiming the
+// same slot. Same contract as CreateSubcategoryRequestSchema.
 export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
   methodologyVersionId: true,
   name: true,
@@ -12,7 +15,6 @@ export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
   synonyms: true,
   description: true,
   explanation: true,
-  position: true,
 })
   .partial({ explanation: true })
   .strict();

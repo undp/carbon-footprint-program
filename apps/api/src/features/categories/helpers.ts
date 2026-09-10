@@ -16,9 +16,12 @@ import {
  * index name, and an exact match silently turns these 409s into 500s. The two
  * index names are disjoint on these substrings.
  *
- * A position collision reaches a client only from `createCategory`, which takes
- * `position` from the request. The reorder writes MAX + 1 under the methodology
- * version lock, so there it means a position was written outside that path.
+ * A position collision is not something a client can cause: every position is
+ * either read from a locked row or computed as MAX + 1 under the methodology
+ * version lock, so it means a position was written outside that path (seed
+ * data, a manual fix). It is still surfaced as a 409 rather than a 500 because
+ * the row that is in the way is the actionable part — the same call the
+ * subcategory helper makes one level down.
  */
 export function rethrowCategoryUniqueViolation(error: unknown): never {
   if (
@@ -48,9 +51,9 @@ interface LockedMethodologyVersionRow {
  * Same shape and the same reason as `lockCategory` one level down (see the
  * subcategories helpers). Category positions are unique per methodology version
  * among non-DELETED rows, and every writer of a position — a create with its
- * client-supplied one, a reorder with its temporary MAX + 1, the repack a
- * delete leaves behind — is checked against that one partial unique index, so
- * they have to queue on the parent instead of all reading the same MAX.
+ * appended MAX + 1, a reorder with its temporary MAX + 1, the repack a delete
+ * leaves behind — is checked against that one partial unique index, so they
+ * have to queue on the parent instead of all reading the same MAX.
  *
  * The status comes off the locked row, not from a read before it: a methodology
  * version read as live and only then locked can have been soft-deleted in

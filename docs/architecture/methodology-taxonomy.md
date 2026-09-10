@@ -80,7 +80,7 @@ model Category {
 }
 ```
 
-Categories are ordered by `position` ascending. The `synonyms` field maps to GHG Protocol scope terminology (Scope 1 / Scope 2 / Scope 3) or local equivalents, displayed alongside the category name.
+Categories are ordered by `position` ascending, and the live sequence is contiguous 1..N: positions are never sent by a client — the server appends a new category last and closes the hole a deleted one leaves behind — and the only way to change one is `POST /api/categories/swap-positions`, which swaps two adjacent siblings, exactly like the subcategory grid below. The `synonyms` field maps to GHG Protocol scope terminology (Scope 1 / Scope 2 / Scope 3) or local equivalents, displayed alongside the category name.
 
 ---
 

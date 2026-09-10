@@ -161,13 +161,11 @@ export const CategoriesMaintainerScreen: FC = () => {
     if (row && isNewRow(row.id)) {
       if (!row.icon) return false;
       try {
-        // The row has no position until it is created, and this endpoint takes
-        // one: the new category goes after every row that already has a place
-        // in the sequence.
-        const appendPosition =
-          rows.reduce((max, { position }) => Math.max(max, position ?? 0), 0) +
-          1;
-
+        // No position is sent: the server appends the category after the last
+        // one in the methodology version, under the lock that keeps two
+        // concurrent creates from claiming the same slot. Guessing it here from
+        // the form array made every stale form a 409 about a field the
+        // maintainer never filled in.
         const result = await addMutation.mutateAsync({
           methodologyVersionId: methodologyVersionId!,
           name: row.name,
@@ -176,7 +174,6 @@ export const CategoriesMaintainerScreen: FC = () => {
           synonyms: row.synonyms,
           description: row.description,
           explanation: row.explanation || null,
-          position: appendPosition,
         });
         fieldArray.update(rowIndex, toFormCategory(result));
         form.reset({ categories: form.getValues("categories") });
