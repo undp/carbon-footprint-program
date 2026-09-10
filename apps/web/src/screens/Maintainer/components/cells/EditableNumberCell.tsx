@@ -30,8 +30,14 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
   onChange,
   fieldError,
 }) => {
+  // A non-finite value is shown as an empty field, never as the text "NaN". It
+  // reaches here two ways, and both mean "no answer yet": a row whose numeric
+  // field deliberately starts unanswered, and an entry this cell rejected on a
+  // previous blur.
   const [localValue, setLocalValue] = useState<string>(
-    initialValue === null ? "" : String(initialValue)
+    initialValue === null || !Number.isFinite(initialValue)
+      ? ""
+      : String(initialValue)
   );
 
   return (
@@ -46,8 +52,13 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
           onChange(null);
           return;
         }
-        const parsed = Number(localValue);
-        onChange(Number.isNaN(parsed) ? null : parsed);
+        // An unparseable entry is forwarded as NaN, not folded into null. The
+        // empty string is the only input that means null, and for a field where
+        // null carries meaning of its own — an emission factor's blank year
+        // declares it transversal — silently turning "2o25" into null would
+        // store a typo as a deliberate declaration. NaN fails the resolver
+        // instead, so the cell shows the error and nothing is saved.
+        onChange(Number(localValue));
       }}
       onKeyDown={(e) => e.stopPropagation()}
       error={!!fieldError}
@@ -89,7 +100,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
           "&:hover": onClick ? { backgroundColor: "grey.100" } : {},
         }}
       >
-        {formValue ?? ""}
+        {Number.isFinite(formValue) ? formValue : ""}
       </Typography>
     );
   }

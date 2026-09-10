@@ -7,6 +7,7 @@ import {
   InventoryStatus,
   SubcategoryStatus,
 } from "@repo/database";
+import { RateMeasurementUnitNotFoundError } from "../emissionFactors/errors.js";
 import {
   KgMeasurementUnitNotFoundError,
   KgMeasurementUnitImmutableError,
@@ -238,3 +239,52 @@ export const assertBaseFactorOneIsReservedForBaseUnit = (
     throw new BaseFactorOneReservedForBaseUnitError();
   }
 };
+
+/**
+ * The physical unit family a rate unit belongs to: the magnitude of its
+ * numerator over the magnitude of its denominator. `kg/kg` and `kg/ton` are both
+ * mass/mass and are therefore convertible representations of one factor, while
+ * `kg/kWh`, `kg/m3` and `kg/ton` are different families that may legitimately
+ * coexist for the same activity, source and year.
+ */
+export type RateUnitMagnitudeFamily = {
+  numeratorMagnitudeId: bigint;
+  denominatorMagnitudeId: bigint;
+};
+
+/**
+ * Resolves a rate unit's magnitude family.
+ *
+ * `emission_factor` denormalizes this pair so its unique index can enforce
+ * factor identity without joining `rate_measurement_unit`, so every write path
+ * has to derive it the same way — factor create/update, the seed, and the
+ * line-sync check that a requested applied unit is convertible from the
+ * selected catalog factor. Shared here so those callers cannot drift.
+ */
+export const resolveRateUnitMagnitudeFamily = async (
+  tx: TransactionClient,
+  rateMeasurementUnitId: bigint
+): Promise<RateUnitMagnitudeFamily> => {
+  const rateUnit = await tx.rateMeasurementUnit.findUnique({
+    where: { id: rateMeasurementUnitId },
+    select: {
+      numeratorMeasurementUnit: { select: { magnitudeId: true } },
+      denominatorMeasurementUnit: { select: { magnitudeId: true } },
+    },
+  });
+
+  if (!rateUnit) throw new RateMeasurementUnitNotFoundError();
+
+  return {
+    numeratorMagnitudeId: rateUnit.numeratorMeasurementUnit.magnitudeId,
+    denominatorMagnitudeId: rateUnit.denominatorMeasurementUnit.magnitudeId,
+  };
+};
+
+/** True when both rate units express the same physical quantity ratio. */
+export const isSameMagnitudeFamily = (
+  a: RateUnitMagnitudeFamily,
+  b: RateUnitMagnitudeFamily
+): boolean =>
+  a.numeratorMagnitudeId === b.numeratorMagnitudeId &&
+  a.denominatorMagnitudeId === b.denominatorMagnitudeId;

@@ -282,6 +282,12 @@ export const cloneEmissionFactors = async (
         : null,
       rateMeasurementUnitId: ef.rateMeasurementUnitId,
       source: ef.source,
+      // Year and the denormalized unit family travel with the factor: they are
+      // part of its identity, so a duplicate that dropped them would collapse
+      // several vintages or unit families into one row.
+      year: ef.year,
+      numeratorMagnitudeId: ef.numeratorMagnitudeId,
+      denominatorMagnitudeId: ef.denominatorMagnitudeId,
       gasDetails: ef.gasDetails ?? Prisma.JsonNull,
       value: ef.value,
       status: EmissionFactorStatus.ACTIVE,

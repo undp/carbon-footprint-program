@@ -16,9 +16,9 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
-  validateSourceConsistency,
   validateGasDetailsSum,
 } from "../helpers.js";
+import { resolveRateUnitMagnitudeFamily } from "../../measurementUnits/helpers.js";
 
 export const createEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -46,8 +46,6 @@ export const createEmissionFactorService = async (
         throw new SubcategoryNotFoundForEmissionFactorError();
       }
 
-      await validateSourceConsistency(tx, subcategory.id, data.source);
-
       // Find-or-create dimension values if provided
       let dimensionValue1Id: bigint | null = null;
       let dimensionValue2Id: bigint | null = null;
@@ -70,12 +68,26 @@ export const createEmissionFactorService = async (
         );
       }
 
-      await checkDuplicateEmissionFactor(
+      // The unit family is always derived from the selected rate unit, never
+      // accepted from the client: it is what the unique index compares, so a
+      // client-supplied pair could be used to sidestep the identity rule.
+      const family = await resolveRateUnitMagnitudeFamily(
         tx,
-        subcategory.id,
-        dimensionValue1Id,
-        dimensionValue2Id
+        BigInt(data.rateMeasurementUnitId)
       );
+
+      // Normalization applies to the comparison, not to what is stored: a value
+      // the maintainer put in a slot the subcategory does not require is real
+      // data and is persisted as given. It simply does not earn the factor a
+      // separate identity.
+      await checkDuplicateEmissionFactor(tx, {
+        subcategoryId: subcategory.id,
+        dimensionValue1Id,
+        dimensionValue2Id,
+        year: data.year,
+        source: data.source,
+        ...family,
+      });
 
       const emissionFactor = await tx.emissionFactor.create({
         data: {
@@ -84,6 +96,9 @@ export const createEmissionFactorService = async (
           dimensionValue2Id,
           rateMeasurementUnitId: BigInt(data.rateMeasurementUnitId),
           source: data.source,
+          year: data.year,
+          numeratorMagnitudeId: family.numeratorMagnitudeId,
+          denominatorMagnitudeId: family.denominatorMagnitudeId,
           gasDetails: data.gasDetails,
           value: new Prisma.Decimal(data.value),
           status: EmissionFactorStatus.ACTIVE,
@@ -102,6 +117,7 @@ export const createEmissionFactorService = async (
         id: emissionFactor.id.toString(),
         value: emissionFactor.value.toString(),
         source: emissionFactor.source,
+        year: emissionFactor.year,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,
         dimensionValue1Id:

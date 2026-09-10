@@ -115,15 +115,20 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
       const subcategory = await createTestSubcategory(prisma, category.id);
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
 
+      // Two distinct vintages: the factor identity now treats a null year and a
+      // null dimension as real values, so two factories with identical defaults
+      // would be one and the same factor.
       const ef1 = await createTestEmissionFactor(
         prisma,
         subcategory.id,
-        rateUnitId
+        rateUnitId,
+        { year: 2024 }
       );
       const ef2 = await createTestEmissionFactor(
         prisma,
         subcategory.id,
-        rateUnitId
+        rateUnitId,
+        { year: 2025 }
       );
 
       await app.inject({
