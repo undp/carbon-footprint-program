@@ -78,10 +78,14 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
   const currentRows = form.watch("subcategories");
 
+  // The grid renders only the search matches while the arrows walk the full
+  // form array, so a filtered grid would render one order and move rows in
+  // another — the same mismatch `disableColumnSorting` rules out.
+  const [isFiltered, setIsFiltered] = useState(false);
+
   // --- Sync form with server data ---
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as typeof subcategories & object).map(toFormSubcategory),
+    (data: NonNullable<typeof subcategories>) => data.map(toFormSubcategory),
     []
   );
   useMaintainerFormSync({

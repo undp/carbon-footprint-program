@@ -121,8 +121,7 @@ export const CategoriesMaintainerScreen: FC = () => {
   // swap's own refetch and nothing else, the grid could keep the pre-swap
   // positions and send the same pair again on the next click.
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as typeof categories & object).map(toFormCategory),
+    (data: NonNullable<typeof categories>) => data.map(toFormCategory),
     []
   );
   useMaintainerFormSync({

@@ -96,10 +96,8 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   );
 
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as NonNullable<typeof reductionPlanInitiatives>).map(
-        toFormReductionPlanInitiative
-      ),
+    (data: NonNullable<typeof reductionPlanInitiatives>) =>
+      data.map(toFormReductionPlanInitiative),
     []
   );
   useMaintainerFormSync({
