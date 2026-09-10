@@ -55,10 +55,14 @@ export const createCategoryService = async (
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === "P2002") {
         const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("name")) {
+        // Substring match, like the subcategory services: depending on the
+        // Prisma/adapter version the helper yields either the column names or
+        // the index name, and an exact match silently turns these 409s into
+        // 500s. The two index names are disjoint on these substrings.
+        if (duplicatedFields.some((field) => field.includes("name"))) {
           throw new CategoryNameAlreadyExistsError();
         }
-        if (duplicatedFields.includes("position")) {
+        if (duplicatedFields.some((field) => field.includes("position"))) {
           throw new CategoryPositionAlreadyExistsError();
         }
       }
