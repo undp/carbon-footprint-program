@@ -373,5 +373,92 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
       };
       expect(body.code).toBe("SUBCATEGORY_NOT_FOUND");
     });
+
+    it("should refuse the delete when the subcategory left the category while the request waited for the lock", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Delete Concurrent Move",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Delete Concurrent Source",
+        position: 1,
+      });
+      const elsewhere = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Delete Concurrent Elsewhere",
+        position: 2,
+      });
+      const [first, target] = await Promise.all([
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Delete Concurrent Sibling",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Delete Concurrent Target",
+          position: 2,
+        }),
+      ]);
+
+      // The category to lock, and the position the re-pack is anchored on, are
+      // read without a lock. A holder takes the category lock and moves the row
+      // out before releasing it, so a request that trusted that read would
+      // re-pack a sequence the row is no longer part of.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: category.id },
+            data: { synonyms: "Test - locked" },
+          });
+          await tx.subcategory.update({
+            where: { id: target.id },
+            data: { categoryId: elsewhere.id, position: 1 },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "DELETE",
+        url: `/api/subcategories/${target.id}`,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(409);
+      const conflictBody = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(conflictBody.code).toBe("SUBCATEGORY_CONCURRENTLY_MOVED");
+
+      const untouched = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: target.id },
+      });
+      expect(untouched.status).toBe(SubcategoryStatus.ACTIVE);
+      expect(untouched.categoryId).toBe(elsewhere.id);
+
+      const sourceSequence = await prisma.subcategory.findMany({
+        where: { categoryId: category.id, status: SubcategoryStatus.ACTIVE },
+        select: { id: true, position: true },
+        orderBy: { position: "asc" },
+      });
+      expect(sourceSequence).toEqual([{ id: first.id, position: 1 }]);
+    });
   });
 });

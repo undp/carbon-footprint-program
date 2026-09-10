@@ -70,6 +70,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // order on screen is the stale part, not the request.
   SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES:
     "Solo se pueden reordenar sub-categorías de la misma categoría. Si otra persona las movió, recarga la página.",
+  // The request is refused, not retried: the category the sub-category was
+  // moved out of is the one the server would have re-numbered, so the order on
+  // screen is the stale part.
+  SUBCATEGORY_CONCURRENTLY_MOVED:
+    "Otra persona movió esta sub-categoría a otra categoría mientras editabas. Recarga la página e inténtalo de nuevo.",
 
   // Emission factors
   EMISSION_FACTOR_NOT_FOUND: "El factor de emisión no fue encontrado.",

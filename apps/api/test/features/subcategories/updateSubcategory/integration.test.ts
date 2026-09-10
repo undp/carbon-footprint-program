@@ -547,6 +547,99 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(unmoved.categoryId).toBe(categoryId);
     });
 
+    it("should refuse a move when the subcategory left the source category while the request waited for the lock", async () => {
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const [first, moving] = await Promise.all([
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Move Sibling",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Move Target",
+          position: 2,
+        }),
+      ]);
+      const destination = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        { name: "Test - Concurrent Move Destination", position: 2 }
+      );
+      const elsewhere = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        { name: "Test - Concurrent Move Elsewhere", position: 3 }
+      );
+
+      // The category to re-pack is decided from a read without a lock: a holder
+      // takes the destination lock and moves the row out of the source before
+      // releasing it, so a request that trusted that read would re-pack the
+      // source from a position the row no longer holds — pulling the sibling
+      // above it into a slot nothing freed.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: destination.id },
+            data: { synonyms: "Test - locked" },
+          });
+          await tx.subcategory.update({
+            where: { id: moving.id },
+            data: { categoryId: elsewhere.id, position: 1 },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${moving.id}`,
+        payload: {
+          categoryId: destination.id.toString(),
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("SUBCATEGORY_CONCURRENTLY_MOVED");
+
+      const sourceSequence = await prisma.subcategory.findMany({
+        where: { categoryId, status: SubcategoryStatus.ACTIVE },
+        select: { id: true, position: true },
+        orderBy: { position: "asc" },
+      });
+      expect(sourceSequence).toEqual([{ id: first.id, position: 1 }]);
+
+      const untouched = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: moving.id },
+      });
+      expect(untouched.categoryId).toBe(elsewhere.id);
+      expect(untouched.position).toBe(1);
+    });
+
     it("should keep the position when the update does not change the category", async () => {
       const first = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Keeps Position First",
