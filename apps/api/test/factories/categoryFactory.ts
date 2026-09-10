@@ -40,3 +40,23 @@ export async function createTestCategory(
     },
   });
 }
+
+/**
+ * Drops every category this factory's default naming leaves behind.
+ *
+ * Tests that assert an order have to author positions on the seeded
+ * methodology, which is the one the rest of the file reads. Cleaning up on the
+ * last line of the test body only runs when the assertions pass, so a single
+ * failure leaves the extra category — and its cascaded subcategories — visible
+ * to every test that follows in the same file. Call this from an `afterEach`
+ * instead.
+ *
+ * Cascades to subcategories and their inventory lines, like a single delete.
+ */
+export async function cleanupTestCategories(
+  prisma: PrismaClient
+): Promise<void> {
+  await prisma.category.deleteMany({
+    where: { name: { startsWith: "Test - " } },
+  });
+}

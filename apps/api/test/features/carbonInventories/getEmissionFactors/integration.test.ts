@@ -18,7 +18,10 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { createTestCategory } from "@test/factories/categoryFactory.js";
+import {
+  createTestCategory,
+  cleanupTestCategories,
+} from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -162,6 +165,7 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
     await prisma.carbonInventoryLineFactor.deleteMany({});
     await prisma.emissionFactor.deleteMany({});
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestCategories(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -553,10 +557,6 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
         "Test - EF Order Sub Alpha",
         "Test - EF Order Sub Mike",
       ]);
-
-      // Cascades to the subcategories and their inventory lines.
-      await prisma.category.delete({ where: { id: firstCategory.id } });
-      await prisma.category.delete({ where: { id: secondCategory.id } });
     });
   });
 });

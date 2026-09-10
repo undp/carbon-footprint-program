@@ -14,7 +14,10 @@ import type { FastifyInstance } from "fastify";
 import { Prisma, type PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { createTestCategory } from "@test/factories/categoryFactory.js";
+import {
+  createTestCategory,
+  cleanupTestCategories,
+} from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import {
   convertEmissionFactorValue,
@@ -45,6 +48,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestCategories(prisma);
   });
 
   describe("Successful retrieval", () => {
@@ -503,14 +507,21 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         name: "Test - Subcategory Ordering Category",
         position: 998,
       });
+      // Positions are stated, not inherited from the factory's append-last
+      // default: the expected order below is a position order, and leaving it
+      // to be implied by insertion order makes the test depend on how the
+      // factory picks a free slot.
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Ordering Zulu",
+        position: 1,
       });
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Ordering Alpha",
+        position: 2,
       });
       await createTestSubcategory(prisma, category.id, {
         name: "Test - Ordering Mike",
+        position: 3,
       });
 
       const carbonInventory = await createInventoryFromPattern(
@@ -538,9 +549,6 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         "Test - Ordering Alpha",
         "Test - Ordering Mike",
       ]);
-
-      // Cascades to the subcategories created above.
-      await prisma.category.delete({ where: { id: category.id } });
     });
 
     it("should have dimensions ordered by position", async () => {
