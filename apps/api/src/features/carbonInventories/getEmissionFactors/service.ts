@@ -81,11 +81,15 @@ export const getEmissionFactorsService = async (
     // ACTIVE lines, so DELETED rows are in scope. Positions are unique only
     // among non-DELETED ones, so a DELETED row can share a position with an
     // active one — `id` breaks the tie deterministically, as in
-    // fetchCategoryData.
+    // fetchCategoryData. The line's own `id` closes the last one: every line of
+    // the same subcategory ties on all of the keys above, and without a total
+    // order Postgres returns heap order, so editing one line reshuffles the
+    // report on the next fetch.
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
       { subcategory: { position: "asc" } },
       { subcategory: { id: "asc" } },
+      { id: "asc" },
     ],
   });
 
