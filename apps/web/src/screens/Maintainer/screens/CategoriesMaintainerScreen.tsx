@@ -161,6 +161,13 @@ export const CategoriesMaintainerScreen: FC = () => {
     if (row && isNewRow(row.id)) {
       if (!row.icon) return false;
       try {
+        // The row has no position until it is created, and this endpoint takes
+        // one: the new category goes after every row that already has a place
+        // in the sequence.
+        const appendPosition =
+          rows.reduce((max, { position }) => Math.max(max, position ?? 0), 0) +
+          1;
+
         const result = await addMutation.mutateAsync({
           methodologyVersionId: methodologyVersionId!,
           name: row.name,
@@ -169,7 +176,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           synonyms: row.synonyms,
           description: row.description,
           explanation: row.explanation || null,
-          position: row.position,
+          position: appendPosition,
         });
         fieldArray.update(rowIndex, toFormCategory(result));
         form.reset({ categories: form.getValues("categories") });
@@ -202,7 +209,6 @@ export const CategoriesMaintainerScreen: FC = () => {
             synonyms: row.synonyms,
             description: row.description,
             explanation: row.explanation || null,
-            position: row.position,
           },
         });
         form.reset({ categories: form.getValues("categories") });
@@ -264,8 +270,6 @@ export const CategoriesMaintainerScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    const rows = form.getValues("categories");
-    const maxPosition = rows.reduce((max, r) => Math.max(max, r.position), 0);
     const newRow: CategoryForm = {
       id: tempId,
       name: "",
@@ -274,11 +278,14 @@ export const CategoriesMaintainerScreen: FC = () => {
       synonyms: "",
       description: "",
       explanation: null,
-      position: maxPosition + 1,
+      // The server assigns the position on create; until then the row has no
+      // place in the sequence, so it is neither movable nor a neighbour of a
+      // move.
+      position: null,
     };
     fieldArray.prepend(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray, form, setEditingRowId]);
+  }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: CategoryForm) => {
