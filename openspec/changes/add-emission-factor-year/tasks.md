@@ -22,7 +22,7 @@
 ## 3. Shared schemas and request contracts
 
 - [x] 3.1 Add nullable integer `year` to `packages/types/src/baseSchemas/emissionFactor.ts`, factor create/update forms and responses. Do not expose `numeratorMagnitudeId` or `denominatorMagnitudeId` as writable client fields, and do not add a blocking API validation solely because `source` contains a likely year.
-- [x] 3.2 Make seed `year` required-but-nullable in `tools/seed/src/scripts/seedMethodologyData/shared.ts` and propagate it in `seedEmissionFactors.ts`; omitted year entries SHALL fail validation.
+- [x] 3.2 Make seed `year` required-but-nullable in `tools/seed/src/scripts/shared.ts` and propagate it in `seedEmissionFactors.ts`; omitted year entries SHALL fail validation.
 - [x] 3.3 Add `year` and a stable canonical/base factor ID to the carbon-inventory methodology factor shape, including converted representations.
 - [x] 3.4 Replace the ambiguous sync factor fields in `packages/types/src/carbonInventories/syncCarbonInventoryLines/schemas.ts` with a discriminated union equivalent to `CATALOG { emissionFactorId, appliedRateMeasurementUnitId }`, `CUSTOM { source, value, rateMeasurementUnitId }`, and `DIRECT { totalEmissions }`, alongside common line fields.
 - [x] 3.5 Add `appliedFactorYear` to saved-line and factors-used response schemas. Do not add a persisted match/fallback boolean.
