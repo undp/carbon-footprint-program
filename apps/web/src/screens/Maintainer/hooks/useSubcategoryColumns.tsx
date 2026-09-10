@@ -12,13 +12,14 @@ import {
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import type { MeasurementUnit, Subcategory } from "../types";
+import type { EditableSubcategoryField } from "./useSubcategoriesForm";
 
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof SubcategoryForm,
+    field: EditableSubcategoryField,
     value: string | string[] | null
   ) => void;
   onStartEditRow: (rowId: string) => void;
