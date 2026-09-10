@@ -8,12 +8,14 @@ import {
 } from "@repo/types";
 import {
   SubcategoryNotFoundError,
+  SubcategoryConcurrentlyMovedError,
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
 } from "../errors.js";
 import {
   getNextSubcategoryPosition,
   lockCategory,
+  lockSubcategories,
   repackSubcategoryPositions,
   rethrowSubcategoryUniqueViolation,
   type LockedCategory,
@@ -34,15 +36,16 @@ export const updateSubcategoryService = async (
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
+      // Unlocked: it picks the category to lock and validates the methodology
+      // version, which a category never changes. The position and the parent
+      // the re-pack below is anchored on are read again from the locked row.
       const targetSubcategory = await tx.subcategory.findFirst({
         where: {
           id: BigInt(id),
           status: SubcategoryStatus.ACTIVE,
         },
         select: {
-          status: true,
           categoryId: true,
-          position: true,
           category: { select: { methodologyVersionId: true } },
         },
       });
@@ -55,9 +58,10 @@ export const updateSubcategoryService = async (
       // actually moves. Positions are unique per category, so keeping the old
       // one could collide with a subcategory already sitting there.
       let newPosition: number | undefined;
-      // The position the row frees in its old category, set only on a move: the
-      // source sequence has to be re-packed after the write below.
-      let freedPosition: number | undefined;
+      // The slot the row frees in its old category, set only on a move and read
+      // from the locked row: the source sequence has to be re-packed after the
+      // write below.
+      let freedSlot: { categoryId: bigint; position: number } | undefined;
 
       // Validate the target category belongs to the same methodology.
       if (data.categoryId !== undefined) {
@@ -97,8 +101,30 @@ export const updateSubcategoryService = async (
         }
 
         if (isMove) {
+          // The category locks above were taken on a parent read without one,
+          // so the row itself is locked and re-read before its position is
+          // used: a concurrent swap can have changed it, and a concurrent
+          // update or a cascading category delete can have taken the row out of
+          // the category being re-packed. Locked after the categories, in the
+          // order swapSubcategoryPositions uses, so neither path deadlocks.
+          const [lockedSubcategory] = await lockSubcategories(tx, [BigInt(id)]);
+
+          if (
+            !lockedSubcategory ||
+            lockedSubcategory.status !== SubcategoryStatus.ACTIVE
+          ) {
+            throw new SubcategoryNotFoundError(id);
+          }
+
+          if (lockedSubcategory.categoryId !== targetSubcategory.categoryId) {
+            throw new SubcategoryConcurrentlyMovedError(id);
+          }
+
           newPosition = await getNextSubcategoryPosition(tx, newCategoryId);
-          freedPosition = targetSubcategory.position;
+          freedSlot = {
+            categoryId: lockedSubcategory.categoryId,
+            position: lockedSubcategory.position,
+          };
         }
       }
 
@@ -129,11 +155,11 @@ export const updateSubcategoryService = async (
       // (see repackSubcategoryPositions). It runs after the write above so the
       // row is already out of the way, and under the source category lock taken
       // with the destination one.
-      if (freedPosition !== undefined) {
+      if (freedSlot) {
         await repackSubcategoryPositions(
           tx,
-          targetSubcategory.categoryId,
-          freedPosition
+          freedSlot.categoryId,
+          freedSlot.position
         );
       }
 

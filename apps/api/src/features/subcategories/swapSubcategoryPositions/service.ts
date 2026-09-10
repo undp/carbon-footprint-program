@@ -90,10 +90,11 @@ export const swapSubcategoryPositionsService = async (
         throw new CategoryNotFoundForSubcategoryError();
       }
 
-      // The category lock does not cover the rows themselves: updateSubcategory
-      // locks only the category a subcategory moves *to*, so it never contends
-      // with the lock above and can move a row out of this category — or
-      // deleteCategory can soft-delete both — between the unlocked read and the
+      // The category lock does not cover the rows themselves: an
+      // updateSubcategory can move a row out of this category — it takes this
+      // same lock on a move, so the two paths queue instead of racing, but it
+      // can have committed before this one got the lock — or a deleteCategory
+      // can soft-delete both, either of them between the unlocked read and the
       // writes below. Locking the two rows and re-reading them is what makes the
       // positions, the parent category and the statuses used from here on the
       // committed truth.
