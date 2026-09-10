@@ -491,6 +491,10 @@ export const CategoriesMaintainerScreen: FC = () => {
             <MaintainerDataGrid<CategoryForm>
               editingRowId={editingRowId}
               cellMaxHeight={70}
+              // Same reason as the subcategories grid: the reorder arrows read
+              // `position`, so a sorted grid would render one order and move
+              // rows in another.
+              disableColumnSorting
               searchable={{
                 fuseOptions: {
                   keys: ["name", "description", "synonyms"],
