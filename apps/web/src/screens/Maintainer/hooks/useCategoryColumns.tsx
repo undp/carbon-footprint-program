@@ -24,6 +24,14 @@ interface UseCategoryColumnsParams {
   onMoveUp: (row: CategoryForm) => void;
   onMoveDown: (row: CategoryForm) => void;
   /**
+   * Whether the row has a neighbour to swap with. Both come from
+   * useMaintainerRowReorder, which is also where the move picks that neighbour:
+   * deriving the sequence a second time here is how an enabled arrow ends up
+   * disagreeing with what the move does.
+   */
+  canMoveUp: (row: CategoryForm) => boolean;
+  canMoveDown: (row: CategoryForm) => boolean;
+  /**
    * Reorder is off while the form is not in server order — see `isMoveBlocked`
    * in useMaintainerRowReorder — and while the grid is filtered, which renders
    * a different sequence than the one the arrows walk.
@@ -43,6 +51,8 @@ export const useCategoryColumns = ({
   onOpenExplanation,
   onMoveUp,
   onMoveDown,
+  canMoveUp,
+  canMoveDown,
   moveDisabled,
   rows,
 }: UseCategoryColumnsParams): GridColDef<CategoryForm>[] => {
@@ -53,20 +63,6 @@ export const useCategoryColumns = ({
   const isEditing = useCallback(
     (rowId: string) => editingRowId === rowId,
     [editingRowId]
-  );
-
-  // A row the server has not created yet has no position, so it is not in the
-  // sequence the arrows walk — leaving it in would make the last real row look
-  // like it has a neighbour below it, and the move would silently do nothing.
-  const sortedRows = useMemo(
-    () =>
-      rows
-        .filter(
-          (row): row is CategoryForm & { position: number } =>
-            row.position !== null
-        )
-        .sort((a, b) => a.position - b.position),
-    [rows]
   );
 
   return useMemo<GridColDef<CategoryForm>[]>(
@@ -235,13 +231,8 @@ export const useCategoryColumns = ({
               headerAlign: "center" as const,
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<CategoryForm>) => {
-                const sortedIdx = sortedRows.findIndex(
-                  (r) => r.id === params.row.id
-                );
-                const isTemp = params.row.id.startsWith("temp_");
-                const isFirst = sortedIdx === 0;
-                const isLast = sortedIdx === sortedRows.length - 1;
                 const anyEditing = editingRowId !== null;
+                const cannotMove = anyEditing || moveDisabled;
 
                 return (
                   // TODO: Create a better, and modular approach for actions buttons with different combinations
@@ -252,12 +243,8 @@ export const useCategoryColumns = ({
                     onCancelEdit={onCancelEditRow}
                     onMoveUp={() => onMoveUp(params.row)}
                     onMoveDown={() => onMoveDown(params.row)}
-                    moveUpDisabled={
-                      anyEditing || isFirst || isTemp || moveDisabled
-                    }
-                    moveDownDisabled={
-                      anyEditing || isLast || isTemp || moveDisabled
-                    }
+                    moveUpDisabled={cannotMove || !canMoveUp(params.row)}
+                    moveDownDisabled={cannotMove || !canMoveDown(params.row)}
                     onDelete={() => onDelete(params.row)}
                   />
                 );
@@ -278,8 +265,9 @@ export const useCategoryColumns = ({
       onOpenExplanation,
       onMoveUp,
       onMoveDown,
+      canMoveUp,
+      canMoveDown,
       moveDisabled,
-      sortedRows,
       editingRowId,
     ]
   );

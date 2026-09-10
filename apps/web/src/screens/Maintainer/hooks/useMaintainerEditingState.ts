@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { isTemporaryRowId } from "../utils/temporaryRowId";
 
 interface ModalState {
   open: boolean;
@@ -64,7 +65,7 @@ export const useMaintainerEditingState = ({
   );
 
   // --- Utility ---
-  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+  const isNewRow = useCallback((id: string) => isTemporaryRowId(id), []);
 
   return {
     editingRowId,

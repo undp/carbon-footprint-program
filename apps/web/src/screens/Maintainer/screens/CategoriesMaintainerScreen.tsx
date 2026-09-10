@@ -20,11 +20,7 @@ import {
   useSwapCategoryPositions,
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import {
-  useCategoriesForm,
-  toFormCategory,
-  type CategoriesFormValues,
-} from "../hooks/useCategoriesForm";
+import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
 import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
@@ -36,6 +32,10 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
+import {
+  createTemporaryRowId,
+  isTemporaryRowId,
+} from "../utils/temporaryRowId";
 import {
   EditModeToolbar,
   EDIT_MODE_TOOLBAR_HEIGHT,
@@ -138,8 +138,6 @@ export const CategoriesMaintainerScreen: FC = () => {
     toFormData,
   });
 
-  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
-
   // --- Row editing callbacks ---
 
   const handleStopEditRow = useCallback(async (): Promise<boolean> => {
@@ -158,7 +156,7 @@ export const CategoriesMaintainerScreen: FC = () => {
       return false;
     }
 
-    if (row && isNewRow(row.id)) {
+    if (row && isTemporaryRowId(row.id)) {
       if (!row.icon) return false;
       try {
         // No position is sent: the server appends the category after the last
@@ -227,7 +225,6 @@ export const CategoriesMaintainerScreen: FC = () => {
     editingRowId,
     methodologyVersionId,
     form,
-    isNewRow,
     addMutation,
     fieldArray,
     updateMutation,
@@ -241,7 +238,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     const rows = form.getValues("categories");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
 
-    if (isNewRow(editingRowId)) {
+    if (isTemporaryRowId(editingRowId)) {
       if (rowIndex !== -1) fieldArray.remove(rowIndex);
     } else {
       const original = categories?.find(({ id }) => id === editingRowId);
@@ -252,7 +249,7 @@ export const CategoriesMaintainerScreen: FC = () => {
 
     form.reset({ categories: form.getValues("categories") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, categories, setEditingRowId]);
+  }, [editingRowId, form, fieldArray, categories, setEditingRowId]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -266,7 +263,7 @@ export const CategoriesMaintainerScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
-    const tempId = `temp_${Date.now()}`;
+    const tempId = createTemporaryRowId();
     const newRow: CategoryForm = {
       id: tempId,
       name: "",
@@ -293,7 +290,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           if (editingRowId === row.id) {
             setEditingRowId(null);
           }
-          if (!isNewRow(row.id)) {
+          if (!isTemporaryRowId(row.id)) {
             await deleteMutation.mutateAsync(row.id);
           }
           fieldArray.remove(index);
@@ -314,7 +311,6 @@ export const CategoriesMaintainerScreen: FC = () => {
       form,
       fieldArray,
       editingRowId,
-      isNewRow,
       deleteMutation,
       enqueueSnackbar,
       setEditingRowId,
@@ -327,13 +323,17 @@ export const CategoriesMaintainerScreen: FC = () => {
     [swapMutation]
   );
 
-  const { handleMoveUp, handleMoveDown, isMoveBlocked } =
-    useMaintainerRowReorder<CategoriesFormValues, CategoryForm>({
-      form,
-      fieldName: "categories",
-      swap: swapCategories,
-      errorMessage: "Error al mover categoría",
-    });
+  const {
+    handleMoveUp,
+    handleMoveDown,
+    canMoveUp,
+    canMoveDown,
+    isMoveBlocked,
+  } = useMaintainerRowReorder<CategoryForm>({
+    rows: currentRows,
+    swap: swapCategories,
+    errorMessage: "Error al mover categoría",
+  });
 
   // --- Exit edit mode ---
 
@@ -372,7 +372,7 @@ export const CategoriesMaintainerScreen: FC = () => {
       handleCellChange(rowIndex, "explanation", value);
 
       const row = form.getValues(`categories.${rowIndex}`);
-      if (row && !isNewRow(row.id)) {
+      if (row && !isTemporaryRowId(row.id)) {
         try {
           await updateMutation.mutateAsync({
             id: row.id,
@@ -392,19 +392,12 @@ export const CategoriesMaintainerScreen: FC = () => {
         }
       }
     },
-    [
-      explanationModal,
-      handleCellChange,
-      form,
-      isNewRow,
-      updateMutation,
-      enqueueSnackbar,
-    ]
+    [explanationModal, handleCellChange, form, updateMutation, enqueueSnackbar]
   );
 
   // --- Scroll to top when a new row is added (the new row is prepended). ---
   useEffect(() => {
-    if (!editingRowId?.startsWith("temp_")) return;
+    if (!editingRowId || !isTemporaryRowId(editingRowId)) return;
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -429,6 +422,8 @@ export const CategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
+    canMoveUp,
+    canMoveDown,
     moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
   });

@@ -14,7 +14,6 @@ import { useMeasurementUnits } from "@/api/query";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
-  type SubcategoriesFormValues,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
@@ -27,6 +26,10 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
+import {
+  createTemporaryRowId,
+  isTemporaryRowId,
+} from "../utils/temporaryRowId";
 
 /** Positions are unique per category, not across the whole grid. */
 const getSubcategoryCategoryId = (row: SubcategoryForm) => row.categoryId;
@@ -240,7 +243,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
-    const tempId = `temp_${Date.now()}`;
+    const tempId = createTemporaryRowId();
     const newRow: SubcategoryForm = {
       id: tempId,
       categoryId: "",
@@ -300,14 +303,18 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     [swapMutation]
   );
 
-  const { handleMoveUp, handleMoveDown, isMoveBlocked } =
-    useMaintainerRowReorder<SubcategoriesFormValues, SubcategoryForm>({
-      form,
-      fieldName: "subcategories",
-      groupBy: getSubcategoryCategoryId,
-      swap: swapSubcategories,
-      errorMessage: "Error al mover sub-categoría",
-    });
+  const {
+    handleMoveUp,
+    handleMoveDown,
+    canMoveUp,
+    canMoveDown,
+    isMoveBlocked,
+  } = useMaintainerRowReorder<SubcategoryForm>({
+    rows: currentRows,
+    groupBy: getSubcategoryCategoryId,
+    swap: swapSubcategories,
+    errorMessage: "Error al mover sub-categoría",
+  });
 
   // --- Exit edit mode ---
   const { handleExitEditMode } = useMaintainerExitEditMode({
@@ -376,7 +383,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
 
   // --- Scroll to top when a new row is added (the new row is prepended). ---
   useEffect(() => {
-    if (!editingRowId?.startsWith("temp_")) return;
+    if (!editingRowId || !isTemporaryRowId(editingRowId)) return;
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -401,6 +408,8 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
+    canMoveUp,
+    canMoveDown,
     moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
     categories: categoryOptions,
