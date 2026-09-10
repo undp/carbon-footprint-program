@@ -77,16 +77,19 @@ export const getEmissionFactorsService = async (
         },
       },
     },
-    // No subcategory status filter above: a soft-deleted subcategory keeps its
-    // ACTIVE lines, so DELETED rows are in scope. Positions are unique only
-    // among non-DELETED ones, so a DELETED row can share a position with an
-    // active one — `id` breaks the tie deterministically, as in
-    // fetchCategoryData. The line's own `id` closes the last one: every line of
-    // the same subcategory ties on all of the keys above, and without a total
-    // order Postgres returns heap order, so editing one line reshuffles the
-    // report on the next fetch.
+    // No category or subcategory status filter above: a soft-deleted row of
+    // either level keeps its ACTIVE lines, so DELETED rows are in scope.
+    // Positions are unique only among non-DELETED ones, so a DELETED row can
+    // share a position with an active one — `id` breaks both ties
+    // deterministically, as in fetchCategoryData. The category key is what
+    // keeps the subcategories of two categories sharing a position from
+    // interleaving in the report. The line's own `id` closes the last one:
+    // every line of the same subcategory ties on all of the keys above, and
+    // without a total order Postgres returns heap order, so editing one line
+    // reshuffles the report on the next fetch.
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
+      { subcategory: { category: { id: "asc" } } },
       { subcategory: { position: "asc" } },
       { subcategory: { id: "asc" } },
       { id: "asc" },

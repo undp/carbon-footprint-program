@@ -75,13 +75,18 @@ export const getAllEmissionFactorsService = async (
       },
     },
     where: whereClause,
-    // `id` closes both ties the position keys leave open: a DELETED subcategory
-    // can share a position with an active one (the unique index is partial),
-    // and every factor of the same subcategory ties on all of the keys above.
-    // Without a total order Postgres returns heap order, so editing one factor
-    // moves its tuple and reshuffles the grid on the next refetch.
+    // `id` closes all three ties the position keys leave open: a DELETED
+    // category and a DELETED subcategory can each share a position with an
+    // active one (both unique indexes are partial, and neither status is
+    // filtered here), and every factor of the same subcategory ties on all of
+    // the keys above. The category key matters most: without it the
+    // subcategories of two categories sharing a position interleave, so the
+    // grid shows two categories woven together. Without a total order Postgres
+    // returns heap order, so editing one factor moves its tuple and reshuffles
+    // the grid on the next refetch.
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
+      { subcategory: { category: { id: "asc" } } },
       { subcategory: { position: "asc" } },
       { subcategory: { id: "asc" } },
       { id: "asc" },

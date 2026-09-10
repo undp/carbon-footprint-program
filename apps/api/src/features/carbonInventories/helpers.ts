@@ -181,7 +181,12 @@ export async function fetchCategoryData(
             orderBy: [{ position: "asc" }, { id: "asc" }],
           },
         },
-        orderBy: { position: "asc" },
+        // Same tie one level up, and for the same reason: this select filters
+        // no category status either — a DELETED category that still holds
+        // captured lines has to keep counting — and `deleteCategory` repacks
+        // the survivors, so the soft-deleted row keeps a position an active one
+        // now occupies.
+        orderBy: [{ position: "asc" }, { id: "asc" }],
       },
     },
   });
