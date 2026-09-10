@@ -15,11 +15,11 @@
 - [x] 2.6 Add `applied_factor_year` and backfill it from each linked `emission_factor`. Do not recompute or overwrite existing applied value, unit, source or result snapshots.
 - [x] 2.7 Run the migration on both a current-data database and a fresh seeded database. Verify: different years succeed; different sources in the same year succeed; different families succeed; the same source/year/family under compatible exact units is rejected; null dimensions/year cannot bypass uniqueness.
 
-- [ ] 2.8 Before the migration soft-deletes a retired same-family representation, re-point every `carbon_inventory_line_factor.emission_factor_id` that references it at the surviving canonical factor. A line left on a `DELETED` factor keeps its snapshots but loses its saved selection, because the methodology payload returns only ACTIVE factors and task 7.7 restores the choice by ID.
+- [x] 2.8 Before the migration soft-deletes a retired same-family representation, re-point every `carbon_inventory_line_factor.emission_factor_id` that references it at the surviving canonical factor. A line left on a `DELETED` factor keeps its snapshots but loses its saved selection, because the methodology payload returns only ACTIVE factors and task 7.7 restores the choice by ID.
 
 - [ ] 2.9 Key the partial unique index on `lower("source")` rather than the raw column, so two spellings of one provider cannot become two identities. Normalize existing `source` values (trim, collapse inner whitespace) in the same migration, before the index is created.
 
-- [ ] 2.10 Retire the duplicate same-family representations the unit-family audit lists, before the unique index of 2.5 is created: keep the canonical `kg/ton` row, soft-delete its compatible `kg/kg` twin and re-point the references as in 2.8. Section 2 has no other step that removes a collision, so `CREATE UNIQUE INDEX` would run while every audited group is still present and fail on real data.
+- [x] 2.10 Retire the duplicate same-family representations the unit-family audit lists, before the unique index of 2.5 is created: keep the canonical `kg/ton` row, soft-delete its compatible `kg/kg` twin and re-point the references as in 2.8. Without it `CREATE UNIQUE INDEX` would run while every audited group is still present and fail on real data. Scope is now 35 groups across seven industrial-process subcategories — Ferroaleaciones y otros metales, Vidrio, Acero, Cal, Cinc, Aluminio and Cemento — not the 16 across four the first audit listed. The migration finds them from the data, not from a list of names, so the wider scope needs no change to the step itself.
 
 ## 3. Shared schemas and request contracts
 
@@ -57,7 +57,7 @@
 - [x] 6.5 Update saved-line reads and `getEmissionFactors/service.ts` to return `emissionFactorId`/base factor ID and `appliedFactorYear`, so reload restores the exact catalog choice and warning state can be derived.
 - [x] 6.6 Update `duplicateCarbonInventory/service.ts` to copy `appliedFactorYear` with the other immutable snapshots. Updating `carbon_inventory.year` SHALL NOT rewrite factors or results and SHALL NOT invoke a bulk resolution path.
 
-- [ ] 6.7 Reject a sync request whose `inputType` contradicts its factor variant: `DIRECT` only with `DIRECT`, `SIMPLIFIED` and `EXPERT` only with `CATALOG` or `CUSTOM`. Keep `inputType` as the capture-mode field; do not derive the variant from it or the reverse.
+- [x] 6.7 Reject a sync request whose `inputType` contradicts its factor variant: `DIRECT` only with `DIRECT`, `SIMPLIFIED` and `EXPERT` only with `CATALOG` or `CUSTOM`. Keep `inputType` as the capture-mode field; do not derive the variant from it or the reverse.
 
 - [ ] 6.8 Validate that the requested applied rate unit's denominator measurement unit equals the line's `measurementUnitId`, not only that the magnitude families match. `kg/kg` against a quantity captured in `ton` passes a family-only check and yields a result off by 1000.
 
