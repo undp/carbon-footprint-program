@@ -30,6 +30,13 @@ interface UseSubcategoryColumnsParams {
   onConfigureVariables?: (rowId: string) => void;
   onMoveUp: (row: SubcategoryForm) => void;
   onMoveDown: (row: SubcategoryForm) => void;
+  /**
+   * Reorder is off while the form is not in server order — see
+   * `isMoveBlocked` in useMaintainerRowReorder. The arrows are computed from
+   * `position`, the grid renders in form-array order, and the two only agree
+   * once the listing refetch has been replayed into the form.
+   */
+  moveDisabled: boolean;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -47,6 +54,7 @@ export const useSubcategoryColumns = ({
   onConfigureVariables,
   onMoveUp,
   onMoveDown,
+  moveDisabled,
   rows,
   categories,
   allMeasurementUnits,
@@ -314,7 +322,7 @@ export const useSubcategoryColumns = ({
           const siblingIdx = siblings.findIndex((r) => r.id === rowId);
           const isFirstInCategory = siblingIdx === 0;
           const isLastInCategory = siblingIdx === siblings.length - 1;
-          const cannotMove = anyEditing || isNewRow || !formRow;
+          const cannotMove = anyEditing || isNewRow || !formRow || moveDisabled;
 
           return (
             <ActionButtons
@@ -355,6 +363,7 @@ export const useSubcategoryColumns = ({
       onConfigureVariables,
       onMoveUp,
       onMoveDown,
+      moveDisabled,
       siblingsByCategory,
     ]
   );

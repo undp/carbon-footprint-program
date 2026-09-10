@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useSnackbar } from "notistack";
 import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
@@ -26,6 +26,12 @@ interface UseMaintainerRowReorderOptions<
   swap: (rowId: string, neighborId: string) => Promise<unknown>;
   /** Snackbar fallback when the swap fails. */
   errorMessage: string;
+  /**
+   * True while the listing this form mirrors is refetching. The form is only
+   * in server order once that refetch has been replayed into it, so a move
+   * decided before then would read stale positions — see `isMoveBlocked`.
+   */
+  isSyncing?: boolean;
 }
 
 const isNewRow = (rowId: string) => rowId.startsWith("temp_");
@@ -38,6 +44,13 @@ const isNewRow = (rowId: string) => rowId.startsWith("temp_");
  * local reorder would be a second writer for the same rows — and the wrong one
  * whenever the form array is not in server order, which is the case right
  * after a row is created (it is prepended, but the server appends it last).
+ *
+ * The cost of not painting locally is that the form keeps the pre-move
+ * positions until the refetch lands, so every move taken from stale positions
+ * has to be refused: a second click on the same arrow would send the same pair
+ * again and swap it straight back. `isMoveBlocked` covers both halves of that
+ * window — the in-flight swap here, and the refetch the caller reports through
+ * `isSyncing` — and callers disable the arrows with it.
  */
 export const useMaintainerRowReorder = <
   TFormValues extends FieldValues,
@@ -48,13 +61,20 @@ export const useMaintainerRowReorder = <
   groupBy,
   swap,
   errorMessage,
+  isSyncing = false,
 }: UseMaintainerRowReorderOptions<TFormValues, TRow>) => {
   const { enqueueSnackbar } = useSnackbar();
+  const [isSwapping, setIsSwapping] = useState(false);
+  // The arrows are disabled off `isSwapping`, but a second click can still be
+  // dispatched before that re-render, so the guard the move itself reads is a
+  // ref.
+  const isSwappingRef = useRef(false);
 
   const handleMove = useCallback(
     async (row: TRow, direction: "up" | "down") => {
       // A row that is not on the server yet has no position to swap.
       if (isNewRow(row.id)) return;
+      if (isSwappingRef.current) return;
 
       const rows = form.getValues(fieldName) as TRow[];
       const groupKey = groupBy?.(row);
@@ -72,6 +92,8 @@ export const useMaintainerRowReorder = <
       const neighbor = siblings[direction === "up" ? index - 1 : index + 1];
       if (!neighbor || isNewRow(neighbor.id)) return;
 
+      isSwappingRef.current = true;
+      setIsSwapping(true);
       try {
         await swap(row.id, neighbor.id);
       } catch (error) {
@@ -79,6 +101,9 @@ export const useMaintainerRowReorder = <
           message: getApiErrorMessage(error, errorMessage),
           variant: "error",
         });
+      } finally {
+        isSwappingRef.current = false;
+        setIsSwapping(false);
       }
     },
     [form, fieldName, groupBy, swap, errorMessage, enqueueSnackbar]
@@ -94,5 +119,9 @@ export const useMaintainerRowReorder = <
     [handleMove]
   );
 
-  return { handleMoveUp, handleMoveDown };
+  return {
+    handleMoveUp,
+    handleMoveDown,
+    isMoveBlocked: isSwapping || isSyncing,
+  };
 };

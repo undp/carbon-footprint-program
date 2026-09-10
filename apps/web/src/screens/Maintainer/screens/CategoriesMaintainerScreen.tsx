@@ -72,6 +72,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     data: categories,
     isLoading,
     isError: isErrorCategories,
+    isFetching: isFetchingCategories,
   } = useCategories(methodologyVersionId);
 
   // --- Form & editing state ---
@@ -321,15 +322,14 @@ export const CategoriesMaintainerScreen: FC = () => {
     [swapMutation]
   );
 
-  const { handleMoveUp, handleMoveDown } = useMaintainerRowReorder<
-    CategoriesFormValues,
-    CategoryForm
-  >({
-    form,
-    fieldName: "categories",
-    swap: swapCategories,
-    errorMessage: "Error al mover categoría",
-  });
+  const { handleMoveUp, handleMoveDown, isMoveBlocked } =
+    useMaintainerRowReorder<CategoriesFormValues, CategoryForm>({
+      form,
+      fieldName: "categories",
+      swap: swapCategories,
+      errorMessage: "Error al mover categoría",
+      isSyncing: isFetchingCategories,
+    });
 
   // --- Exit edit mode ---
 
@@ -425,6 +425,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
+    moveDisabled: isMoveBlocked,
     rows: currentRows,
   });
 
