@@ -15,7 +15,11 @@ import {
   SubcategoryPositionAlreadyExistsError,
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { lockCategory, lockSubcategories } from "../helpers.js";
+import {
+  getNextSubcategoryPosition,
+  lockCategory,
+  lockSubcategories,
+} from "../helpers.js";
 import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const swapSubcategoryPositionsService = async (
@@ -118,14 +122,9 @@ export const swapSubcategoryPositionsService = async (
       const positionA = lockedA.position;
       const positionB = lockedB.position;
 
-      const aggregate = await tx.subcategory.aggregate({
-        where: {
-          categoryId,
-          status: { not: SubcategoryStatus.DELETED },
-        },
-        _max: { position: true },
-      });
-      const tempPosition = (aggregate._max.position ?? 0) + 1;
+      // Same slot a create would claim, which is why the category is locked
+      // above.
+      const tempPosition = await getNextSubcategoryPosition(tx, categoryId);
 
       // Step 1: move A out of the way
       await tx.subcategory.update({
