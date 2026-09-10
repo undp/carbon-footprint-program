@@ -196,13 +196,10 @@ export const syncCarbonInventoryLinesService = async (
       const lineId = BigInt(updateItem.id);
       updatedLineIds.push(lineId);
 
-      // Mark old active input as inactive
-      await tx.carbonInventoryLineInput.updateMany({
-        where: { lineId, isActive: true },
-        data: { isActive: false, updatedById: userId },
-      });
-
       const inputType = updateItem.inputType;
+      // Resolved before the old input is superseded: an UNCHANGED selection
+      // reads its snapshot from that very input, so deactivating it first would
+      // leave nothing to carry forward.
       const resolvedFactor = await resolveFactorSelection(
         tx,
         updateItem,
@@ -210,8 +207,15 @@ export const syncCarbonInventoryLinesService = async (
         // Present for every update id: the validation above throws
         // LineNotFoundError for anything missing from the stored lines and
         // fills this map for the rest.
-        subcategoryIdByLineId.get(updateItem.id)!
+        subcategoryIdByLineId.get(updateItem.id)!,
+        lineId
       );
+
+      // Mark old active input as inactive
+      await tx.carbonInventoryLineInput.updateMany({
+        where: { lineId, isActive: true },
+        data: { isActive: false, updatedById: userId },
+      });
       const newInput = await createLineInput(
         tx,
         lineId,
