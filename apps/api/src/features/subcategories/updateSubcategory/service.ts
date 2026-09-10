@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient, type Prisma } from "@repo/database";
 import {
   CategoryStatus,
   SubcategoryStatus,
@@ -9,13 +9,14 @@ import {
 } from "@repo/types";
 import {
   SubcategoryNotFoundError,
-  SubcategoryNameAlreadyExistsError,
-  SubcategoryPositionAlreadyExistsError,
   CategoryNotFoundForSubcategoryError,
   CategoryFromDifferentMethodologyError,
 } from "../errors.js";
-import { getNextSubcategoryPosition, lockCategory } from "../helpers.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import {
+  getNextSubcategoryPosition,
+  lockCategory,
+  rethrowSubcategoryUniqueViolation,
+} from "../helpers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const updateSubcategoryService = async (
@@ -161,23 +162,6 @@ export const updateSubcategoryService = async (
 
     return result;
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        // Substring match for the same reason as createSubcategory: the helper
-        // yields column names on some Prisma/adapter versions and the index
-        // name on others, and an exact match turns these 409s into 500s.
-        if (duplicatedFields.some((field) => field.includes("position"))) {
-          // The destination category is locked before the position is
-          // computed, so a collision here means a position was written
-          // outside that path.
-          throw new SubcategoryPositionAlreadyExistsError();
-        }
-        if (duplicatedFields.some((field) => field.includes("name"))) {
-          throw new SubcategoryNameAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowSubcategoryUniqueViolation(error);
   }
 };

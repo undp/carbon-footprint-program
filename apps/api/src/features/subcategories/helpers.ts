@@ -1,5 +1,44 @@
 import { Prisma } from "@repo/database";
 import { CategoryStatus, SubcategoryStatus } from "@repo/types";
+import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import {
+  SubcategoryNameAlreadyExistsError,
+  SubcategoryPositionAlreadyExistsError,
+} from "./errors.js";
+
+/**
+ * Rethrows a subcategory write failure, turning a unique violation into its
+ * 409. Always throws, so the whole `catch` body is one call.
+ *
+ * The field match is by substring, like createEmissionFactorDimension:
+ * depending on the Prisma/adapter version `getDuplicatedFieldsFromP2002Error`
+ * yields either the column names or the index name, and an exact match
+ * silently turns these 409s into 500s (that arm was dead for months on the
+ * dimension service). The two index names are disjoint on these substrings.
+ *
+ * A position collision is not something a client can cause: every position is
+ * either read from a locked row or computed as MAX + 1 under the parent
+ * category lock, so it means a position was written outside that path (seed
+ * data, a manual fix). It is still surfaced as a 409 rather than a 500 because
+ * the row that is in the way is the actionable part.
+ */
+export function rethrowSubcategoryUniqueViolation(error: unknown): never {
+  if (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002"
+  ) {
+    const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
+
+    if (duplicatedFields.some((field) => field.includes("position"))) {
+      throw new SubcategoryPositionAlreadyExistsError();
+    }
+    if (duplicatedFields.some((field) => field.includes("name"))) {
+      throw new SubcategoryNameAlreadyExistsError();
+    }
+  }
+
+  throw error;
+}
 
 interface LockedCategoryRow {
   status: CategoryStatus;

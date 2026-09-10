@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   SubcategoryStatus,
@@ -7,13 +7,12 @@ import {
   type CreateSubcategoryRequest,
   type CreateSubcategoryResponse,
 } from "@repo/types";
+import { CategoryNotFoundForSubcategoryError } from "../errors.js";
 import {
-  CategoryNotFoundForSubcategoryError,
-  SubcategoryNameAlreadyExistsError,
-  SubcategoryPositionAlreadyExistsError,
-} from "../errors.js";
-import { getNextSubcategoryPosition, lockCategory } from "../helpers.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+  getNextSubcategoryPosition,
+  lockCategory,
+  rethrowSubcategoryUniqueViolation,
+} from "../helpers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const createSubcategoryService = async (
@@ -97,25 +96,6 @@ export const createSubcategoryService = async (
     });
     return result;
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        // Substring match, like createEmissionFactorDimension: depending on the
-        // Prisma/adapter version the helper yields either the column names or
-        // the index name, and an exact match silently turns these 409s into
-        // 500s (that arm was dead for months on the dimension service). The two
-        // index names are disjoint on these substrings.
-        if (duplicatedFields.some((field) => field.includes("position"))) {
-          // The category is locked before the position is computed, so a
-          // collision here means a position was written outside that path
-          // (seed data, a manual fix). Surfaced as a 409 rather than a 500.
-          throw new SubcategoryPositionAlreadyExistsError();
-        }
-        if (duplicatedFields.some((field) => field.includes("name"))) {
-          throw new SubcategoryNameAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowSubcategoryUniqueViolation(error);
   }
 };

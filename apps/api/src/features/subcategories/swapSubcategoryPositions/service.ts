@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   SubcategoryStatus,
@@ -12,15 +12,14 @@ import {
   SameSubcategoryError,
   SubcategoriesFromDifferentCategoriesError,
   CategoryNotFoundForSubcategoryError,
-  SubcategoryPositionAlreadyExistsError,
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
   getNextSubcategoryPosition,
   lockCategory,
   lockSubcategories,
+  rethrowSubcategoryUniqueViolation,
 } from "../helpers.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
 
 export const swapSubcategoryPositionsService = async (
   prismaClient: PrismaClient,
@@ -158,22 +157,6 @@ export const swapSubcategoryPositionsService = async (
       ],
     };
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        // Substring match for the same reason as createSubcategory: the helper
-        // yields column names on some Prisma/adapter versions and the index
-        // name on others, and an exact match turns this 409 into a 500.
-        if (duplicatedFields.some((field) => field.includes("position"))) {
-          // Every position this service writes is either read from a locked
-          // row or computed as MAX + 1 under the category lock, so a collision
-          // means a position was written outside that path (seed data, a
-          // manual fix). Surfaced as a 409 rather than a 500, like the create
-          // and update services.
-          throw new SubcategoryPositionAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowSubcategoryUniqueViolation(error);
   }
 };
