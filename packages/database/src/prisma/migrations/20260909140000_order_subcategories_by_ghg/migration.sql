@@ -22,12 +22,21 @@
 -- is the same order and the same text the seed installs, not a hand-copy.
 --
 -- Positions are unique per category (partial unique index, excluding DELETED),
--- which is why this runs in three steps: parking every position 1000 higher
--- first means no intermediate state can collide, whatever order the rows are
--- rewritten in. Step 3 re-packs the subcategories a maintainer added locally --
--- they are not in the authored list, so they keep their relative order and land
--- after it. Nothing is inserted or deleted, and no captured inventory line, no
--- emission factor and no computed total is touched.
+-- which is why the position rewrite takes three steps (1-3 below): parking
+-- every position 1000 higher first means no intermediate state can collide,
+-- whatever order the rows are rewritten in. Step 3 re-packs the subcategories a
+-- maintainer added locally -- they are not in the authored list, so they keep
+-- their relative order and land after it. Step 4 is the unrelated half of the
+-- change: the Scope 3 descriptions. Nothing is inserted or deleted, and no
+-- captured inventory line, no emission factor and no computed total is touched.
+--
+-- This is the second migration that ships base-methodology content by hand
+-- (after 20260825150000_update_business_travel_transport_explanation), and every
+-- future content change needs a third. The duplication is the symptom: the fix
+-- is an idempotent path that lets the seed revisit the base methodology on an
+-- installed deployment (a per-entity gate instead of seed.ts's country-count
+-- gate), which would also make the position-parking dance unnecessary. Until
+-- that exists, content changes have to arrive as migrations like this one.
 
 -- ---------- 1. Park every position out of the way ----------
 
