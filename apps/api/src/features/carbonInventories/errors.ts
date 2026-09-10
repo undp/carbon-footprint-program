@@ -101,3 +101,33 @@ export const CarbonInventoryAlreadyHasOrganizationError = createError(
   "Carbon inventory %s already has an associated organization",
   422
 );
+
+export const CatalogEmissionFactorNotFoundError = createError(
+  "CATALOG_EMISSION_FACTOR_NOT_FOUND",
+  "The selected emission factor does not exist or is no longer active (ID: %s)",
+  404
+);
+
+export const CatalogEmissionFactorNotInMethodologyError = createError(
+  "CATALOG_EMISSION_FACTOR_NOT_IN_METHODOLOGY",
+  "The selected emission factor does not belong to this inventory's methodology or to the line's subcategory (ID: %s)",
+  422
+);
+
+export const CatalogEmissionFactorDimensionMismatchError = createError(
+  "CATALOG_EMISSION_FACTOR_DIMENSION_MISMATCH",
+  "The selected emission factor does not match the line's required dimension values (ID: %s)",
+  422
+);
+
+export const FactorSelectionInputTypeMismatchError = createError(
+  "FACTOR_SELECTION_INPUT_TYPE_MISMATCH",
+  "A %s factor selection cannot be saved on a line whose input type is %s",
+  422
+);
+
+export const CatalogEmissionFactorUnitFamilyMismatchError = createError(
+  "CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH",
+  "The requested applied rate unit is not convertible from the selected emission factor's unit family (factor ID: %s)",
+  422
+);

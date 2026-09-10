@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useCarbonInventory, useCarbonInventoryMethodology } from "@/api/query";
 import { EmissionCaptureMergedData } from "../types/EmissionCaptureTypes";
+import { resolveLegacyCatalogFactorId } from "../utils/legacyCatalogFactor";
 
 interface UseEmissionCaptureDataParams {
   inventoryId: string;
@@ -47,7 +48,17 @@ export const useEmissionCaptureData = ({
             lines: (inventorySubcategory?.lines || []).map((line) => ({
               ...line,
               lineId: line.id,
-              baseFactorId: null,
+              // Seeded from the saved snapshot so the selector reopens on the
+              // exact catalog factor the organization chose. Leaving it null
+              // would make the line look unselected and let the recommendation
+              // silently replace a deliberate choice. A line saved before the
+              // snapshot existed has no id to read, so its provider, value,
+              // unit and dimensions are matched back to the catalog instead —
+              // and left empty when they do not identify one factor.
+              baseFactorId: resolveLegacyCatalogFactorId(
+                line,
+                subcategory.emissionFactors
+              ),
               files: line.files ?? [],
               removedFileIds: [],
             })),

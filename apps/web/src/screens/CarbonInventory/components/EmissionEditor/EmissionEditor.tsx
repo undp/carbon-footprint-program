@@ -1,5 +1,5 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import { Box, Typography, Button, Collapse } from "@mui/material";
+import { Box, Typography, Button, Collapse, Alert } from "@mui/material";
 import { AddRounded } from "@mui/icons-material";
 import { EmissionEditorHeader } from "./EmissionEditorHeader";
 import { EmissionEditorGrid } from "./EmissionEditorGrid";
@@ -13,6 +13,10 @@ import {
   useEmissionSubcategoryTotal,
 } from "./hooks";
 import { SubcategoryWithLines } from "../../types/EmissionCaptureTypes";
+import {
+  buildFactorYearMismatchMessage,
+  summarizeFactorYearMismatches,
+} from "../../utils/factorYearMismatch";
 import { UsageMode } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 
@@ -21,6 +25,8 @@ interface EmissionEditorProps {
   subcategory: SubcategoryWithLines;
   categoryColor: string;
   inventoryId: string;
+  /** The footprint year the factor recommendation is ranked against. */
+  inventoryYear: number | null;
 }
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
@@ -28,6 +34,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
   subcategory,
   categoryColor,
   inventoryId,
+  inventoryYear,
 }) => {
   const { measurementUnits, rateMeasurementUnits, dimensions } =
     useEmissionEditorData({ subcategory });
@@ -39,7 +46,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     isTotalManualEmissionsModeActive,
     handleAddLine,
     handleCellChange,
-    handleFactorSourceChange,
+    handleFactorSelectionChange,
     handleDeleteLine,
     handleSetTotalEmission,
     handleSetManualMode,
@@ -47,6 +54,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     subcategory,
     emissionFactors: subcategory.emissionFactors,
     rateMeasurementUnits: rateMeasurementUnits || [],
+    inventoryYear,
   });
 
   const totalEmission = useEmissionSubcategoryTotal(subcategory.id);
@@ -74,7 +82,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
     categoryColor,
     inventoryUsageMode,
     onCellChange: handleCellChange,
-    onFactorSourceChange: handleFactorSourceChange,
+    onFactorSelectionChange: handleFactorSelectionChange,
     onDeleteLine: handleDeleteLine,
     onUpdateComment: openCommentDialog,
     onUploadFiles: (lineId) => setFilesDialog({ lineId: lineId.toString() }),
@@ -112,8 +120,22 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
       };
     }, [manualModeLine]);
 
+  // Derived from the rows on every render, so it follows a reload, a single
+  // factor edit and a change to the footprint year with no invalidation step —
+  // and it is informational only: nothing here gates saving, navigating or
+  // submitting, and no line is re-resolved because of it.
+  const factorYearMismatch = useMemo(
+    () => summarizeFactorYearMismatches(rows, inventoryYear),
+    [rows, inventoryYear]
+  );
+
   return (
     <Box className="bg-background flex flex-col gap-2 rounded-lg p-2">
+      {factorYearMismatch && (
+        <Alert severity="warning" variant="outlined">
+          {buildFactorYearMismatchMessage(factorYearMismatch)}
+        </Alert>
+      )}
       <EmissionEditorHeader
         name={subcategory.name}
         description={subcategory.description}
