@@ -49,7 +49,8 @@ const groupByCategory = (
   }
   // Insertion order, not alphabetical: the options come in the API's order —
   // category position, then subcategory position — and re-sorting by name only
-  // looked right while the categories were called "Alcance 1/2/3".
+  // looked right while the categories were called "Alcance 1/2/3". Callers
+  // therefore have to pass rows in that order, never a relevance-ranked list.
   return [...map.entries()].map(([categoryName, items]) => ({
     categoryName,
     items,
@@ -84,9 +85,22 @@ const SubcategoryTransferListDialogContent: FC<
     fuseOptions: { keys: ["name", "categoryName"] },
   });
 
-  const groupedAvailable = useMemo(
-    () => groupByCategory(filteredAvailable),
+  // Fuse ranks its results by score, and groupByCategory reads the order it is
+  // given, so grouping the results directly reordered the categories — and the
+  // items inside them — on every debounce tick. The search is used as a filter
+  // set instead, and the order is read off `availableItems`, which is still in
+  // the API's.
+  const matchedAvailableIds = useMemo(
+    () => new Set(filteredAvailable.map((sc) => sc.id)),
     [filteredAvailable]
+  );
+
+  const groupedAvailable = useMemo(
+    () =>
+      groupByCategory(
+        availableItems.filter((sc) => matchedAvailableIds.has(sc.id))
+      ),
+    [availableItems, matchedAvailableIds]
   );
 
   const groupedSelected = useMemo(() => {
