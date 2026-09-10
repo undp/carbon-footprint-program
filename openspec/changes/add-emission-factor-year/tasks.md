@@ -1,3 +1,11 @@
+> **What a checked box means here.** These boxes track the change, not this pull
+> request. This is the planning PR and carries no implementation of its own, so a
+> `[x]` means the work has landed on one of the implementation branches — schema,
+> server authority, or selection — and an unchecked box means no branch has done
+> it yet. Nothing is checked on the strength of the plan alone. Because of that,
+> `openspec status` will report this change complete before the chain merges, and
+> it is archivable only once those PRs are in `main`.
+
 ## 1. Confirm and prepare catalog data
 
 - [x] 1.1 Produce a reviewed mapping for every existing factor with explicit `source` and reporting `year` (`integer` or confirmed `null`). A missing suffix SHALL remain an error until classified; do not infer that `IPCC` or `Kool, A.` is transversal from its name alone.
