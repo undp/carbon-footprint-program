@@ -10,6 +10,7 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { SwapCategoryPositionsResponse } from "@repo/types";
 import { CategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -108,6 +109,46 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
 
       expect(dbCatA!.position).toBe(3);
       expect(dbCatB!.position).toBe(1);
+    });
+
+    it("should stamp the acting user on both swapped categories", async () => {
+      const user = await getTestLoggedUser(prisma);
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Audit",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const catA = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Audit A",
+        position: 1,
+      });
+      const catB = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Audit B",
+        position: 2,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/categories/swap-positions",
+        payload: {
+          categoryIdA: catA.id.toString(),
+          categoryIdB: catB.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      const [dbCatA, dbCatB] = await Promise.all([
+        prisma.category.findUniqueOrThrow({ where: { id: catA.id } }),
+        prisma.category.findUniqueOrThrow({ where: { id: catB.id } }),
+      ]);
+
+      // updatedAt is bumped by Prisma on any write; without the actor next to
+      // it the row claims it was last touched by whoever edited it before.
+      expect(dbCatA.updatedById).toBe(user.id);
+      expect(dbCatB.updatedById).toBe(user.id);
+      expect(dbCatA.updatedAt).not.toBeNull();
+      expect(dbCatB.updatedAt).not.toBeNull();
     });
 
     it("should not affect other categories in the same methodology version", async () => {
