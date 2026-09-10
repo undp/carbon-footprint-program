@@ -106,7 +106,17 @@ const formatYearList = (years: number[]): string => {
 export const buildFactorYearMismatchMessage = (
   summary: NonNullable<FactorYearMismatchSummary>
 ): string => {
+  // Every piece agrees with what it counts: the noun with the eligible lines,
+  // the verb with the affected ones, and the factor phrase with how many
+  // vintages are involved. "1 de 1 línea … usan factores de 2020" otherwise.
   const lineWord = summary.eligibleCount === 1 ? "línea" : "líneas";
+  const verb = summary.affectedCount === 1 ? "usa" : "usan";
+  const hasSingleYear = summary.mismatchedYears.length === 1;
+  const years = formatYearList(summary.mismatchedYears);
+  const factorPhrase = hasSingleYear
+    ? `el factor de ${years}`
+    : `factores de ${years}`;
+  const differentWord = hasSingleYear ? "distinto" : "distintos";
 
-  return `${summary.affectedCount} de ${summary.eligibleCount} ${lineWord} con factor de catálogo fechado usan factores de ${formatYearList(summary.mismatchedYears)}, distintos del año ${summary.inventoryYear} de la huella. Los cálculos no fueron modificados; revisa las fuentes si corresponde.`;
+  return `${summary.affectedCount} de ${summary.eligibleCount} ${lineWord} con factor de catálogo fechado ${verb} ${factorPhrase}, ${differentWord} del año ${summary.inventoryYear} de la huella. Los cálculos no fueron modificados; revisa las fuentes si corresponde.`;
 };
