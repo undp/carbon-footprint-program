@@ -74,7 +74,7 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
-    await cleanupTestCategories(prisma);
+    await cleanupTestCategories(prisma, ["Test - Tie Break"]);
   });
 
   /** Flattens the nested category → subcategory response into a single list. */

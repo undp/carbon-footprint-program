@@ -48,7 +48,10 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
-    await cleanupTestCategories(prisma);
+    await cleanupTestCategories(prisma, [
+      "Test - Deleted Category",
+      "Test - Subcategory Ordering",
+    ]);
   });
 
   describe("Successful retrieval", () => {

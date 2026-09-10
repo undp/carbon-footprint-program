@@ -42,7 +42,7 @@ export async function createTestCategory(
 }
 
 /**
- * Drops every category this factory's default naming leaves behind.
+ * Drops the categories whose names start with one of `namePrefixes`.
  *
  * Tests that assert an order have to author positions on the seeded
  * methodology, which is the one the rest of the file reads. Cleaning up on the
@@ -51,12 +51,22 @@ export async function createTestCategory(
  * to every test that follows in the same file. Call this from an `afterEach`
  * instead.
  *
- * Cascades to subcategories and their inventory lines, like a single delete.
+ * The prefixes are the caller's own, never the factory's shared `Test - `: the
+ * suite runs with `fileParallelism` and one shared database (see
+ * `apps/api/vitest.config.ts` and `test/setup/globalSetup.ts`), so deleting by
+ * the shared prefix would drop categories another test file created seconds
+ * ago — and this is a hard delete that cascades to subcategories and their
+ * inventory lines, like a single delete does.
  */
 export async function cleanupTestCategories(
-  prisma: PrismaClient
+  prisma: PrismaClient,
+  namePrefixes: string[]
 ): Promise<void> {
   await prisma.category.deleteMany({
-    where: { name: { startsWith: "Test - " } },
+    where: {
+      OR: namePrefixes.map((namePrefix) => ({
+        name: { startsWith: namePrefix },
+      })),
+    },
   });
 }

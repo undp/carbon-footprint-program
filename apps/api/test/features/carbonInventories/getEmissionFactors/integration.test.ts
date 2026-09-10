@@ -165,7 +165,7 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
     await prisma.carbonInventoryLineFactor.deleteMany({});
     await prisma.emissionFactor.deleteMany({});
     await cleanupCarbonInventoryTestData(prisma);
-    await cleanupTestCategories(prisma);
+    await cleanupTestCategories(prisma, ["Test - EF Order"]);
   });
 
   describe("Successful retrieval", () => {
