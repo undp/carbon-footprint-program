@@ -22,6 +22,7 @@ export const swapCategoryPositionsRoute = defineRoute<{
       201: SwapCategoryPositionsResponseSchema,
       400: ApiErrorResponseSchema,
       404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
       422: ApiErrorResponseSchema,
     },
   },

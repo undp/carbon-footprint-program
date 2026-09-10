@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   MethodologyVersionStatus,
@@ -7,12 +7,11 @@ import {
   type CreateCategoryResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
+import { MethodologyVersionNotFoundForCategoryError } from "../errors.js";
 import {
-  CategoryNameAlreadyExistsError,
-  CategoryPositionAlreadyExistsError,
-  MethodologyVersionNotFoundForCategoryError,
-} from "../errors.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+  lockMethodologyVersion,
+  rethrowCategoryUniqueViolation,
+} from "../helpers.js";
 
 export const createCategoryService = async (
   prismaClient: PrismaClient,
@@ -21,16 +20,22 @@ export const createCategoryService = async (
 ): Promise<CreateCategoryResponse> => {
   try {
     const category = await prismaClient.$transaction(async (tx) => {
-      // Validate methodology version exists and is not deleted
-      const methodologyVersion = await tx.methodologyVersion.findUnique({
-        where: {
-          id: BigInt(data.methodologyVersionId),
-          status: { not: MethodologyVersionStatus.DELETED },
-        },
-        select: { id: true, status: true },
-      });
+      // Locked, not just validated: `position` comes from the request and is
+      // checked against the same partial unique index the reorder's temporary
+      // position is, so the two writers queue on the parent instead of both
+      // claiming the same slot. Reading the status off the locked row also
+      // closes the window where a concurrent soft-delete of the methodology
+      // version would leave an ACTIVE category hanging off a DELETED parent —
+      // the same reason lockCategory exists one level down.
+      const methodologyVersionStatus = await lockMethodologyVersion(
+        tx,
+        BigInt(data.methodologyVersionId)
+      );
 
-      if (!methodologyVersion) {
+      if (
+        !methodologyVersionStatus ||
+        methodologyVersionStatus === MethodologyVersionStatus.DELETED
+      ) {
         throw new MethodologyVersionNotFoundForCategoryError();
       }
 
@@ -52,21 +57,6 @@ export const createCategoryService = async (
     });
     return mapCategoryToResponse(category);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        // Substring match, like the subcategory services: depending on the
-        // Prisma/adapter version the helper yields either the column names or
-        // the index name, and an exact match silently turns these 409s into
-        // 500s. The two index names are disjoint on these substrings.
-        if (duplicatedFields.some((field) => field.includes("name"))) {
-          throw new CategoryNameAlreadyExistsError();
-        }
-        if (duplicatedFields.some((field) => field.includes("position"))) {
-          throw new CategoryPositionAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowCategoryUniqueViolation(error);
   }
 };
