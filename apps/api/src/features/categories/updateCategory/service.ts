@@ -6,12 +6,8 @@ import {
   type UpdateCategoryResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
-import {
-  CategoryNotFoundError,
-  CategoryNameAlreadyExistsError,
-  CategoryPositionAlreadyExistsError,
-} from "../errors.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import { CategoryNotFoundError } from "../errors.js";
+import { rethrowCategoryUniqueViolation } from "../helpers.js";
 
 export const updateCategoryService = async (
   prismaClient: PrismaClient,
@@ -55,21 +51,6 @@ export const updateCategoryService = async (
     });
     return mapCategoryToResponse(category);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        // Substring match, like the subcategory services: depending on the
-        // Prisma/adapter version the helper yields either the column names or
-        // the index name, and an exact match silently turns these 409s into
-        // 500s. The two index names are disjoint on these substrings.
-        if (duplicatedFields.some((field) => field.includes("name"))) {
-          throw new CategoryNameAlreadyExistsError();
-        }
-        if (duplicatedFields.some((field) => field.includes("position"))) {
-          throw new CategoryPositionAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowCategoryUniqueViolation(error);
   }
 };
