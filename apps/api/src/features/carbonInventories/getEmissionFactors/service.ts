@@ -77,9 +77,15 @@ export const getEmissionFactorsService = async (
         },
       },
     },
+    // No subcategory status filter above: a soft-deleted subcategory keeps its
+    // ACTIVE lines, so DELETED rows are in scope. Positions are unique only
+    // among non-DELETED ones, so a DELETED row can share a position with an
+    // active one — `id` breaks the tie deterministically, as in
+    // fetchCategoryData.
     orderBy: [
       { subcategory: { category: { position: "asc" } } },
       { subcategory: { position: "asc" } },
+      { subcategory: { id: "asc" } },
     ],
   });
 
