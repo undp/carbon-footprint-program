@@ -45,6 +45,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     data: subcategories,
     isLoading: isLoadingSubcategories,
     isError: isErrorSubcategories,
+    isFetching: isFetchingSubcategories,
   } = useSubcategories(methodologyVersionId);
   const { data: categories, isLoading: isLoadingCategories } =
     useCategories(methodologyVersionId);
@@ -290,16 +291,15 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     [swapMutation]
   );
 
-  const { handleMoveUp, handleMoveDown } = useMaintainerRowReorder<
-    SubcategoriesFormValues,
-    SubcategoryForm
-  >({
-    form,
-    fieldName: "subcategories",
-    groupBy: getSubcategoryCategoryId,
-    swap: swapSubcategories,
-    errorMessage: "Error al mover sub-categoría",
-  });
+  const { handleMoveUp, handleMoveDown, isMoveBlocked } =
+    useMaintainerRowReorder<SubcategoriesFormValues, SubcategoryForm>({
+      form,
+      fieldName: "subcategories",
+      groupBy: getSubcategoryCategoryId,
+      swap: swapSubcategories,
+      errorMessage: "Error al mover sub-categoría",
+      isSyncing: isFetchingSubcategories,
+    });
 
   // --- Exit edit mode ---
   const { handleExitEditMode } = useMaintainerExitEditMode({
@@ -393,6 +393,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
+    moveDisabled: isMoveBlocked,
     rows: currentRows,
     categories: categoryOptions,
     allMeasurementUnits: measurementUnits ?? [],

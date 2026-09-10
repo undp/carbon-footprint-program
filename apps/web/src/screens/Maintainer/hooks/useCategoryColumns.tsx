@@ -22,6 +22,11 @@ interface UseCategoryColumnsParams {
   onOpenExplanation: (rowIndex: number) => void;
   onMoveUp: (row: CategoryForm) => void;
   onMoveDown: (row: CategoryForm) => void;
+  /**
+   * Reorder is off while the form is not in server order — see
+   * `isMoveBlocked` in useMaintainerRowReorder.
+   */
+  moveDisabled: boolean;
   rows: CategoryForm[];
 }
 
@@ -36,6 +41,7 @@ export const useCategoryColumns = ({
   onOpenExplanation,
   onMoveUp,
   onMoveDown,
+  moveDisabled,
   rows,
 }: UseCategoryColumnsParams): GridColDef<CategoryForm>[] => {
   const getRowIndex = useCallback(
@@ -232,8 +238,12 @@ export const useCategoryColumns = ({
                     onCancelEdit={onCancelEditRow}
                     onMoveUp={() => onMoveUp(params.row)}
                     onMoveDown={() => onMoveDown(params.row)}
-                    moveUpDisabled={anyEditing || isFirst || isTemp}
-                    moveDownDisabled={anyEditing || isLast || isTemp}
+                    moveUpDisabled={
+                      anyEditing || isFirst || isTemp || moveDisabled
+                    }
+                    moveDownDisabled={
+                      anyEditing || isLast || isTemp || moveDisabled
+                    }
                     onDelete={() => onDelete(params.row)}
                   />
                 );
@@ -254,6 +264,7 @@ export const useCategoryColumns = ({
       onOpenExplanation,
       onMoveUp,
       onMoveDown,
+      moveDisabled,
       sortedRows,
       editingRowId,
     ]
