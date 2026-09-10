@@ -303,31 +303,16 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       if (!neighbor || isNewRow(neighbor.id)) return;
 
       try {
+        // The order is not repainted here. The mutation invalidates the
+        // listing and useMaintainerFormSync replays the refetch into the form,
+        // so a local swap would be a second writer for the same order — and
+        // the wrong one for a row that was just created: it sits first in the
+        // array while holding the highest position in its category, so
+        // swapping array slots would move it where the server never put it.
         await swapMutation.mutateAsync({
           subcategoryIdA: row.id,
           subcategoryIdB: neighbor.id,
         });
-        const updatedRows = rows.map((r) => {
-          if (r.id === row.id) return { ...r, position: neighbor.position };
-          if (r.id === neighbor.id) return { ...r, position: row.position };
-          return r;
-        });
-
-        // The grid renders this array directly, and the server returns
-        // subcategories grouped by category. Swapping the two slots keeps that
-        // grouping while moving the row where the user expects it; re-sorting
-        // the whole array by position would interleave the categories, since
-        // positions only have to be unique within one.
-        const rowIdx = rows.findIndex((r) => r.id === row.id);
-        const neighborIdx = rows.findIndex((r) => r.id === neighbor.id);
-        const movedRow = updatedRows[rowIdx];
-        const movedNeighbor = updatedRows[neighborIdx];
-        if (movedRow && movedNeighbor) {
-          updatedRows[rowIdx] = movedNeighbor;
-          updatedRows[neighborIdx] = movedRow;
-        }
-
-        form.reset({ subcategories: updatedRows });
       } catch (error) {
         void enqueueSnackbar({
           message: getApiErrorMessage(error, "Error al mover sub-categoría"),
