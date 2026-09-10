@@ -65,7 +65,6 @@ export const CategoriesMaintainerScreen: FC = () => {
     data: categories,
     isLoading,
     isError: isErrorCategories,
-    isFetching: isFetchingCategories,
   } = useCategories(methodologyVersionId);
 
   // --- Form & editing state ---
@@ -326,7 +325,6 @@ export const CategoriesMaintainerScreen: FC = () => {
       fieldName: "categories",
       swap: swapCategories,
       errorMessage: "Error al mover categoría",
-      isSyncing: isFetchingCategories,
     });
 
   // --- Exit edit mode ---

@@ -26,12 +26,6 @@ interface UseMaintainerRowReorderOptions<
   swap: (rowId: string, neighborId: string) => Promise<unknown>;
   /** Snackbar fallback when the swap fails. */
   errorMessage: string;
-  /**
-   * True while the listing this form mirrors is refetching. The form is only
-   * in server order once that refetch has been replayed into it, so a move
-   * decided before then would read stale positions — see `isMoveBlocked`.
-   */
-  isSyncing?: boolean;
 }
 
 const isNewRow = (rowId: string) => rowId.startsWith("temp_");
@@ -48,9 +42,14 @@ const isNewRow = (rowId: string) => rowId.startsWith("temp_");
  * The cost of not painting locally is that the form keeps the pre-move
  * positions until the refetch lands, so every move taken from stale positions
  * has to be refused: a second click on the same arrow would send the same pair
- * again and swap it straight back. `isMoveBlocked` covers both halves of that
- * window — the in-flight swap here, and the refetch the caller reports through
- * `isSyncing` — and callers disable the arrows with it.
+ * again and swap it straight back. `isMoveBlocked` covers that whole window,
+ * and callers disable the arrows with it. It spans the refetch too because the
+ * swap mutation returns its invalidation, so `swap` stays pending until the new
+ * order has been fetched — which is why the flag can be read off this hook
+ * alone. Folding in the listing's own `isFetching` would also kill the arrows
+ * on refetches that have nothing to do with a reorder (a window refocus, any
+ * unrelated maintainer mutation sharing the invalidation token), and the user
+ * reads a disabled arrow with no explanation as a broken button.
  */
 export const useMaintainerRowReorder = <
   TFormValues extends FieldValues,
@@ -61,7 +60,6 @@ export const useMaintainerRowReorder = <
   groupBy,
   swap,
   errorMessage,
-  isSyncing = false,
 }: UseMaintainerRowReorderOptions<TFormValues, TRow>) => {
   const { enqueueSnackbar } = useSnackbar();
   const [isSwapping, setIsSwapping] = useState(false);
@@ -122,6 +120,6 @@ export const useMaintainerRowReorder = <
   return {
     handleMoveUp,
     handleMoveDown,
-    isMoveBlocked: isSwapping || isSyncing,
+    isMoveBlocked: isSwapping,
   };
 };
