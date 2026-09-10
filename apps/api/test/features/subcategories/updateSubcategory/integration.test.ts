@@ -407,6 +407,78 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(moved.position).toBe(2);
     });
 
+    it("should repack the source category when a subcategory moves out", async () => {
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const sourceCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Move Out Source Category",
+          position: 5,
+        }
+      );
+      const [first, second, third] = await Promise.all([
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 1",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 2",
+          position: 2,
+        }),
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 3",
+          position: 3,
+        }),
+      ]);
+      const targetCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Move Out Target Category",
+          position: 6,
+        }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${second.id}`,
+        payload: {
+          categoryId: targetCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // Contiguous, not 1, 3: a move frees a position the same way a delete
+      // does, and the sequence the "Pos." column and the Excel export show has
+      // to stay 1..N. Leaving the hole would also make the next create in this
+      // category land at 4.
+      const remaining = await prisma.subcategory.findMany({
+        where: {
+          categoryId: sourceCategory.id,
+          status: SubcategoryStatus.ACTIVE,
+        },
+        select: { id: true, position: true, updatedById: true },
+        orderBy: { position: "asc" },
+      });
+
+      // Only `position` moves: shifting a sibling is bookkeeping, not an edit.
+      expect(remaining).toEqual([
+        { id: first.id, position: 1, updatedById: null },
+        { id: third.id, position: 2, updatedById: null },
+      ]);
+
+      const moved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: second.id },
+      });
+      expect(moved.categoryId).toBe(targetCategory.id);
+      expect(moved.position).toBe(1);
+    });
+
     it("should reject a destination category soft-deleted while the request waits for the lock", async () => {
       const subcategory = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Move Into Vanishing Category",
