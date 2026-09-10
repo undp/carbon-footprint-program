@@ -86,3 +86,56 @@ export async function getNextSubcategoryPosition(
 
   return (_max.position ?? 0) + 1;
 }
+
+interface LockedSubcategoryRow {
+  id: bigint;
+  category_id: bigint;
+  status: SubcategoryStatus;
+  position: number;
+}
+
+export interface LockedSubcategory {
+  id: bigint;
+  categoryId: bigint;
+  status: SubcategoryStatus;
+  position: number;
+}
+
+/**
+ * Locks subcategory rows and returns what a reorder needs to validate.
+ *
+ * The parent category lock is not enough on its own. `updateSubcategory` locks
+ * only the *destination* category when a subcategory moves, so a transaction
+ * moving a row out of category C never contends with a lock on C: the row can
+ * be reassigned to another category between the same-category check and the
+ * position writes, and the writes then land on a row that no longer lives
+ * where the caller decided it did. Locking the rows themselves closes that
+ * window — a concurrent update either commits before the lock is granted and
+ * is seen by the caller, or waits until this transaction ends.
+ *
+ * Rows are locked in id order so two callers asking for the same pair cannot
+ * deadlock against each other, and only existing rows come back — a caller
+ * that asked for an id it does not find here has to treat it as missing.
+ *
+ * Like `lockCategory`, the lock lives only until the enclosing transaction
+ * ends, which is why the parameter is the transaction client.
+ */
+export async function lockSubcategories(
+  tx: Prisma.TransactionClient,
+  ids: bigint[]
+): Promise<LockedSubcategory[]> {
+  const rows = await tx.$queryRaw<LockedSubcategoryRow[]>`
+    SELECT "id", "category_id", "status", "position"
+    FROM "subcategory"
+    WHERE "id" IN (${Prisma.join(ids)})
+    ORDER BY "id"
+    FOR UPDATE
+  `;
+
+  return rows.map((row) => ({
+    id: row.id,
+    categoryId: row.category_id,
+    status: row.status,
+    position: row.position,
+  }));
+}
