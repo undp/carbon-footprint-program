@@ -353,7 +353,20 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       dimensionValue2Name: null,
       rateMeasurementUnitId: "",
       source: "",
-      year: null,
+      // NaN, not null. Every other field here defaults to something the schema
+      // refuses — empty ids, an empty source, a zero value — so the row cannot
+      // be saved until the maintainer answers. `year` was the exception: null is
+      // a positive claim that the factor is transversal, applicable to every
+      // reporting year, so the old default published that claim on the
+      // maintainer's behalf and it was indistinguishable from choosing it. A
+      // forgotten year also takes the transversal slot for its provider and
+      // blocks a genuinely transversal factor later.
+      //
+      // NaN renders as an empty cell and fails the resolver, so the choice stays
+      // open: type a year, or clear the cell and let EditableNumberCell map the
+      // empty input to null, which is the transversal declaration made on
+      // purpose.
+      year: Number.NaN,
       value: 0,
       gasDetails: EMPTY_GAS_DETAILS,
     });

@@ -30,8 +30,14 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
   onChange,
   fieldError,
 }) => {
+  // A non-finite value is shown as an empty field, never as the text "NaN". It
+  // reaches here two ways, and both mean "no answer yet": a row whose numeric
+  // field deliberately starts unanswered, and an entry this cell rejected on a
+  // previous blur.
   const [localValue, setLocalValue] = useState<string>(
-    initialValue === null ? "" : String(initialValue)
+    initialValue === null || !Number.isFinite(initialValue)
+      ? ""
+      : String(initialValue)
   );
 
   return (

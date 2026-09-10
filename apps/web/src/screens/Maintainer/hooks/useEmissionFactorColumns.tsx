@@ -519,7 +519,9 @@ export const useEmissionFactorColumns = ({
 
           // Blank is a real answer here, not an empty field: it declares the
           // factor transversal. EditableNumberCell already maps an empty input
-          // to null, which is exactly that choice.
+          // to null, which is exactly that choice — and a new row starts on NaN
+          // rather than null (see handleAddRow) so that the declaration is
+          // always the maintainer's, never the default's.
           return (
             <EditableNumberCell
               rowIndex={rowIndex}
