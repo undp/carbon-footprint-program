@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import { SxProps, Theme, Typography } from "@mui/material";
 import type { IFuseOptions } from "fuse.js";
 import type {
@@ -19,10 +19,11 @@ export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   downloadFileName?: string;
   disableExport?: boolean;
   /**
-   * Called with the live query. The grid renders only the matches while the
-   * rows it was given still hold every row, so a screen whose row actions read
-   * that sequence — the reorder arrows walk `position` — has to know a filter
-   * is on.
+   * Called with the live query, on every change and on mount, and with the
+   * empty string when the grid unmounts. The grid renders only the matches
+   * while the rows it was given still hold every row, so a screen whose row
+   * actions read that sequence — the reorder arrows walk `position` — has to
+   * know a filter is on, and has to stop believing it once this grid is gone.
    */
   onQueryChange?: (query: string) => void;
 }
@@ -71,13 +72,24 @@ export const MaintainerDataGrid = <
     fuseOptions: searchable?.fuseOptions,
   });
 
-  const handleSearchChange = useCallback(
-    (query: string) => {
-      setSearchQuery(query);
-      searchable?.onQueryChange?.(query);
-    },
-    [searchable]
-  );
+  // The grid owns `searchQuery`, so a screen that mirrors it — the reorder
+  // arrows walk a sequence a filtered grid does not render — has to hear it
+  // from here on every change, on mount, and on unmount. Reporting it only from
+  // the change handler left the mirror stuck on "filtered" when the screen
+  // unmounted the grid mid-search (a methodology version that fails to load or
+  // has no rows) and remounted it with an empty search behind it.
+  const onQueryChange = searchable?.onQueryChange;
+  const onQueryChangeRef = useRef(onQueryChange);
+
+  useEffect(() => {
+    onQueryChangeRef.current = onQueryChange;
+  }, [onQueryChange]);
+
+  useEffect(() => {
+    onQueryChangeRef.current?.(searchQuery);
+  }, [searchQuery]);
+
+  useEffect(() => () => onQueryChangeRef.current?.(""), []);
 
   const resolveRowId = useCallback(
     (row: T): string =>
@@ -135,13 +147,13 @@ export const MaintainerDataGrid = <
       toolbar: {
         ...slotProps?.toolbar,
         searchValue: searchQuery,
-        onSearchChange: handleSearchChange,
+        onSearchChange: setSearchQuery,
         searchPlaceholder: searchable.placeholder,
         fileName: searchable.downloadFileName,
         disableExport: searchable.disableExport,
       } as unknown as GridSlotProps["toolbar"],
     };
-  }, [searchable, slotProps, searchQuery, handleSearchChange]);
+  }, [searchable, slotProps, searchQuery]);
 
   const sxArray: SxArrayItem[] = isSxArray(sx) ? [...sx] : sx ? [sx] : [];
 
