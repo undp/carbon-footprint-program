@@ -96,13 +96,17 @@ export const useSwapSubcategoryPositions = () => {
   >({
     mutationFn: (data) =>
       apiClient.post("subcategories/swap-positions", { json: data }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
+    // Returned, not fire-and-forget: the swap's own refetch is what repaints
+    // the new order, so `mutateAsync` has to stay pending until it lands.
+    // useMaintainerRowReorder disables the arrows for exactly that long, and a
+    // move decided from the pre-swap positions would send the same pair again
+    // and swap it straight back.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
             MaintainerQueryKey.SubcategoriesUpdateDependency
           ),
-      });
-    },
+      }),
   });
 };

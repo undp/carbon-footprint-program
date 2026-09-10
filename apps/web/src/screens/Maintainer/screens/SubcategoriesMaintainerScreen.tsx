@@ -45,7 +45,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     data: subcategories,
     isLoading: isLoadingSubcategories,
     isError: isErrorSubcategories,
-    isFetching: isFetchingSubcategories,
   } = useSubcategories(methodologyVersionId);
   const { data: categories, isLoading: isLoadingCategories } =
     useCategories(methodologyVersionId);
@@ -298,7 +297,6 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       groupBy: getSubcategoryCategoryId,
       swap: swapSubcategories,
       errorMessage: "Error al mover sub-categoría",
-      isSyncing: isFetchingSubcategories,
     });
 
   // --- Exit edit mode ---
