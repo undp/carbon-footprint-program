@@ -52,6 +52,14 @@ export const useEmissionCaptureData = ({
               // would make the line look unselected and let the recommendation
               // silently replace a deliberate choice.
               baseFactorId: line.emissionFactorId,
+              // Frozen copy of what the server returned, so the next save can
+              // tell an untouched factor from a restated one.
+              loadedFactor: {
+                emissionFactorId: line.emissionFactorId,
+                factorSource: line.factorSource,
+                factorValue: line.factorValue,
+                factorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
+              },
               files: line.files ?? [],
               removedFileIds: [],
             })),

@@ -6,9 +6,14 @@ import {
   FactorSelectionType,
   InputTypeSchema,
   type FactorSelection,
+  type UpdateFactorSelection,
 } from "@repo/types";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
-import { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
+import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
+import {
+  EmissionCaptureFormLine,
+  LoadedFactorSnapshot,
+} from "../types/EmissionCaptureTypes";
 import { toNullableNumber } from "@/utils/number";
 
 /**
@@ -63,6 +68,87 @@ function mapFactorSelection(
 }
 
 /**
+ * True when the line still carries exactly the factor the server last sent, so
+ * the save has nothing to restate.
+ *
+ * The comparison is deliberately strict: a false "changed" only costs a
+ * redundant catalog selection, while a false "unchanged" would keep a snapshot
+ * the user had actually replaced.
+ */
+function isFactorUnchanged(line: EmissionCaptureFormLine): boolean {
+  const loaded = line.loadedFactor;
+  if (!loaded) return false;
+
+  // Nothing was stored, so there is no snapshot worth keeping and the line
+  // should go through the normal mapping.
+  if (
+    loaded.factorValue === null ||
+    loaded.factorRateMeasurementUnitId === null
+  )
+    return false;
+
+  // `baseFactorId` and not `emissionFactorId`: the catalog selection is built
+  // from the former, so it is the field a restated save would send. The two are
+  // kept in step by convention only — `resetFactorValueFields` clears one and
+  // leaves the other — and comparing the field that is not sent is how a false
+  // "unchanged" would get through.
+  return (
+    line.baseFactorId === loaded.emissionFactorId &&
+    line.factorSource === loaded.factorSource &&
+    toNullableNumber(line.factorValue) === loaded.factorValue &&
+    line.factorRateMeasurementUnitId === loaded.factorRateMeasurementUnitId
+  );
+}
+
+/**
+ * The stored-factor copies a save just persisted, keyed by line id.
+ *
+ * The copy a line carries has to describe what the *server* holds, and the
+ * server changes at the moment the sync returns — not when the refetch that
+ * follows it lands. Refreshing it from the response closes that window: inside
+ * it the live fields can match the superseded copy exactly (a factor changed
+ * and then changed back), and the save would declare unchanged a factor the
+ * user did change, leaving the server on the value they moved away from.
+ *
+ * Only updated lines appear here. A line created in the same save has no id to
+ * match on until the refetch, and a line the request did not touch has nothing
+ * to refresh.
+ */
+export function buildLoadedFactorSnapshots(
+  updated: SyncCarbonInventoryLinesResponse["updated"]
+): Map<string, LoadedFactorSnapshot> {
+  return new Map(
+    updated.map((line) => [
+      line.id,
+      {
+        emissionFactorId: line.emissionFactorId,
+        factorSource: line.factorSource,
+        factorValue: line.factorValue,
+        factorRateMeasurementUnitId: line.factorRateMeasurementUnitId,
+      },
+    ])
+  );
+}
+
+/**
+ * The factor an update declares.
+ *
+ * A line whose factor the user never touched says so, instead of restating a
+ * selection. That keeps its stored snapshot exactly as it is — which is the
+ * only correct answer for a line saved before the snapshot carried a catalog
+ * id, and the reason an edit elsewhere in the inventory no longer depends on
+ * the catalog row still being there.
+ */
+function mapUpdateFactorSelection(
+  line: EmissionCaptureFormLine
+): UpdateFactorSelection | null {
+  if (!line.isManualTotalEmissions && isFactorUnchanged(line)) {
+    return { type: FactorSelectionType.UNCHANGED };
+  }
+  return mapFactorSelection(line);
+}
+
+/**
  * Maps common fields shared between create and update requests
  */
 function mapCommonFields(line: EmissionCaptureFormLine) {
@@ -74,7 +160,6 @@ function mapCommonFields(line: EmissionCaptureFormLine) {
     dimensionValue2Id: line.dimensionValue2Id,
     measurementUnitId: line.measurementUnitId,
     quantity: toNullableNumber(line.quantity),
-    factorSelection: mapFactorSelection(line),
     comment: line.comment,
   };
 }
@@ -93,6 +178,8 @@ function mapLineToCreateRequest(
 ): SyncCreateLineItem {
   return {
     ...mapCommonFields(line),
+    // A create has nothing stored, so it always states its factor in full.
+    factorSelection: mapFactorSelection(line),
     subcategoryId: line.subcategoryId,
     addFileUuids: getPendingFileUuids(line),
   };
@@ -106,6 +193,7 @@ function mapLineToUpdateRequest(
 ): SyncUpdateLineItem {
   return {
     ...mapCommonFields(line),
+    factorSelection: mapUpdateFactorSelection(line),
     id: line.lineId,
     addFileUuids: getPendingFileUuids(line),
     removeFileIds: line.removedFileIds ?? [],

@@ -3,6 +3,7 @@ import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesResponse,
   CarbonInventoryLineStatus,
+  FactorSelectionType,
   FileStatus,
   User,
 } from "@repo/types";
@@ -132,10 +133,24 @@ export const syncCarbonInventoryLinesService = async (
     const factorContext = await loadFactorResolutionContext(
       tx,
       carbonInventory.methodologyVersionId,
-      [
-        ...request.create.map((item) => BigInt(item.subcategoryId)),
-        ...request.update.map((item) => subcategoryIdByLineId.get(item.id)!),
-      ]
+      {
+        subcategoryIds: [
+          ...request.create.map((item) => BigInt(item.subcategoryId)),
+          ...request.update.map((item) => subcategoryIdByLineId.get(item.id)!),
+        ],
+        unchangedLineIds: request.update
+          .filter(
+            (item) =>
+              item.factorSelection?.type === FactorSelectionType.UNCHANGED
+          )
+          .map((item) => BigInt(item.id)),
+        factorIds: [...request.create, ...request.update]
+          .map((item) => item.factorSelection)
+          .filter(
+            (selection) => selection?.type === FactorSelectionType.CATALOG
+          )
+          .map((selection) => BigInt(selection.emissionFactorId)),
+      }
     );
 
     // 1. CREATE operations
@@ -196,7 +211,9 @@ export const syncCarbonInventoryLinesService = async (
       const lineId = BigInt(updateItem.id);
       updatedLineIds.push(lineId);
 
-      // Mark old active input as inactive
+      // Mark old active input as inactive. The snapshot an UNCHANGED selection
+      // keeps was read when the context was built, before any of this loop's
+      // writes, so superseding the input here cannot take it away.
       await tx.carbonInventoryLineInput.updateMany({
         where: { lineId, isActive: true },
         data: { isActive: false, updatedById: userId },
@@ -210,7 +227,8 @@ export const syncCarbonInventoryLinesService = async (
         // Present for every update id: the validation above throws
         // LineNotFoundError for anything missing from the stored lines and
         // fills this map for the rest.
-        subcategoryIdByLineId.get(updateItem.id)!
+        subcategoryIdByLineId.get(updateItem.id)!,
+        lineId
       );
       const newInput = await createLineInput(
         tx,

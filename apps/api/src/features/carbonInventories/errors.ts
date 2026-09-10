@@ -126,6 +126,12 @@ export const FactorSelectionInputTypeMismatchError = createError(
   422
 );
 
+export const UnchangedFactorDimensionChangedError = createError(
+  "UNCHANGED_FACTOR_DIMENSION_CHANGED",
+  "The line's required dimension values changed, so the factor it has cannot be kept unchanged (line ID: %s)",
+  422
+);
+
 export const CatalogEmissionFactorUnitFamilyMismatchError = createError(
   "CATALOG_EMISSION_FACTOR_UNIT_FAMILY_MISMATCH",
   "The requested applied rate unit is not convertible from the selected emission factor's unit family (factor ID: %s)",
