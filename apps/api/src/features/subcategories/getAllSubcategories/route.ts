@@ -15,7 +15,7 @@ export const getAllSubcategoriesRoute = defineRoute<{
     tags: ["subcategories"],
     summary: "Get all subcategories for a methodology version",
     description:
-      "Get all active subcategories for a given methodology version, ordered by name ascending",
+      "Get all active subcategories for a given methodology version, ordered by category position and then by their own position within the category",
     querystring: GetAllSubcategoriesQuerySchema,
     response: {
       200: GetAllSubcategoriesResponseSchema,

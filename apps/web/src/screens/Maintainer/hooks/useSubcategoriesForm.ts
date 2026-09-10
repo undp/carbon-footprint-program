@@ -27,9 +27,24 @@ export function toFormSubcategory(s: Subcategory): SubcategoryForm {
     icon: s.icon,
     description: s.description,
     explanation: s.explanation,
+    position: s.position,
     measurementUnitIds: s.measurementUnits.map((u) => u.id),
   };
 }
+
+/**
+ * The cells the grid can edit.
+ *
+ * `id` and `position` are assigned by the server, and `position` is a number,
+ * so leaving them in the union lets `handleCellChange(i, "position", "abc")`
+ * type-check: RHF distributes `setValue` over the path union, which widens the
+ * accepted value to include the string this setter takes. The form schema
+ * would then reject it at save time with nothing flagged at compile time.
+ */
+export type EditableSubcategoryField = Exclude<
+  keyof SubcategoryForm,
+  "id" | "position"
+>;
 
 export const useSubcategoriesForm = () => {
   const form = useForm<SubcategoriesFormValues>({
@@ -46,7 +61,7 @@ export const useSubcategoriesForm = () => {
   const handleCellChange = useCallback(
     (
       rowIndex: number,
-      field: keyof SubcategoryForm,
+      field: EditableSubcategoryField,
       value: string | string[] | null
     ) => {
       const currentRow = form.getValues(`subcategories.${rowIndex}`);

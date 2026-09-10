@@ -65,7 +65,14 @@ export const getEmissionFactorDimensionsService = async (
       },
     },
     where: whereClause,
-    orderBy: [{ category: { position: "asc" } }, { name: "asc" }],
+    // Same tie as getAllSubcategories: the category status is not filtered, and
+    // category positions are unique only among non-DELETED rows, so `id` is
+    // what keeps two categories sharing a position from interleaving.
+    orderBy: [
+      { category: { position: "asc" } },
+      { category: { id: "asc" } },
+      { position: "asc" },
+    ],
   });
 
   return subcategories.map((sub) => ({

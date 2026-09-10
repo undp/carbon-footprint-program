@@ -95,6 +95,7 @@ model Subcategory {
   name        String
   description String
   icon        String            // icon key (e.g., "FACTORY")
+  position    Int               // display order; must be > 0; unique per category (excluding deleted)
   status      SubcategoryStatus @default(ACTIVE)
 
   dimensions              EmissionFactorDimension[]
@@ -109,7 +110,25 @@ model Subcategory {
 }
 ```
 
-Subcategory names are unique within a category (partial unique index, excluding deleted records).
+Subcategory names are unique within a category (partial unique index, excluding deleted records), and so are positions.
+
+Subcategories are ordered by `position` ascending — never alphabetically, since the order carries meaning: inside the Scope 3 category ("Otras emisiones indirectas") the subcategories follow the GHG Protocol Scope 3 category numbering, with the catch-all "other sources" last. As shipped:
+
+| #   | Subcategoría                                      | GHG Protocol     |
+| --- | ------------------------------------------------- | ---------------- |
+| 1   | Productos comprados                               | cat. 1           |
+| 2   | Consumo de agua y tratamiento de aguas residuales | cats. 1 y 5      |
+| 3   | Transporte y distribución de bienes aguas arriba  | cat. 4           |
+| 4   | Disposición de residuos sólidos                   | cat. 5           |
+| 5   | Viajes de negocios - Traslado                     | cat. 6           |
+| 6   | Viajes de negocios - Estadía                      | cat. 6           |
+| 7   | Desplazamiento diario de empleados                | cat. 7           |
+| 8   | Trabajo remoto de empleados                       | cat. 7           |
+| 9   | Transporte y distribución de bienes aguas abajo   | cat. 9           |
+| 10  | Uso de productos de la organización               | cat. 11          |
+| 11  | Emisiones provenientes de otras fuentes           | otras categorías |
+
+Two GHG categories are split in two here (business travel into travel + lodging, commuting into commuting + remote work) because each half is captured with different activity data. Their descriptions state the GHG Protocol and ISO 14064-1 category each one maps to. The order ships as seed data (`tools/seed/src/data/*/methodologies.json`, one `position` per subcategory, numbered 1..N inside each category and validated by the seed). Subcategories created later through the maintainer are appended last and can then be reordered from the maintainer grid, which swaps two positions through `POST /api/subcategories/swap-positions` — the same mechanism the categories grid uses. A move only ever swaps siblings inside one category, since positions are unique per category rather than per methodology.
 
 ---
 

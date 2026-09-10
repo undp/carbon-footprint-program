@@ -82,27 +82,22 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   const updateMutation = useUpdateReductionPlanInitiative();
   const deleteMutation = useDeleteReductionPlanInitiative();
 
+  // The API already returns these in GHG order (category position, then
+  // subcategory position), which is the order the grid rows use. Re-sorting
+  // alphabetically here would group the picker differently from the grid.
   const subcategoryOptions = useMemo(
     () =>
-      [...subcategoriesData]
-        .map((s) => ({
-          id: s.id,
-          name: s.name,
-          categoryName: s.category.name,
-        }))
-        .sort(
-          (a, b) =>
-            a.categoryName.localeCompare(b.categoryName) ||
-            a.name.localeCompare(b.name)
-        ),
+      subcategoriesData.map((s) => ({
+        id: s.id,
+        name: s.name,
+        categoryName: s.category.name,
+      })),
     [subcategoriesData]
   );
 
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as NonNullable<typeof reductionPlanInitiatives>).map(
-        toFormReductionPlanInitiative
-      ),
+    (data: NonNullable<typeof reductionPlanInitiatives>) =>
+      data.map(toFormReductionPlanInitiative),
     []
   );
   useMaintainerFormSync({

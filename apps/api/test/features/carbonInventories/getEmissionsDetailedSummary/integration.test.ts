@@ -19,7 +19,12 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { IconNameSchema } from "@repo/types";
+import {
+  createTestCategory,
+  cleanupTestCategories,
+} from "@test/factories/categoryFactory.js";
+import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
+import { IconNameSchema, SubcategoryStatus } from "@repo/types";
 import type {
   GetEmissionsDetailedSummaryResponse,
   OrganizationDataField,
@@ -69,6 +74,7 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestCategories(prisma, ["Test - Tie Break"]);
   });
 
   /** Flattens the nested category → subcategory response into a single list. */
@@ -310,6 +316,66 @@ describe("GET /api/carbon-inventories/:id/emissions-summary - Integration Tests"
       expect(subcategory!.subtotal).toBe(0);
       // Provisional: the total-mode entry has no result yet.
       expect(subcategory!.hasIncompleteLines).toBe(true);
+    });
+  });
+
+  describe("subcategory ordering", () => {
+    it("breaks a position tie between an active and a soft-deleted subcategory by id", async () => {
+      // A soft-deleted subcategory that still holds captured lines keeps
+      // counting toward the totals, and positions are unique only among
+      // non-DELETED rows — so both of these legitimately sit at position 1.
+      const category = await createTestCategory(prisma, methodologyVersionId, {
+        name: "Test - Tie Break Category",
+        position: 995,
+      });
+      const activeSubcategory = await createTestSubcategory(
+        prisma,
+        category.id,
+        { name: "Test - Tie Break Active", position: 1 }
+      );
+      const deletedSubcategory = await createTestSubcategory(
+        prisma,
+        category.id,
+        {
+          name: "Test - Tie Break Deleted",
+          position: 1,
+          status: SubcategoryStatus.DELETED,
+        }
+      );
+
+      const inventory = await createCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        methodologyVersionId,
+      });
+      await createCompleteLine(inventory.id, activeSubcategory.id, 1000);
+      await createCompleteLine(inventory.id, deletedSubcategory.id, 2000);
+
+      // Rewriting the older row moves its tuple to the end of the heap, so a
+      // query sorting on `position` alone would return the newer DELETED row
+      // first. The `id` tie-break is what makes the order deterministic.
+      await prisma.subcategory.update({
+        where: { id: activeSubcategory.id },
+        data: { description: "Rewritten to move the row within the heap" },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/emissions-summary`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionsDetailedSummaryResponse;
+
+      const tieCategory = body.categories.find(
+        (c) => c.id === category.id.toString()
+      );
+      expect(tieCategory).toBeDefined();
+      expect(tieCategory!.subcategories.map((s) => s.id)).toEqual([
+        activeSubcategory.id.toString(),
+        deletedSubcategory.id.toString(),
+      ]);
     });
   });
 

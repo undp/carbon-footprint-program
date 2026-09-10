@@ -222,4 +222,51 @@ describe("GET /api/emission-factor-dimensions/ - Integration Tests", () => {
       expect(value2.inUse).toBe(true);
     });
   });
+
+  describe("ordering", () => {
+    it("should order subcategories by category position, then their own position", async () => {
+      // Names are at odds with positions on purpose: ordering by name would
+      // return Sub Alpha, Sub Mike, Sub Zulu.
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Dims Ordering",
+      });
+      const firstCategory = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Dims Category Zulu",
+        position: 1,
+      });
+      const secondCategory = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Dims Category Alpha",
+        position: 2,
+      });
+
+      await createTestSubcategory(prisma, firstCategory.id, {
+        name: "Test - Dims Sub Zulu",
+        position: 1,
+      });
+      await createTestSubcategory(prisma, firstCategory.id, {
+        name: "Test - Dims Sub Alpha",
+        position: 2,
+      });
+      await createTestSubcategory(prisma, secondCategory.id, {
+        name: "Test - Dims Sub Mike",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+
+      expect(body.map((row) => row.subcategoryName)).toEqual([
+        "Test - Dims Sub Zulu",
+        "Test - Dims Sub Alpha",
+        "Test - Dims Sub Mike",
+      ]);
+    });
+  });
 });

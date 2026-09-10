@@ -46,7 +46,7 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
   });
 
   describe("Successful retrieval", () => {
-    it("should return subcategories ordered by category position first, then by name", async () => {
+    it("should return subcategories ordered by category position first, then by subcategory position", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
         name: "Test - Subcategories Ordered",
         status: MethodologyVersionStatus.PUBLISHED,
@@ -63,6 +63,8 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
       await createTestSubcategory(prisma, categoryB.id, {
         name: "Test - Subcategory X",
       });
+      // Named out of alphabetical order on purpose: C is created (and
+      // positioned) first, so a name-based ordering would flip these two.
       await createTestSubcategory(prisma, categoryA.id, {
         name: "Test - Subcategory C",
       });
@@ -79,9 +81,9 @@ describe("GET /api/subcategories/?methodologyVersionId=X - Integration Tests", (
       const body = JSON.parse(response.body) as GetAllSubcategoriesResponse;
 
       expect(body).toHaveLength(3);
-      // Category A (position 1) subcategories first, sorted by name
-      expect(body[0].name).toBe("Test - Subcategory A");
-      expect(body[1].name).toBe("Test - Subcategory C");
+      // Category A (position 1) subcategories first, in their own position order
+      expect(body[0].name).toBe("Test - Subcategory C");
+      expect(body[1].name).toBe("Test - Subcategory A");
       // Category B (position 2) subcategories last
       expect(body[2].name).toBe("Test - Subcategory X");
     });

@@ -81,6 +81,7 @@ export type MethodologyExportPayload = Prisma.MethodologyVersionGetPayload<{
           select: {
             id: true;
             name: true;
+            position: true;
             description: true;
             subcategoryMeasurementUnits: {
               select: {
@@ -195,6 +196,7 @@ export function mapMethodologyExportToResponse(
       subcategories: category.subcategories.map((subcategory) => ({
         id: subcategory.id.toString(),
         name: subcategory.name,
+        position: subcategory.position,
         description: subcategory.description,
         measurementUnits: subcategory.subcategoryMeasurementUnits.map(
           ({ measurementUnit }) => ({

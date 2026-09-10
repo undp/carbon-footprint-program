@@ -40,3 +40,31 @@ export async function createTestCategory(
     },
   });
 }
+
+/**
+ * Drops the categories whose names start with one of `namePrefixes`.
+ *
+ * Tests that assert an order have to author positions on the seeded
+ * methodology, which is the one the rest of the file reads. Cleaning up on the
+ * last line of the test body only runs when the assertions pass, so a single
+ * failure leaves the extra category — and its cascaded subcategories — visible
+ * to every test that follows in the same file. Call this from an `afterEach`
+ * instead.
+ *
+ * The prefixes are the caller's own, never the factory's shared `Test - `: this
+ * is a hard delete that cascades to subcategories and their inventory lines,
+ * so it must only ever name rows the calling file authored — every other test
+ * in the file reads the same seeded methodology.
+ */
+export async function cleanupTestCategories(
+  prisma: PrismaClient,
+  namePrefixes: string[]
+): Promise<void> {
+  await prisma.category.deleteMany({
+    where: {
+      OR: namePrefixes.map((namePrefix) => ({
+        name: { startsWith: namePrefix },
+      })),
+    },
+  });
+}

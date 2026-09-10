@@ -18,6 +18,13 @@ export interface MaintainerDataGridSearchable<T extends GridValidRowModel> {
   placeholder?: string;
   downloadFileName?: string;
   disableExport?: boolean;
+  /**
+   * Called with the live query. The grid renders only the matches while the
+   * rows it was given still hold every row, so a screen whose row actions read
+   * that sequence — the reorder arrows walk `position` — has to know a filter
+   * is on.
+   */
+  onQueryChange?: (query: string) => void;
 }
 
 interface MaintainerDataGridProps<
@@ -63,6 +70,14 @@ export const MaintainerDataGrid = <
     query: searchable ? searchQuery : undefined,
     fuseOptions: searchable?.fuseOptions,
   });
+
+  const handleSearchChange = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      searchable?.onQueryChange?.(query);
+    },
+    [searchable]
+  );
 
   const resolveRowId = useCallback(
     (row: T): string =>
@@ -120,13 +135,13 @@ export const MaintainerDataGrid = <
       toolbar: {
         ...slotProps?.toolbar,
         searchValue: searchQuery,
-        onSearchChange: setSearchQuery,
+        onSearchChange: handleSearchChange,
         searchPlaceholder: searchable.placeholder,
         fileName: searchable.downloadFileName,
         disableExport: searchable.disableExport,
       } as unknown as GridSlotProps["toolbar"],
     };
-  }, [searchable, slotProps, searchQuery]);
+  }, [searchable, slotProps, searchQuery, handleSearchChange]);
 
   const sxArray: SxArrayItem[] = isSxArray(sx) ? [...sx] : sx ? [sx] : [];
 

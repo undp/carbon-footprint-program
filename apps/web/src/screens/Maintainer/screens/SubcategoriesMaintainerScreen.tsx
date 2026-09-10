@@ -1,4 +1,4 @@
-import { FC, useCallback, useEffect, useMemo } from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { Typography } from "@mui/material";
 import { useBlocker } from "@tanstack/react-router";
 import { useSnackbar } from "notistack";
@@ -8,15 +8,18 @@ import {
   useAddSubcategory,
   useUpdateSubcategory,
   useDeleteSubcategory,
+  useSwapSubcategoryPositions,
 } from "@/api/query/maintainer";
 import { useMeasurementUnits } from "@/api/query";
 import {
   useSubcategoriesForm,
   toFormSubcategory,
+  type SubcategoriesFormValues,
 } from "../hooks/useSubcategoriesForm";
 import { useSubcategoryColumns } from "../hooks/useSubcategoryColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
+import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
 import { useMaintainerExitEditMode } from "../hooks/useMaintainerExitEditMode";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
 import { SubcategoryForm } from "@repo/types";
@@ -24,6 +27,9 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { ExplanationModal } from "../components/ExplanationModal";
+
+/** Positions are unique per category, not across the whole grid. */
+const getSubcategoryCategoryId = (row: SubcategoryForm) => row.categoryId;
 
 const SUBCATEGORIES_MAINTAINER_EXPLANATION_SLUGS = {
   MAIN: "subcategories-maintainer",
@@ -66,15 +72,20 @@ export const SubcategoriesMaintainerScreen: FC = () => {
   const addMutation = useAddSubcategory();
   const updateMutation = useUpdateSubcategory();
   const deleteMutation = useDeleteSubcategory();
+  const swapMutation = useSwapSubcategoryPositions();
 
   // --- Form ---
   const { form, fieldArray, handleCellChange } = useSubcategoriesForm();
   const currentRows = form.watch("subcategories");
 
+  // The grid renders only the search matches while the arrows walk the full
+  // form array, so a filtered grid would render one order and move rows in
+  // another — the same mismatch `disableColumnSorting` rules out.
+  const [isFiltered, setIsFiltered] = useState(false);
+
   // --- Sync form with server data ---
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as typeof subcategories & object).map(toFormSubcategory),
+    (data: NonNullable<typeof subcategories>) => data.map(toFormSubcategory),
     []
   );
   useMaintainerFormSync({
@@ -147,7 +158,7 @@ export const SubcategoriesMaintainerScreen: FC = () => {
 
     try {
       if (row && hasRealChanges && row.icon) {
-        await updateMutation.mutateAsync({
+        const result = await updateMutation.mutateAsync({
           subcategoryId: row.id,
           data: {
             categoryId: row.categoryId,
@@ -158,6 +169,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
             measurementUnitIds: row.measurementUnitIds,
           },
         });
+        // Replayed like the create path above, and for the same reason: a move
+        // to another category is appended last there, so the row's position
+        // changed. The mutation's invalidation is not awaited, and the arrows
+        // are re-enabled as soon as edit mode ends — reading the old position
+        // they would send the wrong pair to the swap endpoint.
+        fieldArray.update(rowIndex, toFormSubcategory(result));
         form.reset({ subcategories: form.getValues("subcategories") });
         void enqueueSnackbar({
           message: "Cambios guardados satisfactoriamente",
@@ -231,6 +248,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       icon: "",
       description: "",
       explanation: null,
+      // The server appends the row last on create; until then there is no
+      // position to show or move.
+      position: null,
       measurementUnitIds: [],
     };
     fieldArray.prepend(newRow);
@@ -273,6 +293,21 @@ export const SubcategoriesMaintainerScreen: FC = () => {
       setEditingRowId,
     ]
   );
+
+  const swapSubcategories = useCallback(
+    (subcategoryIdA: string, subcategoryIdB: string) =>
+      swapMutation.mutateAsync({ subcategoryIdA, subcategoryIdB }),
+    [swapMutation]
+  );
+
+  const { handleMoveUp, handleMoveDown, isMoveBlocked } =
+    useMaintainerRowReorder<SubcategoriesFormValues, SubcategoryForm>({
+      form,
+      fieldName: "subcategories",
+      groupBy: getSubcategoryCategoryId,
+      swap: swapSubcategories,
+      errorMessage: "Error al mover sub-categoría",
+    });
 
   // --- Exit edit mode ---
   const { handleExitEditMode } = useMaintainerExitEditMode({
@@ -364,6 +399,9 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     onCancelEditRow: handleCancelEditRow,
     onDelete: handleDelete,
     onOpenExplanation: handleOpenExplanation,
+    onMoveUp: handleMoveUp,
+    onMoveDown: handleMoveDown,
+    moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
     categories: categoryOptions,
     allMeasurementUnits: measurementUnits ?? [],
@@ -436,12 +474,19 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     >
       <MaintainerDataGrid<SubcategoryForm>
         editingRowId={editingRowId}
+        // The order is the data here: the reorder arrows read `position` and
+        // swap with the adjacent sibling in that sequence, so a sorted grid
+        // would render one order and move rows in another — the arrow on the
+        // visually-first row would still be enabled and would swap it with a
+        // sibling rendered elsewhere in the list.
+        disableColumnSorting
         searchable={{
           fuseOptions: {
             keys: ["name", "description"],
           },
           placeholder: "Buscar subcategoría...",
           disableExport: true,
+          onQueryChange: (query) => setIsFiltered(query.trim() !== ""),
         }}
         showToolbar
         columns={columns}

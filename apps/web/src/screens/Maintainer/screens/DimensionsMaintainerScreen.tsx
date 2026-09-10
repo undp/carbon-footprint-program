@@ -71,8 +71,7 @@ export const DimensionsMaintainerScreen: FC = () => {
 
   // --- Sync form with server data ---
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      flattenDimensions(data as Parameters<typeof flattenDimensions>[0]),
+    (data: Parameters<typeof flattenDimensions>[0]) => flattenDimensions(data),
     []
   );
   useMaintainerFormSync({

@@ -6,13 +6,14 @@ import type { CategoryForm } from "@repo/types";
 
 import { EditableTextCell, IconPickerCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import type { EditableCategoryField } from "./useCategoriesForm";
 
 interface UseCategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof CategoryForm,
+    field: EditableCategoryField,
     value: string
   ) => void;
   onStartEditRow: (rowId: string) => void;
@@ -22,6 +23,12 @@ interface UseCategoryColumnsParams {
   onOpenExplanation: (rowIndex: number) => void;
   onMoveUp: (row: CategoryForm) => void;
   onMoveDown: (row: CategoryForm) => void;
+  /**
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered, which renders
+   * a different sequence than the one the arrows walk.
+   */
+  moveDisabled: boolean;
   rows: CategoryForm[];
 }
 
@@ -36,6 +43,7 @@ export const useCategoryColumns = ({
   onOpenExplanation,
   onMoveUp,
   onMoveDown,
+  moveDisabled,
   rows,
 }: UseCategoryColumnsParams): GridColDef<CategoryForm>[] => {
   const getRowIndex = useCallback(
@@ -47,8 +55,17 @@ export const useCategoryColumns = ({
     [editingRowId]
   );
 
+  // A row the server has not created yet has no position, so it is not in the
+  // sequence the arrows walk — leaving it in would make the last real row look
+  // like it has a neighbour below it, and the move would silently do nothing.
   const sortedRows = useMemo(
-    () => [...rows].sort((a, b) => a.position - b.position),
+    () =>
+      rows
+        .filter(
+          (row): row is CategoryForm & { position: number } =>
+            row.position !== null
+        )
+        .sort((a, b) => a.position - b.position),
     [rows]
   );
 
@@ -62,10 +79,13 @@ export const useCategoryColumns = ({
         filterable: false,
         headerAlign: "center",
         align: "center",
+        renderCell: (params: GridRenderCellParams<CategoryForm>) =>
+          // A row the server has not created yet has no position to show.
+          params.row.position ?? "—",
       },
       {
         field: "icon",
-        headerName: "Icono",
+        headerName: "Ícono",
         width: 60,
         headerAlign: "center",
         align: "center",
@@ -232,8 +252,12 @@ export const useCategoryColumns = ({
                     onCancelEdit={onCancelEditRow}
                     onMoveUp={() => onMoveUp(params.row)}
                     onMoveDown={() => onMoveDown(params.row)}
-                    moveUpDisabled={anyEditing || isFirst || isTemp}
-                    moveDownDisabled={anyEditing || isLast || isTemp}
+                    moveUpDisabled={
+                      anyEditing || isFirst || isTemp || moveDisabled
+                    }
+                    moveDownDisabled={
+                      anyEditing || isLast || isTemp || moveDisabled
+                    }
                     onDelete={() => onDelete(params.row)}
                   />
                 );
@@ -254,6 +278,7 @@ export const useCategoryColumns = ({
       onOpenExplanation,
       onMoveUp,
       onMoveDown,
+      moveDisabled,
       sortedRows,
       editingRowId,
     ]

@@ -12,13 +12,17 @@ import {
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import type { MeasurementUnit, Subcategory } from "../types";
+import type { EditableSubcategoryField } from "./useSubcategoriesForm";
+
+/** A form row that already has a place in its category's sequence. */
+type PositionedSubcategoryRow = SubcategoryForm & { position: number };
 
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof SubcategoryForm,
+    field: EditableSubcategoryField,
     value: string | string[] | null
   ) => void;
   onStartEditRow: (rowId: string) => void;
@@ -27,6 +31,16 @@ interface UseSubcategoryColumnsParams {
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
   onConfigureVariables?: (rowId: string) => void;
+  onMoveUp: (row: SubcategoryForm) => void;
+  onMoveDown: (row: SubcategoryForm) => void;
+  /**
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered. The arrows are
+   * computed from `position` over every row, the grid renders in form-array
+   * order and only the rows it was told to show, and the two only agree once
+   * the listing refetch has been replayed into an unfiltered grid.
+   */
+  moveDisabled: boolean;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -42,6 +56,9 @@ export const useSubcategoryColumns = ({
   onDelete,
   onOpenExplanation,
   onConfigureVariables,
+  onMoveUp,
+  onMoveDown,
+  moveDisabled,
   rows,
   categories,
   allMeasurementUnits,
@@ -55,8 +72,52 @@ export const useSubcategoryColumns = ({
     [editingRowId]
   );
 
+  // Positions are unique per category, not across the grid, so a row's
+  // neighbours are its siblings inside its own category.
+  const siblingsByCategory = useMemo(() => {
+    const groups = new Map<string, PositionedSubcategoryRow[]>();
+    // A row the server has not created yet has no position, so it is not in the
+    // sequence the arrows walk — leaving it in would make the first real row of
+    // its category look like it has a neighbour above it.
+    const positionedRows = rows.filter(
+      (row): row is PositionedSubcategoryRow => row.position !== null
+    );
+    for (const row of positionedRows) {
+      // Pushed, not re-spread: `rows` is form.watch output, so this runs on
+      // every keystroke in an editing row, and copying each group per member
+      // makes that quadratic in the number of subcategories.
+      const siblings = groups.get(row.categoryId);
+      if (siblings) {
+        siblings.push(row);
+      } else {
+        groups.set(row.categoryId, [row]);
+      }
+    }
+    for (const siblings of groups.values()) {
+      siblings.sort((a, b) => a.position - b.position);
+    }
+    return groups;
+  }, [rows]);
+
   return useMemo<GridColDef<Subcategory>[]>(
     () => [
+      {
+        field: "position",
+        headerName: "Pos.",
+        width: 60,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          // Read off the form row like every other column here: the grid row is
+          // typed as the server `Subcategory`, whose position is never null,
+          // while the rows the grid actually holds are form rows — and a row
+          // the server has not created yet has no position to show.
+          const formRow = rows[getRowIndex(params.row.id)];
+          return formRow?.position ?? "—";
+        },
+      },
       {
         field: "icon",
         headerName: "Ícono",
@@ -267,12 +328,24 @@ export const useSubcategoryColumns = ({
             );
           }
 
+          const siblings = formRow
+            ? (siblingsByCategory.get(formRow.categoryId) ?? [])
+            : [];
+          const siblingIdx = siblings.findIndex((r) => r.id === rowId);
+          const isFirstInCategory = siblingIdx === 0;
+          const isLastInCategory = siblingIdx === siblings.length - 1;
+          const cannotMove = anyEditing || isNewRow || !formRow || moveDisabled;
+
           return (
             <ActionButtons
               isActiveRow={anyEditing && !editing}
               isEditing={editing}
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
+              onMoveUp={formRow ? () => onMoveUp(formRow) : undefined}
+              onMoveDown={formRow ? () => onMoveDown(formRow) : undefined}
+              moveUpDisabled={cannotMove || isFirstInCategory}
+              moveDownDisabled={cannotMove || isLastInCategory}
               onDelete={formRow ? () => onDelete(formRow) : undefined}
               onConfigureVariables={
                 !isNewRow && onConfigureVariables
@@ -300,6 +373,10 @@ export const useSubcategoryColumns = ({
       onCancelEditRow,
       onDelete,
       onConfigureVariables,
+      onMoveUp,
+      onMoveDown,
+      moveDisabled,
+      siblingsByCategory,
     ]
   );
 };

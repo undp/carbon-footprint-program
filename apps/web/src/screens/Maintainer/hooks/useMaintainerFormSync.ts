@@ -1,23 +1,36 @@
 import { useEffect } from "react";
 import type { FieldValues, UseFormReturn } from "react-hook-form";
 
-interface UseMaintainerFormSyncOptions<TFormValues extends FieldValues> {
+interface UseMaintainerFormSyncOptions<
+  TFormValues extends FieldValues,
+  TFieldName extends keyof TFormValues & string,
+  TServerRow,
+> {
   form: UseFormReturn<TFormValues>;
-  fieldName: keyof TFormValues & string;
+  fieldName: TFieldName;
   editingRowId: string | null;
   methodologyVersionId: string | undefined;
-  serverData: unknown[] | undefined;
-  toFormData: (data: unknown[]) => unknown[];
+  /**
+   * The listing as the server returned it. Generic, not `unknown[]`, so
+   * `toFormData` is checked against both ends: a renamed or removed response
+   * field fails here instead of rendering as an empty cell.
+   */
+  serverData: TServerRow[] | undefined;
+  toFormData: (data: TServerRow[]) => TFormValues[TFieldName];
 }
 
-export const useMaintainerFormSync = <TFormValues extends FieldValues>({
+export const useMaintainerFormSync = <
+  TFormValues extends FieldValues,
+  TFieldName extends keyof TFormValues & string,
+  TServerRow,
+>({
   form,
   fieldName,
   editingRowId,
   methodologyVersionId,
   serverData,
   toFormData,
-}: UseMaintainerFormSyncOptions<TFormValues>) => {
+}: UseMaintainerFormSyncOptions<TFormValues, TFieldName, TServerRow>) => {
   // Reset form when methodology changes
   useEffect(() => {
     form.reset({ [fieldName]: [] } as unknown as TFormValues);

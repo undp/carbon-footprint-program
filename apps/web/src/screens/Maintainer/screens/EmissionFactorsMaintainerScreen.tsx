@@ -180,8 +180,8 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   // --- Sync form with server data ---
   const toFormData = useCallback(
-    (data: unknown[]) =>
-      (data as typeof emissionFactors & object).map(toFormEmissionFactor),
+    (data: NonNullable<typeof emissionFactors>) =>
+      data.map(toFormEmissionFactor),
     []
   );
   useMaintainerFormSync({

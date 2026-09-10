@@ -17,7 +17,7 @@ import {
 } from "@test/factories/subcategoryFactory.js";
 import { updateSubcategoryService } from "@/features/subcategories/updateSubcategory/service.js";
 import type { UpdateSubcategoryResponse } from "@repo/types";
-import { SubcategoryStatus } from "@repo/types";
+import { CategoryStatus, SubcategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { MethodologyVersionStatus } from "@repo/database";
@@ -363,6 +363,307 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as UpdateSubcategoryResponse;
       expect(body.category.id).toBe(newCategory.id.toString());
+    });
+
+    it("should append the subcategory last when moved into an occupied category", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Move Into Occupied",
+        position: 1,
+      });
+
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const newCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Occupied Target Category",
+          position: 3,
+        }
+      );
+      // The destination already has a subcategory at position 1, so keeping the
+      // moved subcategory's own position would break the unique index.
+      await createTestSubcategory(prisma, newCategory.id, {
+        name: "Test - Already At Position One",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: newCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const moved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: subcategory.id },
+      });
+      expect(moved.categoryId).toBe(newCategory.id);
+      expect(moved.position).toBe(2);
+    });
+
+    it("should repack the source category when a subcategory moves out", async () => {
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const sourceCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Move Out Source Category",
+          position: 5,
+        }
+      );
+      const [first, second, third] = await Promise.all([
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 1",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 2",
+          position: 2,
+        }),
+        createTestSubcategory(prisma, sourceCategory.id, {
+          name: "Test - Move Out 3",
+          position: 3,
+        }),
+      ]);
+      const targetCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Move Out Target Category",
+          position: 6,
+        }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${second.id}`,
+        payload: {
+          categoryId: targetCategory.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // Contiguous, not 1, 3: a move frees a position the same way a delete
+      // does, and the sequence the "Pos." column and the Excel export show has
+      // to stay 1..N. Leaving the hole would also make the next create in this
+      // category land at 4.
+      const remaining = await prisma.subcategory.findMany({
+        where: {
+          categoryId: sourceCategory.id,
+          status: SubcategoryStatus.ACTIVE,
+        },
+        select: { id: true, position: true, updatedById: true },
+        orderBy: { position: "asc" },
+      });
+
+      // Only `position` moves: shifting a sibling is bookkeeping, not an edit.
+      expect(remaining).toEqual([
+        { id: first.id, position: 1, updatedById: null },
+        { id: third.id, position: 2, updatedById: null },
+      ]);
+
+      const moved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: second.id },
+      });
+      expect(moved.categoryId).toBe(targetCategory.id);
+      expect(moved.position).toBe(1);
+    });
+
+    it("should reject a destination category soft-deleted while the request waits for the lock", async () => {
+      const subcategory = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Move Into Vanishing Category",
+        position: 1,
+      });
+
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const newCategory = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        {
+          name: "Test - Vanishing Target Category",
+          position: 4,
+        }
+      );
+
+      // Same lock ordering as createSubcategory: the destination category's
+      // status has to come from the locked row. A holder soft-deletes it and
+      // keeps the lock, so a request that checked the status first would still
+      // see ACTIVE and move the subcategory into a DELETED category.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: newCategory.id },
+            data: { status: CategoryStatus.DELETED },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${subcategory.id}`,
+        payload: {
+          categoryId: newCategory.id.toString(),
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(404);
+
+      const unmoved = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: subcategory.id },
+      });
+      expect(unmoved.categoryId).toBe(categoryId);
+    });
+
+    it("should refuse a move when the subcategory left the source category while the request waited for the lock", async () => {
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const [first, moving] = await Promise.all([
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Move Sibling",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Move Target",
+          position: 2,
+        }),
+      ]);
+      const destination = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        { name: "Test - Concurrent Move Destination", position: 2 }
+      );
+      const elsewhere = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        { name: "Test - Concurrent Move Elsewhere", position: 3 }
+      );
+
+      // The category to re-pack is decided from a read without a lock: a holder
+      // takes the destination lock and moves the row out of the source before
+      // releasing it, so a request that trusted that read would re-pack the
+      // source from a position the row no longer holds — pulling the sibling
+      // above it into a slot nothing freed.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: destination.id },
+            data: { synonyms: "Test - locked" },
+          });
+          await tx.subcategory.update({
+            where: { id: moving.id },
+            data: { categoryId: elsewhere.id, position: 1 },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${moving.id}`,
+        payload: {
+          categoryId: destination.id.toString(),
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("SUBCATEGORY_CONCURRENTLY_MOVED");
+
+      const sourceSequence = await prisma.subcategory.findMany({
+        where: { categoryId, status: SubcategoryStatus.ACTIVE },
+        select: { id: true, position: true },
+        orderBy: { position: "asc" },
+      });
+      expect(sourceSequence).toEqual([{ id: first.id, position: 1 }]);
+
+      const untouched = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: moving.id },
+      });
+      expect(untouched.categoryId).toBe(elsewhere.id);
+      expect(untouched.position).toBe(1);
+    });
+
+    it("should keep the position when the update does not change the category", async () => {
+      const first = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Keeps Position First",
+      });
+      const second = await createTestSubcategory(prisma, categoryId, {
+        name: "Test - Keeps Position Second",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${second.id}`,
+        payload: {
+          categoryId: categoryId.toString(),
+          name: "Test - Keeps Position Renamed",
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: second.id },
+      });
+      expect(updated.position).toBe(second.position);
+      expect(second.position).toBeGreaterThan(first.position);
     });
 
     it("should update explanation only", async () => {

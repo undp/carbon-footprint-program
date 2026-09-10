@@ -43,14 +43,38 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una categoría con esta posición en esta metodología.",
   METHODOLOGY_VERSION_NOT_FOUND_FOR_CATEGORY:
     "La versión de metodología no fue encontrada.",
+  CATEGORY_NOT_FOUND: "La categoría no fue encontrada.",
+  SAME_CATEGORY: "No se puede reordenar una categoría consigo misma.",
+  // Same reasoning as SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES: it also covers
+  // a pair moved to another methodology version while the reorder was in
+  // flight, so the copy points at reloading rather than retrying.
+  CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS:
+    "Solo se pueden reordenar categorías de la misma metodología. Si otra persona las movió, recarga la página.",
 
   // Subcategories
   SUBCATEGORY_NAME_ALREADY_EXISTS:
     "Ya existe una sub-categoría con este nombre en esta categoría.",
+  // No "vuelve a intentarlo": positions are server-assigned under the category
+  // lock, so this can only fire on a position written outside that path (seed
+  // data, a manual fix) and the next attempt fails identically.
+  SUBCATEGORY_POSITION_ALREADY_EXISTS:
+    "Ya existe una sub-categoría con esta posición en esta categoría.",
   CATEGORY_NOT_FOUND_FOR_SUBCATEGORY:
     "La categoría asociada no fue encontrada.",
   CATEGORY_FROM_DIFFERENT_METHODOLOGY:
     "La categoría debe pertenecer a la misma metodología.",
+  SUBCATEGORY_NOT_FOUND: "La sub-categoría no fue encontrada.",
+  SAME_SUBCATEGORY: "No se puede reordenar una sub-categoría consigo misma.",
+  // Also covers the case where the pair was moved out of its category while
+  // the reorder was in flight, which is why the copy points at reloading: the
+  // order on screen is the stale part, not the request.
+  SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES:
+    "Solo se pueden reordenar sub-categorías de la misma categoría. Si otra persona las movió, recarga la página.",
+  // The request is refused, not retried: the category the sub-category was
+  // moved out of is the one the server would have re-numbered, so the order on
+  // screen is the stale part.
+  SUBCATEGORY_CONCURRENTLY_MOVED:
+    "Otra persona movió esta sub-categoría a otra categoría mientras editabas. Recarga la página e inténtalo de nuevo.",
 
   // Emission factors
   EMISSION_FACTOR_NOT_FOUND: "El factor de emisión no fue encontrado.",

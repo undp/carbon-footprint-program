@@ -74,6 +74,7 @@ const ExportMeasurementUnitSchema = MeasurementUnitBaseSchema.pick({
 const ExportSubcategorySchema = SubcategoryBaseSchema.pick({
   id: true,
   name: true,
+  position: true,
   description: true,
 }).extend({
   measurementUnits: z
@@ -96,7 +97,7 @@ const ExportCategorySchema = CategoryBaseSchema.pick({
 }).extend({
   subcategories: z
     .array(ExportSubcategorySchema)
-    .describe("Active subcategories for the category, ordered by name"),
+    .describe("Active subcategories for the category, ordered by position"),
 });
 
 export const GetMethodologyExportResponseSchema =
