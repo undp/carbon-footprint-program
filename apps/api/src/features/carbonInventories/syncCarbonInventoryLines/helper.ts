@@ -99,7 +99,42 @@ export type FactorResolutionContext = {
    * id. At most one per line: a partial unique index enforces that.
    */
   storedInputs: Map<string, StoredInputRow>;
+  /**
+   * Every ACTIVE catalog factor the request selects, keyed by canonical id.
+   *
+   * Canonical because the key is derived from the parsed id and not from the
+   * request text: `IdSchema` accepts any digit string, so "042" and "42" name
+   * one row and have to reach one entry.
+   */
+  factors: Map<string, CatalogFactorRow>;
 };
+
+/** What resolving a catalog selection needs from the factor row. */
+const catalogFactorSelect = {
+  id: true,
+  subcategoryId: true,
+  dimensionValue1Id: true,
+  dimensionValue2Id: true,
+  source: true,
+  year: true,
+  value: true,
+  rateMeasurementUnitId: true,
+  numeratorMagnitudeId: true,
+  denominatorMagnitudeId: true,
+  subcategory: {
+    select: { category: { select: { methodologyVersionId: true } } },
+  },
+  rateMeasurementUnit: {
+    select: {
+      numeratorMeasurementUnit: { select: { baseFactor: true } },
+      denominatorMeasurementUnit: { select: { baseFactor: true } },
+    },
+  },
+} satisfies Prisma.EmissionFactorSelect;
+
+type CatalogFactorRow = Prisma.EmissionFactorGetPayload<{
+  select: typeof catalogFactorSelect;
+}>;
 
 /** The columns a preserved factor is rebuilt from. */
 const storedInputSelect = {
@@ -139,12 +174,15 @@ export async function loadFactorResolutionContext(
     subcategoryIds: bigint[];
     /** Lines whose stored snapshot an `UNCHANGED` update will keep. */
     unchangedLineIds: bigint[];
+    /** Catalog factors the request selects. */
+    factorIds: bigint[];
   }
 ): Promise<FactorResolutionContext> {
   const subcategoryIds = [...new Set(request.subcategoryIds)];
   const unchangedLineIds = [...new Set(request.unchangedLineIds)];
+  const factorIds = [...new Set(request.factorIds)];
 
-  const [dimensions, storedInputs] = await Promise.all([
+  const [dimensions, storedInputs, factors] = await Promise.all([
     subcategoryIds.length > 0
       ? tx.emissionFactorDimension.findMany({
           where: {
@@ -159,6 +197,12 @@ export async function loadFactorResolutionContext(
       ? tx.carbonInventoryLineInput.findMany({
           where: { lineId: { in: unchangedLineIds }, isActive: true },
           select: storedInputSelect,
+        })
+      : Promise.resolve([]),
+    factorIds.length > 0
+      ? tx.emissionFactor.findMany({
+          where: { id: { in: factorIds }, status: EmissionFactorStatus.ACTIVE },
+          select: catalogFactorSelect,
         })
       : Promise.resolve([]),
   ]);
@@ -178,6 +222,7 @@ export async function loadFactorResolutionContext(
     storedInputs: new Map(
       storedInputs.map((input) => [input.lineId.toString(), input])
     ),
+    factors: new Map(factors.map((factor) => [factor.id.toString(), factor])),
   };
 }
 
@@ -248,33 +293,9 @@ export async function resolveCatalogFactor(
 ): Promise<ResolvedFactor> {
   const emissionFactorId = BigInt(selection.emissionFactorId);
 
-  const factor = await tx.emissionFactor.findFirst({
-    where: {
-      id: emissionFactorId,
-      status: EmissionFactorStatus.ACTIVE,
-    },
-    select: {
-      id: true,
-      subcategoryId: true,
-      dimensionValue1Id: true,
-      dimensionValue2Id: true,
-      source: true,
-      year: true,
-      value: true,
-      rateMeasurementUnitId: true,
-      numeratorMagnitudeId: true,
-      denominatorMagnitudeId: true,
-      subcategory: {
-        select: { category: { select: { methodologyVersionId: true } } },
-      },
-      rateMeasurementUnit: {
-        select: {
-          numeratorMeasurementUnit: { select: { baseFactor: true } },
-          denominatorMeasurementUnit: { select: { baseFactor: true } },
-        },
-      },
-    },
-  });
+  // Absent means the row does not exist or is not ACTIVE: every id the request
+  // selects was queried when the context was built, under this same key.
+  const factor = context.factors.get(emissionFactorId.toString());
 
   if (!factor) {
     throw new CatalogEmissionFactorNotFoundError(selection.emissionFactorId);

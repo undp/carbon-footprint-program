@@ -144,6 +144,12 @@ export const syncCarbonInventoryLinesService = async (
               item.factorSelection?.type === FactorSelectionType.UNCHANGED
           )
           .map((item) => BigInt(item.id)),
+        factorIds: [...request.create, ...request.update]
+          .map((item) => item.factorSelection)
+          .filter(
+            (selection) => selection?.type === FactorSelectionType.CATALOG
+          )
+          .map((selection) => BigInt(selection.emissionFactorId)),
       }
     );
 
