@@ -69,6 +69,18 @@ describe("checkPositionsAreContiguous", () => {
     ).toThrow(/Alcance 3 \(1, 2, 4\)/);
   });
 
+  it("rejects a duplicated position", () => {
+    // No separate duplicate check exists: 1..N with no gaps is what rules a
+    // repeated position out, and the message has to show it.
+    expect(() =>
+      checkPositionsAreContiguous([
+        row("Alcance 3", 1),
+        row("Alcance 3", 2),
+        row("Alcance 3", 2),
+      ])
+    ).toThrow(/Alcance 3 \(1, 2, 2\)/);
+  });
+
   it("rejects numbering that does not start at 1", () => {
     expect(() =>
       checkPositionsAreContiguous([row("Alcance 2", 2), row("Alcance 2", 3)])

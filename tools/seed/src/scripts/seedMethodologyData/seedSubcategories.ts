@@ -13,11 +13,14 @@ export interface PositionedSubcategory {
 /**
  * Authored positions must run 1..N inside each category.
  *
- * Uniqueness alone accepts [1, 2, 4] and [2, 3, 4]. The authored order is
- * published as a numbered table in the docs and carried into the methodology
- * export, so a subcategory dropped from the JSON without renumbering would
- * leave a permanent hole users can see. Gaps that appear at runtime from soft
- * deletes are expected and fine — this is only about authored seed data.
+ * This is the only check the authored positions need: 1..N with no gaps also
+ * means no duplicates, since [1, 2, 2] does not sort to [1, 2, 3] either. It is
+ * stricter than the database's partial unique index, which accepts [1, 2, 4] and
+ * [2, 3, 4] — and the authored order is published as a numbered table in the
+ * docs and carried into the methodology export, so a subcategory dropped from
+ * the JSON without renumbering would leave a permanent hole users can see. Gaps
+ * that appear at runtime from soft deletes are expected and fine; this is only
+ * about authored seed data.
  */
 export function checkPositionsAreContiguous(
   data: PositionedSubcategory[]
@@ -90,15 +93,9 @@ export async function seedSubcategories(
   ]);
 
   // Positions must also be unique per category (enforced by a partial unique
-  // index in the database), so catch a duplicated position here with a clear
-  // message instead of a raw constraint violation.
-  checkForDuplicates(subcategoriesData, [
-    "countryIsoCode",
-    "methodologyVersionName",
-    "categoryName",
-    "position",
-  ]);
-
+  // index in the database). No separate duplicate check for them: 1..N with no
+  // gaps already implies uniqueness, and the message below names the category
+  // and prints its sorted positions, so the duplicate is visible.
   checkPositionsAreContiguous(subcategoriesData);
 
   // Fetch categories with their methodology versions and countries to map by full path
@@ -195,10 +192,11 @@ export async function seedSubcategories(
     );
   }
 
-  if (subcategories.length !== subcategoriesData.length)
-    throw new Error(
-      `Expected ${subcategoriesData.length} subcategories but found ${subcategories.length} for dataset ${dataset}`
-    );
+  // No count check on top of the block above: `subcategories` is every
+  // subcategory in the database, so the only way the counts could differ once
+  // every authored row was found is that the database holds rows this dataset
+  // never authored — a subcategory a maintainer added through the UI, which is
+  // legitimate and must not abort a re-seed.
 
   console.log(
     `   ✓ Ensured ${subcategoriesData.length} subcategories exist for dataset ${dataset}`
