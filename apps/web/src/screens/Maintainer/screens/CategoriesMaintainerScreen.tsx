@@ -28,8 +28,13 @@ import {
   useSwapCategoryPositions,
 } from "@/api/query/maintainer";
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
-import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
+import {
+  useCategoriesForm,
+  toFormCategory,
+  type CategoriesFormValues,
+} from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
+import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
 import { CategoryForm } from "@repo/types";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -310,55 +315,21 @@ export const CategoriesMaintainerScreen: FC = () => {
     ]
   );
 
-  const handleMove = useCallback(
-    async (row: CategoryForm, direction: "up" | "down") => {
-      const rows = form.getValues("categories");
-      const sorted = [...rows].sort((a, b) => a.position - b.position);
-      const sortedIdx = sorted.findIndex((r) => r.id === row.id);
-
-      if (row.id.startsWith("temp_")) return;
-      if (direction === "up" && sortedIdx <= 0) return;
-      if (
-        direction === "down" &&
-        (sortedIdx === -1 || sortedIdx >= sorted.length - 1)
-      )
-        return;
-
-      const neighbor =
-        sorted[direction === "up" ? sortedIdx - 1 : sortedIdx + 1];
-      if (neighbor.id.startsWith("temp_")) return;
-
-      try {
-        await swapMutation.mutateAsync({
-          categoryIdA: row.id,
-          categoryIdB: neighbor.id,
-        });
-        const updatedRows = rows.map((r) => {
-          if (r.id === row.id) return { ...r, position: neighbor.position };
-          if (r.id === neighbor.id) return { ...r, position: row.position };
-          return r;
-        });
-        updatedRows.sort((a, b) => a.position - b.position);
-        form.reset({ categories: updatedRows });
-      } catch (error) {
-        void enqueueSnackbar({
-          message: getApiErrorMessage(error, "Error al mover categoría"),
-          variant: "error",
-        });
-      }
-    },
-    [form, swapMutation, enqueueSnackbar]
+  const swapCategories = useCallback(
+    (categoryIdA: string, categoryIdB: string) =>
+      swapMutation.mutateAsync({ categoryIdA, categoryIdB }),
+    [swapMutation]
   );
 
-  const handleMoveUp = useCallback(
-    (row: CategoryForm) => handleMove(row, "up"),
-    [handleMove]
-  );
-
-  const handleMoveDown = useCallback(
-    (row: CategoryForm) => handleMove(row, "down"),
-    [handleMove]
-  );
+  const { handleMoveUp, handleMoveDown } = useMaintainerRowReorder<
+    CategoriesFormValues,
+    CategoryForm
+  >({
+    form,
+    fieldName: "categories",
+    swap: swapCategories,
+    errorMessage: "Error al mover categoría",
+  });
 
   // --- Exit edit mode ---
 
