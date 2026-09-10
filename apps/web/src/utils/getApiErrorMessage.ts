@@ -43,6 +43,13 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una categoría con esta posición en esta metodología.",
   METHODOLOGY_VERSION_NOT_FOUND_FOR_CATEGORY:
     "La versión de metodología no fue encontrada.",
+  CATEGORY_NOT_FOUND: "La categoría no fue encontrada.",
+  SAME_CATEGORY: "No se puede reordenar una categoría consigo misma.",
+  // Same reasoning as SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES: it also covers
+  // a pair moved to another methodology version while the reorder was in
+  // flight, so the copy points at reloading rather than retrying.
+  CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS:
+    "Solo se pueden reordenar categorías de la misma metodología. Si otra persona las movió, recarga la página.",
 
   // Subcategories
   SUBCATEGORY_NAME_ALREADY_EXISTS:
