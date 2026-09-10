@@ -466,6 +466,12 @@ export const SubcategoriesMaintainerScreen: FC = () => {
     >
       <MaintainerDataGrid<SubcategoryForm>
         editingRowId={editingRowId}
+        // The order is the data here: the reorder arrows read `position` and
+        // swap with the adjacent sibling in that sequence, so a sorted grid
+        // would render one order and move rows in another — the arrow on the
+        // visually-first row would still be enabled and would swap it with a
+        // sibling rendered elsewhere in the list.
+        disableColumnSorting
         searchable={{
           fuseOptions: {
             keys: ["name", "description"],
