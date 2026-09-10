@@ -91,9 +91,10 @@ export const useSubcategoryColumns = ({
         headerAlign: "center",
         align: "center",
         renderCell: (params: GridRenderCellParams<Subcategory>) => {
-          const formRow = rows[getRowIndex(params.row.id)];
           // A row that has not been created yet has no position to show.
-          return formRow && formRow.position > 0 ? formRow.position : "—";
+          // Read off the grid row, which is the same form row the rest of this
+          // hook looks up by index — no scan needed for a field it carries.
+          return params.row.position > 0 ? params.row.position : "—";
         },
       },
       {
