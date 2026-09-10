@@ -4,6 +4,15 @@ Approved by the methodology owner on 2026-09-01. This is the map the migration
 preflight (task 2.3) validates against: any `emission_factor.source` not listed
 here is unclassified and SHALL abort the migration.
 
+Re-audited on 2026-09-10 against the catalogue on `main`, which grew by three
+industrial-process subcategories with factors — Ferroaleaciones y otros metales,
+Cal and Aluminio, 38 factors, all `IPCC`. **The map below is unchanged**: the
+four `source` values are the same and every new factor is `IPCC`, already
+classified transversal. What changed is the size of the sets it applies to, and
+every count in this file has been recomputed. The conclusions all still hold;
+the expanded consolidation set is the part worth the methodology owner's
+confirmation, since it is 35 groups rather than the 16 originally reviewed.
+
 ## Source → (provider, reporting year)
 
 | Stored `source` | New `source` | New `year` | Basis                                                                                              |
@@ -13,36 +22,49 @@ here is unclassified and SHALL abort the migration.
 | `IPCC`          | `IPCC`       | `null`     | Confirmed transversal: IPCC Guidelines process-stoichiometry defaults apply to any reporting year. |
 | `Kool, A.`      | `Kool, A.`   | `null`     | Confirmed transversal: author/LCA reference with no reporting-year basis.                          |
 
-Seed counts at classification time (identical in `base` and `testing`, except
-`DEFRA` which is 195 in `base` and 194 in `testing`): `DEFRA` 195/194,
-`IPCC` 45, `Kool, A.` 3, `EcoAct` 3.
+Seed counts (identical in `base` and `testing`, except `DEFRA` which is 195 in
+`base` and 194 in `testing`): `DEFRA` 195/194, `IPCC` 83, `Kool, A.` 3,
+`EcoAct` 3 — 284 factors in `base` and 283 in `testing`. At first classification
+`IPCC` was 45 and the totals 246/245; the 38 added factors are all `IPCC`.
 
 ## Unit-family audit (task 1.2)
 
 Business key audited: `(subcategory, normalized required dimension values, year,
 source, numerator magnitude, denominator magnitude)`.
 
-Families present: `mass/mass` (130), `mass/distance` (34), `mass/rooms` (21),
-`mass/volume` (17), `mass/power` (14), `mass/distance_mass` (12),
-`mass/animals` (11), `mass/time` (3), `mass/energy` (2), `mass/area` (2).
+Families present in `base`: `mass/mass` (168), `mass/distance` (34),
+`mass/rooms` (21), `mass/volume` (17), `mass/power` (14),
+`mass/distance_mass` (12), `mass/animals` (11), `mass/time` (3),
+`mass/energy` (2), `mass/area` (2). `testing` is identical except `mass/power`
+(13), which is the one `DEFRA` factor it does not carry. All 38 added factors
+landed in `mass/mass`, which grew from 130.
 
-16 collision groups were found, all inside `mass/mass` and all from the same
-cause: an `IPCC` industrial-process factor stored twice, once in `kg/ton` and
-once in the equivalent `kg/kg`.
+35 collision groups were found, in `base` and in `testing` alike, all inside
+`mass/mass`, all `IPCC`, and all from the same single cause: an industrial-process
+factor stored twice, once in `kg/ton` and once in the equivalent `kg/kg`. They
+span seven industrial-process subcategories:
 
-- `Procesos industriales - Acero`: BOF, AEF, OHF, world average (4)
-- `Procesos industriales - Cemento`: Clinker (1)
-- `Procesos industriales - Cinc`: Pirometalúrgico, Waelz Kiln, default average (3)
+- `Procesos industriales - Ferroaleaciones y otros metales`: ferrocromo ×2, ferromanganeso ×2, ferrosilicio ×4, plomo ×4, silicio metálico, silicomanganeso (14)
 - `Procesos industriales - Vidrio`: 8 glass types (8)
+- `Procesos industriales - Acero`: BOF, AEF, OHF, world average (4)
+- `Procesos industriales - Cal`: cal alta en calcio, dolomítica, hidráulica (3)
+- `Procesos industriales - Cinc`: Pirometalúrgico, Waelz Kiln, default average (3)
+- `Procesos industriales - Aluminio`: Søderberg, ánodo precocido (2)
+- `Procesos industriales - Cemento`: Clinker (1)
+
+The first classification found 16, across the four subcategories that existed
+then; the three new subcategories contribute the other 19.
 
 ## Consolidation (task 1.3)
 
 Every group converts to an identical canonical value (`kg/ton` value ÷ 1000 ==
-`kg/kg` value), so all 16 are mathematically equivalent and were consolidated
-automatically. No group required methodology review, and no wet/dry-style
-distinction was found hiding in a unit.
+`kg/kg` value), so all 35 are mathematically equivalent and consolidate
+automatically. That was re-verified over the expanded set: zero groups disagree
+after conversion, so no group requires methodology review, and no wet/dry-style
+distinction was found hiding in a unit. The conclusion is unchanged from the
+16-group audit; only its scope grew.
 
-Canonical unit kept: `kg/ton`. All four subcategories allow `g`, `kg` and `ton`
+Canonical unit kept: `kg/ton`. All seven subcategories allow `g`, `kg` and `ton`
 as activity units, and industrial output is reported in tons, so `kg/ton` keeps
 the common path conversion-free. The `kg/kg` representation is generated by
 conversion from measurement-unit base factors.
@@ -51,7 +73,7 @@ conversion from measurement-unit base factors.
 
 `fix-energy-unit-classification` reclassifies `kWh`/`MWh` from `power` to
 `energy`, which would merge the `mass/power` and `mass/energy` families. Re-running
-the audit under that merged family yields the same 16 groups and no new
+the audit under that merged family yields the same 35 groups and no new
 collisions: the two `kg/GJ` factors (`Biodiésel`, `Bioetanol`) sit on dimension
 values disjoint from every `kg/kWh` factor. The two changes do not conflict on
 seed data.
