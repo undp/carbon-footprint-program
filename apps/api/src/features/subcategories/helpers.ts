@@ -139,6 +139,10 @@ export async function getNextSubcategoryPosition(
  * after each row, not after the full statement, so a bulk `updateMany` would
  * violate it.
  *
+ * The status predicate is the index's own — every row that is not DELETED — and
+ * the same one `getNextSubcategoryPosition` counts. A row this call refused to
+ * shift while MAX + 1 counted it would leave a hole the next append lands in.
+ *
  * Only `position` is written. Shifting a sibling is bookkeeping, not an edit, so
  * stamping the actor here would report every following subcategory as "modified
  * just now" by whoever deleted or moved one of their siblings, erasing who last
@@ -156,7 +160,7 @@ export async function repackSubcategoryPositions(
   const toShift = await tx.subcategory.findMany({
     where: {
       categoryId,
-      status: SubcategoryStatus.ACTIVE,
+      status: { not: SubcategoryStatus.DELETED },
       position: { gt: freedPosition },
     },
     select: { id: true },
