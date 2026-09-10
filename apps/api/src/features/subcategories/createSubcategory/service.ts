@@ -3,11 +3,11 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   User,
-  IconNameSchema,
   type CreateSubcategoryRequest,
   type CreateSubcategoryResponse,
 } from "@repo/types";
 import { CategoryNotFoundForSubcategoryError } from "../errors.js";
+import { mapSubcategoryWithCategoryToResponse } from "../mappers.js";
 import {
   getNextSubcategoryPosition,
   lockCategory,
@@ -79,20 +79,10 @@ export const createSubcategoryService = async (
           },
         });
 
-      return {
-        ...newSubcategory,
-        id: newSubcategory.id.toString(),
-        icon: IconNameSchema.parse(newSubcategory.icon),
-        category: {
-          id: newSubcategory.category.id.toString(),
-          name: newSubcategory.category.name,
-          color: newSubcategory.category.color,
-        },
-        measurementUnits: newSubcategoryMeasurementUnits.map((smu) => ({
-          id: smu.measurementUnit.id.toString(),
-          name: smu.measurementUnit.name,
-        })),
-      };
+      return mapSubcategoryWithCategoryToResponse(
+        newSubcategory,
+        newSubcategoryMeasurementUnits.map((smu) => smu.measurementUnit)
+      );
     });
     return result;
   } catch (error) {

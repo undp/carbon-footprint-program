@@ -3,7 +3,6 @@ import {
   CategoryStatus,
   SubcategoryStatus,
   User,
-  IconNameSchema,
   type UpdateSubcategoryRequest,
   type UpdateSubcategoryResponse,
 } from "@repo/types";
@@ -17,6 +16,7 @@ import {
   lockCategory,
   rethrowSubcategoryUniqueViolation,
 } from "../helpers.js";
+import { mapSubcategoryWithCategoryToResponse } from "../mappers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const updateSubcategoryService = async (
@@ -139,25 +139,12 @@ export const updateSubcategoryService = async (
         throw new SubcategoryNotFoundError();
       }
 
-      return {
-        id: subcategory.id.toString(),
-        name: subcategory.name,
-        icon: IconNameSchema.parse(subcategory.icon),
-        description: subcategory.description,
-        explanation: subcategory.explanation,
-        position: subcategory.position,
-        category: {
-          id: subcategory.category.id.toString(),
-          name: subcategory.category.name,
-          color: subcategory.category.color,
-        },
-        measurementUnits: subcategory.subcategoryMeasurementUnits.map(
-          ({ measurementUnit }) => ({
-            id: measurementUnit.id.toString(),
-            name: measurementUnit.name,
-          })
-        ),
-      };
+      return mapSubcategoryWithCategoryToResponse(
+        subcategory,
+        subcategory.subcategoryMeasurementUnits.map(
+          ({ measurementUnit }) => measurementUnit
+        )
+      );
     });
 
     return result;
