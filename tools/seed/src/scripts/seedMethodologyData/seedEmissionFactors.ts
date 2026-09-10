@@ -187,18 +187,73 @@ export async function seedEmissionFactors(
     skipDuplicates: true,
   });
 
-  // Verify all emission factors were created. Only ACTIVE rows count: the
-  // add_emission_factor_year migration retires duplicate unit representations by
-  // soft delete, so a migrated database keeps rows this seed data no longer
-  // describes and would otherwise fail here while being perfectly correct.
-  const emissionFactors = await prisma.emissionFactor.findMany({
-    where: { status: EmissionFactorStatus.ACTIVE },
-  });
+  // Verify that every row this dataset describes exists, by identity rather than
+  // by counting the table.
+  //
+  // A global count conflated the question with two unrelated facts. A migrated
+  // database keeps the duplicate unit representations the
+  // add_emission_factor_year migration soft-deleted, and any factor a maintainer
+  // created through the UI is ACTIVE and counted too — so the count could differ
+  // from this dataset's while every described row was present and correct.
+  // Filtering to ACTIVE fixed only the first of those.
+  //
+  // The key is the one the unique index enforces, so a described row and its
+  // stored counterpart match on exactly the columns that make them the same
+  // factor.
+  const identityKey = (factor: {
+    subcategoryId: bigint;
+    dimensionValue1Id: bigint | null;
+    dimensionValue2Id: bigint | null;
+    year: number | null;
+    source: string;
+    numeratorMagnitudeId: bigint;
+    denominatorMagnitudeId: bigint;
+  }): string =>
+    [
+      factor.subcategoryId,
+      factor.dimensionValue1Id ?? "none",
+      factor.dimensionValue2Id ?? "none",
+      factor.year ?? "transversal",
+      factor.source,
+      factor.numeratorMagnitudeId,
+      factor.denominatorMagnitudeId,
+    ].join("|");
 
-  if (emissionFactors.length !== emissionFactorsData.length)
+  const storedFactors = await prisma.emissionFactor.findMany({
+    where: {
+      status: EmissionFactorStatus.ACTIVE,
+      subcategoryId: {
+        in: [...new Set(emissionFactorsToCreate.map((ef) => ef.subcategoryId))],
+      },
+    },
+    select: {
+      subcategoryId: true,
+      dimensionValue1Id: true,
+      dimensionValue2Id: true,
+      year: true,
+      source: true,
+      numeratorMagnitudeId: true,
+      denominatorMagnitudeId: true,
+    },
+  });
+  const storedIdentities = new Set(storedFactors.map(identityKey));
+
+  const missing = emissionFactorsToCreate.filter(
+    (ef) => !storedIdentities.has(identityKey(ef))
+  );
+
+  if (missing.length > 0) {
+    const sample = missing
+      .slice(0, 3)
+      .map(
+        (ef) =>
+          `subcategory ${ef.subcategoryId} / source '${ef.source}' / year ${ef.year ?? "transversal"}`
+      )
+      .join("; ");
     throw new Error(
-      `Expected ${emissionFactorsData.length} active emission factors but found ${emissionFactors.length} for dataset ${dataset}`
+      `${missing.length} of ${emissionFactorsToCreate.length} emission factors described by dataset ${dataset} are missing after seeding (for example: ${sample})`
     );
+  }
 
   console.log(
     `   ✓ Ensured ${emissionFactorsData.length} emission factors exist for dataset ${dataset}`
