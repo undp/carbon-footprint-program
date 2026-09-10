@@ -207,6 +207,9 @@ export const syncCarbonInventoryLinesService = async (
         tx,
         updateItem,
         factorContext,
+        // Present for every update id: the validation above throws
+        // LineNotFoundError for anything missing from the stored lines and
+        // fills this map for the rest.
         subcategoryIdByLineId.get(updateItem.id)!
       );
       const newInput = await createLineInput(
