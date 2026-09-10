@@ -61,10 +61,9 @@ export async function lockCategory(
  *
  * Positions are not supplied by the client. DELETED rows are excluded from both
  * the max and the partial unique index, so the position of a soft-deleted
- * subcategory becomes free again — but only the highest one is ever handed out
- * again: deleting a subcategory in the middle leaves a permanent gap, and gaps
- * accumulate over delete/create cycles. Order is what matters here, not
- * contiguity.
+ * subcategory becomes free again — and `deleteSubcategory` repacks the siblings
+ * that follow the deleted row, the way `deleteCategory` does. The live sequence
+ * therefore stays contiguous, and MAX + 1 is the slot right after the last row.
  *
  * Callers must already hold the parent category lock (see `lockCategory`),
  * which is why the parameter is the transaction client. Without the lock two

@@ -100,6 +100,92 @@ describe("DELETE /api/subcategories/:id - Integration Tests", () => {
       expect(dbRecord).toBeDefined();
       expect(dbRecord!.status).toBe(SubcategoryStatus.DELETED);
     });
+
+    it("should shift positions of subsequent subcategories down by 1", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Subcategory Delete Repack",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const category = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Repack Parent",
+        position: 1,
+      });
+      const [first, second, third, fourth] = await Promise.all([
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Repack 1",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Repack 2",
+          position: 2,
+        }),
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Repack 3",
+          position: 3,
+        }),
+        createTestSubcategory(prisma, category.id, {
+          name: "Test - Repack 4",
+          position: 4,
+        }),
+      ]);
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/subcategories/${second.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      // Contiguous, not 1, 3, 4: the position column, the Excel export and the
+      // seed's contiguity check all read this sequence as 1..N.
+      const remaining = await prisma.subcategory.findMany({
+        where: { categoryId: category.id, status: SubcategoryStatus.ACTIVE },
+        select: { id: true, position: true },
+        orderBy: { position: "asc" },
+      });
+
+      expect(remaining).toEqual([
+        { id: first.id, position: 1 },
+        { id: third.id, position: 2 },
+        { id: fourth.id, position: 3 },
+      ]);
+    });
+
+    it("should not shift subcategories of a different category", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Subcategory Delete Repack Scope",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+      const [categoryA, categoryB] = await Promise.all([
+        createTestCategory(prisma, methodology.id, {
+          name: "Test - Repack Scope A",
+          position: 1,
+        }),
+        createTestCategory(prisma, methodology.id, {
+          name: "Test - Repack Scope B",
+          position: 2,
+        }),
+      ]);
+      const target = await createTestSubcategory(prisma, categoryA.id, {
+        name: "Test - Repack Scope Target",
+        position: 1,
+      });
+      const untouched = await createTestSubcategory(prisma, categoryB.id, {
+        name: "Test - Repack Scope Untouched",
+        position: 2,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/subcategories/${target.id}`,
+      });
+
+      // Positions are unique per category, so the repack is scoped to one.
+      const dbUntouched = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: untouched.id },
+      });
+      expect(dbUntouched.position).toBe(2);
+    });
   });
 
   describe("Emission factor cascade", () => {
