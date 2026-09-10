@@ -1,4 +1,8 @@
-import { SubcategoryStatus, type PrismaClient } from "@repo/database";
+import {
+  CategoryStatus,
+  SubcategoryStatus,
+  type PrismaClient,
+} from "@repo/database";
 import { z } from "zod";
 import { checkForDuplicates, type SeedsDataset } from "@/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
@@ -100,6 +104,11 @@ export async function seedSubcategories(
 
   // Fetch categories with their methodology versions and countries to map by full path
   const categories = await prisma.category.findMany({
+    // Live rows only: the partial unique indexes ignore DELETED ones, so a
+    // category a maintainer soft-deleted and this seed re-created has two rows
+    // for the same full path, and the map would keep whichever the unordered
+    // read returned last — attaching the subcategories below to the dead one.
+    where: { status: CategoryStatus.ACTIVE },
     include: {
       methodologyVersion: {
         include: {
@@ -146,6 +155,11 @@ export async function seedSubcategories(
 
   // Verify all subcategories were created
   const subcategories = await prisma.subcategory.findMany({
+    // Live rows only, for the same reason as the categories read above: a
+    // soft-deleted row would satisfy the existence check below and could shadow
+    // the ACTIVE row just created for the same full path, silently leaving the
+    // live subcategory with none of the measurement units seeded further down.
+    where: { status: SubcategoryStatus.ACTIVE },
     include: {
       category: {
         include: {
