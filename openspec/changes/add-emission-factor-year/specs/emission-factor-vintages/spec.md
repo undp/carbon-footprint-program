@@ -45,7 +45,7 @@ At most one ACTIVE emission factor SHALL exist for this business key:
 
 The exact measurement units SHALL NOT form the identity. The numerator/denominator magnitude pair SHALL define a unit family. Dimension slots that are not required by the subcategory SHALL be normalized to `null` when applying this rule, and SHALL NOT be normalized on persistence: a value entered in a non-required slot SHALL be stored and returned unchanged.
 
-The application and a partial database unique index SHALL enforce the same key. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. `EmissionFactor` SHALL persist `numeratorMagnitudeId` and `denominatorMagnitudeId`, derived by the server from the selected rate unit. These IDs SHALL NOT be accepted as client-authored data. No textual family key or additional unit-family table is required.
+A partial database unique index SHALL enforce this key over the raw dimension columns, and the application SHALL enforce it with non-required slots normalized to `null`. The application check is therefore marginally stricter: two factors differing only in a non-required slot SHALL be rejected by the application even though the index permits them. That asymmetry is intentional and errs toward rejecting more. The index SHALL treat null values as equal and SHALL apply to non-deleted rows. `EmissionFactor` SHALL persist `numeratorMagnitudeId` and `denominatorMagnitudeId`, derived by the server from the selected rate unit. These IDs SHALL NOT be accepted as client-authored data. No textual family key or additional unit-family table is required.
 
 #### Scenario: A second year is accepted
 
