@@ -120,7 +120,10 @@ For `CATALOG`, the server loads the factor and inventory methodology inside the 
 - it belongs to the inventory's methodology version and selected subcategory;
 - its required dimension values match the line;
 - the requested applied rate unit has the same numerator/denominator magnitude family;
+- its denominator measurement unit is the line's own activity unit, so `quantity × factor` is dimensionally correct;
 - all units needed for the conversion are active and valid.
+
+Family compatibility alone is not enough for that fifth check: `kg/kg` and `kg/ton` share the `mass/mass` family, so a line whose quantity was captured in tons would pass a family-only validation against a `kg/kg` applied unit and produce a result wrong by three orders of magnitude — persisted as a server-derived snapshot, which is exactly the authority this decision claims.
 
 The server then converts the canonical catalog value into the requested applied unit, calculates the result and snapshots `emissionFactorId`, applied value, applied unit, source and year. Client-provided catalog value/source/year fields are removed from the contract. `CUSTOM` and `DIRECT` keep their own validation paths and cannot impersonate a catalog factor.
 

@@ -59,6 +59,8 @@
 
 - [ ] 6.7 Reject a sync request whose `inputType` contradicts its factor variant: `DIRECT` only with `DIRECT`, `SIMPLIFIED` and `EXPERT` only with `CATALOG` or `CUSTOM`. Keep `inputType` as the capture-mode field; do not derive the variant from it or the reverse.
 
+- [ ] 6.8 Validate that the requested applied rate unit's denominator measurement unit equals the line's `measurementUnitId`, not only that the magnitude families match. `kg/kg` against a quantity captured in `ton` passes a family-only check and yields a result off by 1000.
+
 ## 7. Web — ranking in the existing Factor selector
 
 - [x] 7.1 Add factor `year` and canonical/base factor ID to `MethodologyEmissionFactor` and the emission-editor models.

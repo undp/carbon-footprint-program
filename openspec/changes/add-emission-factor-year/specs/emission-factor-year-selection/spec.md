@@ -104,7 +104,7 @@ CUSTOM  { source, value, rateMeasurementUnitId }
 DIRECT  { totalEmissions }
 ```
 
-For `CATALOG`, the API SHALL load the selected factor and derive source, year, canonical value and converted applied value. It SHALL validate that the factor is ACTIVE, belongs to the inventory methodology and subcategory, matches the line's required dimensions, and belongs to the same numerator/denominator magnitude family as the requested applied rate unit. Client-authored catalog source, year or value SHALL NOT be accepted.
+For `CATALOG`, the API SHALL load the selected factor and derive source, year, canonical value and converted applied value. It SHALL validate that the factor is ACTIVE, belongs to the inventory methodology and subcategory, matches the line's required dimensions, and belongs to the same numerator/denominator magnitude family as the requested applied rate unit. It SHALL also validate that the applied rate unit's denominator measurement unit is the line's own activity measurement unit; magnitude-family compatibility alone SHALL NOT be accepted as sufficient. Client-authored catalog source, year or value SHALL NOT be accepted.
 
 For `CUSTOM` and `DIRECT`, the API SHALL apply their dedicated validation and calculation paths. They SHALL NOT create a dated catalog-factor snapshot or participate in catalog-year warnings.
 
@@ -116,6 +116,12 @@ The line's `inputType` SHALL remain the capture-mode field it already is and SHA
 - **WHEN** the client submits its ID with a compatible mass/energy applied rate unit
 - **THEN** the API SHALL convert the catalog value to that unit
 - **AND** it SHALL calculate and persist the result and catalog snapshot from server-loaded data
+
+#### Scenario: A compatible family with the wrong denominator is rejected
+
+- **GIVEN** a line whose quantity is captured in `ton` and an ACTIVE `mass/mass` catalog factor
+- **WHEN** the request asks for an applied rate unit of `kg/kg`
+- **THEN** the API SHALL reject the selection rather than multiply a tonne quantity by a per-kilogram factor
 
 #### Scenario: Client-authored catalog data cannot replace the snapshot
 
