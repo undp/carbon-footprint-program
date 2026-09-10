@@ -20,6 +20,7 @@ export const CreateEmissionFactorRequestSchema = z.strictObject({
     .describe("Name for dimension value 2 (find-or-create)"),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
   source: z.string().min(1, "Fuente es requerida"),
+  year: EmissionFactorBaseSchema.shape.year,
   gasDetails: GasDetailsSchema,
   value: z.number(),
 });
@@ -29,6 +30,7 @@ export const CreateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
     id: true,
     value: true,
     source: true,
+    year: true,
   }
 ).extend({
   subcategoryId: SubcategoryBaseSchema.shape.id,
@@ -50,6 +52,10 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
   source: z.string().min(1, "Fuente es requerida"),
+  // Nullable, and null is a real answer: it declares the factor transversal.
+  // The maintainer therefore requires an explicit blank choice rather than
+  // treating an empty field as "not filled in yet".
+  year: EmissionFactorBaseSchema.shape.year,
   value: z
     .number({ error: "Valor es requerido" })
     .nonnegative("Debe ser no negativo")

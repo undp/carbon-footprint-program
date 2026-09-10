@@ -108,6 +108,7 @@ export type MethodologyExportPayload = Prisma.MethodologyVersionGetPayload<{
               select: {
                 id: true;
                 source: true;
+                year: true;
                 value: true;
                 gasDetails: true;
                 dimensionValue1: { select: { id: true; value: true } };
@@ -150,6 +151,7 @@ function mapEmissionFactorExport(
   return {
     id: factor.id.toString(),
     source: factor.source,
+    year: factor.year,
     value: factor.value.toString(),
     gasDetails: parseGasDetails(factor.gasDetails, factor.id),
     dimensionValue1: factor.dimensionValue1

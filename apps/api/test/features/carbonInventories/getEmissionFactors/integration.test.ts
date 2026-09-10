@@ -18,6 +18,7 @@ import {
   getSubcategoryIds,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
+import { resolveTestRateUnitMagnitudes } from "@test/factories/emissionFactorFactory.js";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -202,6 +203,8 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
           dimensionValue1Id: selection1Id,
           dimensionValue2Id: selection2Id,
           rateMeasurementUnitId: rateUnitId,
+          // Derived from the rate unit, as every production write path does.
+          ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
           source: "IPCC 2019 - Fuels - Coal (industrial) - tonnes",
           gasDetails: { co2: 100, ch4: 5, n2o: 0 },
           value: new Prisma.Decimal(2.5),
@@ -339,6 +342,8 @@ describe("GET /api/carbon-inventories/:id/emission-factors - Integration Tests",
           subcategoryId: subcategoryDim1OnlyId,
           dimensionValue1Id: selectionOnlyId,
           rateMeasurementUnitId: rateUnitId,
+          // Derived from the rate unit, as every production write path does.
+          ...(await resolveTestRateUnitMagnitudes(prisma, rateUnitId)),
           source: "Shared Factor",
           gasDetails: {},
           value: new Prisma.Decimal(1),

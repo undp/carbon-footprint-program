@@ -14,8 +14,11 @@ export const NORMATIVA_OPTIONS: SelectOption[] = [
 ];
 
 // TODO: move to a database table and populate via seeds
+// Provider names only. The reporting year is a separate field, and the capture
+// screen appends it to the label, so a year here would be shown twice.
 export const SOURCE_OPTIONS: SelectOption[] = [
-  { label: "DEFRA 2025", value: "DEFRA 2025" },
+  { label: "DEFRA", value: "DEFRA" },
+  { label: "EcoAct", value: "EcoAct" },
   { label: "HuellaChile", value: "HuellaChile" },
   { label: "EPA", value: "EPA" },
   { label: "IPCC", value: "IPCC" },

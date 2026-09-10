@@ -9,6 +9,12 @@ interface FreeSoloAutocompleteCellProps {
   onChange: (value: string) => void;
   onClick?: () => void;
   errorMessage?: string;
+  /**
+   * Persistent guidance shown while editing, when there is no error to report.
+   * A grid cell has no room for helper text under the input, so it rides the
+   * same tooltip the error message uses.
+   */
+  helperText?: string;
 }
 
 export const FreeSoloAutocompleteCell: FC<FreeSoloAutocompleteCellProps> = ({
@@ -18,6 +24,7 @@ export const FreeSoloAutocompleteCell: FC<FreeSoloAutocompleteCellProps> = ({
   onChange,
   onClick,
   errorMessage,
+  helperText,
 }) => {
   const [localValue, setLocalValue] = useState(value);
 
@@ -65,7 +72,7 @@ export const FreeSoloAutocompleteCell: FC<FreeSoloAutocompleteCellProps> = ({
   }
 
   return (
-    <Tooltip title={errorMessage ?? ""} arrow placement="top">
+    <Tooltip title={errorMessage ?? helperText ?? ""} arrow placement="top">
       <Autocomplete
         freeSolo
         fullWidth
