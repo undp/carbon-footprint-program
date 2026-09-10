@@ -81,6 +81,11 @@ type RateUnitConversion = RateUnitMagnitudeFamily & {
  * save spending over a hundred round-trips inside the transaction, against
  * Prisma's five-second budget. Read once, it is a single query plus one per
  * distinct unit.
+ *
+ * The snapshots an `UNCHANGED` update carries forward are read here for the
+ * same reason, and it is the case that needs it most: a save that touches one
+ * cell still sends every line of the subcategory as an update, and each of
+ * those declares its factor unchanged.
  */
 export type FactorResolutionContext = {
   methodologyVersionId: bigint | null;
@@ -88,43 +93,88 @@ export type FactorResolutionContext = {
   requiredDimensionPositions: Map<string, Set<number>>;
   /** Rate units already read in this request, keyed by id. */
   rateUnits: Map<string, RateUnitConversion>;
+  /**
+   * The active input of every line an `UNCHANGED` update names, keyed by line
+   * id. At most one per line: a partial unique index enforces that.
+   */
+  storedInputs: Map<string, StoredInputRow>;
 };
 
+/** The columns a preserved factor is rebuilt from. */
+const storedInputSelect = {
+  lineId: true,
+  manualFactor: true,
+  manualFactorSource: true,
+  manualFactorRateUnitId: true,
+  factor: {
+    select: {
+      emissionFactorId: true,
+      appliedFactorValue: true,
+      appliedFactorRateUnitId: true,
+      appliedFactorSource: true,
+      appliedFactorYear: true,
+    },
+  },
+} satisfies Prisma.CarbonInventoryLineInputSelect;
+
+type StoredInputRow = Prisma.CarbonInventoryLineInputGetPayload<{
+  select: typeof storedInputSelect;
+}>;
+
 /**
- * Loads the shared part of factor resolution for every subcategory a request
- * touches. Called inside the sync transaction, so what it reads is what the
- * writes are validated against.
+ * Loads the shared part of factor resolution for what a request needs. Called
+ * inside the sync transaction, so what it reads is what the writes are
+ * validated against.
+ *
+ * Takes what the request asks for rather than a bare subcategory list, so a new
+ * kind of lookup is a field here instead of another argument at the call site.
  */
 export async function loadFactorResolutionContext(
   tx: Prisma.TransactionClient,
   methodologyVersionId: bigint | null,
-  subcategoryIds: bigint[]
+  request: {
+    subcategoryIds: bigint[];
+    /** Lines whose stored snapshot an `UNCHANGED` update will keep. */
+    unchangedLineIds: bigint[];
+  }
 ): Promise<FactorResolutionContext> {
+  const subcategoryIds = [...new Set(request.subcategoryIds)];
+  const unchangedLineIds = [...new Set(request.unchangedLineIds)];
+
+  const [dimensions, storedInputs] = await Promise.all([
+    subcategoryIds.length > 0
+      ? tx.emissionFactorDimension.findMany({
+          where: {
+            subcategoryId: { in: subcategoryIds },
+            isRequired: true,
+            status: EmissionFactorDimensionStatus.ACTIVE,
+          },
+          select: { subcategoryId: true, position: true },
+        })
+      : Promise.resolve([]),
+    unchangedLineIds.length > 0
+      ? tx.carbonInventoryLineInput.findMany({
+          where: { lineId: { in: unchangedLineIds }, isActive: true },
+          select: storedInputSelect,
+        })
+      : Promise.resolve([]),
+  ]);
+
   const requiredDimensionPositions = new Map<string, Set<number>>();
-
-  if (subcategoryIds.length > 0) {
-    const dimensions = await tx.emissionFactorDimension.findMany({
-      where: {
-        subcategoryId: { in: [...new Set(subcategoryIds)] },
-        isRequired: true,
-        status: EmissionFactorDimensionStatus.ACTIVE,
-      },
-      select: { subcategoryId: true, position: true },
-    });
-
-    for (const dimension of dimensions) {
-      const key = dimension.subcategoryId.toString();
-      const positions =
-        requiredDimensionPositions.get(key) ?? new Set<number>();
-      positions.add(dimension.position);
-      requiredDimensionPositions.set(key, positions);
-    }
+  for (const dimension of dimensions) {
+    const key = dimension.subcategoryId.toString();
+    const positions = requiredDimensionPositions.get(key) ?? new Set<number>();
+    positions.add(dimension.position);
+    requiredDimensionPositions.set(key, positions);
   }
 
   return {
     methodologyVersionId,
     requiredDimensionPositions,
     rateUnits: new Map(),
+    storedInputs: new Map(
+      storedInputs.map((input) => [input.lineId.toString(), input])
+    ),
   };
 }
 
@@ -349,8 +399,8 @@ export function assertFactorSelectionMatchesInputType(
 }
 
 /**
- * Reads back the factor snapshot a line already has, from its current active
- * input, so an `UNCHANGED` selection can keep it verbatim.
+ * Reads back the factor snapshot a line already has, from the active input the
+ * context loaded, so an `UNCHANGED` selection can keep it verbatim.
  *
  * Nothing here touches the catalog. That is the whole point: the organization
  * did not change its factor, so neither an edit nor a retirement of the catalog
@@ -359,28 +409,11 @@ export function assertFactorSelectionMatchesInputType(
  * Returns `null` when the line has no snapshot yet, which makes `UNCHANGED`
  * degrade to "no factor" rather than to an error.
  */
-async function resolveStoredFactor(
-  tx: Prisma.TransactionClient,
+function resolveStoredFactor(
+  context: FactorResolutionContext,
   lineId: bigint
-): Promise<ResolvedFactor | null> {
-  const input = await tx.carbonInventoryLineInput.findFirst({
-    where: { lineId, isActive: true },
-    select: {
-      manualFactor: true,
-      manualFactorSource: true,
-      manualFactorRateUnitId: true,
-      factor: {
-        select: {
-          emissionFactorId: true,
-          appliedFactorValue: true,
-          appliedFactorRateUnitId: true,
-          appliedFactorSource: true,
-          appliedFactorYear: true,
-        },
-      },
-    },
-  });
-
+): ResolvedFactor | null {
+  const input = context.storedInputs.get(lineId.toString());
   const stored = input?.factor;
   if (!input || !stored) return null;
 
@@ -427,9 +460,7 @@ export async function resolveFactorSelection(
   switch (selection.type) {
     case FactorSelectionType.UNCHANGED:
       // Unreachable from a create: the create schema has no UNCHANGED variant.
-      return lineId === undefined
-        ? null
-        : await resolveStoredFactor(tx, lineId);
+      return lineId === undefined ? null : resolveStoredFactor(context, lineId);
 
     case FactorSelectionType.CATALOG:
       return await resolveCatalogFactor(tx, selection, context, {

@@ -3,6 +3,7 @@ import {
   type SyncCarbonInventoryLinesRequest,
   type SyncCarbonInventoryLinesResponse,
   CarbonInventoryLineStatus,
+  FactorSelectionType,
   FileStatus,
   User,
 } from "@repo/types";
@@ -132,10 +133,18 @@ export const syncCarbonInventoryLinesService = async (
     const factorContext = await loadFactorResolutionContext(
       tx,
       carbonInventory.methodologyVersionId,
-      [
-        ...request.create.map((item) => BigInt(item.subcategoryId)),
-        ...request.update.map((item) => subcategoryIdByLineId.get(item.id)!),
-      ]
+      {
+        subcategoryIds: [
+          ...request.create.map((item) => BigInt(item.subcategoryId)),
+          ...request.update.map((item) => subcategoryIdByLineId.get(item.id)!),
+        ],
+        unchangedLineIds: request.update
+          .filter(
+            (item) =>
+              item.factorSelection?.type === FactorSelectionType.UNCHANGED
+          )
+          .map((item) => BigInt(item.id)),
+      }
     );
 
     // 1. CREATE operations
@@ -196,10 +205,15 @@ export const syncCarbonInventoryLinesService = async (
       const lineId = BigInt(updateItem.id);
       updatedLineIds.push(lineId);
 
+      // Mark old active input as inactive. The snapshot an UNCHANGED selection
+      // keeps was read when the context was built, before any of this loop's
+      // writes, so superseding the input here cannot take it away.
+      await tx.carbonInventoryLineInput.updateMany({
+        where: { lineId, isActive: true },
+        data: { isActive: false, updatedById: userId },
+      });
+
       const inputType = updateItem.inputType;
-      // Resolved before the old input is superseded: an UNCHANGED selection
-      // reads its snapshot from that very input, so deactivating it first would
-      // leave nothing to carry forward.
       const resolvedFactor = await resolveFactorSelection(
         tx,
         updateItem,
@@ -210,12 +224,6 @@ export const syncCarbonInventoryLinesService = async (
         subcategoryIdByLineId.get(updateItem.id)!,
         lineId
       );
-
-      // Mark old active input as inactive
-      await tx.carbonInventoryLineInput.updateMany({
-        where: { lineId, isActive: true },
-        data: { isActive: false, updatedById: userId },
-      });
       const newInput = await createLineInput(
         tx,
         lineId,
