@@ -56,9 +56,17 @@ only ordering requirement is the usual one: migrate first.
 3. **Migrate**, then bring the stack up:
 
    ```bash
-   docker compose -f docker-compose.prod.yml --profile migrate up migrate
-   docker compose -f docker-compose.prod.yml up -d api web
+   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+     --profile migrate run --rm migrate
+   docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose \
+     up -d --build
    ```
+
+   Both flags matter. `--env-file` is not optional: `migrate` maps
+   `DATABASE_URL=${MIGRATION_DATABASE_URL:-}` with a soft default, so without it
+   the one-shot starts with an empty URL and fails at `validate:version`. And
+   `migrate` is a profile-gated one-shot with `restart: "no"`, so it is invoked
+   with `run --rm`, not `up`.
 
    The migration runs in a single transaction, so an abort leaves the database
    exactly as it was — verified: a failed preflight rolled back cleanly with no
