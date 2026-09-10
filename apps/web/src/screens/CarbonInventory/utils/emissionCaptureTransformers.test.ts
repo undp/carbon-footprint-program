@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { FactorSelectionType } from "@repo/types";
-import { mapLinesToSyncRequest } from "./emissionCaptureTransformers";
+import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
+import {
+  buildLoadedFactorSnapshots,
+  mapLinesToSyncRequest,
+} from "./emissionCaptureTransformers";
 import type { EmissionCaptureFormLine } from "../types/EmissionCaptureTypes";
+
+type PersistedLine = SyncCarbonInventoryLinesResponse["updated"][number];
 
 /**
  * What an update declares about its factor.
@@ -158,6 +164,82 @@ describe("mapLinesToSyncRequest — creates", () => {
       type: FactorSelectionType.CATALOG,
       emissionFactorId: "42",
       appliedRateMeasurementUnitId: "7",
+    });
+  });
+});
+
+/**
+ * The stored-factor copy after a save, before the refetch lands.
+ *
+ * The copy has to follow the server, and the server moves when the sync
+ * returns. While it lags, a factor changed and then changed back matches the
+ * copy field for field, so the save would declare unchanged something the user
+ * did change — and the server would keep the value they moved away from.
+ */
+describe("buildLoadedFactorSnapshots", () => {
+  const persistedLine = (
+    overrides: Partial<PersistedLine> = {}
+  ): PersistedLine => ({
+    id: "10",
+    subcategoryId: "1",
+    isManualTotalEmissions: false,
+    dimensionValue1Id: null,
+    dimensionValue2Id: null,
+    quantity: 100,
+    measurementUnitId: "5",
+    factorSource: "IPCC",
+    factorValue: 9.75,
+    factorRateMeasurementUnitId: "8",
+    emissionFactorId: "99",
+    appliedFactorYear: 2022,
+    comment: null,
+    manualTotalEmissions: null,
+    files: [],
+    ...overrides,
+  });
+
+  it("carries exactly the four fields the unchanged check compares", () => {
+    const snapshots = buildLoadedFactorSnapshots([persistedLine()]);
+
+    expect(snapshots.get("10")).toEqual({
+      emissionFactorId: "99",
+      factorSource: "IPCC",
+      factorValue: 9.75,
+      factorRateMeasurementUnitId: "8",
+    });
+  });
+
+  it("holds nothing for a line the request did not update", () => {
+    expect(buildLoadedFactorSnapshots([]).get("10")).toBeUndefined();
+  });
+
+  it("makes a factor reverted before the refetch restate itself", () => {
+    // The line was saved with factor 99; the user then goes back to 42, which
+    // is what the *stale* copy still described.
+    const persisted = buildLoadedFactorSnapshots([persistedLine()]);
+    const reverted = buildLine({ loadedFactor: persisted.get("10") });
+
+    // Not UNCHANGED: keeping the snapshot would leave 99 stored.
+    expect(updateFor(reverted).factorSelection).toEqual({
+      type: FactorSelectionType.CATALOG,
+      emissionFactorId: "42",
+      appliedRateMeasurementUnitId: "7",
+    });
+  });
+
+  it("still declares unchanged when the save persisted what the line has", () => {
+    const persisted = buildLoadedFactorSnapshots([
+      persistedLine({
+        emissionFactorId: "42",
+        factorSource: "DEFRA",
+        factorValue: 2.5,
+        factorRateMeasurementUnitId: "7",
+      }),
+    ]);
+    const untouched = buildLine({ loadedFactor: persisted.get("10") });
+
+    expect(updateFor(untouched).factorSelection).toEqual({
+      type: FactorSelectionType.UNCHANGED,
     });
   });
 });

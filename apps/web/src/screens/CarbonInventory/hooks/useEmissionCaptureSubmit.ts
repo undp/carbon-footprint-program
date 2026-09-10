@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useSnackbar } from "notistack";
+import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
 import { useSyncCarbonInventoryLines } from "@/api/query/carbonInventories/lines/useSyncCarbonInventoryLines";
 import {
   EmissionCaptureFormValues,
@@ -13,7 +14,7 @@ interface Params {
   onSuccess?: () => void;
   isDirty?: boolean;
   getDirtyLineIds?: () => Set<string>;
-  resetAfterSave?: () => void;
+  resetAfterSave?: (synced?: SyncCarbonInventoryLinesResponse) => void;
   throwOnError?: boolean;
   resultFeedbackWithSnackbar?: boolean;
   showNoChangesMessage?: boolean;
@@ -86,12 +87,15 @@ export const useEmissionCaptureSubmit = ({
         const dirtyLineIds = getDirtyLineIds?.();
         const syncRequest = mapLinesToSyncRequest(flatLines, dirtyLineIds);
 
-        await mutateAsync({
+        const synced = await mutateAsync({
           data: syncRequest,
         });
 
-        // Reset form state after successful save to clear isNew/isDeleted flags
-        resetAfterSave?.();
+        // Reset form state after successful save to clear isNew/isDeleted
+        // flags. The response goes with it so each line's stored-factor copy
+        // matches what the server now holds, instead of waiting for the
+        // refetch to correct it.
+        resetAfterSave?.(synced);
 
         if (resultFeedbackWithSnackbar)
           enqueueSnackbar("Huella guardada exitosamente", {

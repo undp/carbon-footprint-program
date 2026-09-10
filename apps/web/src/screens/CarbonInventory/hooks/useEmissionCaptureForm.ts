@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+import type { SyncCarbonInventoryLinesResponse } from "@repo/types";
 import {
   EmissionCaptureFormValues,
   EmissionCaptureMergedData,
@@ -8,6 +9,7 @@ import {
   LineId,
 } from "../types/EmissionCaptureTypes";
 import { SubcategoryWithLines } from "../types/EmissionCaptureTypes";
+import { buildLoadedFactorSnapshots } from "../utils/emissionCaptureTransformers";
 
 type Params = {
   data: EmissionCaptureMergedData;
@@ -348,60 +350,80 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
     [getValues, setValue, resetField]
   );
 
-  const resetAfterSave = useCallback(() => {
-    const currentValues = getValues();
-    const cleanedFormData: EmissionCaptureFormValues = {
-      subcategories: {},
-    };
+  const resetAfterSave = useCallback(
+    (synced?: SyncCarbonInventoryLinesResponse) => {
+      const currentValues = getValues();
 
-    Object.entries(currentValues.subcategories || {}).forEach(
-      ([subcatId, subcatData]) => {
-        const cleanedLines: Record<LineId, EmissionCaptureFormLine> = {};
+      // What the server now holds for every line this save persisted. Refreshing
+      // the copy here and not only on the next refetch is what keeps a second
+      // save from comparing against a snapshot that has already been replaced:
+      // in that window the live fields can match the *old* snapshot exactly — a
+      // factor changed and then changed back — and the save would declare the
+      // factor unchanged, leaving the server on the value the user moved away
+      // from. A line the request did not touch keeps the copy it has.
+      const persistedFactors = buildLoadedFactorSnapshots(
+        synced?.updated ?? []
+      );
+      const cleanedFormData: EmissionCaptureFormValues = {
+        subcategories: {},
+      };
 
-        Object.entries(subcatData.lines || {}).forEach(([lineId, line]) => {
-          // Skip deleted lines - they no longer exist on the server
-          if (line.isDeleted) {
-            return;
-          }
+      Object.entries(currentValues.subcategories || {}).forEach(
+        ([subcatId, subcatData]) => {
+          const cleanedLines: Record<LineId, EmissionCaptureFormLine> = {};
 
-          // For lines that were new but are now saved, mark them as not new.
-          // Clear file-related client state — the server response will
-          // re-populate `files[]` on the next reconciliation, and
-          // `removedFileIds` was already consumed by the sync transaction.
-          cleanedLines[lineId] = {
-            ...line,
-            isNew: false,
-            isDeleted: false,
-            files: [],
-            removedFileIds: [],
+          Object.entries(subcatData.lines || {}).forEach(([lineId, line]) => {
+            // Skip deleted lines - they no longer exist on the server
+            if (line.isDeleted) {
+              return;
+            }
+
+            // For lines that were new but are now saved, mark them as not new.
+            // Clear file-related client state — the server response will
+            // re-populate `files[]` on the next reconciliation, and
+            // `removedFileIds` was already consumed by the sync transaction.
+            cleanedLines[lineId] = {
+              ...line,
+              // A line created in this save keeps `loadedFactor: null` — its
+              // server id only arrives with the refetch, so there is nothing to
+              // match it against here, and a null copy makes the next save
+              // restate its factor rather than assume it.
+              loadedFactor:
+                persistedFactors.get(line.lineId) ?? line.loadedFactor,
+              isNew: false,
+              isDeleted: false,
+              files: [],
+              removedFileIds: [],
+            };
+          });
+
+          cleanedFormData.subcategories[subcatId] = {
+            ...subcatData,
+            lines: cleanedLines,
           };
-        });
+        }
+      );
 
-        cleanedFormData.subcategories[subcatId] = {
-          ...subcatData,
-          lines: cleanedLines,
-        };
-      }
-    );
+      // Set flag to wait for fresh data before reconciling again.
+      // This prevents the useEffect from re-applying stale server data
+      // between now and when the refetch completes.
+      waitingForFreshDataRef.current = true;
 
-    // Set flag to wait for fresh data before reconciling again.
-    // This prevents the useEffect from re-applying stale server data
-    // between now and when the refetch completes.
-    waitingForFreshDataRef.current = true;
-
-    // Reset the form with cleaned data, clearing the dirty state
-    reset(cleanedFormData, {
-      keepErrors: false,
-      keepDirty: false,
-      keepDirtyValues: false,
-      keepValues: false,
-      keepDefaultValues: false,
-      keepIsSubmitted: false,
-      keepTouched: false,
-      keepIsValid: false,
-      keepSubmitCount: false,
-    });
-  }, [getValues, reset]);
+      // Reset the form with cleaned data, clearing the dirty state
+      reset(cleanedFormData, {
+        keepErrors: false,
+        keepDirty: false,
+        keepDirtyValues: false,
+        keepValues: false,
+        keepDefaultValues: false,
+        keepIsSubmitted: false,
+        keepTouched: false,
+        keepIsValid: false,
+        keepSubmitCount: false,
+      });
+    },
+    [getValues, reset]
+  );
 
   return {
     ...form,
