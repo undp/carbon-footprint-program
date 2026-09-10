@@ -51,12 +51,10 @@ export async function createTestCategory(
  * to every test that follows in the same file. Call this from an `afterEach`
  * instead.
  *
- * The prefixes are the caller's own, never the factory's shared `Test - `: the
- * suite runs with `fileParallelism` and one shared database (see
- * `apps/api/vitest.config.ts` and `test/setup/globalSetup.ts`), so deleting by
- * the shared prefix would drop categories another test file created seconds
- * ago — and this is a hard delete that cascades to subcategories and their
- * inventory lines, like a single delete does.
+ * The prefixes are the caller's own, never the factory's shared `Test - `: this
+ * is a hard delete that cascades to subcategories and their inventory lines,
+ * so it must only ever name rows the calling file authored — every other test
+ * in the file reads the same seeded methodology.
  */
 export async function cleanupTestCategories(
   prisma: PrismaClient,
