@@ -99,8 +99,8 @@ describe("chunkText — carried-over overlap", () => {
     // The final flush used to emit the leftover overlap tail on its own — a
     // chunk duplicated verbatim inside the one before it.
     for (let i = 1; i < chunks.length; i += 1) {
-      const previous = chunks[i - 1]!;
-      const current = chunks[i]!;
+      const previous = chunks[i - 1];
+      const current = chunks[i];
       expect(previous.content).not.toContain(current.content);
     }
   });
