@@ -61,3 +61,47 @@ describe("chunkText — oversized blocks", () => {
     }
   });
 });
+
+// Distinct sentences: a paragraph of repeated identical text would make one
+// chunk a substring of another by coincidence, which is exactly what the
+// duplicate-chunk assertion below is trying to rule out.
+const uniqueSentences = (count: number, offset: number): string =>
+  Array.from(
+    { length: count },
+    (_, i) => `Oracion numero ${offset + i} ${"x".repeat(60)}.`
+  ).join(" ");
+
+describe("chunkText — carried-over overlap", () => {
+  const withHeaders = [
+    "1 INTRODUCCIÓN",
+    uniqueSentences(40, 0),
+    "",
+    "2 ALCANCE UNO",
+    uniqueSentences(40, 100),
+    "",
+    "3 ALCANCE DOS",
+    uniqueSentences(40, 200),
+  ].join("\n");
+
+  it("advances the section title as headings go by", () => {
+    const chunks = chunkText(withHeaders);
+
+    const titles = new Set(chunks.map((c) => c.sectionTitle));
+    // The overlap tail left in `pending` by every flush used to keep the
+    // title pinned to the first heading for the whole document.
+    expect(titles.size).toBeGreaterThan(1);
+    expect(chunks.at(-1)?.sectionTitle).toBe("3 ALCANCE DOS");
+  });
+
+  it("does not emit a chunk whose content is already inside its predecessor", () => {
+    const chunks = chunkText(withHeaders);
+
+    // The final flush used to emit the leftover overlap tail on its own — a
+    // chunk duplicated verbatim inside the one before it.
+    for (let i = 1; i < chunks.length; i += 1) {
+      const previous = chunks[i - 1]!;
+      const current = chunks[i]!;
+      expect(previous.content).not.toContain(current.content);
+    }
+  });
+});

@@ -173,9 +173,13 @@ export const chunkText = (text: string): Chunk[] => {
   let pending: Block[] = [];
   let pendingTokens = 0;
   let pendingTitle: string | null = null;
+  // True while `pending` holds nothing but the overlap tail carried over from
+  // the previous flush. That tail is not new content, so it must neither fix
+  // the next chunk's section title nor be emitted as a chunk of its own.
+  let pendingIsOverlapOnly = false;
 
   const flushPending = (): void => {
-    if (pending.length === 0) return;
+    if (pending.length === 0 || pendingIsOverlapOnly) return;
     const content = pending
       .map((b) => b.content)
       .join(" ")
@@ -183,6 +187,7 @@ export const chunkText = (text: string): Chunk[] => {
     if (content.length === 0) {
       pending = [];
       pendingTokens = 0;
+      pendingIsOverlapOnly = false;
       return;
     }
     chunks.push({
@@ -206,9 +211,11 @@ export const chunkText = (text: string): Chunk[] => {
             ]
           : [];
       pendingTokens = pending.reduce((sum, b) => sum + b.tokens, 0);
+      pendingIsOverlapOnly = pending.length > 0;
     } else {
       pending = [];
       pendingTokens = 0;
+      pendingIsOverlapOnly = false;
     }
   };
 
@@ -227,9 +234,14 @@ export const chunkText = (text: string): Chunk[] => {
     if (pending.length > 0 && pendingTokens + block.tokens > TARGET_TOKENS) {
       flushPending();
     }
-    if (pending.length === 0) pendingTitle = block.sectionTitle;
+    // The carried-over overlap keeps the PREVIOUS chunk's title, so the first
+    // genuinely new block is what sets the title of the chunk being built.
+    if (pending.length === 0 || pendingIsOverlapOnly) {
+      pendingTitle = block.sectionTitle;
+    }
     pending.push(block);
     pendingTokens += block.tokens;
+    pendingIsOverlapOnly = false;
   }
   flushPending();
 
