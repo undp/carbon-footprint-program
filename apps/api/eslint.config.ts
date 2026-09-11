@@ -123,7 +123,10 @@ const chatbotPlugin = {
   },
 };
 
-const mockFile = resolve(__dirname, "src/features/chatbot/llmProvider/mock.ts");
+const mockFiles = [
+  resolve(__dirname, "src/features/chatbot/llmProvider/mock.ts"),
+  resolve(__dirname, "src/features/chatbot/embeddingProvider/mock.ts"),
+];
 
 export default [
   ...apiConfig,
@@ -137,7 +140,7 @@ export default [
     plugins: { chatbot: chatbotPlugin },
   },
   {
-    files: [mockFile],
+    files: mockFiles,
     rules: {
       "chatbot/no-network-imports-in-mock": "error",
     },
@@ -147,6 +150,15 @@ export default [
     ignores: ["src/features/chatbot/llmProvider/estimateTokens.ts"],
     rules: {
       "chatbot/single-source-estimate-tokens": "error",
+    },
+  },
+  {
+    // CLI scripts are entry points; process.exit and the trailing fire-and-forget
+    // main() call are idiomatic for this shape.
+    files: ["scripts/**/*.ts"],
+    rules: {
+      "no-process-exit": "off",
+      "@typescript-eslint/no-floating-promises": "off",
     },
   },
 ] satisfies Linter.Config[];

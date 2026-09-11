@@ -14,8 +14,17 @@ import type { LlmStreamEvent } from "@/features/chatbot/llmProvider/types.js";
 // Azure endpoint or managed-identity credential is needed. LLM_PROVIDER=mock in
 // the test env means this provider otherwise never runs in the suite.
 
+type FakeToolCallDelta = {
+  index: number;
+  id?: string;
+  function?: { name?: string; arguments?: string };
+};
+
 type FakeChunk = {
-  choices: Array<{ delta?: { content?: string } }>;
+  choices: Array<{
+    delta?: { content?: string; tool_calls?: FakeToolCallDelta[] };
+    finish_reason?: string;
+  }>;
   usage?: { prompt_tokens: number; completion_tokens: number };
 };
 
@@ -115,7 +124,11 @@ describe("streamChatCompletion", () => {
     expect(events.filter((e) => e.type === "usage")).toHaveLength(1);
   });
 
-  it("coerces a TOOL-role message to a user message in the OpenAI payload", async () => {
+  // TOOL messages are first-class in the RAG phase: the tool round replays the
+  // assistant's tool_calls plus each tool result back to the model, so the
+  // payload must carry `tool_call_id` rather than coercing TOOL to a user turn
+  // (which is what foundation did, before any tool existed).
+  it("maps a TOOL-role message to a tool message carrying its tool_call_id", async () => {
     const { client, bodies } = makeClient([{ choices: [{}] }]);
 
     await collect(
@@ -123,7 +136,22 @@ describe("streamChatCompletion", () => {
         client,
         [
           { role: ChatMessageRole.SYSTEM, content: "sys" },
-          { role: ChatMessageRole.TOOL, content: "leaked tool msg" },
+          {
+            role: ChatMessageRole.ASSISTANT,
+            content: "",
+            toolCalls: [
+              {
+                id: "call_1",
+                name: "search_knowledge",
+                arguments: '{"q":"x"}',
+              },
+            ],
+          },
+          {
+            role: ChatMessageRole.TOOL,
+            content: "tool result",
+            toolCallId: "call_1",
+          },
         ],
         { maxOutputTokens: 10 }
       )
@@ -131,7 +159,112 @@ describe("streamChatCompletion", () => {
 
     expect(bodies[0]?.messages).toEqual([
       { role: "system", content: "sys" },
-      { role: "user", content: "leaked tool msg" },
+      {
+        role: "assistant",
+        content: "",
+        tool_calls: [
+          {
+            id: "call_1",
+            type: "function",
+            function: { name: "search_knowledge", arguments: '{"q":"x"}' },
+          },
+        ],
+      },
+      { role: "tool", content: "tool result", tool_call_id: "call_1" },
+    ]);
+  });
+
+  it("advertises tools with tool_choice=auto only when tools are provided", async () => {
+    const { client, bodies } = makeClient([{ choices: [{}] }]);
+
+    await collect(
+      streamChatCompletion(
+        client,
+        [{ role: ChatMessageRole.USER, content: "hi" }],
+        {
+          maxOutputTokens: 10,
+          tools: [
+            {
+              name: "search_knowledge",
+              description: "Search the corpus",
+              parameters: { type: "object", properties: {} },
+            },
+          ],
+        }
+      )
+    );
+
+    expect(bodies[0]?.tool_choice).toBe("auto");
+    expect(bodies[0]?.tools).toEqual([
+      {
+        type: "function",
+        function: {
+          name: "search_knowledge",
+          description: "Search the corpus",
+          parameters: { type: "object", properties: {} },
+        },
+      },
+    ]);
+
+    const { client: bare, bodies: bareBodies } = makeClient([
+      { choices: [{}] },
+    ]);
+    await collect(
+      streamChatCompletion(
+        bare,
+        [{ role: ChatMessageRole.USER, content: "hi" }],
+        { maxOutputTokens: 10 }
+      )
+    );
+    expect(bareBodies[0]).not.toHaveProperty("tools");
+    expect(bareBodies[0]).not.toHaveProperty("tool_choice");
+  });
+
+  it("accumulates split tool-call deltas and emits them before usage", async () => {
+    const { client } = makeClient([
+      {
+        choices: [
+          {
+            delta: {
+              tool_calls: [
+                {
+                  index: 0,
+                  id: "call_1",
+                  function: { name: "search_knowledge", arguments: '{"q"' },
+                },
+              ],
+            },
+          },
+        ],
+      },
+      {
+        choices: [
+          {
+            delta: {
+              tool_calls: [{ index: 0, function: { arguments: ':"ghg"}' } }],
+            },
+            finish_reason: "tool_calls",
+          },
+        ],
+      },
+    ]);
+
+    const events = await collect(
+      streamChatCompletion(
+        client,
+        [{ role: ChatMessageRole.USER, content: "hi" }],
+        { maxOutputTokens: 10 }
+      )
+    );
+
+    expect(events).toEqual([
+      {
+        type: "tool_call",
+        id: "call_1",
+        name: "search_knowledge",
+        arguments: '{"q":"ghg"}',
+      },
+      expect.objectContaining({ type: "usage" }),
     ]);
   });
 

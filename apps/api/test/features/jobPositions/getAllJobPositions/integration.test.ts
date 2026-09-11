@@ -12,6 +12,7 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import type { GetAllJobPositionsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
+import { sortedByDbCollation } from "@test/helpers/collation.js";
 
 describe("GET /api/job-positions - Integration Tests", () => {
   let app: FastifyInstance;
@@ -101,7 +102,7 @@ describe("GET /api/job-positions - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body) as GetAllJobPositionsResponse;
       const names = body.map((jp) => jp.name);
-      const sortedNames = [...names].sort();
+      const sortedNames = sortedByDbCollation(names);
       expect(names).toEqual(sortedNames);
     });
   });

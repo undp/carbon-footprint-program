@@ -2,6 +2,7 @@ import type { FastifyZodInstance } from "@/types/fastify.js";
 import { CHATBOT_ENABLED } from "@/config/environment.js";
 import { sendMessageRoute } from "@/features/chatbot/sendMessage/route.js";
 import { deleteMyConversationRoute } from "@/features/chatbot/deleteMyConversation/route.js";
+import { getCurrentConversationRoute } from "@/features/chatbot/getCurrentConversation/route.js";
 
 export default function chatbotRoutes(fastify: FastifyZodInstance) {
   // Chatbot is an optional AI feature (DPG optionality). When disabled, its
@@ -16,4 +17,5 @@ export default function chatbotRoutes(fastify: FastifyZodInstance) {
   fastify.addHook("onRequest", fastify.requireAuth);
   sendMessageRoute(fastify);
   deleteMyConversationRoute(fastify);
+  getCurrentConversationRoute(fastify);
 }

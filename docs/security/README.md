@@ -1,17 +1,18 @@
 # Security
 
-Security model, controls, and compliance considerations for the Huella Latam platform. Covers authentication, authorization, data protection, secrets management, infrastructure hardening, and audit logging.
+Security model, controls, and compliance considerations for the Huella Latam platform. Covers authentication, authorization, data protection, secrets management, infrastructure hardening, audit logging, and the AI assistant.
 
 ---
 
-| Document                                                | Description                                                                                                                                                                 |
-| ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [Authentication](./authentication.md)                   | Authentication providers (`jwks`, `forced-user`, `none`), token validation, JWKS key caching, and provider selection guidance                                               |
-| [Route Access Modes](./route-access-modes.md)           | Per-route access mode flags — private (default), `allowPublicAccess`, `allowAnonymousAccess` — and when to use each                                                         |
-| [Frontend Auth Recovery](./frontend-auth-recovery.md)   | Recovery flow when OIDC login succeeds but `GET /users/me` fails: cleanup paths in `AuthContext` and `requireRole`, Landing snackbar handoff                                |
-| [RBAC and Authorization](./rbac.md)                     | Role model (system roles + organization roles), authorization plugins (`requireAuth`, `requireRoles`, `requireOrganizationRole`), and permission matrix                     |
-| [Sensitive Data Handling](./sensitive-data.md)          | PII inventory, encryption at rest and in transit, and Latin American data protection compliance considerations                                                              |
-| [Secrets Management](./secrets.md)                      | Managed identities, Key Vault integration, environment variable classification, and anti-patterns to avoid                                                                  |
-| [Infrastructure Hardening](./hardening.md)              | TLS configuration, CORS policy, security headers, network isolation, WAF, input validation, and pre-production checklist                                                    |
-| [Audit and Logging](./audit-logging.md)                 | Pino log structure, redacted fields, security event catalogue, and database audit trail                                                                                     |
-| [GitHub Actions Security](./github-actions-security.md) | Static analysis of CI workflows with `zizmor`, the baseline findings it surfaced, and how each was remediated (action pinning, minimal permissions, credential persistence) |
+| Document                                                | Description                                                                                                                                                                        |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Authentication](./authentication.md)                   | Authentication providers (`jwks`, `forced-user`, `none`), token validation, JWKS key caching, and provider selection guidance                                                      |
+| [Route Access Modes](./route-access-modes.md)           | Per-route access mode flags — private (default), `allowPublicAccess`, `allowAnonymousAccess` — and when to use each                                                                |
+| [Frontend Auth Recovery](./frontend-auth-recovery.md)   | Recovery flow when OIDC login succeeds but `GET /users/me` fails: cleanup paths in `AuthContext` and `requireRole`, Landing snackbar handoff                                       |
+| [RBAC and Authorization](./rbac.md)                     | Role model (system roles + organization roles), authorization plugins (`requireAuth`, `requireRoles`, `requireOrganizationRole`), and permission matrix                            |
+| [Sensitive Data Handling](./sensitive-data.md)          | PII inventory, encryption at rest and in transit, and Latin American data protection compliance considerations                                                                     |
+| [Chatbot and RAG Security](./chatbot.md)                | Trust boundaries for the AI assistant: tool-argument validation, prompt-injection handling of retrieved content, corpus visibility, conversation cookies, and mock-provider guards |
+| [Secrets Management](./secrets.md)                      | Managed identities, Key Vault integration, environment variable classification, and anti-patterns to avoid                                                                         |
+| [Infrastructure Hardening](./hardening.md)              | TLS configuration, CORS policy, security headers, network isolation, WAF, input validation, and pre-production checklist                                                           |
+| [Audit and Logging](./audit-logging.md)                 | Pino log structure, redacted fields, security event catalogue, and database audit trail                                                                                            |
+| [GitHub Actions Security](./github-actions-security.md) | Static analysis of CI workflows with `zizmor`, the baseline findings it surfaced, and how each was remediated (action pinning, minimal permissions, credential persistence)        |

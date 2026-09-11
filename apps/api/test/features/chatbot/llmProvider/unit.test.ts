@@ -19,6 +19,7 @@ describe("mockProvider", () => {
   it("yields at least three deltas plus a final usage event", async () => {
     const events: Array<
       | { type: "delta"; content: string }
+      | { type: "tool_call"; id: string; name: string; arguments: string }
       | { type: "usage"; inputTokens: number; outputTokens: number }
     > = [];
     for await (const event of mockProvider.streamCompletion(
@@ -41,6 +42,7 @@ describe("mockProvider", () => {
     const messages = [{ role: ChatMessageRole.USER, content: "hola" }];
     const events: Array<
       | { type: "delta"; content: string }
+      | { type: "tool_call"; id: string; name: string; arguments: string }
       | { type: "usage"; inputTokens: number; outputTokens: number }
     > = [];
     for await (const event of mockProvider.streamCompletion(messages, {

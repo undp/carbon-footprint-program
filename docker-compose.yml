@@ -112,6 +112,30 @@ services:
       # Storage relay: true = API proxies presigned MinIO URLs at
       # /api/storage (needs API_ORIGIN); false/unset = browser-direct.
       - MINIO_RELAY_ENABLED=${MINIO_RELAY_ENABLED:-false}
+      # --- Chatbot (optional AI feature) ---
+      # This service enumerates its environment explicitly (no env_file), so a
+      # variable absent from this list never reaches the container no matter
+      # what .env.dockercompose says. Defaults keep the feature off and, when
+      # on, on the mock providers — so the container stack needs no cloud AI.
+      - CHATBOT_ENABLED=${CHATBOT_ENABLED:-false}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-mock}
+      # Signs the chatbot session + conversation cookies. Required when the
+      # chatbot is enabled; the API falls back to a dev value otherwise.
+      - COOKIE_SECRET=${COOKIE_SECRET:-}
+      # --- Azure OpenAI (only when LLM_PROVIDER/EMBEDDING_PROVIDER=azure-openai) ---
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME:-}
+      - AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME:-}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-}
+      - AZURE_OPENAI_EMBEDDING_API_VERSION=${AZURE_OPENAI_EMBEDDING_API_VERSION:-}
+      # Dev-only fallback. Azure-hosted deployments leave it unset and use
+      # managed identity; there is no managed identity inside this container,
+      # so a local run against real Azure OpenAI needs the key.
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
+      # Reasoning-effort hint — only for reasoning deployments (gpt-5 family,
+      # o-series). Leave empty for gpt-4.1/gpt-4o; the SDK may reject it.
+      - AZURE_OPENAI_REASONING_EFFORT=${AZURE_OPENAI_REASONING_EFFORT:-}
     depends_on:
       postgres:
         condition: service_healthy
@@ -147,6 +171,11 @@ services:
         VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-dev}
         VITE_LOCAL_BYPASS_REQUIRED_FIELDS: ${VITE_LOCAL_BYPASS_REQUIRED_FIELDS:-false}
+        # Mounts the chatbot widget. Baked in at BUILD time, so changing it
+        # requires a rebuild — not just a restart. Must agree with the api
+        # service's CHATBOT_ENABLED above: true here with the API off mounts a
+        # widget whose every request 404s.
+        VITE_CHATBOT_ENABLED: ${VITE_CHATBOT_ENABLED:-false}
     container_name: huella-latam-web
     ports:
       - "${WEB_PORT:-3000}:8080"
@@ -168,8 +197,11 @@ services:
       start_period: 10s
 
   postgres:
-    # Digest-pinned for reproducibility; bump the tag and digest together.
-    image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
+    # pgvector image (Debian-based, not alpine): the chatbot corpus needs the
+    # `vector` extension for embedding similarity search, and the official
+    # postgres image does not ship it. Digest-pinned for reproducibility; bump
+    # the tag and digest together.
+    image: pgvector/pgvector:pg18@sha256:691673308c99d2161ba298736f3147f1f22d79de2fb7ec93ae9b4afcab870b62
     container_name: huella-latam-postgres
     ports:
       - "${POSTGRES_PORT_HOST_MAPPING:-5432}:5432"

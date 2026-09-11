@@ -51,6 +51,13 @@ describe("parseEnv — defaults (empty environment)", () => {
       COOKIE_SECRET: "dev-only-cookie-secret-change-me",
       AZURE_OPENAI_ENDPOINT: undefined,
       AZURE_OPENAI_DEPLOYMENT_NAME: undefined,
+      AZURE_OPENAI_API_VERSION: "2024-10-21",
+      AZURE_OPENAI_API_KEY: undefined,
+      AZURE_OPENAI_REASONING_EFFORT: undefined,
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: undefined,
+      // Defaults to AZURE_OPENAI_API_VERSION when unset.
+      AZURE_OPENAI_EMBEDDING_API_VERSION: "2024-10-21",
+      EMBEDDING_PROVIDER: "mock",
     });
   });
 });
@@ -164,6 +171,30 @@ describe("parseEnv — enum validation", () => {
     expect(() => parse({ LLM_PROVIDER: "gpt-5" })).toThrow(
       /Invalid LLM_PROVIDER value: "gpt-5"/
     );
+  });
+
+  it("rejects an unknown EMBEDDING_PROVIDER", () => {
+    expect(() => parse({ EMBEDDING_PROVIDER: "text-embedding-3" })).toThrow(
+      /Invalid EMBEDDING_PROVIDER value: "text-embedding-3"/
+    );
+  });
+
+  it.each([
+    ["LLM_PROVIDER", { LLM_PROVIDER: " azure-openai " }],
+    ["EMBEDDING_PROVIDER", { EMBEDDING_PROVIDER: " azure-openai " }],
+  ])("tolerates surrounding whitespace in %s", (name, override) => {
+    // Both are matched against an exact allowlist, so an unnoticed trailing
+    // space in a .env file or an App Service setting used to fail the entire
+    // boot with a message that renders the space invisibly.
+    const env = parse({
+      ...override,
+      AZURE_OPENAI_ENDPOINT: "https://example.openai.azure.com",
+      AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o-mini",
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: "text-embedding-3-large",
+    });
+    const parsed =
+      name === "LLM_PROVIDER" ? env.LLM_PROVIDER : env.EMBEDDING_PROVIDER;
+    expect(parsed).toBe("azure-openai");
   });
 });
 
@@ -396,6 +427,9 @@ describe("parseEnv — chatbot cross-field guards", () => {
     expect(env.AZURE_OPENAI_ENDPOINT).toBeUndefined();
   });
 
+  // Since the RAG phase, retrieval is part of the chatbot rather than an
+  // add-on, so enabling it in production also requires a real embeddings
+  // deployment — the mock's SHA-256 vectors would silently poison retrieval.
   it("accepts a fully-valid production chatbot configuration", () => {
     const env = parse({
       NODE_ENV: "production",
@@ -405,12 +439,54 @@ describe("parseEnv — chatbot cross-field guards", () => {
       COOKIE_SECRET: "a-sufficiently-long-random-secret",
       AZURE_OPENAI_ENDPOINT: "https://oai.example.com",
       AZURE_OPENAI_DEPLOYMENT_NAME: "gpt4o",
+      EMBEDDING_PROVIDER: "azure-openai",
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: "text-embedding-3-large",
     });
     expect(env.CHATBOT_ENABLED).toBe(true);
     expect(env.LLM_PROVIDER).toBe("azure-openai");
     expect(env.COOKIE_SECRET).toBe("a-sufficiently-long-random-secret");
     expect(env.AZURE_OPENAI_ENDPOINT).toBe("https://oai.example.com");
     expect(env.AZURE_OPENAI_DEPLOYMENT_NAME).toBe("gpt4o");
+    expect(env.EMBEDDING_PROVIDER).toBe("azure-openai");
+    expect(env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME).toBe(
+      "text-embedding-3-large"
+    );
+    // Falls back to the chat API version when not overridden.
+    expect(env.AZURE_OPENAI_EMBEDDING_API_VERSION).toBe(
+      env.AZURE_OPENAI_API_VERSION
+    );
+  });
+
+  it("rejects an enabled production chatbot with the mock embedding provider", () => {
+    expect(() =>
+      parse({
+        NODE_ENV: "production",
+        ALLOWED_ORIGIN: PROD_ORIGIN,
+        CHATBOT_ENABLED: "true",
+        LLM_PROVIDER: "azure-openai",
+        COOKIE_SECRET: "a-sufficiently-long-random-secret",
+        AZURE_OPENAI_ENDPOINT: "https://oai.example.com",
+        AZURE_OPENAI_DEPLOYMENT_NAME: "gpt4o",
+      })
+    ).toThrow(/EMBEDDING_PROVIDER="mock" is not allowed/);
+  });
+
+  it("requires the embedding deployment when EMBEDDING_PROVIDER=azure-openai", () => {
+    expect(() =>
+      parse({
+        CHATBOT_ENABLED: "true",
+        EMBEDDING_PROVIDER: "azure-openai",
+        AZURE_OPENAI_ENDPOINT: "https://oai.example.com",
+      })
+    ).toThrow(/AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME/);
+  });
+
+  it("skips the embedding guards when the chatbot is disabled", () => {
+    // Mirrors the LLM guard above: embeddings config is only enforced for a
+    // deployment that actually turns the chatbot on.
+    const env = parse({ EMBEDDING_PROVIDER: "azure-openai" });
+    expect(env.EMBEDDING_PROVIDER).toBe("azure-openai");
+    expect(env.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME).toBeUndefined();
   });
 });
 

@@ -11,8 +11,10 @@
   },
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && tsc-alias -p tsconfig.build.json && cpy \"src/features/chatbot/prompts/**/*.md\" dist/features/chatbot/prompts",
     "start": "node dist/server.js",
+    "chatbot:ingest": "tsx scripts/chatbot/ingestCorpus.ts",
+    "chatbot:activate": "tsx scripts/chatbot/activateCorpusSource.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:leg": ": \"${LEG:?LEG must be set (base|storage-azure|storage-minio)}\" && vitest run --project=\"$LEG\" --coverage --reporter=blob --outputFile.blob=.vitest-reports/blob-$LEG.json --coverage.thresholds.lines=0 --coverage.thresholds.statements=0 --coverage.thresholds.functions=0 --coverage.thresholds.branches=0",
@@ -47,6 +49,7 @@
     "jwks-rsa": "^4.1.0",
     "lodash-es": "^4.18.1",
     "openai": "^6.49.0",
+    "pdf-parse": "^2.4.5",
     "pino": "catalog:shared",
     "zod": "catalog:shared"
   },
