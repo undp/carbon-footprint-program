@@ -17,8 +17,22 @@ import { parsePdf } from "./parsePdf.js";
 const USAGE = `\
 Uso: pnpm --filter api chatbot:ingest <pdf-path> --label <label> --version <version> --source-type <PDF> --scope <GLOBAL|NATIONAL> --cite-url <https-url> [--triggered-by <id>]
 
+Las rutas relativas se resuelven desde el directorio de trabajo actual. Al
+invocar con "pnpm --filter api" ese directorio es apps/api, NO la raíz del
+repositorio: escribe "test/fixtures/..." o usa una ruta absoluta.
+
+Ejemplo:
+  pnpm --filter api chatbot:ingest test/fixtures/chatbot/ghg-protocol-sample.pdf \\
+    --label "GHG Protocol Corporate Standard" --version "v05-sample" \\
+    --source-type PDF --scope GLOBAL \\
+    --cite-url "https://ghgprotocol.org/corporate-standard"
+
+Tras la ingesta la fuente queda en estado DRAFT y NO es visible para la
+búsqueda. Actívala con: pnpm --filter api chatbot:activate <source-id>
+
 Argumentos:
-  <pdf-path>             Ruta al archivo PDF que será ingerido.
+  <pdf-path>             Ruta al archivo PDF que será ingerido (relativa al
+                         directorio actual, o absoluta).
   --label <label>        Etiqueta legible de la fuente (no puede contener ":").
   --name <name>          Alias opcional de --label.
   --version <version>    Versión del documento (texto libre, ej. "v05").
