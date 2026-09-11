@@ -366,6 +366,68 @@ To run a full OIDC login locally **without** an Azure tenant, use the bundled Ke
 
 ---
 
+## Chatbot (Local Development)
+
+The chatbot is off unless both flags are set — `CHATBOT_ENABLED` for the API and `VITE_CHATBOT_ENABLED` for the widget, which is read at **build** time:
+
+```bash
+export CHATBOT_ENABLED="true"
+export VITE_CHATBOT_ENABLED="true"
+```
+
+Postgres must be on the `pgvector` image; the migration that adds the corpus tables runs `CREATE EXTENSION IF NOT EXISTS vector`, which the plain `postgres` image cannot satisfy at all. The compose file in [Step 4](#step-4--start-supporting-services) already declares it — but a container started before that change is still on the old image and must be recreated.
+
+### Mock providers (default — no cloud account)
+
+`LLM_PROVIDER` and `EMBEDDING_PROVIDER` both default to `mock`, which needs nothing external. This exercises streaming, the server-side tool round, citation rendering, conversation persistence, and the K=0 guardrail.
+
+It does **not** exercise retrieval quality: mock embeddings are SHA-256 derived, so cosine similarity over them is random. You will get citations, just topically unrelated ones. That is the mock behaving correctly, not a bug.
+
+The mock emits a tool call when the message contains `alcance`, `alcances`, `protocolo` or `factor` — `"explícame los alcances 1, 2 y 3"` drives the full tool round.
+
+### Real Azure OpenAI
+
+Point at an existing Azure OpenAI account with a chat deployment and an embedding deployment. The embedding model must emit **1024 dimensions** to match the `vector(1024)` column — `text-embedding-3-large` does.
+
+```bash
+export LLM_PROVIDER="azure-openai"
+export EMBEDDING_PROVIDER="azure-openai"
+export AZURE_OPENAI_ENDPOINT="https://<account>.openai.azure.com/"
+export AZURE_OPENAI_DEPLOYMENT_NAME="<chat deployment>"
+export AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME="<embedding deployment>"
+export AZURE_OPENAI_API_KEY="<key>"   # local-dev fallback; see below
+export COOKIE_SECRET="$(openssl rand -hex 32)"
+```
+
+**Authentication.** `AZURE_OPENAI_API_KEY` is the documented local fallback and only works if the account still permits key auth. Accounts provisioned by this repo's Bicep set `disableLocalAuth: true`, which refuses keys outright — against one of those, leave the variable unset, run `az login`, and grant your own user the `Cognitive Services OpenAI User` role on the account. Subscription Owner does **not** include that: it is a data-plane role, and Owner grants no data actions.
+
+**Reasoning models.** If the chat deployment is a gpt-5-family or o-series model, set `AZURE_OPENAI_REASONING_EFFORT="minimal"` — without it, first-token latency makes streaming feel broken. Leave it unset for gpt-4.1 / gpt-4o, which may reject it. A recent model may also need a newer `AZURE_OPENAI_API_VERSION` than the `2024-10-21` default.
+
+**Choose the provider before ingesting.** Embeddings are written into the database at ingest time. A corpus ingested under `mock` is noise, and switching providers later means re-ingesting every document — there is no conversion path. Verify what you ingested with:
+
+```bash
+psql -c "SELECT DISTINCT embedding_model FROM chatbot_corpus_ingest_run;"
+```
+
+### Seeding a corpus
+
+Without a corpus, every methodology question correctly returns the "No dispongo de fuentes verificadas…" fallback. A committed fixture (~5 pages of GHG Protocol) is enough to see the full path:
+
+```bash
+pnpm --filter api chatbot:ingest test/fixtures/chatbot/ghg-protocol-sample.pdf \
+  --label "GHG Protocol Corporate Standard" --version "v05-sample" \
+  --source-type PDF --scope GLOBAL \
+  --cite-url "https://ghgprotocol.org/corporate-standard"
+
+pnpm --filter api chatbot:activate <source-id>
+```
+
+Paths are relative to `apps/api` under `pnpm --filter api`, not the repo root. Ingest leaves the source in `DRAFT`, which retrieval ignores — nothing is answerable until `chatbot:activate` runs. Full corpus operations, including the re-embed playbook, are in the [runbook](../operations/runbook.md).
+
+> ⚠️ **Worktree-scoped databases hold their own corpus.** If you use the [worktree isolation](#running-several-git-worktrees-at-once-optional) above, each worktree gets its own database, so a corpus ingested in one is absent from the others and must be re-ingested. `pnpm --filter=@repo/database db:drop:worktree` deletes it along with the schema.
+
+---
+
 ## Troubleshooting
 
 **`pnpm install` fails:**
