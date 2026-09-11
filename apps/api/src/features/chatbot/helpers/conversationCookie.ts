@@ -18,11 +18,22 @@ export const CHATBOT_CONVERSATION_COOKIE_MAX_AGE =
 // affordance can drop it client-side without a round-trip. Re-evaluate when
 // V4/V5 introduces private data.
 // SameSite must match `chatbot_session_id` (see helpers/identity.ts): both
-// cookies ride the same `credentials: "include"` requests, and production serves
-// the web app and API from different registrable domains. A Lax cookie is not
-// sent on those cross-site requests, so the rehydrate endpoint would never see
-// it and conversation persistence would silently do nothing in production.
-// SameSite=None requires Secure, which prod already sets.
+// cookies ride the same `credentials: "include"` requests.
+//
+// The widget calls every chatbot endpoint through a RELATIVE `/api/...` path
+// (apps/web/src/components/Chatbot/useChatStream.ts and
+// useConversationRehydrate.ts), so the deployment's edge has to serve the API
+// from the web app's own origin — `credentials: "include"` is belt-and-braces
+// there, not a cross-site dependency. `none` rather than `lax` is kept
+// deliberately for the topology where that edge forwards to a different
+// registrable domain: a Lax cookie is not sent on those requests, so the
+// rehydrate endpoint would never see it and conversation persistence would
+// silently do nothing. SameSite=None requires Secure, which prod already sets.
+//
+// Note this attribute governs whether the BROWSER SENDS the cookie, not
+// whether page JS can read it: the client-side reset in
+// apps/web/src/components/Chatbot/conversationCookie.ts depends on the
+// same-origin routing above, not on this line.
 const baseCookieOptions = () => ({
   httpOnly: false as const,
   sameSite: IS_PROD ? ("none" as const) : ("lax" as const),

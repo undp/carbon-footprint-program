@@ -6,7 +6,11 @@
 // This works because the widget calls the API through relative `/api/...`
 // paths, which the Vite dev proxy (and the deployment's edge) keep same-origin
 // — a cookie written by a genuinely cross-site API domain would not be
-// reachable from `document.cookie` here.
+// reachable from `document.cookie` here. The server sets the cookie with
+// SameSite=None in production so it also survives an edge that forwards to a
+// different registrable domain; that attribute controls whether the browser
+// SENDS the cookie, not whether this file can read it, so the relative paths
+// remain the load-bearing part.
 const CONVERSATION_COOKIE_NAME = "chatbot_conversation_id";
 const CONVERSATION_COOKIE_PATH = "/api/chatbot";
 
