@@ -423,7 +423,10 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   // `mock` is rejected at boot when the chatbot is enabled in production, to
   // prevent the mock from leaking into user traffic.
   const LLM_PROVIDER: LlmProviderType = (() => {
-    const raw = source.LLM_PROVIDER ?? "mock";
+    // trimEnv like every other read in this function: the value is matched
+    // against an exact allowlist, so an unnoticed trailing space in a .env file
+    // or an App Service setting would fail the whole boot.
+    const raw = trimEnv(source.LLM_PROVIDER) ?? "mock";
     const valid: LlmProviderType[] = ["mock", "azure-openai"];
     if (!valid.includes(raw as LlmProviderType)) {
       throw new Error(
@@ -533,7 +536,8 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   // text, so cosine similarity over them is essentially random — silent corpus
   // corruption is the failure mode and it must fail loud at boot instead.
   const EMBEDDING_PROVIDER: EmbeddingProviderType = (() => {
-    const raw = source.EMBEDDING_PROVIDER ?? "mock";
+    // trimEnv for the same reason as LLM_PROVIDER above.
+    const raw = trimEnv(source.EMBEDDING_PROVIDER) ?? "mock";
     const valid: EmbeddingProviderType[] = ["mock", "azure-openai"];
     if (!valid.includes(raw as EmbeddingProviderType)) {
       throw new Error(

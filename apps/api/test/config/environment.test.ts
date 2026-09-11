@@ -172,6 +172,30 @@ describe("parseEnv — enum validation", () => {
       /Invalid LLM_PROVIDER value: "gpt-5"/
     );
   });
+
+  it("rejects an unknown EMBEDDING_PROVIDER", () => {
+    expect(() => parse({ EMBEDDING_PROVIDER: "text-embedding-3" })).toThrow(
+      /Invalid EMBEDDING_PROVIDER value: "text-embedding-3"/
+    );
+  });
+
+  it.each([
+    ["LLM_PROVIDER", { LLM_PROVIDER: " azure-openai " }],
+    ["EMBEDDING_PROVIDER", { EMBEDDING_PROVIDER: " azure-openai " }],
+  ])("tolerates surrounding whitespace in %s", (name, override) => {
+    // Both are matched against an exact allowlist, so an unnoticed trailing
+    // space in a .env file or an App Service setting used to fail the entire
+    // boot with a message that renders the space invisibly.
+    const env = parse({
+      ...override,
+      AZURE_OPENAI_ENDPOINT: "https://example.openai.azure.com",
+      AZURE_OPENAI_DEPLOYMENT_NAME: "gpt-4o-mini",
+      AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: "text-embedding-3-large",
+    });
+    const parsed =
+      name === "LLM_PROVIDER" ? env.LLM_PROVIDER : env.EMBEDDING_PROVIDER;
+    expect(parsed).toBe("azure-openai");
+  });
 });
 
 describe("parseEnv — fail-closed production guards for AUTH_PROVIDER=jwks", () => {
