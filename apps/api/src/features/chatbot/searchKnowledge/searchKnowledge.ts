@@ -73,13 +73,24 @@ export const searchKnowledge = async (
   const topK = validateTopK(options.topK);
 
   const embeddingProvider = getEmbeddingProvider();
-  const { vectors } = await embeddingProvider.embed([trimmedQuery]);
+  const { vectors, model } = await embeddingProvider.embed([trimmedQuery]);
   const queryVector = vectors[0];
   const vectorLiteral = formatVectorLiteral(queryVector);
 
   const scope = options.scope ?? null;
   const sourceType = options.sourceType ?? null;
 
+  // Only chunks embedded by the SAME model the query just went through are
+  // comparable: cosine distance across two embedding spaces still ranks, so a
+  // mismatch is answered confidently from noise rather than failing. That is
+  // reachable today — a corpus ingested with the mock provider (permitted
+  // outside production) and later queried with azure-openai, or a corpus
+  // half-way through the re-embed playbook. Filtering here degrades those
+  // chunks to a K=0 turn, which the handler already renders honestly.
+  //
+  // A source with a NULL embedding_model is excluded by this equality on
+  // purpose: unknown provenance is not a match. The ingest CLI always records
+  // the model, so that only covers rows written outside it.
   const rows = await prisma.$queryRaw<SearchKnowledgeRow[]>`
     SELECT
       s.id AS source_id,
@@ -94,6 +105,7 @@ export const searchKnowledge = async (
     JOIN chatbot_corpus_source s ON s.id = c.source_id
     WHERE s.status = 'ACTIVE'
       AND c.embedding IS NOT NULL
+      AND s.embedding_model = ${model}
       AND (${scope}::text IS NULL OR s.scope::text = ${scope}::text)
       AND (${sourceType}::text IS NULL OR s.source_type::text = ${sourceType}::text)
     ORDER BY c.embedding <=> ${vectorLiteral}::vector ASC

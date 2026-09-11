@@ -7,7 +7,10 @@ import type {
 } from "./types.js";
 
 const MOCK_VECTOR_DIM = 1024;
-const MOCK_MODEL_NAME = "mock-sha256-1024";
+// Exported so tests that seed corpus rows directly can record the same
+// provenance the ingest CLI writes — searchKnowledge only matches chunks
+// embedded by the model the query goes through.
+export const MOCK_MODEL_NAME = "mock-sha256-1024";
 
 const FLOATS_PER_HASH = 8;
 const HASH_ITERATIONS_PER_VECTOR = MOCK_VECTOR_DIM / FLOATS_PER_HASH;

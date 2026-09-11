@@ -20,7 +20,10 @@ import {
   InvalidQueryError,
 } from "@/features/chatbot/searchKnowledge/index.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
-import { mockEmbeddingProvider } from "@/features/chatbot/embeddingProvider/mock.js";
+import {
+  MOCK_MODEL_NAME,
+  mockEmbeddingProvider,
+} from "@/features/chatbot/embeddingProvider/mock.js";
 
 describe("searchKnowledge — integration", () => {
   let prisma: PrismaClient;
@@ -64,6 +67,7 @@ describe("searchKnowledge — integration", () => {
     const [draftSource, activeSource, outdatedSource] = await Promise.all([
       prisma.chatbotCorpusSource.create({
         data: {
+          embeddingModel: MOCK_MODEL_NAME,
           name: "DraftSource",
           version: "v01",
           sourceType: CorpusSourceType.PDF,
@@ -75,6 +79,7 @@ describe("searchKnowledge — integration", () => {
       }),
       prisma.chatbotCorpusSource.create({
         data: {
+          embeddingModel: MOCK_MODEL_NAME,
           name: "ActiveSource",
           version: "v01",
           sourceType: CorpusSourceType.PDF,
@@ -87,6 +92,7 @@ describe("searchKnowledge — integration", () => {
       }),
       prisma.chatbotCorpusSource.create({
         data: {
+          embeddingModel: MOCK_MODEL_NAME,
           name: "OutdatedSource",
           version: "v01",
           sourceType: CorpusSourceType.PDF,
@@ -130,6 +136,92 @@ describe("searchKnowledge — integration", () => {
     expect(results[0].cite_url).toBe("https://example.com/active");
   });
 
+  it("excludes sources embedded by a different model", async () => {
+    // Cosine distance across two embedding spaces still RANKS, so a mismatch
+    // is answered confidently from noise instead of failing. Reachable via a
+    // corpus ingested with the mock provider and queried with azure-openai, or
+    // mid-way through a re-embed. The chunk content equals the query, so its
+    // mock embedding is byte-equal (similarity 1.0): the test passes only if
+    // the model filter excludes it regardless of similarity.
+    const QUERY = "consulta sobre limites operacionales";
+
+    const [matching, foreign] = await Promise.all([
+      prisma.chatbotCorpusSource.create({
+        data: {
+          embeddingModel: MOCK_MODEL_NAME,
+          name: "MatchingModelSource",
+          version: "v01",
+          sourceType: CorpusSourceType.PDF,
+          scope: CorpusSourceScope.GLOBAL,
+          status: CorpusSourceStatus.ACTIVE,
+          activatedAt: new Date(),
+          citeLabel: "Matching label",
+          citeUrl: "https://example.com/matching",
+        },
+      }),
+      prisma.chatbotCorpusSource.create({
+        data: {
+          embeddingModel: "text-embedding-3-large",
+          name: "ForeignModelSource",
+          version: "v01",
+          sourceType: CorpusSourceType.PDF,
+          scope: CorpusSourceScope.GLOBAL,
+          status: CorpusSourceStatus.ACTIVE,
+          activatedAt: new Date(),
+          citeLabel: "Foreign label",
+          citeUrl: "https://example.com/foreign",
+        },
+      }),
+    ]);
+
+    const embeddingProvider = getEmbeddingProvider();
+    const { vectors } = await embeddingProvider.embed([
+      "contenido lejano a la consulta",
+      QUERY,
+    ]);
+    const toVectorLiteral = (v: number[]): string => `[${v.join(",")}]`;
+
+    await prisma.$executeRaw`
+      INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
+      VALUES (${matching.id}, 0, ${"contenido lejano a la consulta"}, ${toVectorLiteral(vectors[0])}::vector)
+    `;
+    await prisma.$executeRaw`
+      INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
+      VALUES (${foreign.id}, 0, ${QUERY}, ${toVectorLiteral(vectors[1])}::vector)
+    `;
+
+    const results = await searchKnowledge(prisma, QUERY);
+
+    expect(results).toHaveLength(1);
+    expect(results[0].source_id).toBe(matching.id);
+  });
+
+  it("returns nothing when every source carries a NULL embedding model", async () => {
+    // Unknown provenance is not a match. The ingest CLI always records the
+    // model, so this only covers rows written outside it.
+    const QUERY = "consulta sin procedencia conocida";
+    const source = await prisma.chatbotCorpusSource.create({
+      data: {
+        name: "UnknownProvenanceSource",
+        version: "v01",
+        sourceType: CorpusSourceType.PDF,
+        scope: CorpusSourceScope.GLOBAL,
+        status: CorpusSourceStatus.ACTIVE,
+        activatedAt: new Date(),
+        citeLabel: "Unknown label",
+        citeUrl: "https://example.com/unknown",
+      },
+    });
+
+    const { vectors } = await getEmbeddingProvider().embed([QUERY]);
+    await prisma.$executeRaw`
+      INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
+      VALUES (${source.id}, 0, ${QUERY}, ${`[${vectors[0].join(",")}]`}::vector)
+    `;
+
+    expect(await searchKnowledge(prisma, QUERY)).toHaveLength(0);
+  });
+
   // Maps to chatbot-corpus-retrieval spec requirement
   // "searchKnowledge applies optional scope and sourceType filters":
   //   when the caller passes `scope` or `sourceType` (or both), the
@@ -150,6 +242,7 @@ describe("searchKnowledge — integration", () => {
     ) =>
       prisma.chatbotCorpusSource.create({
         data: {
+          embeddingModel: MOCK_MODEL_NAME,
           name: `Source-${suffix}`,
           version: "v01",
           sourceType: opts.sourceType,

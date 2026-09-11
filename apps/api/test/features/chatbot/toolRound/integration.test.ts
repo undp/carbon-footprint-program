@@ -20,6 +20,7 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { collectSseEvents } from "@test/helpers/sse.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
+import { MOCK_MODEL_NAME } from "@/features/chatbot/embeddingProvider/mock.js";
 import { mockProvider } from "@/features/chatbot/llmProvider/mock.js";
 import {
   CHATBOT_GENERIC_ERROR_MESSAGE,
@@ -92,6 +93,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
 
     const activeSource = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "GHG Protocol Corporate Standard",
         version: "v05",
         sourceType: CorpusSourceType.PDF,
@@ -189,6 +191,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     // cite_url" path the task lists as an example.
     const brokenSource = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "BrokenSource",
         version: "v01",
         sourceType: CorpusSourceType.PDF,
@@ -281,6 +284,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
 
     const activeSource = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "GHG Protocol Corporate Standard",
         version: "v05",
         sourceType: CorpusSourceType.PDF,
@@ -423,6 +427,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
 
     const source = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "GHG Protocol Corporate Standard",
         version: "v05",
         sourceType: CorpusSourceType.PDF,
@@ -585,6 +590,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     const HUGE_URL = `https://example.com/${"u".repeat(5000)}`;
     const source = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "Bloated source",
         version: "v01",
         sourceType: CorpusSourceType.PDF,
@@ -694,6 +700,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     // usage event populates tokens_used.
     const source = await prisma.chatbotCorpusSource.create({
       data: {
+        embeddingModel: MOCK_MODEL_NAME,
         name: "GHG Protocol Corporate Standard",
         version: "v05",
         sourceType: CorpusSourceType.PDF,
