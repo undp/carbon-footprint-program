@@ -97,6 +97,36 @@ services:
       # MinIO need not be exposed publicly (needs API_ORIGIN above).
       # false/unset → the browser hits MinIO directly (historical default).
       - MINIO_RELAY_ENABLED=${MINIO_RELAY_ENABLED:-false}
+      # --- Chatbot (optional AI feature) ---
+      # Off by default: this platform is a digital public good and must stay
+      # fully usable with no AI and no cloud AI dependency, so an operator opts
+      # in. As with TRUST_PROXY above, this service enumerates its environment
+      # explicitly (no env_file) — a variable missing from this list is only
+      # ever used for ${...} interpolation and never reaches the container.
+      - CHATBOT_ENABLED=${CHATBOT_ENABLED:-false}
+      - LLM_PROVIDER=${LLM_PROVIDER:-mock}
+      - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-mock}
+      # Signs the chatbot session + conversation cookies. Supply a real secret
+      # when the chatbot is on: rotating it signs out every conversation, and
+      # the API's dev fallback must not be relied on in production.
+      - COOKIE_SECRET=${COOKIE_SECRET:-}
+      # --- Azure OpenAI (only when the providers above are azure-openai) ---
+      # NOTE: the API refuses to boot with EMBEDDING_PROVIDER=mock while
+      # NODE_ENV=production and CHATBOT_ENABLED=true — the mock's SHA-256
+      # vectors would silently corrupt retrieval rather than fail.
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT:-}
+      - AZURE_OPENAI_DEPLOYMENT_NAME=${AZURE_OPENAI_DEPLOYMENT_NAME:-}
+      - AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME=${AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME:-}
+      - AZURE_OPENAI_API_VERSION=${AZURE_OPENAI_API_VERSION:-}
+      - AZURE_OPENAI_EMBEDDING_API_VERSION=${AZURE_OPENAI_EMBEDDING_API_VERSION:-}
+      # There is no managed identity inside a self-hosted container, so this
+      # stack must use an API key to reach Azure OpenAI — unlike the Azure
+      # App Service deployment, which authenticates keylessly and leaves this
+      # unset. Treat it as a secret: inject it, do not commit it.
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY:-}
+      # Reasoning-effort hint — only for reasoning deployments (gpt-5 family,
+      # o-series). Leave empty for gpt-4.1/gpt-4o; the SDK may reject it.
+      - AZURE_OPENAI_REASONING_EFFORT=${AZURE_OPENAI_REASONING_EFFORT:-}
     # No depends_on: the database is external. If it is unreachable the API
     # exits at boot and `restart: unless-stopped` retries until it answers.
     restart: unless-stopped
@@ -128,6 +158,11 @@ services:
         # https://<account>.blob.core.windows.net. REQUIRED for browser uploads:
         # if empty, the CSP omits storage and presigned PUT/GET are blocked.
         STORAGE_ORIGIN: ${STORAGE_ORIGIN:-}
+        # Mounts the chatbot widget. Baked in at BUILD time, so flipping it
+        # needs a rebuild of this image, not a restart. Must agree with the api
+        # service's CHATBOT_ENABLED: true here with the API off mounts a widget
+        # whose every request 404s against unregistered routes.
+        VITE_CHATBOT_ENABLED: ${VITE_CHATBOT_ENABLED:-false}
         VITE_IS_DEMO_APP: ${VITE_IS_DEMO_APP:-false}
         VITE_APP_VERSION: ${VITE_APP_VERSION:-prod}
     container_name: huella-latam-web-prod
