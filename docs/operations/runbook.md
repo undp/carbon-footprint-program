@@ -427,6 +427,51 @@ If the Azure OpenAI embedding deployment is rotated (e.g., `…prod-v1` → `…
 
 If the underlying model is unchanged (only the deployment name rotated), operators MAY skip the re-embed — the persisted `embedding_model` column is the deployment name, so the audit trail will still reflect the rotation.
 
+**Model deprecation (the embedding model itself changes):**
+
+> ⚠️ The "operators MAY skip the re-embed" escape hatch above **does not apply here.** It is scoped to a deployment rename over an unchanged model. When the model changes, a full re-embed is mandatory.
+
+Vectors from two different embedding models are not stale — they are **semantically incompatible**. Cosine distance between them is meaningless, so a partially migrated corpus does not fail loudly: retrieval keeps returning results, they are simply the wrong chunks. Nothing in the system detects this, which makes it the most dangerous corpus failure mode.
+
+Azure retires models on a published schedule, so this is a planned event rather than an incident. Check the runway for the region the account lives in:
+
+```bash
+az cognitiveservices model list --location <region> \
+  --query "[?model.name=='text-embedding-3-large'] | [0].model.skus[].{sku:name, deprecation:deprecationDate}" -o table
+```
+
+Deployment **SKUs** retire independently of the model, and a retired SKU fails preflight with `ServiceModelDeprecated` — a message naming the _model_, which misdirects you to the version. See [chatbot-ai-access-requirements.md](../infrastructure/chatbot-ai-access-requirements.md) section 2.
+
+**Before choosing a replacement model, check its output dimensionality.** `dimensions: 1024` is fixed in `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts` and must match the `vector(1024)` column and its HNSW index. A model that can emit 1024 dimensions is a re-ingest. One that cannot is a **schema migration** — new column width, new index, and a code change — and is out of scope for this playbook.
+
+Procedure, assuming a dimension-compatible replacement:
+
+1. Update `openAiEmbeddingModelName` / `openAiEmbeddingModelVersion` (and `openAiEmbeddingSkuName` if the SKU also moved) in the environment's `params/main.<env>.bicepparam`, then redeploy so the new deployment exists.
+2. Re-ingest **every** `ACTIVE` source with the same `--label` and a fresh `--version`. Enumerate them first rather than working from memory:
+
+   ```sql
+   SELECT id, name, version, scope, cite_url
+   FROM chatbot_corpus_source WHERE status = 'ACTIVE' ORDER BY id;
+   ```
+
+3. Activate each new source. Activation is per `(name, scope)`, so a corpus of N sources needs N activations — **there is no bulk cutover**, and a corpus left half-migrated is serving mixed-model results.
+4. Verify no source is still `ACTIVE` under the old model before announcing:
+
+   ```sql
+   SELECT status, embedding_model, count(*) AS sources
+   FROM chatbot_corpus_source
+   GROUP BY status, embedding_model
+   ORDER BY status, embedding_model;
+   ```
+
+   Every `ACTIVE` row must report the new model. Any `ACTIVE` row still on the old one is serving incompatible vectors.
+
+   `chatbot_corpus_source` carries its own `embedding_model`, written at ingest alongside the copy on `chatbot_corpus_ingest_run` — so this needs no join, and no reasoning about retries or failed runs. Use the ingest-run table only when you want the audit history of _attempts_; use the source table to answer "what is live right now".
+
+5. Verify retrieval against goldens before announcing, as in the rotation recipe above.
+
+Between steps 2 and 3 the old chunks stay `ACTIVE` and keep answering, so the corpus degrades only if the migration is abandoned midway. Run the step-4 query even on an apparently clean run: it is the only check that distinguishes "migrated" from "mostly migrated", and the failure is invisible from the widget.
+
 **Document Intelligence upgrade trigger:**
 
 `pdf-parse` is the V1 default. If manual review of ingested chunks surfaces ≥3 broken samples (multi-column layouts, scanned pages, dense tables) on representative PDFs, evaluate Azure Document Intelligence as a per-deployment optional parser. Until that signal exists, `pdf-parse` is the right default.
