@@ -407,6 +407,24 @@ describe("searchKnowledge — integration", () => {
   //   - topK = -1 is an integer but below the range bound, hits the
   //     range check ("topK must be in [1, 20]")
   // Both throw before any embedding or SQL side-effect.
+  it("fails with a diagnosable message when the provider returns no vector", async () => {
+    // formatVectorLiteral would otherwise throw "vector is not iterable" from
+    // inside itself, and the handler maps that to a generic 503 that names
+    // neither the provider nor the empty batch.
+    vi.spyOn(mockEmbeddingProvider, "embed").mockResolvedValue({
+      vectors: [],
+      inputTokens: 4,
+      model: MOCK_MODEL_NAME,
+    });
+    const queryRawStub = vi.fn();
+    const stubPrisma = { $queryRaw: queryRawStub } as unknown as PrismaClient;
+
+    await expect(searchKnowledge(stubPrisma, "consulta")).rejects.toThrow(
+      /returned 0 vectors for a single query input/
+    );
+    expect(queryRawStub).not.toHaveBeenCalled();
+  });
+
   it("non-integer topK is rejected with InvalidQueryError before SQL execution", async () => {
     // Same stub-prisma pattern as the oversized-query test above — see
     // that test's comment for the rationale (Prisma 7 Proxy + vi.spyOn

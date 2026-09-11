@@ -75,6 +75,15 @@ export const searchKnowledge = async (
   const embeddingProvider = getEmbeddingProvider();
   const { vectors, model } = await embeddingProvider.embed([trimmedQuery]);
   const queryVector = vectors[0];
+  // Same class of defensive guard as formatVectorLiteral's non-finite check.
+  // An empty batch from the provider would otherwise surface from inside the
+  // literal builder as "TypeError: vector is not iterable", and the handler's
+  // generic 503 would carry no hint of where it came from.
+  if (queryVector === undefined) {
+    throw new Error(
+      `Embedding provider "${model}" returned ${vectors.length} vectors for a single query input; expected 1.`
+    );
+  }
   const vectorLiteral = formatVectorLiteral(queryVector);
 
   const scope = options.scope ?? null;
