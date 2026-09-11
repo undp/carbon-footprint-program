@@ -252,6 +252,43 @@ export const sendMessageHandler = async (
   };
 
   /**
+   * Terminal handling for a failure that happens BEFORE the hijack, where
+   * throwing still maps to a real HTTP status through the global error handler.
+   *
+   * The empty assistant row was committed at the top of the handler, long
+   * before the provider is invoked, and nothing on this path would ever mark
+   * it: failAfterHijack does not run here, and the reply.raw "close" finalizer
+   * short-circuits on writableEnded once the error response is written. The row
+   * would sit at `latency_ms = NULL, truncated = false` forever — invisible to
+   * an operator query for failed turns, and inconsistent with the mid-stream
+   * and oversized-RAG paths, which both mark it. `content` stays "" because no
+   * delta can have been emitted yet.
+   *
+   * Logs and marks; the caller still throws, so the control flow stays visible
+   * at each call site.
+   */
+  const failBeforeHijack = async (
+    logPayload: Record<string, unknown>,
+    message: string
+  ): Promise<void> => {
+    request.log.error(
+      { ...logPayload, assistantRowId: assistantRowIdString },
+      message
+    );
+    try {
+      await prisma.chatbotChatMessage.updateMany({
+        where: { id: assistantRowId, latencyMs: null },
+        data: { truncated: true },
+      });
+    } catch (finalizeErr) {
+      request.log.error(
+        { err: finalizeErr, assistantRowId: assistantRowIdString },
+        "chatbot pre-hijack error finalizer UPDATE failed"
+      );
+    }
+  };
+
+  /**
    * Write one stream event to the hijacked wire. Returns the usage totals when
    * the event carries them, so the caller assigns `usage` in the outer scope.
    *
@@ -315,7 +352,11 @@ export const sendMessageHandler = async (
       signal: abortController.signal,
       tools: [searchKnowledgeToolDefinition],
     });
-  } catch {
+  } catch (err) {
+    await failBeforeHijack(
+      { err, round: 1 },
+      "chatbot LLM provider first-round invocation failed"
+    );
     throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
   }
 
@@ -330,15 +371,15 @@ export const sendMessageHandler = async (
   try {
     firstPeek = await firstIterator.next();
   } catch (err) {
-    request.log.error(
-      { err, assistantRowId: assistantRowIdString, round: 1 },
+    await failBeforeHijack(
+      { err, round: 1 },
       "chatbot LLM provider first-round peek errored"
     );
     throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
   }
   if (firstPeek.done) {
-    request.log.error(
-      { assistantRowId: assistantRowIdString, round: 1 },
+    await failBeforeHijack(
+      { round: 1 },
       "chatbot LLM provider first-round stream produced no events"
     );
     throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
@@ -362,8 +403,8 @@ export const sendMessageHandler = async (
         firstEvent.arguments
       );
     } catch (err) {
-      request.log.error(
-        { err, assistantRowId: assistantRowIdString, round: 1 },
+      await failBeforeHijack(
+        { err, round: 1 },
         "chatbot searchKnowledge tool execution failed"
       );
       throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
@@ -433,8 +474,8 @@ export const sendMessageHandler = async (
         tools: [searchKnowledgeToolDefinition],
       });
     } catch (err) {
-      request.log.error(
-        { err, assistantRowId: assistantRowIdString, round: 2 },
+      await failBeforeHijack(
+        { err, round: 2 },
         "chatbot LLM provider second-round invocation failed"
       );
       throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
@@ -448,23 +489,23 @@ export const sendMessageHandler = async (
     try {
       secondPeek = await secondIterator.next();
     } catch (err) {
-      request.log.error(
-        { err, assistantRowId: assistantRowIdString, round: 2 },
+      await failBeforeHijack(
+        { err, round: 2 },
         "chatbot LLM provider second-round peek errored"
       );
       throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
     }
     if (secondPeek.done) {
-      request.log.error(
-        { assistantRowId: assistantRowIdString, round: 2 },
+      await failBeforeHijack(
+        { round: 2 },
         "chatbot LLM provider second-round stream produced no events"
       );
       throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
     }
     const secondFirst = secondPeek.value;
     if (secondFirst.type === "tool_call") {
-      request.log.error(
-        { assistantRowId: assistantRowIdString },
+      await failBeforeHijack(
+        { round: 2 },
         "chatbot LLM provider issued a second consecutive tool_call"
       );
       throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);

@@ -409,6 +409,20 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
       code: "EXTERNAL_SERVICE_ERROR",
       message: CHATBOT_GENERIC_ERROR_MESSAGE,
     });
+
+    // The empty assistant row is committed before the provider is invoked, and
+    // nothing on the pre-hijack path would otherwise mark it: failAfterHijack
+    // does not run, and the reply.raw "close" finalizer short-circuits on
+    // writableEnded once the 503 is written. An operator query for failed turns
+    // (truncated = true) must not miss this whole class.
+    const assistantRow = await prisma.chatbotChatMessage.findFirst({
+      where: { role: ChatMessageRole.ASSISTANT },
+      orderBy: { id: "desc" },
+    });
+    expect(assistantRow?.truncated).toBe(true);
+    // latency_ms stays NULL so loadConversationHistory keeps excluding this
+    // failed turn from later prompts.
+    expect(assistantRow?.latencyMs).toBeNull();
   });
 
   // Maps to spec scenario "done event includes sources when K ≥ 1":
