@@ -79,6 +79,65 @@ const buildBlocksFromSentences = (text: string): Block[] => {
   }));
 };
 
+const MAX_BLOCK_CHARS = TARGET_TOKENS * 4;
+
+/**
+ * Hard-slice a run of text that carries no sentence boundary at all. Only
+ * reachable on pathological input (thousands of characters without `.`/`!`/`?`
+ * followed by whitespace), but the packing loop has no other way to bound it.
+ */
+const sliceOnLength = (text: string): string[] => {
+  const pieces: string[] = [];
+  for (let start = 0; start < text.length; start += MAX_BLOCK_CHARS) {
+    pieces.push(text.slice(start, start + MAX_BLOCK_CHARS));
+  }
+  return pieces;
+};
+
+/**
+ * Break a block that cannot fit in a single chunk into <=TARGET_TOKENS pieces.
+ *
+ * The packing loop below only ever chooses boundaries *between* blocks, so an
+ * already-oversized block would be emitted whole. That is not a corner case:
+ * pdf-parse routinely flattens a page into one paragraph with no blank line
+ * and no header-matching line, which `buildBlocksWithHeaders` turns into a
+ * single block. Past ~8k tokens such a block also blows the embedding
+ * provider's per-input ceiling and aborts the entire ingest run.
+ */
+const splitOversizedBlock = (block: Block): Block[] => {
+  const pieces: string[] = [];
+  let buf = "";
+  const flushBuf = (): void => {
+    const content = buf.trim();
+    if (content.length > 0) pieces.push(content);
+    buf = "";
+  };
+  for (const sentence of splitIntoSentences(block.content)) {
+    const parts =
+      estimateTokens(sentence) > TARGET_TOKENS
+        ? sliceOnLength(sentence)
+        : [sentence];
+    for (const part of parts) {
+      const candidate = buf.length === 0 ? part : `${buf} ${part}`;
+      if (buf.length > 0 && estimateTokens(candidate) > TARGET_TOKENS) {
+        flushBuf();
+        buf = part;
+        continue;
+      }
+      buf = candidate;
+    }
+  }
+  flushBuf();
+  return pieces.map((content, index) => ({
+    content,
+    tokens: estimateTokens(content),
+    // Only the first piece can still open a section; the rest continue the
+    // same paragraph.
+    isHeaderStart: index === 0 && block.isHeaderStart,
+    sectionTitle: block.sectionTitle,
+  }));
+};
+
 /**
  * Split a long piece of text into ~600-token chunks with ~80-token overlap.
  *
@@ -92,6 +151,9 @@ const buildBlocksFromSentences = (text: string): Block[] => {
  *    newlines on multi-column or soft-wrapped layouts), fall back to
  *    sentence-boundary blocks. The packing algorithm is identical, just
  *    with no header-preference signal.
+ * 3. Whichever pass produced them, split any block that is on its own larger
+ *    than the target, so the packing loop below is never handed a block it
+ *    cannot place (see splitOversizedBlock).
  */
 export const chunkText = (text: string): Chunk[] => {
   const trimmed = text.trim();
@@ -103,6 +165,9 @@ export const chunkText = (text: string): Chunk[] => {
     blocks = buildBlocksFromSentences(trimmed);
   }
   if (blocks.length === 0) return [];
+  blocks = blocks.flatMap((b) =>
+    b.tokens > TARGET_TOKENS ? splitOversizedBlock(b) : [b]
+  );
 
   const chunks: Chunk[] = [];
   let pending: Block[] = [];
