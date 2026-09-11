@@ -137,6 +137,46 @@ describe("POST /api/chatbot/message — integration", () => {
     ).toBe(true);
   });
 
+  it("follows the conversation cookie, and starts a new thread without it", async () => {
+    // "Nueva conversación" works purely by dropping the client cookie, so the
+    // send path has to resolve by that cookie. Resolving by identity alone
+    // would silently reattach the next turn to the thread just discarded.
+    const first = await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "primer mensaje" },
+      { ownsApp: false }
+    );
+    const conversationCookie = first.setCookie
+      .find((c) => c.startsWith("chatbot_conversation_id="))
+      ?.split(";")[0];
+    expect(conversationCookie).toBeDefined();
+
+    await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "segundo mensaje" },
+      { ownsApp: false, cookies: conversationCookie }
+    );
+    expect(await prisma.chatbotChatConversation.count()).toBe(1);
+
+    // Same identity, no cookie — the reset case.
+    await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "tercer mensaje" },
+      { ownsApp: false }
+    );
+    const conversations = await prisma.chatbotChatConversation.findMany({
+      orderBy: { createdAt: "asc" },
+      include: { messages: { select: { id: true } } },
+    });
+    expect(conversations).toHaveLength(2);
+    // The fresh thread carries only its own turn (one user + one assistant
+    // row), so the discarded history cannot leak back into the next prompt.
+    expect(conversations[1]?.messages).toHaveLength(2);
+  });
+
   it("CHATBOT_GENERIC_ERROR_MESSAGE has the expected Spanish text", () => {
     // Pinned constant value test — the streaming handler imports this
     // constant by name and tests assert against it instead of duplicating

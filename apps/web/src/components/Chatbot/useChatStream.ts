@@ -544,10 +544,14 @@ export const useChatStream = () => {
   );
 
   /**
-   * Start a fresh client-side thread. Prior turns stay persisted server-side —
-   * this is NOT a delete. The conversation cookie is dropped so a later reload
-   * does not rehydrate the thread we just left, and any in-flight turn is
-   * aborted so it cannot stream into the cleared view.
+   * Start a fresh thread. Prior turns stay persisted server-side — this is NOT
+   * a delete.
+   *
+   * Dropping the conversation cookie is the whole mechanism: POST /message
+   * resolves the thread it continues from that cookie, so its absence makes
+   * the next turn open a new conversation, and a later reload has nothing to
+   * rehydrate. Any in-flight turn is aborted so it cannot stream into the
+   * cleared view.
    */
   const startNewConversation = useCallback((): void => {
     // Null the ref BEFORE aborting: `isCurrentTurn()` in the in-flight

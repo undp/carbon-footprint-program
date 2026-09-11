@@ -31,6 +31,24 @@ const baseCookieOptions = () => ({
   maxAge: CHATBOT_CONVERSATION_COOKIE_MAX_AGE,
 });
 
+/**
+ * Parse a conversation id out of a (already unsigned) cookie value.
+ *
+ * Conversation IDs are positive bigints; anything that does not round-trip
+ * cleanly is rejected so a tampered cookie cannot reach Prisma. Shared by both
+ * cookie readers — the rehydrate endpoint turns `null` into a 404, the send
+ * endpoint turns it into a fresh conversation.
+ */
+export const parseConversationIdOrNull = (raw: string): bigint | null => {
+  if (!/^\d+$/.test(raw)) return null;
+  try {
+    const value = BigInt(raw);
+    return value > 0n ? value : null;
+  } catch {
+    return null;
+  }
+};
+
 export const readSignedConversationCookie = (
   request: FastifyRequest
 ): string | null => {

@@ -41,16 +41,17 @@ export const conversationIdentityFilter = (identity: ChatbotIdentity) =>
     ? { userId: identity.userId, sessionId: null }
     : { userId: null, sessionId: identity.sessionId };
 
-export const findActiveConversation = async (
+export const findConversationForIdentity = async (
   tx: Tx,
+  conversationId: bigint,
   identity: ChatbotIdentity
 ) => {
   return tx.chatbotChatConversation.findFirst({
     where: {
+      id: conversationId,
       ...conversationIdentityFilter(identity),
       expiresAt: { gt: new Date() },
     },
-    orderBy: { createdAt: "desc" },
   });
 };
 
@@ -73,12 +74,36 @@ export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
   });
 };
 
+/**
+ * Resolve the conversation this turn belongs to, creating one when there is
+ * none to attach to.
+ *
+ * Cookie-first, deliberately. The signed `chatbot_conversation_id` cookie is
+ * the client's pointer to its thread, and GET /conversations/me/current
+ * already resolves by that cookie alone. Falling back to "the newest active
+ * row for this identity" would undo "Nueva conversación", whose whole
+ * mechanism is dropping the cookie: the next turn would reattach to the thread
+ * the user just left, feed its history back into the prompt, and re-pin the
+ * same id.
+ *
+ * A cookie that no longer resolves — expired row, or an identity that has
+ * since changed (anon -> authenticated) — starts a fresh conversation rather
+ * than failing the turn. The rehydrate endpoint is where a stale cookie is
+ * reported and cleared; the send path just moves on.
+ */
 export const resolveOrCreateConversation = async (
   tx: Tx,
-  identity: ChatbotIdentity
+  identity: ChatbotIdentity,
+  requestedConversationId: bigint | null
 ) => {
-  const existing = await findActiveConversation(tx, identity);
-  if (existing) return existing;
+  if (requestedConversationId !== null) {
+    const existing = await findConversationForIdentity(
+      tx,
+      requestedConversationId,
+      identity
+    );
+    if (existing) return existing;
+  }
   return createConversation(tx, identity);
 };
 

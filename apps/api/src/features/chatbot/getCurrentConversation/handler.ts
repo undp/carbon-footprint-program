@@ -8,6 +8,7 @@ import type {
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import {
   clearConversationCookie,
+  parseConversationIdOrNull,
   readSignedConversationCookie,
 } from "@/features/chatbot/helpers/conversationCookie.js";
 import { findCurrentConversation } from "./service.js";
@@ -23,19 +24,6 @@ const EXPOSED_ROLES = new Set<ChatMessageRole>([
   ChatMessageRole.USER,
   ChatMessageRole.ASSISTANT,
 ]);
-
-const parseConversationIdOrNull = (raw: string): bigint | null => {
-  // Conversation IDs are positive bigints; reject anything that does not
-  // round-trip cleanly so a tampered cookie cannot trigger a Prisma error
-  // before the 404 fall-through.
-  if (!/^\d+$/.test(raw)) return null;
-  try {
-    const value = BigInt(raw);
-    return value > 0n ? value : null;
-  } catch {
-    return null;
-  }
-};
 
 export const getCurrentConversationHandler = async (
   request: FastifyRequest,

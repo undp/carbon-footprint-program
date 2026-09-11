@@ -530,6 +530,13 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     );
     expect(seed.status).toBe(200);
 
+    // The send path resolves the thread from this cookie, so the follow-up
+    // request has to carry it to land in the conversation seeded below.
+    const conversationCookie = seed.setCookie
+      .find((c) => c.startsWith("chatbot_conversation_id="))
+      ?.split(";")[0];
+    expect(conversationCookie).toBeDefined();
+
     const conv = await prisma.chatbotChatConversation.findFirst({
       orderBy: { id: "desc" },
     });
@@ -555,7 +562,7 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
       app,
       "/api/chatbot/message",
       { content: "segundo mensaje" },
-      { ownsApp: false }
+      { ownsApp: false, cookies: conversationCookie }
     );
     expect(status).toBe(413);
   });

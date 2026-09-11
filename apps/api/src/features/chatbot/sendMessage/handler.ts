@@ -17,7 +17,11 @@ import {
   type LlmMessage,
   type LlmStreamEvent,
 } from "@/features/chatbot/llmProvider/index.js";
-import { setConversationCookie } from "@/features/chatbot/helpers/conversationCookie.js";
+import {
+  parseConversationIdOrNull,
+  readSignedConversationCookie,
+  setConversationCookie,
+} from "@/features/chatbot/helpers/conversationCookie.js";
 import { getSystemPromptEs } from "@/features/chatbot/prompts/loader.js";
 import {
   executeSearchKnowledgeTool,
@@ -91,6 +95,13 @@ export const sendMessageHandler = async (
 
   const prisma = request.server.prisma;
 
+  // The thread this turn continues, as pointed at by the client's signed
+  // cookie. `null` — no cookie, or one that does not parse — means start a new
+  // conversation; see resolveOrCreateConversation.
+  const cookieValue = readSignedConversationCookie(request);
+  const requestedConversationId =
+    cookieValue === null ? null : parseConversationIdOrNull(cookieValue);
+
   // History snapshot, turn cap, and message inserts ALL run inside the
   // identity-scoped advisory lock. Doing the cap checks pre-lock would let two
   // concurrent first-message turns each pass on the same stale snapshot, and
@@ -100,7 +111,11 @@ export const sendMessageHandler = async (
   const { assistantRowId, conversationId, history } = await prisma.$transaction(
     async (tx) => {
       await acquireIdentityAdvisoryLock(tx, identity);
-      const conversation = await resolveOrCreateConversation(tx, identity);
+      const conversation = await resolveOrCreateConversation(
+        tx,
+        identity,
+        requestedConversationId
+      );
 
       const lockedHistory = await loadConversationHistory(tx, conversation.id);
       // Count the system prompt against the cap: it is part of every request
