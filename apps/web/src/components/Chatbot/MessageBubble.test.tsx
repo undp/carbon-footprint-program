@@ -65,6 +65,28 @@ describe("MessageBubble", () => {
     expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 
+  it("keeps the text of an inline citation while dropping the link", () => {
+    // The system prompt requires inline `[cite_label](cite_url)` citations on
+    // grounded answers, and the label is part of the sentence. Rendering the
+    // anchor as null would take the words with it.
+    render(
+      <MessageBubble
+        message={message({
+          role: "assistant",
+          content:
+            "Según el [GHG Protocol](https://ghgprotocol.org), el alcance 1 cubre las emisiones directas.",
+        })}
+      />
+    );
+
+    expect(
+      screen.getByText(
+        /Según el GHG Protocol, el alcance 1 cubre las emisiones directas\./
+      )
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("link")).toBeNull();
+  });
+
   it("shows a spinner while an assistant turn is in flight (empty content)", () => {
     render(
       <MessageBubble message={message({ role: "assistant", content: "" })} />

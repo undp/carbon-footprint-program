@@ -124,11 +124,16 @@ export const MessageBubble = memo(function MessageBubble({
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
                 rehypePlugins={[rehypeKatex]}
-                // Strip inline citations at render time — the V1 corpus is
-                // dominated by a single source, so repeated `[label](url)`
-                // markers are noise; attribution lives in the
+                // Strip inline citation anchors at render time — the V1
+                // corpus is dominated by a single source, so repeated
+                // `[label](url)` markers are noise; attribution lives in the
                 // "Fuentes consultadas" panel below.
-                components={{ a: () => null }}
+                //
+                // Render the children rather than returning null: the label is
+                // part of the sentence the model wrote ("según el [GHG
+                // Protocol](url), el alcance 1…"), so dropping the node would
+                // delete those words along with the link.
+                components={{ a: ({ children }) => <>{children}</> }}
               >
                 {message.content}
               </ReactMarkdown>
