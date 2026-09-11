@@ -155,6 +155,35 @@ Do not provision these for this feature:
 - **Azure Document Intelligence** — PDF parsing runs locally via `pdf-parse`.
 - **Additional Blob Storage** — corpus PDFs are read from the filesystem by the ingest CLI.
 
+## Deploying the chatbot — where each step is documented
+
+This document covers the access a deployment needs. The deployment itself spans five documents,
+each owning one slice; follow them in this order. Nothing here is restated below — go to the
+linked section for the detail.
+
+| #   | Step                                                                                  | Documented in                                                                     |
+| --- | ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| 1   | Clear the three access gates (policy → RBAC → quota)                                  | This document, sections 0–4                                                       |
+| 2   | Set `ENABLE_CHATBOT` and `VITE_CHATBOT_ENABLED`                                       | [`infra/.envrc.template`](../../infra/.envrc.template), section 5                 |
+| 3   | Run the deploy: `deploy.sh` → `run-migrations.sh` → `deploy-api.sh` → `deploy-web.sh` | [Deployment.md](./Deployment.md)                                                  |
+| 4   | Seed the corpus (`chatbot:ingest`, then `chatbot:activate`)                           | [runbook.md](../operations/runbook.md), "Chatbot corpus ingestion and activation" |
+| 5   | Understand what you have switched on                                                  | [security/chatbot.md](../security/chatbot.md)                                     |
+
+Three things about this sequence are easy to get wrong:
+
+- **The gates are sequential, not parallel.** The policy exemption has to land before RBAC can be
+  tested against an AI resource, and RBAC has to pass before quota is observable. Front-load all
+  three in the same conversation rather than discovering them across three round trips.
+- **Step 4 is not optional, and skipping it looks like a bug.** With the chatbot deployed and no
+  corpus, retrieval returns zero chunks and every methodology question gets the "No dispongo de
+  fuentes verificadas…" fallback. That is the K=0 guardrail working exactly as designed. Ingest
+  writes `DRAFT`, which is invisible to search — nothing is answerable until `chatbot:activate`
+  runs.
+- **Two flags, two places, nothing reconciles them.** `ENABLE_CHATBOT` drives Bicep, which writes
+  `CHATBOT_ENABLED` onto the App Service; `VITE_CHATBOT_ENABLED` is baked into the web bundle at
+  build time and has no Bicep path. Set both or neither. `deploy-web.sh` warns on the damaging
+  combination (widget on, API off — every request 404s), but it warns rather than blocks.
+
 ## Verifying access
 
 ### Three failure modes, three different owners
