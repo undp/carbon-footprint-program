@@ -1,6 +1,7 @@
 import { z } from "zod";
+import { TEMP_ROW_PREFIX } from "../utils/temporaryRowId";
 
-export const TEMP_ROW_PREFIX = "temp_";
+export { TEMP_ROW_PREFIX };
 
 export const SubcategoryRecommendationRowSchema = z.object({
   id: z.string(),

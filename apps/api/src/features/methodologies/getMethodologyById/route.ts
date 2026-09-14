@@ -16,7 +16,7 @@ export const getMethodologyByIdRoute = defineRoute<{
     tags: ["methodologies"],
     summary: "Get methodology by ID",
     description:
-      "Get a methodology by its ID, including its active categories (ordered by position) and their active subcategories (ordered by name)",
+      "Get a methodology by its ID, including its active categories (ordered by position) and their active subcategories (also ordered by position)",
     params: GetMethodologyByIdParamsSchema,
     response: {
       200: GetMethodologyByIdResponseSchema,

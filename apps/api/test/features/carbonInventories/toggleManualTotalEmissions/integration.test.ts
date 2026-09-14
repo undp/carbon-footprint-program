@@ -247,6 +247,7 @@ describe("POST /api/carbon-inventories/:id/subcategories/:subcategoryId/manual-t
           name: "Test Subcategory",
           icon: "TRUCK",
           description: "Test Description",
+          position: 1,
           updatedAt: null,
         },
       });

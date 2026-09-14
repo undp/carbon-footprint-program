@@ -35,7 +35,16 @@ export const getAllSubcategoriesService = async (
         },
       },
     },
-    orderBy: [{ category: { position: "asc" } }, { name: "asc" }],
+    // `category.id` breaks the tie the category position leaves open: the
+    // category status is not filtered here and positions are unique only among
+    // non-DELETED categories, so a soft-deleted category can share a position
+    // with a live one and their subcategories would otherwise interleave in
+    // heap order, changing between refetches.
+    orderBy: [
+      { category: { position: "asc" } },
+      { category: { id: "asc" } },
+      { position: "asc" },
+    ],
   });
 
   return subcategories.map(
@@ -45,6 +54,7 @@ export const getAllSubcategoriesService = async (
       icon: IconNameSchema.parse(subcategory.icon),
       description: subcategory.description,
       explanation: subcategory.explanation,
+      position: subcategory.position,
       category: {
         id: category.id.toString(),
         name: category.name,

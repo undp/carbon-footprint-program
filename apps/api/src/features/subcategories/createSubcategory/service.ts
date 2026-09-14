@@ -1,17 +1,18 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   SubcategoryStatus,
   User,
-  IconNameSchema,
   type CreateSubcategoryRequest,
   type CreateSubcategoryResponse,
 } from "@repo/types";
+import { CategoryNotFoundForSubcategoryError } from "../errors.js";
+import { mapSubcategoryWithCategoryToResponse } from "../mappers.js";
 import {
-  CategoryNotFoundForSubcategoryError,
-  SubcategoryNameAlreadyExistsError,
-} from "../errors.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+  getNextSubcategoryPosition,
+  lockCategory,
+  rethrowSubcategoryUniqueViolation,
+} from "../helpers.js";
 import { UserNotFoundError } from "../../users/errors.js";
 
 export const createSubcategoryService = async (
@@ -26,25 +27,26 @@ export const createSubcategoryService = async (
 
   try {
     const result = await prismaClient.$transaction(async (tx) => {
-      const category = await tx.category.findFirst({
-        where: {
-          id: BigInt(data.categoryId),
-          status: CategoryStatus.ACTIVE,
-        },
-        select: { id: true },
-      });
+      const categoryId = BigInt(data.categoryId);
 
-      if (!category) {
+      // Locked before the status is read, so a concurrent soft-delete cannot
+      // slip between the check and the insert. See lockCategory.
+      const category = await lockCategory(tx, categoryId);
+
+      if (!category || category.status !== CategoryStatus.ACTIVE) {
         throw new CategoryNotFoundForSubcategoryError();
       }
 
+      const position = await getNextSubcategoryPosition(tx, categoryId);
+
       const newSubcategory = await tx.subcategory.create({
         data: {
-          categoryId: category.id,
+          categoryId,
           name: data.name,
           icon: data.icon,
           description: data.description,
           explanation: data.explanation ?? null,
+          position,
           status: SubcategoryStatus.ACTIVE,
           createdById: BigInt(user.id),
           updatedAt: null,
@@ -55,6 +57,7 @@ export const createSubcategoryService = async (
           icon: true,
           description: true,
           explanation: true,
+          position: true,
           category: {
             select: { id: true, name: true, color: true },
           },
@@ -76,31 +79,13 @@ export const createSubcategoryService = async (
           },
         });
 
-      return {
-        ...newSubcategory,
-        id: newSubcategory.id.toString(),
-        icon: IconNameSchema.parse(newSubcategory.icon),
-        category: {
-          id: newSubcategory.category.id.toString(),
-          name: newSubcategory.category.name,
-          color: newSubcategory.category.color,
-        },
-        measurementUnits: newSubcategoryMeasurementUnits.map((smu) => ({
-          id: smu.measurementUnit.id.toString(),
-          name: smu.measurementUnit.name,
-        })),
-      };
+      return mapSubcategoryWithCategoryToResponse(
+        newSubcategory,
+        newSubcategoryMeasurementUnits.map((smu) => smu.measurementUnit)
+      );
     });
     return result;
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("name")) {
-          throw new SubcategoryNameAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowSubcategoryUniqueViolation(error);
   }
 };

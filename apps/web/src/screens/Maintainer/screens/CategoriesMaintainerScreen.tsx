@@ -1,12 +1,4 @@
-import {
-  FC,
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { FC, useCallback, useEffect, useMemo, useState } from "react";
 import { useBlocker } from "@tanstack/react-router";
 import {
   Box,
@@ -30,6 +22,8 @@ import {
 import { MaintainerPageHeader } from "../layout/MaintainerPageHeader";
 import { useCategoriesForm, toFormCategory } from "../hooks/useCategoriesForm";
 import { useCategoryColumns } from "../hooks/useCategoryColumns";
+import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
+import { useMaintainerRowReorder } from "../hooks/useMaintainerRowReorder";
 import { CategoryForm } from "@repo/types";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -38,6 +32,10 @@ import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { UnsavedChangesDialog } from "../components/UnsavedChangesDialog";
 import { ExplanationModal } from "../components/ExplanationModal";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
+import {
+  createTemporaryRowId,
+  isTemporaryRowId,
+} from "../utils/temporaryRowId";
 import {
   EditModeToolbar,
   EDIT_MODE_TOOLBAR_HEIGHT,
@@ -115,23 +113,30 @@ export const CategoriesMaintainerScreen: FC = () => {
   const { form, fieldArray, handleCellChange } = useCategoriesForm();
   const currentRows = form.watch("categories");
 
+  // Same reason as the subcategories grid: the arrows walk the full form array
+  // while the grid renders only the search matches, so a filtered grid would
+  // move rows the maintainer cannot see.
+  const [isFiltered, setIsFiltered] = useState(false);
+
   // --- Sync form with server data ---
-  const editingRowIdRef = useRef(editingRowId);
-  useLayoutEffect(() => {
-    editingRowIdRef.current = editingRowId;
-  }, [editingRowId]);
-
-  useEffect(() => {
-    form.reset({ categories: [] });
-  }, [methodologyVersionId, form]);
-
-  useEffect(() => {
-    if (editingRowIdRef.current !== null) return;
-    if (!categories) return;
-    form.reset({ categories: categories.map(toFormCategory) });
-  }, [categories, form]);
-
-  const isNewRow = useCallback((id: string) => id.startsWith("temp_"), []);
+  // The shared hook, like the subcategories grid: it keeps `editingRowId` in
+  // its dependencies, so a refetch that lands while a row is being edited is
+  // replayed once the user leaves edit mode. Reading the id off a ref instead
+  // dropped that refetch for good — and since a reorder is repainted by the
+  // swap's own refetch and nothing else, the grid could keep the pre-swap
+  // positions and send the same pair again on the next click.
+  const toFormData = useCallback(
+    (data: NonNullable<typeof categories>) => data.map(toFormCategory),
+    []
+  );
+  useMaintainerFormSync({
+    form,
+    fieldName: "categories",
+    editingRowId,
+    methodologyVersionId,
+    serverData: categories,
+    toFormData,
+  });
 
   // --- Row editing callbacks ---
 
@@ -151,9 +156,14 @@ export const CategoriesMaintainerScreen: FC = () => {
       return false;
     }
 
-    if (row && isNewRow(row.id)) {
+    if (row && isTemporaryRowId(row.id)) {
       if (!row.icon) return false;
       try {
+        // No position is sent: the server appends the category after the last
+        // one in the methodology version, under the lock that keeps two
+        // concurrent creates from claiming the same slot. Guessing it here from
+        // the form array made every stale form a 409 about a field the
+        // maintainer never filled in.
         const result = await addMutation.mutateAsync({
           methodologyVersionId: methodologyVersionId!,
           name: row.name,
@@ -162,7 +172,6 @@ export const CategoriesMaintainerScreen: FC = () => {
           synonyms: row.synonyms,
           description: row.description,
           explanation: row.explanation || null,
-          position: row.position,
         });
         fieldArray.update(rowIndex, toFormCategory(result));
         form.reset({ categories: form.getValues("categories") });
@@ -195,7 +204,6 @@ export const CategoriesMaintainerScreen: FC = () => {
             synonyms: row.synonyms,
             description: row.description,
             explanation: row.explanation || null,
-            position: row.position,
           },
         });
         form.reset({ categories: form.getValues("categories") });
@@ -217,7 +225,6 @@ export const CategoriesMaintainerScreen: FC = () => {
     editingRowId,
     methodologyVersionId,
     form,
-    isNewRow,
     addMutation,
     fieldArray,
     updateMutation,
@@ -231,7 +238,7 @@ export const CategoriesMaintainerScreen: FC = () => {
     const rows = form.getValues("categories");
     const rowIndex = rows.findIndex(({ id }) => id === editingRowId);
 
-    if (isNewRow(editingRowId)) {
+    if (isTemporaryRowId(editingRowId)) {
       if (rowIndex !== -1) fieldArray.remove(rowIndex);
     } else {
       const original = categories?.find(({ id }) => id === editingRowId);
@@ -242,7 +249,7 @@ export const CategoriesMaintainerScreen: FC = () => {
 
     form.reset({ categories: form.getValues("categories") });
     setEditingRowId(null);
-  }, [editingRowId, form, isNewRow, fieldArray, categories, setEditingRowId]);
+  }, [editingRowId, form, fieldArray, categories, setEditingRowId]);
 
   const handleStartEditRow = useCallback(
     async (rowId: string) => {
@@ -256,9 +263,7 @@ export const CategoriesMaintainerScreen: FC = () => {
   );
 
   const handleAddRow = useCallback(() => {
-    const tempId = `temp_${Date.now()}`;
-    const rows = form.getValues("categories");
-    const maxPosition = rows.reduce((max, r) => Math.max(max, r.position), 0);
+    const tempId = createTemporaryRowId();
     const newRow: CategoryForm = {
       id: tempId,
       name: "",
@@ -267,11 +272,14 @@ export const CategoriesMaintainerScreen: FC = () => {
       synonyms: "",
       description: "",
       explanation: null,
-      position: maxPosition + 1,
+      // The server assigns the position on create; until then the row has no
+      // place in the sequence, so it is neither movable nor a neighbour of a
+      // move.
+      position: null,
     };
     fieldArray.prepend(newRow);
     setEditingRowId(tempId);
-  }, [fieldArray, form, setEditingRowId]);
+  }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
     async (row: CategoryForm) => {
@@ -282,7 +290,7 @@ export const CategoriesMaintainerScreen: FC = () => {
           if (editingRowId === row.id) {
             setEditingRowId(null);
           }
-          if (!isNewRow(row.id)) {
+          if (!isTemporaryRowId(row.id)) {
             await deleteMutation.mutateAsync(row.id);
           }
           fieldArray.remove(index);
@@ -303,62 +311,29 @@ export const CategoriesMaintainerScreen: FC = () => {
       form,
       fieldArray,
       editingRowId,
-      isNewRow,
       deleteMutation,
       enqueueSnackbar,
       setEditingRowId,
     ]
   );
 
-  const handleMove = useCallback(
-    async (row: CategoryForm, direction: "up" | "down") => {
-      const rows = form.getValues("categories");
-      const sorted = [...rows].sort((a, b) => a.position - b.position);
-      const sortedIdx = sorted.findIndex((r) => r.id === row.id);
-
-      if (row.id.startsWith("temp_")) return;
-      if (direction === "up" && sortedIdx <= 0) return;
-      if (
-        direction === "down" &&
-        (sortedIdx === -1 || sortedIdx >= sorted.length - 1)
-      )
-        return;
-
-      const neighbor =
-        sorted[direction === "up" ? sortedIdx - 1 : sortedIdx + 1];
-      if (neighbor.id.startsWith("temp_")) return;
-
-      try {
-        await swapMutation.mutateAsync({
-          categoryIdA: row.id,
-          categoryIdB: neighbor.id,
-        });
-        const updatedRows = rows.map((r) => {
-          if (r.id === row.id) return { ...r, position: neighbor.position };
-          if (r.id === neighbor.id) return { ...r, position: row.position };
-          return r;
-        });
-        updatedRows.sort((a, b) => a.position - b.position);
-        form.reset({ categories: updatedRows });
-      } catch (error) {
-        void enqueueSnackbar({
-          message: getApiErrorMessage(error, "Error al mover categoría"),
-          variant: "error",
-        });
-      }
-    },
-    [form, swapMutation, enqueueSnackbar]
+  const swapCategories = useCallback(
+    (categoryIdA: string, categoryIdB: string) =>
+      swapMutation.mutateAsync({ categoryIdA, categoryIdB }),
+    [swapMutation]
   );
 
-  const handleMoveUp = useCallback(
-    (row: CategoryForm) => handleMove(row, "up"),
-    [handleMove]
-  );
-
-  const handleMoveDown = useCallback(
-    (row: CategoryForm) => handleMove(row, "down"),
-    [handleMove]
-  );
+  const {
+    handleMoveUp,
+    handleMoveDown,
+    canMoveUp,
+    canMoveDown,
+    isMoveBlocked,
+  } = useMaintainerRowReorder<CategoryForm>({
+    rows: currentRows,
+    swap: swapCategories,
+    errorMessage: "Error al mover categoría",
+  });
 
   // --- Exit edit mode ---
 
@@ -397,7 +372,7 @@ export const CategoriesMaintainerScreen: FC = () => {
       handleCellChange(rowIndex, "explanation", value);
 
       const row = form.getValues(`categories.${rowIndex}`);
-      if (row && !isNewRow(row.id)) {
+      if (row && !isTemporaryRowId(row.id)) {
         try {
           await updateMutation.mutateAsync({
             id: row.id,
@@ -417,19 +392,12 @@ export const CategoriesMaintainerScreen: FC = () => {
         }
       }
     },
-    [
-      explanationModal,
-      handleCellChange,
-      form,
-      isNewRow,
-      updateMutation,
-      enqueueSnackbar,
-    ]
+    [explanationModal, handleCellChange, form, updateMutation, enqueueSnackbar]
   );
 
   // --- Scroll to top when a new row is added (the new row is prepended). ---
   useEffect(() => {
-    if (!editingRowId?.startsWith("temp_")) return;
+    if (!editingRowId || !isTemporaryRowId(editingRowId)) return;
     requestAnimationFrame(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     });
@@ -454,6 +422,9 @@ export const CategoriesMaintainerScreen: FC = () => {
     onOpenExplanation: handleOpenExplanation,
     onMoveUp: handleMoveUp,
     onMoveDown: handleMoveDown,
+    canMoveUp,
+    canMoveDown,
+    moveDisabled: isMoveBlocked || isFiltered,
     rows: currentRows,
   });
 
@@ -521,6 +492,10 @@ export const CategoriesMaintainerScreen: FC = () => {
             <MaintainerDataGrid<CategoryForm>
               editingRowId={editingRowId}
               cellMaxHeight={70}
+              // Same reason as the subcategories grid: the reorder arrows read
+              // `position`, so a sorted grid would render one order and move
+              // rows in another.
+              disableColumnSorting
               searchable={{
                 fuseOptions: {
                   keys: ["name", "description", "synonyms"],
@@ -528,6 +503,7 @@ export const CategoriesMaintainerScreen: FC = () => {
                 placeholder: "Buscar categoría...",
                 downloadFileName: "categorias",
                 disableExport: true,
+                onQueryChange: (query) => setIsFiltered(query.trim() !== ""),
               }}
               showToolbar
               loading={isLoading || isLoadingMethodologies}

@@ -14,7 +14,10 @@ import type { FastifyInstance } from "fastify";
 import { Prisma, type PrismaClient } from "@repo/database";
 import type { ApiErrorResponse } from "@/commonSchemas/errors.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
-import { createTestCategory } from "@test/factories/categoryFactory.js";
+import {
+  createTestCategory,
+  cleanupTestCategories,
+} from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import {
   convertEmissionFactorValue,
@@ -45,6 +48,10 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
 
   afterEach(async () => {
     await cleanupCarbonInventoryTestData(prisma);
+    await cleanupTestCategories(prisma, [
+      "Test - Deleted Category",
+      "Test - Subcategory Ordering",
+    ]);
   });
 
   describe("Successful retrieval", () => {
@@ -492,8 +499,34 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       expect(positions).toEqual(sortedPositions);
     });
 
-    it("should have subcategories ordered by name", async () => {
+    it("should have subcategories ordered by position", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
+
+      // Named against their position order on purpose: a name-based ordering
+      // returns Alpha, Mike, Zulu. Re-querying the subcategories and sorting
+      // them by `position` here would only re-apply the rule the endpoint
+      // itself uses, so it would pass even with the order authored wrong.
+      const category = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Subcategory Ordering Category",
+        position: 998,
+      });
+      // Positions are stated, not inherited from the factory's append-last
+      // default: the expected order below is a position order, and leaving it
+      // to be implied by insertion order makes the test depend on how the
+      // factory picks a free slot.
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Zulu",
+        position: 1,
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Alpha",
+        position: 2,
+      });
+      await createTestSubcategory(prisma, category.id, {
+        name: "Test - Ordering Mike",
+        position: 3,
+      });
+
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
@@ -510,11 +543,15 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         response.body
       ) as GetCarbonInventoryMethodologyResponse;
 
-      body.categories.forEach((category) => {
-        const subcategoryNames = category.subcategories.map((sub) => sub.name);
-        const sortedNames = [...subcategoryNames].sort();
-        expect(subcategoryNames).toEqual(sortedNames);
-      });
+      const orderingCategory = body.categories.find(
+        (cat) => cat.id === category.id.toString()
+      );
+      expect(orderingCategory).toBeDefined();
+      expect(orderingCategory!.subcategories.map((sub) => sub.name)).toEqual([
+        "Test - Ordering Zulu",
+        "Test - Ordering Alpha",
+        "Test - Ordering Mike",
+      ]);
     });
 
     it("should have dimensions ordered by position", async () => {

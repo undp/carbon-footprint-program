@@ -37,6 +37,20 @@ export function toFormCategory(c: Category): CategoryForm {
   };
 }
 
+/**
+ * The cells the grid can edit.
+ *
+ * `id` and `position` are assigned by the server, and `position` is a nullable
+ * number, so leaving them in the union lets
+ * `handleCellChange(i, "position", "abc")` type-check: RHF distributes
+ * `setValue` over the path union, which widens the accepted value to include
+ * the string this setter takes. Same exclusion as EditableSubcategoryField.
+ */
+export type EditableCategoryField = Exclude<
+  keyof CategoryForm,
+  "id" | "position"
+>;
+
 export const useCategoriesForm = () => {
   const form = useForm<CategoriesFormValues>({
     defaultValues: { categories: [] },
@@ -50,7 +64,7 @@ export const useCategoriesForm = () => {
   });
 
   const handleCellChange = useCallback(
-    (rowIndex: number, field: keyof CategoryForm, value: string) => {
+    (rowIndex: number, field: EditableCategoryField, value: string) => {
       const currentRow = form.getValues(`categories.${rowIndex}`);
       if (currentRow) {
         const updatedRow = { ...structuredClone(currentRow), [field]: value };

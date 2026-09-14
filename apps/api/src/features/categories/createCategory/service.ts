@@ -1,4 +1,4 @@
-import { type PrismaClient, Prisma } from "@repo/database";
+import { type PrismaClient } from "@repo/database";
 import {
   CategoryStatus,
   MethodologyVersionStatus,
@@ -7,12 +7,12 @@ import {
   type CreateCategoryResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
+import { MethodologyVersionNotFoundForCategoryError } from "../errors.js";
 import {
-  CategoryNameAlreadyExistsError,
-  CategoryPositionAlreadyExistsError,
-  MethodologyVersionNotFoundForCategoryError,
-} from "../errors.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+  getNextCategoryPosition,
+  lockMethodologyVersion,
+  rethrowCategoryUniqueViolation,
+} from "../helpers.js";
 
 export const createCategoryService = async (
   prismaClient: PrismaClient,
@@ -21,29 +21,39 @@ export const createCategoryService = async (
 ): Promise<CreateCategoryResponse> => {
   try {
     const category = await prismaClient.$transaction(async (tx) => {
-      // Validate methodology version exists and is not deleted
-      const methodologyVersion = await tx.methodologyVersion.findUnique({
-        where: {
-          id: BigInt(data.methodologyVersionId),
-          status: { not: MethodologyVersionStatus.DELETED },
-        },
-        select: { id: true, status: true },
-      });
+      // Locked, not just validated: the position below is MAX + 1, exactly the
+      // slot a concurrent create or the reorder's temporary position would
+      // claim, and all three are checked against the same partial unique index,
+      // so they queue on the parent instead of reading the same MAX. Reading
+      // the status off the locked row also closes the window where a concurrent
+      // soft-delete of the methodology version would leave an ACTIVE category
+      // hanging off a DELETED parent — the same reason lockCategory exists one
+      // level down.
+      const methodologyVersionId = BigInt(data.methodologyVersionId);
+      const methodologyVersionStatus = await lockMethodologyVersion(
+        tx,
+        methodologyVersionId
+      );
 
-      if (!methodologyVersion) {
+      if (
+        !methodologyVersionStatus ||
+        methodologyVersionStatus === MethodologyVersionStatus.DELETED
+      ) {
         throw new MethodologyVersionNotFoundForCategoryError();
       }
 
+      const position = await getNextCategoryPosition(tx, methodologyVersionId);
+
       return tx.category.create({
         data: {
-          methodologyVersionId: BigInt(data.methodologyVersionId),
+          methodologyVersionId,
           name: data.name,
           icon: data.icon,
           color: data.color,
           synonyms: data.synonyms,
           description: data.description,
           explanation: data.explanation ?? null,
-          position: data.position,
+          position,
           status: CategoryStatus.ACTIVE,
           createdById: user ? BigInt(user.id) : null,
           updatedAt: null,
@@ -52,17 +62,6 @@ export const createCategoryService = async (
     });
     return mapCategoryToResponse(category);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("name")) {
-          throw new CategoryNameAlreadyExistsError();
-        }
-        if (duplicatedFields.includes("position")) {
-          throw new CategoryPositionAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowCategoryUniqueViolation(error);
   }
 };

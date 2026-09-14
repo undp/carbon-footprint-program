@@ -6,13 +6,14 @@ import type { CategoryForm } from "@repo/types";
 
 import { EditableTextCell, IconPickerCell } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
+import type { EditableCategoryField } from "./useCategoriesForm";
 
 interface UseCategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof CategoryForm,
+    field: EditableCategoryField,
     value: string
   ) => void;
   onStartEditRow: (rowId: string) => void;
@@ -22,6 +23,20 @@ interface UseCategoryColumnsParams {
   onOpenExplanation: (rowIndex: number) => void;
   onMoveUp: (row: CategoryForm) => void;
   onMoveDown: (row: CategoryForm) => void;
+  /**
+   * Whether the row has a neighbour to swap with. Both come from
+   * useMaintainerRowReorder, which is also where the move picks that neighbour:
+   * deriving the sequence a second time here is how an enabled arrow ends up
+   * disagreeing with what the move does.
+   */
+  canMoveUp: (row: CategoryForm) => boolean;
+  canMoveDown: (row: CategoryForm) => boolean;
+  /**
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered, which renders
+   * a different sequence than the one the arrows walk.
+   */
+  moveDisabled: boolean;
   rows: CategoryForm[];
 }
 
@@ -36,6 +51,9 @@ export const useCategoryColumns = ({
   onOpenExplanation,
   onMoveUp,
   onMoveDown,
+  canMoveUp,
+  canMoveDown,
+  moveDisabled,
   rows,
 }: UseCategoryColumnsParams): GridColDef<CategoryForm>[] => {
   const getRowIndex = useCallback(
@@ -45,11 +63,6 @@ export const useCategoryColumns = ({
   const isEditing = useCallback(
     (rowId: string) => editingRowId === rowId,
     [editingRowId]
-  );
-
-  const sortedRows = useMemo(
-    () => [...rows].sort((a, b) => a.position - b.position),
-    [rows]
   );
 
   return useMemo<GridColDef<CategoryForm>[]>(
@@ -62,10 +75,13 @@ export const useCategoryColumns = ({
         filterable: false,
         headerAlign: "center",
         align: "center",
+        renderCell: (params: GridRenderCellParams<CategoryForm>) =>
+          // A row the server has not created yet has no position to show.
+          params.row.position ?? "—",
       },
       {
         field: "icon",
-        headerName: "Icono",
+        headerName: "Ícono",
         width: 60,
         headerAlign: "center",
         align: "center",
@@ -215,13 +231,8 @@ export const useCategoryColumns = ({
               headerAlign: "center" as const,
               align: "center" as const,
               renderCell: (params: GridRenderCellParams<CategoryForm>) => {
-                const sortedIdx = sortedRows.findIndex(
-                  (r) => r.id === params.row.id
-                );
-                const isTemp = params.row.id.startsWith("temp_");
-                const isFirst = sortedIdx === 0;
-                const isLast = sortedIdx === sortedRows.length - 1;
                 const anyEditing = editingRowId !== null;
+                const cannotMove = anyEditing || moveDisabled;
 
                 return (
                   // TODO: Create a better, and modular approach for actions buttons with different combinations
@@ -232,8 +243,8 @@ export const useCategoryColumns = ({
                     onCancelEdit={onCancelEditRow}
                     onMoveUp={() => onMoveUp(params.row)}
                     onMoveDown={() => onMoveDown(params.row)}
-                    moveUpDisabled={anyEditing || isFirst || isTemp}
-                    moveDownDisabled={anyEditing || isLast || isTemp}
+                    moveUpDisabled={cannotMove || !canMoveUp(params.row)}
+                    moveDownDisabled={cannotMove || !canMoveDown(params.row)}
                     onDelete={() => onDelete(params.row)}
                   />
                 );
@@ -254,7 +265,9 @@ export const useCategoryColumns = ({
       onOpenExplanation,
       onMoveUp,
       onMoveDown,
-      sortedRows,
+      canMoveUp,
+      canMoveDown,
+      moveDisabled,
       editingRowId,
     ]
   );

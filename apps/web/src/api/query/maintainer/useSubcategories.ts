@@ -8,6 +8,8 @@ import type {
   CreateSubcategoryResponse,
   UpdateSubcategoryRequest,
   UpdateSubcategoryResponse,
+  SwapSubcategoryPositionsRequest,
+  SwapSubcategoryPositionsResponse,
 } from "@repo/types";
 
 export const useSubcategories = (methodologyVersionId?: string) =>
@@ -32,14 +34,19 @@ export const useAddSubcategory = () => {
   >({
     mutationFn: (data) =>
       apiClient.post("subcategories", { json: data }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
+    // Returned, not fire-and-forget: the row's position can change on the
+    // server (a create appends it last, a move to another category re-appends
+    // it there), and the arrows read the position out of the form. Leaving the
+    // refetch unawaited let useMaintainerFormSync reset the form from the
+    // pre-write listing the moment edit mode ended, which put the row back
+    // where it was — with the arrows already enabled over it.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
             MaintainerQueryKey.SubcategoriesUpdateDependency
           ),
-      });
-    },
+      }),
   });
 };
 
@@ -57,14 +64,19 @@ export const useUpdateSubcategory = () => {
   >({
     mutationFn: ({ subcategoryId, data }) =>
       apiClient.patch(`subcategories/${subcategoryId}`, { json: data }).json(),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({
+    // Returned, not fire-and-forget: the row's position can change on the
+    // server (a create appends it last, a move to another category re-appends
+    // it there), and the arrows read the position out of the form. Leaving the
+    // refetch unawaited let useMaintainerFormSync reset the form from the
+    // pre-write listing the moment edit mode ended, which put the row back
+    // where it was — with the arrows already enabled over it.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
         predicate: (query) =>
           query.queryKey.includes(
             MaintainerQueryKey.SubcategoriesUpdateDependency
           ),
-      });
-    },
+      }),
   });
 };
 
@@ -82,5 +94,29 @@ export const useDeleteSubcategory = () => {
           ),
       });
     },
+  });
+};
+
+export const useSwapSubcategoryPositions = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    SwapSubcategoryPositionsResponse,
+    Error,
+    SwapSubcategoryPositionsRequest
+  >({
+    mutationFn: (data) =>
+      apiClient.post("subcategories/swap-positions", { json: data }).json(),
+    // Returned, not fire-and-forget: the swap's own refetch is what repaints
+    // the new order, so `mutateAsync` has to stay pending until it lands.
+    // useMaintainerRowReorder disables the arrows for exactly that long, and a
+    // move decided from the pre-swap positions would send the same pair again
+    // and swap it straight back.
+    onSuccess: () =>
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.SubcategoriesUpdateDependency
+          ),
+      }),
   });
 };

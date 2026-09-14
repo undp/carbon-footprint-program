@@ -4,6 +4,9 @@ import { CategoryBaseSchema } from "../../baseSchemas/index.js";
 import { IconNameFormSchema } from "../../common/index.js";
 
 // Request Schema
+// No `position`: the server appends the category after the last one in its
+// methodology version, under the lock that keeps two creates from claiming the
+// same slot. Same contract as CreateSubcategoryRequestSchema.
 export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
   methodologyVersionId: true,
   name: true,
@@ -12,7 +15,6 @@ export const CreateCategoryRequestSchema = CategoryBaseSchema.pick({
   synonyms: true,
   description: true,
   explanation: true,
-  position: true,
 })
   .partial({ explanation: true })
   .strict();
@@ -48,8 +50,14 @@ export const CategoryFormSchema = CategoryBaseSchema.pick({
     ),
   synonyms: z.string().trim().min(1, "Categoría/Alcance es requerido"),
   description: z.string().trim().min(1, "Descripción es requerida"),
+  // Not editable in the grid: it is assigned on create and changed only through
+  // the swap endpoint, so a row that has not been created yet has no position
+  // at all — `null`, not a placeholder number that would sort into the sequence
+  // and leave the row next to it looking movable. Same shape as
+  // SubcategoryFormSchema.
   position: z
     .number({ error: "Posición debe ser un número" })
     .int("Posición debe ser un número entero")
-    .min(1, "Posición debe ser mayor a 0"),
+    .min(1, "Posición debe ser mayor a 0")
+    .nullable(),
 });

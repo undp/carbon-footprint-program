@@ -4,6 +4,7 @@ import { getAllSubcategoriesRoute } from "@/features/subcategories/getAllSubcate
 import { deleteSubcategoryRoute } from "@/features/subcategories/deleteSubcategory/route.js";
 import { createSubcategoryRoute } from "@/features/subcategories/createSubcategory/route.js";
 import { updateSubcategoryRoute } from "@/features/subcategories/updateSubcategory/route.js";
+import { swapSubcategoryPositionsRoute } from "@/features/subcategories/swapSubcategoryPositions/route.js";
 import { SystemRole } from "@repo/types";
 
 export default function subcategoriesRoutes(fastify: FastifyZodInstance) {
@@ -14,6 +15,7 @@ export default function subcategoriesRoutes(fastify: FastifyZodInstance) {
       deleteSubcategoryRoute,
       createSubcategoryRoute,
       updateSubcategoryRoute,
+      swapSubcategoryPositionsRoute,
     ],
     { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
   );

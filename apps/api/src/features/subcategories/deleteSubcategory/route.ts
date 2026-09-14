@@ -20,6 +20,7 @@ export const deleteSubcategoryRoute = defineRoute<{
     response: {
       200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
   },
   access: { mode: "private" },

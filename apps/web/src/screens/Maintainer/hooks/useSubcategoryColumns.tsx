@@ -12,13 +12,15 @@ import {
 } from "../components/cells";
 import { ActionButtons } from "../components/ActionButtons";
 import type { MeasurementUnit, Subcategory } from "../types";
+import type { EditableSubcategoryField } from "./useSubcategoriesForm";
+import { isTemporaryRowId } from "../utils/temporaryRowId";
 
 interface UseSubcategoryColumnsParams {
   editingRowId: string | null;
   viewOnly: boolean;
   onCellChange: (
     rowIndex: number,
-    field: keyof SubcategoryForm,
+    field: EditableSubcategoryField,
     value: string | string[] | null
   ) => void;
   onStartEditRow: (rowId: string) => void;
@@ -27,6 +29,24 @@ interface UseSubcategoryColumnsParams {
   onDelete: (row: SubcategoryForm) => void;
   onOpenExplanation: (rowIndex: number) => void;
   onConfigureVariables?: (rowId: string) => void;
+  onMoveUp: (row: SubcategoryForm) => void;
+  onMoveDown: (row: SubcategoryForm) => void;
+  /**
+   * Whether the row has a sibling to swap with inside its category. Both come
+   * from useMaintainerRowReorder, which is also where the move picks that
+   * sibling: deriving the sequence a second time here is how an enabled arrow
+   * ends up disagreeing with what the move does.
+   */
+  canMoveUp: (row: SubcategoryForm) => boolean;
+  canMoveDown: (row: SubcategoryForm) => boolean;
+  /**
+   * Reorder is off while the form is not in server order — see `isMoveBlocked`
+   * in useMaintainerRowReorder — and while the grid is filtered. The arrows are
+   * computed from `position` over every row, the grid renders in form-array
+   * order and only the rows it was told to show, and the two only agree once
+   * the listing refetch has been replayed into an unfiltered grid.
+   */
+  moveDisabled: boolean;
   rows: SubcategoryForm[];
   categories: Array<{ id: string; name: string; color: string }>;
   allMeasurementUnits: MeasurementUnit[];
@@ -42,6 +62,11 @@ export const useSubcategoryColumns = ({
   onDelete,
   onOpenExplanation,
   onConfigureVariables,
+  onMoveUp,
+  onMoveDown,
+  canMoveUp,
+  canMoveDown,
+  moveDisabled,
   rows,
   categories,
   allMeasurementUnits,
@@ -57,6 +82,23 @@ export const useSubcategoryColumns = ({
 
   return useMemo<GridColDef<Subcategory>[]>(
     () => [
+      {
+        field: "position",
+        headerName: "Pos.",
+        width: 60,
+        sortable: false,
+        filterable: false,
+        headerAlign: "center",
+        align: "center",
+        renderCell: (params: GridRenderCellParams<Subcategory>) => {
+          // Read off the form row like every other column here: the grid row is
+          // typed as the server `Subcategory`, whose position is never null,
+          // while the rows the grid actually holds are form rows — and a row
+          // the server has not created yet has no position to show.
+          const formRow = rows[getRowIndex(params.row.id)];
+          return formRow?.position ?? "—";
+        },
+      },
       {
         field: "icon",
         headerName: "Ícono",
@@ -252,7 +294,7 @@ export const useSubcategoryColumns = ({
           const rowIndex = getRowIndex(rowId);
           const formRow = rows[rowIndex];
 
-          const isNewRow = params.row.id.startsWith("temp_");
+          const isNewRow = isTemporaryRowId(params.row.id);
 
           if (viewOnly) {
             return (
@@ -267,12 +309,18 @@ export const useSubcategoryColumns = ({
             );
           }
 
+          const cannotMove = anyEditing || !formRow || moveDisabled;
+
           return (
             <ActionButtons
               isActiveRow={anyEditing && !editing}
               isEditing={editing}
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
+              onMoveUp={formRow ? () => onMoveUp(formRow) : undefined}
+              onMoveDown={formRow ? () => onMoveDown(formRow) : undefined}
+              moveUpDisabled={cannotMove || !formRow || !canMoveUp(formRow)}
+              moveDownDisabled={cannotMove || !formRow || !canMoveDown(formRow)}
               onDelete={formRow ? () => onDelete(formRow) : undefined}
               onConfigureVariables={
                 !isNewRow && onConfigureVariables
@@ -300,6 +348,11 @@ export const useSubcategoryColumns = ({
       onCancelEditRow,
       onDelete,
       onConfigureVariables,
+      onMoveUp,
+      onMoveDown,
+      canMoveUp,
+      canMoveDown,
+      moveDisabled,
     ]
   );
 };

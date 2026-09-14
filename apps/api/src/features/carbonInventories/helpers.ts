@@ -173,10 +173,20 @@ export async function fetchCategoryData(
           color: true,
           subcategories: {
             select: { id: true, name: true, icon: true },
-            orderBy: { name: "asc" },
+            // No status filter: a soft-deleted subcategory that still holds
+            // captured lines must keep counting toward the totals below. That
+            // means DELETED rows are in scope, and positions are unique only
+            // among non-DELETED ones, so a DELETED row can share a position
+            // with an active one — `id` breaks the tie deterministically.
+            orderBy: [{ position: "asc" }, { id: "asc" }],
           },
         },
-        orderBy: { position: "asc" },
+        // Same tie one level up, and for the same reason: this select filters
+        // no category status either — a DELETED category that still holds
+        // captured lines has to keep counting — and `deleteCategory` repacks
+        // the survivors, so the soft-deleted row keeps a position an active one
+        // now occupies.
+        orderBy: [{ position: "asc" }, { id: "asc" }],
       },
     },
   });
