@@ -25,7 +25,7 @@ const PROXY_ADDRESS = "10.0.0.1";
  * under test comes from `autoConfig` untouched.
  */
 const buildApp = async (
-  trustProxy: boolean | number | string,
+  trustProxy: boolean | string,
   max: number
 ): Promise<FastifyInstance> => {
   const app = Fastify({ trustProxy });

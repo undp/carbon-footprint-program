@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { UnderConstructionScreen } from "@/screens/UnderConstruction";
+import { AboutScreen } from "@/screens/About";
 
 export const Route = createFileRoute("/about")({
-  // TODO: Replace with real About screen component
-  component: UnderConstructionScreen,
+  component: AboutScreen,
 });

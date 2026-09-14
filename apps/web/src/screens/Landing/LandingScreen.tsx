@@ -1,57 +1,54 @@
 import { FC } from "react";
-import { alpha, Box, Container, Typography, useTheme } from "@mui/material";
-import { LatamFootprintIcon } from "@/icons";
-import { Header } from "./components/Header";
+import { Box, useTheme } from "@mui/material";
+import {
+  HeroFootprintWatermark,
+  PublicHeader,
+  PUBLIC_CONTENT_MAX_WIDTH,
+} from "@/components/layout";
+import { brandGradient } from "@/utils/brandGradient";
 import { CreateInventoryOptions } from "./components/CreateInventoryOptions";
-import { TermsAlert } from "./components/TermsAlert";
-import { VOCAB } from "@/config/vocab";
+import { LandingFooter } from "./components/LandingFooter";
+import { LandingHero } from "./components/LandingHero";
 
 export const LandingScreen: FC = () => {
   const theme = useTheme();
 
-  const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
-
   return (
     <Box
-      component="main"
-      className="flex grow flex-col"
-      sx={{
-        position: "relative",
-        minHeight: "100vh",
-        background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%),
-        linear-gradient(293deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
-      }}
+      className="flex min-h-screen flex-col"
+      sx={{ background: brandGradient(theme) }}
     >
-      <LatamFootprintIcon
-        sx={{
-          fill: theme.palette.common.white,
-          opacity: 0.06,
-          width: "100%",
-          height: "100%",
-          position: "absolute",
-          top: 0,
-          left: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
-      />
-      <Header />
-      <Container className="my-2 flex flex-col justify-center gap-6">
-        <TermsAlert />
-        <Box className="flex flex-col items-center justify-center gap-4">
-          <Typography variant="h4" color="white">
-            Te damos la bienvenida a
-          </Typography>
-          <Typography variant="h1" fontWeight="600" color="white">
-            Huella Latam
-          </Typography>
-          <Typography variant="h5" color="white">
-            Mide, reporta y toma acción sobre tu huella de carbono{" "}
-            {VOCAB.organization.relationalAdjective}
-          </Typography>
+      <PublicHeader />
+
+      <Box
+        component="main"
+        className="relative flex flex-1 items-center overflow-hidden"
+      >
+        <HeroFootprintWatermark width="min(1000px, 68%)" right="-4%" />
+
+        <Box
+          sx={{
+            position: "relative",
+            zIndex: 2,
+            width: "100%",
+            maxWidth: PUBLIC_CONTENT_MAX_WIDTH,
+            mx: "auto",
+            px: { xs: 2.5, md: 4, lg: 7 },
+            pt: { xs: 6, md: 8, lg: 9 },
+            pb: 8,
+            display: "grid",
+            gridTemplateColumns:
+              "repeat(auto-fit, minmax(min(380px, 100%), 1fr))",
+            gap: { xs: 5, md: 8, lg: 11 },
+            alignItems: "center",
+          }}
+        >
+          <LandingHero />
+          <CreateInventoryOptions />
         </Box>
-        <CreateInventoryOptions />
-      </Container>
+      </Box>
+
+      <LandingFooter />
     </Box>
   );
 };

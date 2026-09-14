@@ -224,22 +224,24 @@ param appServiceSkuName = 'F1'
 // docs/operations/risks-and-limitations.md#rate-limiting-is-in-memory-only).
 //
 // Empty here keeps development as it is today. Set it per environment:
-//   '1'  App Service alone — trust the single platform hop
-//   '2'  App Service behind Front Door
+//   'linklocal'  App Service alone — the platform front end proxies from
+//                169.254.0.0/16, measured in issue #571
 //   '10.0.0.0/8'  or another IP/CIDR allowlist — preferred where the proxy
 //                 addresses are known, because it does not depend on the request
 //                 having taken the expected path
 //   'false'  the API really is reached directly; records the decision and
 //            silences the production boot warning
 //
-// ⚠️ A hop count is only safe while the origin CANNOT be reached by a shorter
-// route. App Service keeps its *.azurewebsites.net hostname publicly reachable
-// even behind Front Door, so a caller hitting it directly traverses one hop, not
-// two — and '2' would then trust one entry the caller supplied. Restrict the
-// origin to the proxy, or use an allowlist.
+// ⚠️ Hop counts ('1', '2') are REJECTED — the API refuses to boot on one.
+// ('0' is the exception: zero hops is trust-nothing, so it is read as 'false'.)
+// Fastify 5.12.1 removed hop-count trust (GHSA-3m5p-2c4r-xxw2) because counting
+// hops cannot validate the immediate peer: App Service keeps its
+// *.azurewebsites.net hostname publicly reachable even behind Front Door, so a
+// caller hitting it directly traversed one hop, not two, and '2' then trusted an
+// entry the caller supplied. An allowlist or named range validates WHO sent the
+// header instead. Behind Front Door, name its backend ranges as well.
 //
 // ⚠️ Verify against the real deployment before setting: see issue #571.
-// Values above are expectations, not measurements.
 param apiTrustProxy = ''
 
 // ============================================

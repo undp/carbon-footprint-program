@@ -107,7 +107,7 @@ Debes rellenar los siguientes campos:
 
 1.- Rellena los campos igual que en el Caso 1.
 
-2.- En el campo **"Fuente factor"**, selecciona **"Factor propio"**.
+2.- En el campo **"Fuente factor"**, selecciona **"Otro"**.
 
 3.- Modifica el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 

@@ -1,6 +1,8 @@
 export * from "./form";
 export * from "./layout";
 export * from "./ScreenEmptyState";
+export * from "./SectionHeading";
+export * from "./HighlightStatCard";
 export * from "./InfoButton";
 export * from "./NumericInput";
 export * from "./CreateInventoryCard";
@@ -19,6 +21,7 @@ export * from "./TypeChip";
 export * from "./SubmissionTypeChip";
 export * from "./SystemRoleChip";
 export * from "./OverflowTooltipText";
+export * from "./DetailTooltipText";
 export * from "./SearchBar";
 export * from "./AppActionButton";
 export * from "./AdminActionButton";

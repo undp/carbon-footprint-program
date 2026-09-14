@@ -29,6 +29,8 @@ Produces a three-sheet workbook for a single carbon inventory:
 | **Detail emissions** | Per-line breakdown: category, subcategory, dimension selections, quantity, unit, applied factor, source, computed tCO₂e |
 | **Factors**          | Every emission factor used in the inventory, with rate unit and source citation                                         |
 
+In both sheets the emission factor is written as a **numeric** cell carrying its own number format — out to the 10 decimals the database preserves — rather than as a preformatted string, and the rate unit travels inside that number format because it varies per row. A spreadsheet has no tooltip to compensate a rounded display, so capping the factor there would hide digits with no way to recover them. See [Number Formatting (Web)](./number-formatting.md).
+
 Triggered from the inventory screen via the `useDownloadCarbonInventory` hook (`apps/web/src/screens/CarbonInventories/hooks/`). The hook:
 
 1. Fetches `GET /carbon-inventories/:id/emissions-summary` — aggregated totals per category/subcategory.

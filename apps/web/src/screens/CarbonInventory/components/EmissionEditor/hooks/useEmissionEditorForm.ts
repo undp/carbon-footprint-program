@@ -365,7 +365,7 @@ export const useEmissionEditorForm = ({
 
       // resets derivados
       // Goal: reset factor-related fields when dimensions or measurement unit change
-      // If factorSource is "Factor Propio"/"Otro", only resetting when measurementUnitId changes
+      // If factorSource is "Otro", only resetting when measurementUnitId changes
       if (field === "dimensionValue1Id") {
         const isRequired = subcategory.dimensions.find(
           ({ position }) => position === 1

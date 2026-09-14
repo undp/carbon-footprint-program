@@ -9,8 +9,11 @@ declare module "@mui/material/styles" {
 
   interface CommonColors {
     deepForest: string;
+    deepForestDark: string;
     brightGreen: string;
+    mint: string;
     glossyTeal: string;
+    sunflower: string;
   }
 
   interface Palette {

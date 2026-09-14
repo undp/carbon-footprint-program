@@ -29,7 +29,7 @@ describe("warnIfProxyTrustUnconfigured", () => {
   });
 
   it("stays silent for every configured value", () => {
-    for (const configured of [true, 1, 0, "10.0.0.0/8", "loopback"]) {
+    for (const configured of [true, false, "10.0.0.0/8", "loopback"]) {
       const log = spyLog();
       warnIfProxyTrustUnconfigured(log, true, configured);
       expect(
@@ -74,14 +74,18 @@ describe("getServerOptions — trustProxy wiring", () => {
     expect(getServerOptions().trustProxy).toBe("10.0.0.0/8");
   });
 
-  it("carries a configured hop count through as a number", async () => {
-    // Guards the coercion end to end: Fastify reads 1 as a hop count but "1"
-    // as an address, so a string arriving here would silently change meaning.
+  it("refuses to load at all when TRUST_PROXY is a hop count", async () => {
+    // The end-to-end half of the hop-count rejection: environment.ts parses
+    // process.env at module scope, so importing the app is what a boot does.
+    // Asserted here rather than only against parseEnv because the failure has
+    // to reach the process — a hop count that merely warned would leave the
+    // deployment serving traffic with the rate limiter on one shared bucket.
     vi.stubEnv("TRUST_PROXY", "1");
     vi.resetModules();
 
-    const { getServerOptions } = await import("@/app.js");
-    expect(getServerOptions().trustProxy).toBe(1);
+    await expect(import("@/app.js")).rejects.toThrow(
+      /Hop counts are no longer supported/
+    );
   });
 
   it("distinguishes an explicit false from unset at the constructor too", async () => {

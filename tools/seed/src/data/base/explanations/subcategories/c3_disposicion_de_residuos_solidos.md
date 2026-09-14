@@ -168,13 +168,15 @@ Debes rellenar los siguientes campos:
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**.
 
+⚠️ Si el material de tu residuo no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+
 ---
 
 ### **Caso 2: Eres experto y utilizas factores propios**
 
 1.- Debes rellenar los campos igual que en el Caso 1.
 
-2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Factor propio"**.
+2.- Luego, en el campo **"Fuente factor"**, debes seleccionar **"Otro"**.
 
 3.- Debes modificar el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 

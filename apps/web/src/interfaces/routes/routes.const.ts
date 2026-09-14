@@ -2,6 +2,8 @@ export const Routes = {
   // Root and top-level routes
   LANDING: "/",
   ABOUT_US: "/about",
+  RESOURCES: "/resources",
+  ACKNOWLEDGEMENTS: "/acknowledgements",
   CAPINAUT: "/capinaut",
   TRANSPARENCY: "/transparency",
   SIGN_IN: "/sign-in",

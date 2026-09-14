@@ -182,7 +182,7 @@ Content-Type: application/json
     "dimensionValue2Id": "8",
     "measurementUnitId": "5",
     "quantity": 1500,
-    "factorSource": "Factor Propio",
+    "factorSource": "Otro",
     "baseFactorId": null,
     "appliedFactorValue": 2.999,
     "appliedFactorRateMeasurementUnitId": "7",

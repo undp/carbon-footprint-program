@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS base
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
@@ -81,6 +81,13 @@ ARG VITE_API_BASE_URL
 ARG STORAGE_ORIGIN
 
 USER root
+# Patch the base image's OpenSSL packages: the digest pinned above predates
+# Alpine's fix for CVE-2026-14456 (libcrypto3 / libssl3 3.5.7-r0 → 3.5.8-r0),
+# and nginx-unprivileged is rebuilt on its own cadence, so waiting for an
+# upstream rebuild would leave the image scan red in the meantime. Scoped to
+# those two packages on purpose — a blanket `apk upgrade` could pull nginx off
+# the 1.30.x stable branch this image deliberately tracks.
+RUN apk --no-cache upgrade libcrypto3 libssl3
 COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY apps/web/security-headers.conf /etc/nginx/snippets/security-headers.conf
 # Substitute the IdP/API/storage origins into the CSP. POSIX basic regex (busybox

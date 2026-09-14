@@ -1,6 +1,6 @@
 import { FC, useMemo, useState } from "react";
-import { alpha, Box, Paper, Typography, useTheme } from "@mui/material";
-import { Header } from "@/screens/Landing/components/Header";
+import { Box, Paper, Typography, useTheme } from "@mui/material";
+import { PublicHeader } from "@/components/layout";
 import { TransparencyDataGrid } from "./components/TransparencyDataGrid";
 import { YearFilter } from "./components/YearFilter";
 import { useTransparencyData } from "@/api/query";
@@ -51,21 +51,14 @@ export const TransparencyScreen: FC = () => {
     fuseOptions,
   });
 
-  const alphaDeepForest = alpha(theme.palette.common.deepForest, 0.35);
-
   return (
-    <Box component="main" className="flex min-h-screen flex-col">
-      <Box
-        sx={{
-          position: "relative",
-          background: `linear-gradient(0deg, ${alphaDeepForest} 0%, ${alphaDeepForest} 100%),
-          linear-gradient(293deg, ${theme.palette.common.brightGreen} 0%, ${theme.palette.secondary.main} 100%)`,
-        }}
-      >
-        <Header />
-      </Box>
+    <Box
+      className="flex min-h-screen flex-col"
+      sx={{ backgroundColor: theme.palette.background.default }}
+    >
+      <PublicHeader />
 
-      <Box className="flex flex-1 flex-col p-6">
+      <Box component="main" className="flex flex-1 flex-col p-6">
         <Paper className="border p-6" elevation={0}>
           <Box className="mb-4 flex items-center justify-between gap-2">
             <Box className="flex items-center gap-1">

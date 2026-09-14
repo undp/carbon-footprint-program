@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS base
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
@@ -99,7 +99,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 # Stage 5: Production image
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:e88a35be04478413b7c71c455cd9865de9b9360e1f43456be5951032d7ac1a66 AS runner
+FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS runner
 WORKDIR /app
 
 # Set environment to production
@@ -118,8 +118,16 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN npm install -g corepack@latest && corepack enable \
     && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
-# Install curl for health checks and debugging
-RUN apk add --no-cache curl
+# Patch the base image's OpenSSL packages, then install curl for health checks
+# and debugging. The `apk upgrade` closes distro CVEs that Alpine has already
+# fixed in the v3.24 repository but the digest pinned above predates: the
+# official Node image is rebuilt on its own cadence, so a Dependabot digest bump
+# can lag the Alpine fix by days (CVE-2026-14456 sat unfixed in libcrypto3 /
+# libssl3 3.5.7-r0 while 3.5.8-r0 was already published). Scoped to those two
+# packages on purpose — a blanket `apk upgrade` could move packages the pinned
+# digest is meant to hold still.
+RUN apk --no-cache upgrade libcrypto3 libssl3 \
+    && apk add --no-cache curl
 
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs && \

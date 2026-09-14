@@ -10,3 +10,4 @@ export * from "./SubcategoryPreselectionCard";
 export * from "./SubcategoryPreselectionCarousel";
 export * from "./CategoryCarousel";
 export * from "./SaveDraftAuthModal";
+export * from "./SaveStatusIndicator";

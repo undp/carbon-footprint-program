@@ -70,6 +70,13 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
   const totalEmissions = summaryData?.totalEmissions ?? 0;
   const categories = summaryData?.categories ?? [];
 
+  // The hero number of the card scales its mass unit with the magnitude of the
+  // rate, so a low-footprint / high-output organization reads "56,94 gCO₂e"
+  // instead of "0,000057" in a 4rem typography.
+  const intensity = equivalence
+    ? formatter.emissionIntensity(equivalence.rate)
+    : null;
+
   useEffect(() => {
     if (isError)
       enqueueSnackbar("Ocurrió un error al cargar la información", {
@@ -107,8 +114,12 @@ export const EmissionResultsContent: FC<EmissionResultsContentProps> = ({
           </Box>
           <Box className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
             <EmissionEquivalenceCard
-              value={equivalence ? formatter.rate(equivalence.rate) : null}
-              unit={equivalence ? `tCO₂e/${equivalence.activityName}` : null}
+              value={intensity?.value ?? null}
+              unit={
+                equivalence && intensity
+                  ? `${intensity.unit}/${equivalence.activityName}`
+                  : null
+              }
               isLoading={isEquivalenceLoading}
               hasError={isEquivalenceError}
             />

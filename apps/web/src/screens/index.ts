@@ -4,3 +4,6 @@ export { CarbonInventoriesScreen } from "./CarbonInventories";
 export { MyOrganizationScreen } from "./MyOrganization";
 export { ReductionProjectsScreen } from "./ReductionProjects";
 export { ReductionProjectScreen } from "./ReductionProject";
+export { AboutScreen } from "./About";
+export { ResourcesScreen } from "./Resources";
+export { AcknowledgementsScreen } from "./Acknowledgements";

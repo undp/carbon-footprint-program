@@ -125,13 +125,15 @@ Debes rellenar los siguientes campos:
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
+⚠️ Si el transporte utilizado no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+
 ---
 
 **CASO 2:** Eres **experto y utilizas factores propios** distintos a los de la plataforma
 
 1.- Rellena los campos igual que en el Caso 1.
 
-2.- En el campo **"Fuente factor"**, selecciona **"Factor propio"**.
+2.- En el campo **"Fuente factor"**, selecciona **"Otro"**.
 
 3.- Modifica el campo **"Factor kgCO₂e/unidad"** con tu valor personalizado.
 

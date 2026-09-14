@@ -1,6 +1,6 @@
 import { FC, useMemo, useCallback, useEffect, useState } from "react";
 import { Box, Button } from "@mui/material";
-import { AddRounded } from "@mui/icons-material";
+import { AddRounded, SaveOutlined } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
 import { CarbonInventoryLayout, FooterButton } from "./layout";
@@ -13,6 +13,7 @@ import {
   EmissionEditor,
   TotalCategoryEmissionCard,
   AddSubcategoryModal,
+  SaveStatusIndicator,
 } from "./components";
 import { useAuth } from "@/contexts";
 import { useEmissionCaptureData } from "./hooks/useEmissionCaptureData";
@@ -135,6 +136,17 @@ export const EmissionCaptureScreen: FC = () => {
     showNoChangesMessage: false,
   });
 
+  // Explicit save: persists the changes and keeps the user on the current
+  // category, unlike the implicit saves attached to navigation.
+  const { submit: submitAndStay, isSubmitting: isSavingChanges } =
+    useEmissionCaptureSubmit({
+      inventoryId,
+      isDirty: formState.isDirty,
+      getDirtyLineIds,
+      resetAfterSave,
+      resultFeedbackWithSnackbar: true,
+    });
+
   const [isAddSubcategoryModalOpen, setIsAddSubcategoryModalOpen] =
     useState(false);
 
@@ -161,7 +173,8 @@ export const EmissionCaptureScreen: FC = () => {
     isSubmittingAndGoingToList ||
     isSubmittingAndGoingBack ||
     isSubmittingOnCategoryChange ||
-    isSubmittingBeforeModal;
+    isSubmittingBeforeModal ||
+    isSavingChanges;
 
   const handleOpenAddSubcategoryModal = useCallback(() => {
     void handleSubmit(async (formValues) => {
@@ -288,6 +301,10 @@ export const EmissionCaptureScreen: FC = () => {
 
   if (!isLoading && mustNavigateAway) return null;
 
+  const handleSaveClick = () => {
+    void handleSubmit(submitAndStay)();
+  };
+
   const backButton: FooterButton = {
     text: "Volver",
     align: "right",
@@ -341,17 +358,37 @@ export const EmissionCaptureScreen: FC = () => {
                   title="Paso 3: Completa los datos de tus fuentes de emisión"
                   description="Ingresa la cantidad consumida o utilizada en cada fuente. Con esta información calcularemos automáticamente tus emisiones de CO₂e"
                   explanationSlug={EMISSION_CAPTURE_EXPLANATION_SLUGS.MAIN}
+                  titleAdornment={
+                    <SaveStatusIndicator
+                      isDirty={formState.isDirty}
+                      isSaving={globalSubmitting}
+                    />
+                  }
                   action={
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<AddRounded />}
-                      onClick={handleOpenAddSubcategoryModal}
-                      disabled={globalSubmitting || isBusy}
-                      loading={isSubmittingBeforeModal}
-                    >
-                      Agregar Subcategorías
-                    </Button>
+                    <>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<AddRounded />}
+                        onClick={handleOpenAddSubcategoryModal}
+                        disabled={globalSubmitting || isBusy}
+                        loading={isSubmittingBeforeModal}
+                      >
+                        Agregar Subcategorías
+                      </Button>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<SaveOutlined />}
+                        onClick={handleSaveClick}
+                        disabled={
+                          !formState.isDirty || globalSubmitting || isBusy
+                        }
+                        loading={isSavingChanges}
+                      >
+                        Guardar
+                      </Button>
+                    </>
                   }
                 />
                 <CategoryCarousel

@@ -39,6 +39,19 @@ Desde el botón de acciones se puede eliminar una dimensión, con confirmación 
 
 El botón "Editar" (o "Ver" en modo lectura) abre el modal de variables. Permite agregar, renombrar y eliminar entradas. Cuando la subcategoría ya tiene factores de emisión activos, se permiten altas y renombramientos, pero no eliminaciones de variables existentes.
 
+### La variable "Otro" siempre se muestra al final
+
+Las variables se ofrecen al usuario en orden alfabético dentro de la captura de emisiones. Una variable llamada **"Otro"** (también **"Otros"**, **"Otra"** u **"Otras"**, sin distinguir mayúsculas ni espacios) es la salida para cuando ninguna de las opciones listadas corresponde, por lo que la plataforma la mueve automáticamente **al final de la lista** en lugar de dejarla en su posición alfabética.
+
+Esto evita confundir al usuario: en un catálogo largo, "Otro" quedaría en medio de las opciones reales —entre "Motoniveladora" y "Pavimentadora", por ejemplo—, donde se lee como una opción más y difícilmente se encuentra cuando efectivamente se necesita.
+
+Ten presente al nombrar variables:
+
+- No es necesario agregar prefijos ni numeración para forzar el orden: basta con nombrar la variable "Otro" u "Otros".
+- El reordenamiento aplica solo cuando el nombre completo es una de esas palabras. Nombres como **"Otro proceso"** u **"Otro país"**, que representan un caso concreto con su propio factor de emisión, conservan su posición alfabética.
+- Si una dimensión no tiene ninguna variable de este tipo, la lista se muestra tal como está.
+- Deja **una sola** salida por dimensión. Si agregas más de una (por ejemplo "Otros" y "Otra"), el modal de variables lo advierte: las dos se muestran juntas al final y el usuario repartirá sus registros entre ambas, lo que divide los datos de un mismo caso en dos variables distintas.
+
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**

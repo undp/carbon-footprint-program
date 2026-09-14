@@ -380,7 +380,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(activeInput?.inputType).toBe("SIMPLIFIED");
     });
 
-    it("should create a line with manual factor (EXPERT mode - Factor Propio)", async () => {
+    it("should create a line with manual factor (EXPERT mode - custom factor source)", async () => {
       const methodologyId = await getTestMethodologyVersionId(prisma);
       const carbonInventory = await createInventoryFromPattern(
         prisma,
@@ -451,7 +451,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
               dimensionValue2Id: null,
               measurementUnitId: measurementUnit.id.toString(),
               quantity,
-              factorSource: "Factor Propio",
+              factorSource: "Otro",
               baseFactorId: null,
               appliedFactorValue: appliedFactorValue,
               appliedFactorRateMeasurementUnitId:
@@ -475,7 +475,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       const createdLine = body.created[0];
       expect(createdLine.isManualTotalEmissions).toBe(false);
       expect(createdLine.quantity).toBe(quantity);
-      expect(createdLine.factorSource).toBe("Factor Propio");
+      expect(createdLine.factorSource).toBe("Otro");
       expect(createdLine.factorValue).toBe(appliedFactorValue);
 
       // Verify input type is EXPERT
@@ -488,7 +488,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(activeInput).not.toBeNull();
       expect(activeInput!.inputType).toBe("EXPERT");
       expect(activeInput!.manualFactor?.toNumber()).toBe(appliedFactorValue);
-      expect(activeInput!.manualFactorSource).toBe("Factor Propio");
+      expect(activeInput!.manualFactorSource).toBe("Otro");
     });
   });
 
