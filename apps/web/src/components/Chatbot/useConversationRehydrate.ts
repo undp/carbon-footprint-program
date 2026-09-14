@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { SourceCitationWire } from "@repo/types";
+import { API_BASE_URL } from "@/config/environment";
 import type { SeedMessage } from "./useChatStream";
 
-const LOAD_URL = "/api/chatbot/conversations/me/current";
+// Absolute for the same reason as the URLs in useChatStream.ts — see the note
+// there. This one failed the most quietly: against a static host with no /api
+// route, the relative path hit the SPA navigation fallback and returned 200
+// with an HTML body rather than any error.
+const LOAD_URL = `${API_BASE_URL}/chatbot/conversations/me/current`;
 
 type LoadedMessage = {
   id: string;

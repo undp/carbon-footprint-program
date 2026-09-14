@@ -5,11 +5,25 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { API_BASE_URL } from "@/config/environment";
 import { clearConversationCookieClient } from "./conversationCookie";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
-const SEND_URL = "/api/chatbot/message";
-const DELETE_URL = "/api/chatbot/conversations/me";
+// Absolute, like every other call in the app (see api/http/client.ts, which
+// builds `apiClient` with `prefix: API_BASE_URL`). These used to be relative
+// `/api/...` paths, which silently assumed the deployment's edge served the API
+// from the web app's own origin. Where it does not — a Static Web App front end
+// with the API on its own App Service domain — the browser sent them to the
+// static host instead: POST /api/chatbot/message answered 405, and the
+// rehydrate GET answered 200 with the SPA's index.html, which does not even
+// look like a failure. Routing is not a portable fix either: Azure's linked
+// backend needs a Standard SKU, so a Free-tier deployment cannot express it.
+//
+// The cross-site pieces this relies on are already in place: every fetch below
+// passes `credentials: "include"`, the server sets the chatbot cookies with
+// SameSite=None in production, and the API's ALLOWED_ORIGIN names the front end.
+const SEND_URL = `${API_BASE_URL}/chatbot/message`;
+const DELETE_URL = `${API_BASE_URL}/chatbot/conversations/me`;
 
 /** Shape `seedMessages` accepts — ids are minted here, not by the caller. */
 export type SeedMessage = {

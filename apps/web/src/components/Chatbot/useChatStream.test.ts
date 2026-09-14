@@ -25,7 +25,10 @@ const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Por favor intenta nuevamente en unos minutos.";
 
-const SEND_URL = "/api/chatbot/message";
+// Mirrors VITE_API_BASE_URL in vitest.config.ts. The hook builds its URLs
+// from API_BASE_URL rather than a relative path, so the assertion has to
+// carry the same base the build injects.
+const SEND_URL = "http://localhost/api/chatbot/message";
 
 type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>;
 

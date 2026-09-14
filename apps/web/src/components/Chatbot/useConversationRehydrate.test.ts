@@ -4,7 +4,9 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { useConversationRehydrate } from "./useConversationRehydrate";
 import type { SeedMessage } from "./useChatStream";
 
-const LOAD_URL = "/api/chatbot/conversations/me/current";
+// Mirrors VITE_API_BASE_URL in vitest.config.ts — see the note in
+// useChatStream.test.ts.
+const LOAD_URL = "http://localhost/api/chatbot/conversations/me/current";
 
 type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>;
 
