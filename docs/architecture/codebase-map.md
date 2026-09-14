@@ -28,15 +28,18 @@ infra/         Azure Bicep IaC · docs/   Documentation
 
 ## Where things live
 
-| I want to…                           | Go to                                                                                                                                         |
-| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Add/modify an API endpoint           | `apps/api/src/features/<domain>/<useCase>/{route,handler,service}.ts` — see [API Conventions](../development/api-conventions.md)              |
-| Change auth/authorization on a route | `apps/api/src/routing/` (`defineRoute` + `access`) — see [Route Access Modes](../security/route-access-modes.md), [RBAC](../security/rbac.md) |
-| Add/change a request/response shape  | `packages/types/src/<domain>/` (Zod schemas), consumed by both apps                                                                           |
-| Change the database schema           | `packages/database/src/prisma/schema.prisma` + a **new** migration — see [Migrations](../infrastructure/Migrations.md)                        |
-| Add a web screen / route / data hook | `apps/web/src/{screens,routes,api/query}/` — see [Frontend Architecture](../development/frontend-architecture.md)                             |
-| File upload / download               | `apps/api/src/features/files/` + `packages/storage/` (presigned-URL flow)                                                                     |
-| Run it locally                       | [Local Setup](../development/local-setup.md) · [Environment Variables](../development/environment-variables.md)                               |
+| I want to…                           | Go to                                                                                                                                                                                         |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Add/modify an API endpoint           | `apps/api/src/features/<domain>/<useCase>/{route,handler,service}.ts` — see [API Conventions](../development/api-conventions.md)                                                              |
+| Change auth/authorization on a route | `apps/api/src/routing/` (`defineRoute` + `access`) — see [Route Access Modes](../security/route-access-modes.md), [RBAC](../security/rbac.md)                                                 |
+| Add/change a request/response shape  | `packages/types/src/<domain>/` (Zod schemas), consumed by both apps                                                                                                                           |
+| Change the database schema           | `packages/database/src/prisma/schema.prisma` + a **new** migration — see [Migrations](../infrastructure/Migrations.md)                                                                        |
+| Add a web screen / route / data hook | `apps/web/src/{screens,routes,api/query}/` — see [Frontend Architecture](../development/frontend-architecture.md)                                                                             |
+| File upload / download               | `apps/api/src/features/files/` + `packages/storage/` (presigned-URL flow)                                                                                                                     |
+| Change chatbot answers / retrieval   | `apps/api/src/features/chatbot/` — `prompts/es/system.md` (wording), `searchKnowledge/` (retrieval SQL), `tools/searchKnowledge/` (tool schema), `sendMessage/handler.ts` (turn + tool round) |
+| Ingest or activate corpus documents  | `apps/api/scripts/chatbot/` (`chatbot:ingest`, `chatbot:activate`) — operator CLIs, not HTTP routes; see [Runbook](../operations/runbook.md)                                                  |
+| Swap the LLM or embedding backend    | `apps/api/src/features/chatbot/{llmProvider,embeddingProvider}/` — selected by `LLM_PROVIDER` / `EMBEDDING_PROVIDER`; both ship a mock                                                        |
+| Run it locally                       | [Local Setup](../development/local-setup.md) · [Environment Variables](../development/environment-variables.md)                                                                               |
 
 ## Request flow (API)
 
@@ -51,7 +54,10 @@ Carbon inventory (core: inventory → lines → inputs → factors → results, 
 categories/subcategories, emission factors, units) · Organizations + memberships + org data +
 profiling · Submissions/verification + files + badges/recognitions · Reduction projects &
 plan initiatives · Admin (dashboard, requests, users/roles, catalog maintainers) ·
-Transparency (public) · Terms & conditions · Chatbot (optional AI, `CHATBOT_ENABLED`).
+Transparency (public) · Terms & conditions · Chatbot (optional AI, `CHATBOT_ENABLED`) —
+SSE streaming with one server-side tool round over a pgvector corpus; the corpus is
+filled by operator CLIs rather than by any endpoint. See
+[Chatbot Retrieval Flow](./system-architecture.md#chatbot-retrieval-flow-rag).
 
 ## Conventions in one breath
 

@@ -23,6 +23,7 @@ import {
   VALIDATION_ERROR_CODE,
   type ApiErrorResponse,
 } from "@/commonSchemas/errors.js";
+import { sortedByDbCollation } from "@test/helpers/collation.js";
 
 describe("GET /api/organization-main-activities - Integration Tests", () => {
   let app: FastifyInstance;
@@ -100,7 +101,7 @@ describe("GET /api/organization-main-activities - Integration Tests", () => {
         response.body
       ) as GetAllOrganizationMainActivitiesResponse;
       const names = body.map((a) => a.name);
-      const sortedNames = [...names].sort();
+      const sortedNames = sortedByDbCollation(names);
       expect(names).toEqual(sortedNames);
     });
   });

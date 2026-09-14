@@ -28,6 +28,7 @@ import {
   Prisma,
   type PrismaClient,
 } from "@repo/database";
+import { sortedByDbCollation } from "@test/helpers/collation.js";
 
 describe("GET /api/measurement-units/rates - Integration Tests", () => {
   let app: FastifyInstance;
@@ -184,7 +185,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
         response.body
       ) as GetAllRateMeasurementUnitsResponse;
       const names = body.map((ru) => ru.name);
-      const sortedNames = [...names].sort();
+      const sortedNames = sortedByDbCollation(names);
       expect(names).toEqual(sortedNames);
     });
   });

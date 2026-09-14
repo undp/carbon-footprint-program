@@ -93,6 +93,40 @@ resource db 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2025-08-01' = {
   }
 }
 
+@description('Postgres extensions to allowlist via the azure.extensions server parameter. VECTOR (pgvector) is required by the chatbot corpus migration and is included by default — the migration runs CREATE EXTENSION IF NOT EXISTS vector, which fails on Flexible Server unless the extension is allowlisted first.')
+param allowedExtensions array = [
+  'VECTOR'
+]
+
+// azure.extensions server parameter.
+//
+// Azure Flexible Server refuses CREATE EXTENSION for anything not on this list,
+// so a fresh deployment without it fails the Prisma migration outright with
+// `extension "vector" is not available` — before the app ever starts. The
+// allowlist was previously set by hand on the running server, which meant the
+// setting existed in the deployed environment but not in this template; any new
+// environment built from Bicep would have hit that failure.
+//
+// This is an allowlist, not an append: the value replaces whatever is currently
+// set. Add to `allowedExtensions` rather than issuing a separate az command, or
+// the next deployment reverts it.
+//
+// pgvector needs no shared_preload_libraries entry, so azure.extensions is the
+// only server parameter involved.
+resource extensionsAllowlist 'Microsoft.DBforPostgreSQL/flexibleServers/configurations@2025-08-01' = {
+  parent: psql
+  // Ordering only: a parameter write puts the server into an updating state, and
+  // Flexible Server rejects concurrent child operations while that runs.
+  dependsOn: [
+    db
+  ]
+  name: 'azure.extensions'
+  properties: {
+    value: join(allowedExtensions, ',')
+    source: 'user-override'
+  }
+}
+
 var host = '${psql.name}.postgres.database.azure.com'
 
 // Outputs for tracking deployment progress

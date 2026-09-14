@@ -69,3 +69,19 @@ export const CHATBOT_LLM_STREAM_IDLE_TIMEOUT_MS = 30_000;
  * originally proposed upstream (nodejs/node#56738).
  */
 export const NETWORK_CONNECTION_ATTEMPT_TIMEOUT_MS = 2500;
+
+/**
+ * Transaction budgets for the operator-run corpus CLIs (`chatbot:ingest`,
+ * `chatbot:activate`).
+ *
+ * Prisma's defaults — 2s to acquire a transaction, 5s to run it — are tuned for
+ * a request handler, where failing fast is the right answer. These are batch
+ * maintenance commands: ingest inserts one row per chunk of a document, and
+ * activate performs a DRAFT → ACTIVE → OUTDATED cutover that must not be left
+ * half-applied. Both are better off waiting than aborting, especially when the
+ * database is busy — the CI suite reproduced exactly that, with activate dying
+ * on "Unable to start a transaction in the given time" while other test files
+ * held connections.
+ */
+export const CHATBOT_CORPUS_CLI_TX_MAX_WAIT_MS = 30_000;
+export const CHATBOT_CORPUS_CLI_TX_TIMEOUT_MS = 120_000;

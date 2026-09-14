@@ -10,6 +10,7 @@ type RouteSpy = {
   addHook: ReturnType<typeof vi.fn>;
   post: ReturnType<typeof vi.fn>;
   delete: ReturnType<typeof vi.fn>;
+  get: ReturnType<typeof vi.fn>;
   requireAuth: ReturnType<typeof vi.fn>;
 };
 
@@ -17,6 +18,7 @@ const makeFastifySpy = (): RouteSpy => ({
   addHook: vi.fn(),
   post: vi.fn(),
   delete: vi.fn(),
+  get: vi.fn(),
   requireAuth: vi.fn(),
 });
 
@@ -49,9 +51,10 @@ describe("chatbot route gate — CHATBOT_ENABLED (optionality)", () => {
     expect(fastify.addHook).not.toHaveBeenCalled();
     expect(fastify.post).not.toHaveBeenCalled();
     expect(fastify.delete).not.toHaveBeenCalled();
+    expect(fastify.get).not.toHaveBeenCalled();
   });
 
-  it("registers the auth hook + both endpoints when the chatbot is enabled", async () => {
+  it("registers the auth hook + all three endpoints when the chatbot is enabled", async () => {
     const chatbotRoutes = await loadChatbotRoutes(true);
     const fastify = makeFastifySpy();
 
@@ -63,5 +66,9 @@ describe("chatbot route gate — CHATBOT_ENABLED (optionality)", () => {
     );
     expect(fastify.post).toHaveBeenCalledTimes(1); // POST /message
     expect(fastify.delete).toHaveBeenCalledTimes(1); // DELETE /conversations/me
+    // GET /conversations/me/current — the RAG-phase rehydrate endpoint. It is
+    // inside the gate too, so a deployment with CHATBOT_ENABLED=false exposes
+    // no chatbot surface at all.
+    expect(fastify.get).toHaveBeenCalledTimes(1);
   });
 });
