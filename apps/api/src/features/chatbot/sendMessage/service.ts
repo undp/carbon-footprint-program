@@ -141,10 +141,27 @@ export const loadConversationHistory = async (
  * under-counts, at which point this token check becomes the effective guard.
  * Removing it now would silently drop that protection when the cap moves.
  */
+/*
+ * The three 413 messages below reach the end user verbatim: the widget shows
+ * the server's `message` rather than a fixed string, so these are UI copy, not
+ * operator logs. Two constraints shape them.
+ *
+ * They avoid the word "turnos" — that is LLM vocabulary; a person counts
+ * messages.
+ *
+ * And only the first one names an action, because it is the only one the user
+ * can actually take. Nothing in the widget escapes a full history or a full
+ * conversation: "Nueva conversación" clears the cookie client-side, which
+ * cannot work when the API is a different origin (see the cross-site
+ * requirement in chatbot-conversation-persistence), and the DELETE endpoint is
+ * deliberately not wired to a control. Telling someone to start a new
+ * conversation would send them to a button that does nothing, which is worse
+ * than saying less. Revisit this copy if a server-side detach ever lands.
+ */
 export const enforceUserInputCap = (userContent: string): void => {
   if (estimateTokens(userContent) > CHATBOT_MAX_USER_INPUT_TOKENS) {
     throw new RequestTooLargeError(
-      "El mensaje del usuario excede el límite de tokens permitido."
+      "Tu mensaje es demasiado largo. Escríbelo más corto e inténtalo de nuevo."
     );
   }
 };
@@ -153,7 +170,7 @@ export const enforceHistoryCap = (history: { content: string }[]): void => {
   const total = history.reduce((sum, m) => sum + estimateTokens(m.content), 0);
   if (total > CHATBOT_MAX_HISTORY_TOKENS) {
     throw new RequestTooLargeError(
-      "El historial de la conversación excede el límite de tokens permitido."
+      "Esta conversación acumuló demasiado texto y no puedo continuarla."
     );
   }
 };
@@ -167,7 +184,7 @@ export const enforceTurnCap = async (
   });
   if (userTurns >= CHATBOT_MAX_TURNS_PER_CONVERSATION) {
     throw new RequestTooLargeError(
-      "La conversación alcanzó el límite de turnos permitido."
+      "Esta conversación llegó a su máximo de mensajes."
     );
   }
 };

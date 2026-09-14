@@ -696,14 +696,14 @@ describe("useChatStream — degraded escalation & reset", () => {
     fetchMock.mockImplementationOnce(() =>
       Promise.resolve(
         makeHttpResponse(413, {
-          message: "La conversación alcanzó el límite de turnos permitido.",
+          message: "Esta conversación llegó a su máximo de mensajes.",
         })
       )
     );
     await sendTurn(result, "hola");
 
     expect(lastMessage(result.current.messages).content).toBe(
-      "La conversación alcanzó el límite de turnos permitido."
+      "Esta conversación llegó a su máximo de mensajes."
     );
   });
 
