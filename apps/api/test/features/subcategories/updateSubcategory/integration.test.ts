@@ -640,6 +640,103 @@ describe("PATCH /api/subcategories/:id - Integration Tests", () => {
       expect(untouched.position).toBe(1);
     });
 
+    // The mirror of the test above, on the branch the unlocked read calls a
+    // no-op: the request names the category the row is already in, so nothing
+    // looks like a move and only that one category is locked. The row leaving
+    // it in the meantime is the case that used to fall through — categoryId is
+    // written unconditionally, so the row was pulled back with the position it
+    // had taken in its new parent, leaving a permanent hole in the sequence the
+    // concurrent move had already re-packed.
+    it("should refuse a same-category update when the subcategory left that category while the request waited for the lock", async () => {
+      const methodology = await prisma.category.findUniqueOrThrow({
+        where: { id: categoryId },
+        select: { methodologyVersionId: true },
+      });
+      const [first, moving] = await Promise.all([
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Noop Sibling",
+          position: 1,
+        }),
+        createTestSubcategory(prisma, categoryId, {
+          name: "Test - Concurrent Noop Target",
+          position: 2,
+        }),
+      ]);
+      const elsewhere = await createTestCategory(
+        prisma,
+        methodology.methodologyVersionId,
+        { name: "Test - Concurrent Noop Elsewhere" }
+      );
+
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      // The holder takes the lock on the *source* category, which is the only
+      // one a same-category request locks, and moves the row out before
+      // releasing it.
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: categoryId },
+            data: { synonyms: "Test - locked" },
+          });
+          await tx.subcategory.update({
+            where: { id: moving.id },
+            data: { categoryId: elsewhere.id, position: 1 },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "PATCH",
+        url: `/api/subcategories/${moving.id}`,
+        payload: {
+          categoryId: categoryId.toString(),
+          name: "Test - Concurrent Noop Renamed",
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(body.code).toBe("SUBCATEGORY_CONCURRENTLY_MOVED");
+
+      // The source sequence keeps the shape the concurrent move left it in: the
+      // sibling alone at 1, no hole punched by a row written back on top of it.
+      const sourceSequence = await prisma.subcategory.findMany({
+        where: { categoryId, status: SubcategoryStatus.ACTIVE },
+        select: { id: true, position: true },
+        orderBy: { position: "asc" },
+      });
+      expect(sourceSequence).toEqual([{ id: first.id, position: 1 }]);
+
+      const untouched = await prisma.subcategory.findUniqueOrThrow({
+        where: { id: moving.id },
+      });
+      expect(untouched.categoryId).toBe(elsewhere.id);
+      expect(untouched.position).toBe(1);
+      expect(untouched.name).toBe("Test - Concurrent Noop Target");
+    });
+
     it("should keep the position when the update does not change the category", async () => {
       const first = await createTestSubcategory(prisma, categoryId, {
         name: "Test - Keeps Position First",

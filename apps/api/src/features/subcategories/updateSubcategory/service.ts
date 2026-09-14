@@ -66,7 +66,11 @@ export const updateSubcategoryService = async (
       // Validate the target category belongs to the same methodology.
       if (data.categoryId !== undefined) {
         const newCategoryId = BigInt(data.categoryId);
-        const isMove = newCategoryId !== targetSubcategory.categoryId;
+        // Provisional: it comes from the unlocked read above, so it only picks
+        // which categories to lock. Whether the row still sits where that read
+        // saw it is settled by the locked re-read below, and the move itself is
+        // decided from the locked row.
+        const looksLikeMove = newCategoryId !== targetSubcategory.categoryId;
 
         // Locked before the status is read, for the same reason as
         // createSubcategory. See lockCategory.
@@ -76,7 +80,7 @@ export const updateSubcategoryService = async (
         // holds two category locks, and two moves crossing between the same
         // pair (A -> B and B -> A) would deadlock if each took its own
         // destination first.
-        const categoryIdsToLock = isMove
+        const categoryIdsToLock = looksLikeMove
           ? [targetSubcategory.categoryId, newCategoryId].sort((a, b) =>
               a < b ? -1 : 1
             )
@@ -100,26 +104,39 @@ export const updateSubcategoryService = async (
           throw new CategoryFromDifferentMethodologyError();
         }
 
-        if (isMove) {
-          // The category locks above were taken on a parent read without one,
-          // so the row itself is locked and re-read before its position is
-          // used: a concurrent swap can have changed it, and a concurrent
-          // update or a cascading category delete can have taken the row out of
-          // the category being re-packed. Locked after the categories, in the
-          // order swapSubcategoryPositions uses, so neither path deadlocks.
-          const [lockedSubcategory] = await lockSubcategories(tx, [BigInt(id)]);
+        // The category locks above were taken on a parent read without one, so
+        // the row itself is locked and re-read before its parent and position
+        // are used: a concurrent swap can have changed the position, and a
+        // concurrent update or a cascading category delete can have taken the
+        // row out of the category being re-packed. Locked after the categories,
+        // in the order swapSubcategoryPositions uses, so neither path
+        // deadlocks.
+        //
+        // This runs for every write that carries a categoryId, not only for the
+        // ones the unlocked read called a move. A request that names the
+        // category the stale read already saw looks like a no-op move, but the
+        // row can have been moved away in between — and since it would then be
+        // written back with the position it holds in its *new* parent, the old
+        // sequence would keep the hole the concurrent move re-packed and the
+        // row would land on a slot nothing guarded. Deciding from the locked
+        // row is what closes that: the request is refused rather than applied
+        // to a parent this transaction never locked.
+        const [lockedSubcategory] = await lockSubcategories(tx, [BigInt(id)]);
 
-          if (
-            !lockedSubcategory ||
-            lockedSubcategory.status !== SubcategoryStatus.ACTIVE
-          ) {
-            throw new SubcategoryNotFoundError(id);
-          }
+        if (
+          !lockedSubcategory ||
+          lockedSubcategory.status !== SubcategoryStatus.ACTIVE
+        ) {
+          throw new SubcategoryNotFoundError(id);
+        }
 
-          if (lockedSubcategory.categoryId !== targetSubcategory.categoryId) {
-            throw new SubcategoryConcurrentlyMovedError(id);
-          }
+        if (lockedSubcategory.categoryId !== targetSubcategory.categoryId) {
+          throw new SubcategoryConcurrentlyMovedError(id);
+        }
 
+        // The locked row agrees with the read the locks were picked from, so
+        // both parents of a real move are held here.
+        if (lockedSubcategory.categoryId !== newCategoryId) {
           newPosition = await getNextSubcategoryPosition(tx, newCategoryId);
           freedSlot = {
             categoryId: lockedSubcategory.categoryId,
