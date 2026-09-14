@@ -136,11 +136,19 @@ const makeDripResponse = (
 };
 
 /** Non-streaming response for HTTP-status paths (4xx / 5xx / 204). */
-const makeHttpResponse = (status: number, jsonBody?: unknown): Response =>
+const makeHttpResponse = (
+  status: number,
+  jsonBody?: unknown,
+  headers: Record<string, string> = {}
+): Response =>
   ({
     ok: status >= 200 && status < 300,
     status,
     body: null,
+    // Real responses always carry headers; the 429 branch reads
+    // x-ratelimit-reset off them, so the fake has to have them too rather than
+    // the hook guarding against a shape only tests produce.
+    headers: new Headers(headers),
     json: () =>
       jsonBody === undefined
         ? Promise.reject(new Error("no json body"))
@@ -677,6 +685,68 @@ describe("useChatStream — degraded escalation & reset", () => {
     );
     await sendTurn(result, "tres");
     expect(result.current.state).toBe("error");
+  });
+
+  it("shows the server's own message on 413 rather than a fixed one", async () => {
+    // The server distinguishes three 413 causes. Only one is fixed by
+    // shortening the message, so telling the user to shorten it when the
+    // history or the turn cap is what filled up is wrong advice.
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(413, {
+          message: "La conversación alcanzó el límite de turnos permitido.",
+        })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).content).toBe(
+      "La conversación alcanzó el límite de turnos permitido."
+    );
+  });
+
+  it("names the wait in seconds on 429", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(429, undefined, { "x-ratelimit-reset": "42" })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(result.current.state).toBe("error");
+    expect(lastMessage(result.current.messages).content).toContain(
+      "42 segundos"
+    );
+  });
+
+  it("falls back to a generic wait message when 429 carries no reset header", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(429))
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("muy seguido");
+    expect(content).not.toContain("segundos.");
+  });
+
+  it("maps 400 to the too-large message (the Zod character cap)", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(400))
+    );
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).content).toBe(
+      TOO_LARGE_MESSAGE
+    );
   });
 
   it("maps 413 to the too-large message and resets the counter", async () => {

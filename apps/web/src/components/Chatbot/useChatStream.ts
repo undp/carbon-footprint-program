@@ -35,8 +35,54 @@ export type SeedMessage = {
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
+const RATE_LIMITED_MESSAGE =
+  "Estás enviando consultas muy seguido. Por favor espera un momento y vuelve a intentar.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Por favor intenta nuevamente en unos minutos.";
+
+/**
+ * Read the `message` an API error response carries, or null when it carries
+ * none. Both the 503 and 413 branches need it: the server writes a specific,
+ * user-facing Spanish string for each and the widget should show it rather
+ * than a fixed one.
+ */
+const readServerMessage = async (
+  response: Response
+): Promise<string | null> => {
+  try {
+    const json = (await response.json()) as { message?: string };
+    return json.message ?? null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * Turn a 4xx into something the user can act on.
+ *
+ * The server already tells these apart; the widget used to collapse every one
+ * of them but 413 into GENERIC_ERROR_MESSAGE. 413 itself has three distinct
+ * causes server-side — oversized message, oversized history, turn cap — and
+ * only the first is fixed by shortening the message, so a fixed "acórtalo"
+ * was actively wrong advice for the other two.
+ */
+const describeClientError = async (response: Response): Promise<string> => {
+  if (response.status === 429) {
+    // The limiter sends the window in seconds; naming it turns "something
+    // broke" into "wait this long", which is the whole difference here.
+    const reset = Number(response.headers.get("x-ratelimit-reset"));
+    return Number.isFinite(reset) && reset > 0
+      ? `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`
+      : RATE_LIMITED_MESSAGE;
+  }
+  if (response.status === 413) {
+    return (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE;
+  }
+  // The Zod body schema rejects content over the character cap before the
+  // handler runs, so an oversized message arrives here and not as a 413.
+  if (response.status === 400) return TOO_LARGE_MESSAGE;
+  return GENERIC_ERROR_MESSAGE;
+};
 
 type SsePayload = {
   id?: string;
@@ -405,12 +451,8 @@ export const useChatStream = () => {
             consecutiveFailuresRef.current += 1;
             let serverMessage = GENERIC_ERROR_MESSAGE;
             if (response.status === 503) {
-              try {
-                const json = (await response.json()) as { message?: string };
-                if (json.message) serverMessage = json.message;
-              } catch {
-                // fall through to generic
-              }
+              serverMessage =
+                (await readServerMessage(response)) ?? GENERIC_ERROR_MESSAGE;
             }
             if (consecutiveFailuresRef.current >= 2) {
               setState("degraded");
@@ -430,19 +472,11 @@ export const useChatStream = () => {
             return;
           }
           consecutiveFailuresRef.current = 0;
-          if (response.status === 413) {
-            setState("error");
-            updateLastAssistant((msg) => ({
-              ...msg,
-              content: TOO_LARGE_MESSAGE,
-              error: true,
-            }));
-            return;
-          }
+          const clientErrorMessage = await describeClientError(response);
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
-            content: GENERIC_ERROR_MESSAGE,
+            content: clientErrorMessage,
             error: true,
           }));
           return;
