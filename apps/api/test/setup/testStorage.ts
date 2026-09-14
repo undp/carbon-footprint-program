@@ -12,9 +12,16 @@ const AZURE_TEST_CONFIG = {
 } as const;
 
 const MINIO_TEST_CONFIG = {
+  // Pulled from quay.io, not Docker Hub: the `minio/minio` repository on Hub
+  // stopped being publicly pullable (the registry answers 401 and the Hub API
+  // 404), which failed the storage-minio CI leg with "pull access denied …
+  // repository does not exist". quay.io is MinIO's own public registry and
+  // serves the identical artifact — the digest below is unchanged, so this is
+  // a source swap, not an image swap.
+  //
   // Digest-pinned for reproducibility; bump the tag and digest together.
   image:
-    "minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
