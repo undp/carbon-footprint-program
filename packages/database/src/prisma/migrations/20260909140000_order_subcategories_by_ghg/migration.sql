@@ -22,13 +22,16 @@
 -- is the same order and the same text the seed installs, not a hand-copy.
 --
 -- Positions are unique per category (partial unique index, excluding DELETED),
--- which is why the position rewrite takes three steps (1-3 below): parking
--- every position 1000 higher first means no intermediate state can collide,
--- whatever order the rows are rewritten in. Step 3 re-packs the subcategories a
--- maintainer added locally -- they are not in the authored list, so they keep
--- their relative order and land after it. Step 4 is the unrelated half of the
--- change: the Scope 3 descriptions. Nothing is inserted or deleted, and no
--- captured inventory line, no emission factor and no computed total is touched.
+-- which is why the position rewrite parks every row out of range before
+-- rewriting it: no intermediate state can then collide, whatever order the rows
+-- are updated in. Step 1 parks at +1000, step 2 writes the authored numbers,
+-- and step 3 re-packs every scoped category to 1..N -- authored rows first, in
+-- the authored order, then the subcategories a maintainer added locally, in
+-- their previous relative order. Step 3 exists because step 2 alone leaves
+-- holes on any deployment where an authored subcategory was renamed or
+-- soft-deleted; see its own header. Step 4 is the unrelated half of the change:
+-- the Scope 3 descriptions. Nothing is inserted or deleted, and no captured
+-- inventory line, no emission factor and no computed total is touched.
 --
 -- This is the second migration that ships base-methodology content by hand
 -- (after 20260825150000_update_business_travel_transport_explanation), and every
@@ -98,8 +101,34 @@ WHERE s."category_id" = c."id"
   AND c."status" <> 'DELETED'
   AND s."status" <> 'DELETED';
 
--- ---------- 3. Re-pack locally added subcategories after the authored ones ----------
+-- ---------- 3. Re-pack every scoped category to 1..N ----------
 
+-- Step 2 can leave holes, and closing them is what keeps the live sequence
+-- contiguous -- the invariant repackSubcategoryPositions and the seed's
+-- checkPositionsAreContiguous exist to hold, and the one a maintainer reads
+-- straight off the `Pos.` column.
+--
+-- Two ways a hole survives step 2. A maintainer soft-deleted an authored
+-- subcategory: the remaining rows take the authored numbers around the gap
+-- ('Trabajo remoto de empleados' removed leaves ... 7, 9, 10, 11) and nothing
+-- later closes it, because getNextSubcategoryPosition is MAX + 1 and
+-- repackSubcategoryPositions only shifts rows above a slot a delete just
+-- freed. Or a maintainer renamed one: it no longer matches the authored list,
+-- so the rows around it take 2..N and the renamed row sorts after them --
+-- leaving the category with no position 1 at all.
+--
+-- Renumbering only the unmatched rows cannot fix either, so this re-packs the
+-- whole scope. The ordering key keeps the behaviour the header describes:
+-- authored rows first, in the authored order, then the locally added ones
+-- (still parked above 1000) in their previous relative order.
+--
+-- It takes two passes for the same reason step 1 parks at all: the partial
+-- unique index is non-deferrable and checked per row, so a direct write to
+-- 1..N would collide with the rows still holding those numbers. Pass 3a parks
+-- the final order above 2000 -- clear of both the authored numbers and the
+-- +1000 parking range -- and pass 3b subtracts the offset.
+
+-- 3a. Compute the final order and park it out of range.
 WITH scoped AS (
   SELECT s."id", s."category_id", s."position"
   FROM "subcategory" s
@@ -111,25 +140,35 @@ WITH scoped AS (
     AND c."status" <> 'DELETED'
     AND s."status" <> 'DELETED'
 ),
-authored_max AS (
-  SELECT "category_id", MAX("position") AS "max_position"
-  FROM scoped
-  WHERE "position" <= 1000
-  GROUP BY "category_id"
-),
-local_additions AS (
+renumbered AS (
   SELECT
     "id",
-    "category_id",
-    ROW_NUMBER() OVER (PARTITION BY "category_id" ORDER BY "position") AS "offset"
+    ROW_NUMBER() OVER (
+      PARTITION BY "category_id"
+      -- Authored rows (<= 1000) before local additions (> 1000); within each
+      -- group, the order step 2 wrote and the order they already had.
+      ORDER BY ("position" > 1000), "position"
+    ) AS "pos"
   FROM scoped
-  WHERE "position" > 1000
 )
 UPDATE "subcategory" s
-SET "position" = COALESCE(am."max_position", 0) + l."offset"
-FROM local_additions l
-LEFT JOIN authored_max am ON am."category_id" = l."category_id"
-WHERE s."id" = l."id";
+SET "position" = 2000 + r."pos"
+FROM renumbered r
+WHERE s."id" = r."id";
+
+-- 3b. Bring the parked order down to 1..N. Every scoped row is >= 2001 after
+-- 3a, so no intermediate state collides.
+UPDATE "subcategory" s
+SET "position" = s."position" - 2000
+FROM "category" c
+JOIN "methodology_version" mv ON mv."id" = c."methodology_version_id"
+JOIN "country" co ON co."id" = mv."country_id"
+WHERE s."category_id" = c."id"
+  AND mv."name" = 'Metodología inicial'
+  AND co."iso_code" = 'PD'
+  AND c."status" <> 'DELETED'
+  AND s."status" <> 'DELETED'
+  AND s."position" > 2000;
 
 -- ---------- 4. Scope 3 descriptions: prefix the standards mapping ----------
 
