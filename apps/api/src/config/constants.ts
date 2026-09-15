@@ -49,9 +49,11 @@ export const CHATBOT_MAX_OUTPUT_TOKENS = 1500;
  * Max messages of prior history loaded into a turn's prompt.
  *
  * A ceiling on the query, not on the conversation: the newest N are taken and
- * anything older is simply not sent to the model. CHATBOT_MAX_HISTORY_TOKENS is
- * the cap that actually rejects a turn; this one only bounds how much the
- * database is asked for, so a long thread cannot grow the query unboundedly.
+ * anything older is simply not sent to the model. It bounds how much the
+ * database is asked for, so a long thread cannot grow the query unboundedly;
+ * CHATBOT_MAX_HISTORY_TOKENS then bounds what of that actually fits the
+ * prompt. Neither one rejects a turn — nothing does, past the size of a single
+ * message.
  */
 export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
 
