@@ -2,6 +2,7 @@ import { FC } from "react";
 import { Box, Skeleton, Typography, alpha } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { EmissionResultsScreenTrashIcon } from "@/icons";
+import { InfoButton } from "../InfoButton";
 import { EmptyStateMessage } from "./EmptyStateMessage";
 import { LoadingErrorStateMessage } from "./LoadingErrorStateMessage";
 import { VOCAB } from "@/config/vocab";
@@ -34,13 +35,19 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
       className="relative flex h-full w-full flex-col items-start gap-4 overflow-hidden rounded-lg p-4"
       sx={{ background: gradient }}
     >
-      <Typography
-        variant="body1"
-        fontWeight="fontWeightMedium"
-        sx={{ color: theme.palette.primary.main }}
-      >
-        Tu huella de carbono equivale
-      </Typography>
+      <Box className="flex w-full items-center gap-1">
+        <Typography
+          variant="body1"
+          fontWeight="fontWeightMedium"
+          sx={{ color: theme.palette.primary.main }}
+        >
+          Tu indicador de intensidad es
+        </Typography>
+        <InfoButton
+          color="primary"
+          label={`Relaciona tus emisiones totales con la actividad principal que declaraste. Sirve para comparar tu desempeño entre un año y otro aunque tu ${VOCAB.organization.noun.singular} haya crecido.`}
+        />
+      </Box>
 
       {isLoading && (
         <Box className="flex w-full flex-1 flex-col justify-center gap-1 pb-3">
@@ -50,7 +57,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
       )}
 
       {!isLoading && hasError && (
-        <LoadingErrorStateMessage message="Ocurrió un error al cargar el equivalente de tu huella de carbono" />
+        <LoadingErrorStateMessage message="Ocurrió un error al cargar tu indicador de intensidad" />
       )}
 
       {!isLoading && !hasError && exists && (
@@ -94,7 +101,7 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
       {!isLoading && !exists && !hasError && (
         <EmptyStateMessage
           color="primary"
-          message={`Aquí verás el equivalente de tu huella de carbono con la actividad principal de tu ${VOCAB.organization.noun.singular}`}
+          message={`Aquí verás tu indicador de intensidad según la actividad principal de tu ${VOCAB.organization.noun.singular}`}
         />
       )}
     </Box>
