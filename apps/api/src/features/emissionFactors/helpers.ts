@@ -55,18 +55,24 @@ export async function findDimensionValue(
 
 /**
  * Checks that no other ACTIVE emission factor exists with the same
- * uniqueness key for the given subcategory.
+ * uniqueness key for the given subcategory and year.
  *
- * The uniqueness key is always subcategoryId, plus each dimension value
- * whose dimension is marked as required for that subcategory. Optional
+ * The uniqueness key is always subcategoryId and year, plus each dimension
+ * value whose dimension is marked as required for that subcategory. Optional
  * dimensions are not part of the key — multiple factors may coexist with
- * different (or null) optional dimension values.
+ * different (or null) optional dimension values. `source` is not part of it
+ * either, which makes this check stricter than the database index and the one
+ * that actually blocks.
+ *
+ * The year is in the key so a catalogue loaded for a new year can restate the
+ * same subcategory and dimensions without colliding with the previous year's.
  */
 export async function checkDuplicateEmissionFactor(
   tx: Prisma.TransactionClient,
   subcategoryId: bigint,
   dimensionValue1Id: bigint | null,
   dimensionValue2Id: bigint | null,
+  year: number,
   excludeId?: bigint
 ): Promise<void> {
   const requiredDimensions = await tx.emissionFactorDimension.findMany({
@@ -82,6 +88,7 @@ export async function checkDuplicateEmissionFactor(
 
   const where: Prisma.EmissionFactorWhereInput = {
     subcategoryId,
+    year,
     status: EmissionFactorStatus.ACTIVE,
     ...(excludeId != null ? { id: { not: excludeId } } : {}),
   };
@@ -104,17 +111,29 @@ export async function checkDuplicateEmissionFactor(
 }
 
 /**
- * Enforces that all active emission factors for a subcategory share the same source.
+ * Enforces that all active emission factors for a subcategory and year share
+ * the same source, so a catalogue loaded for a new year can carry its own
+ * citation without conflicting with the previous year's.
+ *
+ * TODO: more than one source per (subcategory, year) was deliberately deferred.
+ * It is a product decision, not a compliance requirement — neither the GHG
+ * Protocol nor ISO forbids several sources, but the capture dropdown would then
+ * present real options and a non-expert user would be making an undocumented
+ * methodological choice. Lifting it means deleting this function and adding
+ * `source` to the key in `checkDuplicateEmissionFactor`: validation only, no
+ * migration and no data change.
  */
 export async function validateSourceConsistency(
   tx: Prisma.TransactionClient,
   subcategoryId: bigint,
   source: string,
+  year: number,
   excludeId?: bigint
 ): Promise<void> {
   const existingSource = await tx.emissionFactor.findFirst({
     where: {
       subcategoryId,
+      year,
       status: EmissionFactorStatus.ACTIVE,
       ...(excludeId != null ? { id: { not: excludeId } } : {}),
     },
