@@ -139,6 +139,29 @@ describe("POST /api/chatbot/message — integration", () => {
     );
   });
 
+  it("exposes the conversation id to a cross-origin caller", async () => {
+    // The header being on the wire is not enough. reply.hijack() bypasses the
+    // onSend hook that serializes Fastify's accumulated headers, so
+    // Access-Control-Expose-Headers — written by @fastify/cors — was dropped
+    // from the stream response while surviving on every ordinary one. The
+    // browser then received x-conversation-id and hid it from the page:
+    // response.headers.get() read null, the widget never stored the id, and a
+    // reload rehydrated nothing. Asserted with an Origin so the CORS hooks run.
+    const { status, responseHeaders } = await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "cors check" },
+      { ownsApp: false, headers: { origin: "https://example.test" } }
+    );
+    expect(status).toBe(200);
+    expect(
+      responseHeaders.get("access-control-expose-headers")?.toLowerCase()
+    ).toContain(CHATBOT_CONVERSATION_ID_HEADER);
+    expect(responseHeaders.get("access-control-allow-origin")).toBe(
+      "https://example.test"
+    );
+  });
+
   it("follows the conversationId in the body, and starts a new thread without it", async () => {
     // "Nueva conversación" works purely by dropping the id the client holds,
     // so the send path has to resolve by that id. Resolving by identity alone
