@@ -36,6 +36,9 @@ const LineItemSchema = z
       "The ID of the measurement unit"
     ),
     factorSource: z.string().nullable().describe("The source of the factor"),
+    baseFactorId: IdSchema.nullable().describe(
+      "The ID of the base emission factor (null for manual factors)"
+    ),
     factorValue: z.number().nullable().describe("The factor value"),
     factorRateMeasurementUnitId: IdSchema.nullable().describe(
       "The ID of the rate measurement unit of the factor"

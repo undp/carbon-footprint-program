@@ -17,6 +17,7 @@ import {
   createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
 import {
+  type GetCarbonInventoryByIdResponse,
   type SyncCarbonInventoryLinesResponse,
   CarbonInventoryLineStatus,
   EmissionFactorStatus,
@@ -630,6 +631,152 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       ) as SyncCarbonInventoryLinesResponse;
 
       expect(body.updated).toHaveLength(2);
+    });
+
+    it("keeps the emission factor link when the edit only changes the comment", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId }
+      );
+
+      // Any active catalog factor of this methodology works — the test only
+      // needs the line to point at a real `emission_factor` row.
+      let emissionFactor = await prisma.emissionFactor.findFirst({
+        where: {
+          status: EmissionFactorStatus.ACTIVE,
+          subcategory: { category: { methodologyVersionId: methodologyId } },
+        },
+      });
+
+      if (!emissionFactor) {
+        const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+        const rateUnit = await prisma.rateMeasurementUnit.findFirst();
+        if (!rateUnit) {
+          throw new Error("No rate measurement units found in database");
+        }
+
+        emissionFactor = await prisma.emissionFactor.create({
+          data: {
+            subcategoryId: subcategoryIds[0],
+            dimensionValue1Id: null,
+            dimensionValue2Id: null,
+            rateMeasurementUnitId: rateUnit.id,
+            source: "DEFRA 2025",
+            gasDetails: {},
+            value: new Prisma.Decimal("2.31"),
+            status: EmissionFactorStatus.ACTIVE,
+            updatedAt: null,
+          },
+        });
+      }
+
+      const rateMeasurementUnit = await prisma.rateMeasurementUnit.findUnique({
+        where: { id: emissionFactor.rateMeasurementUnitId },
+      });
+      if (!rateMeasurementUnit) {
+        throw new Error("Emission factor has no rate measurement unit");
+      }
+
+      const appliedFactorValue = emissionFactor.value.toNumber();
+
+      // 1. Capture a line against the catalog factor.
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            {
+              subcategoryId: emissionFactor.subcategoryId.toString(),
+              dimensionValue1Id:
+                emissionFactor.dimensionValue1Id?.toString() ?? null,
+              dimensionValue2Id:
+                emissionFactor.dimensionValue2Id?.toString() ?? null,
+              measurementUnitId:
+                rateMeasurementUnit.denominatorMeasurementUnitId.toString(),
+              quantity: 1500,
+              factorSource: emissionFactor.source,
+              baseFactorId: emissionFactor.id.toString(),
+              appliedFactorValue,
+              appliedFactorRateMeasurementUnitId:
+                rateMeasurementUnit.id.toString(),
+              manualTotalEmissions: null,
+              comment: "Original comment",
+              inputType: "SIMPLIFIED",
+            },
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(createResponse.statusCode).toBe(200);
+      const createBody = JSON.parse(
+        createResponse.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const lineId = createBody.created[0].id;
+
+      // 2. Reload the inventory the way the capture screen does. The reloaded
+      //    line must carry the factor id, otherwise the screen has nothing to
+      //    echo back on the next save.
+      const inventoryResponse = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+      });
+
+      expect(inventoryResponse.statusCode).toBe(200);
+      const inventory = JSON.parse(
+        inventoryResponse.body
+      ) as GetCarbonInventoryByIdResponse;
+      const reloadedLine = inventory.subcategories
+        .flatMap((subcategory) => subcategory.lines)
+        .find((line) => line.id === lineId);
+
+      if (!reloadedLine) {
+        throw new Error("The captured line is missing from the inventory");
+      }
+      expect(reloadedLine.baseFactorId).toBe(emissionFactor.id.toString());
+
+      // 3. Edit only the comment, echoing the reloaded line back unchanged.
+      const updateResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: reloadedLine.id,
+              dimensionValue1Id: reloadedLine.dimensionValue1Id,
+              dimensionValue2Id: reloadedLine.dimensionValue2Id,
+              measurementUnitId: reloadedLine.measurementUnitId,
+              quantity: reloadedLine.quantity,
+              factorSource: reloadedLine.factorSource,
+              baseFactorId: reloadedLine.baseFactorId,
+              appliedFactorValue: reloadedLine.factorValue,
+              appliedFactorRateMeasurementUnitId:
+                reloadedLine.factorRateMeasurementUnitId,
+              manualTotalEmissions: reloadedLine.manualTotalEmissions,
+              comment: "Edited comment",
+              inputType: "SIMPLIFIED",
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(updateResponse.statusCode).toBe(200);
+
+      // 4. The new snapshot must still reference the catalog factor — that link
+      //    is what the verifier's emission-factor report reads to show the gas
+      //    breakdown instead of labelling the row as hand-typed.
+      const activeInput = await prisma.carbonInventoryLineInput.findFirst({
+        where: { lineId: BigInt(lineId), isActive: true },
+        include: { factor: true },
+      });
+
+      expect(activeInput?.comment).toBe("Edited comment");
+      expect(activeInput?.factor?.emissionFactorId).toBe(emissionFactor.id);
     });
   });
 

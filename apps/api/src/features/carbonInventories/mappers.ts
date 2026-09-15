@@ -87,6 +87,13 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
     toNumberOrNull(activeInput?.factor?.appliedFactorValue) ??
     null;
 
+  // The catalog factor the line was captured against. Kept distinct from the
+  // `appliedFactor*` snapshot so an edit that doesn't touch the factor can send
+  // it back on the next sync instead of dropping the link (which would make the
+  // line look hand-typed in the verifier's emission-factor report).
+  const baseFactorId =
+    activeInput?.factor?.emissionFactorId?.toString() ?? null;
+
   const factorRateMeasurementUnitId =
     activeInput?.manualFactorRateUnitId?.toString() ??
     activeInput?.factor?.appliedFactorRateUnitId?.toString() ??
@@ -117,6 +124,7 @@ export function mapLineToResponse(line: LineWithInputs): LineResponse {
     quantity,
     measurementUnitId,
     factorSource,
+    baseFactorId,
     factorValue,
     factorRateMeasurementUnitId,
     comment,

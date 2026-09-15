@@ -20,7 +20,6 @@ export type LineFileSummary =
   };
 
 export type EmissionCaptureFormLine = Omit<CarbonInventoryLine, "files"> & {
-  baseFactorId: string | null;
   lineId: string;
   /**
    * Marks this line as newly created on the client.
