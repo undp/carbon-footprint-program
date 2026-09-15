@@ -4,7 +4,7 @@ import {
   DEFAULT_EMPTY_VALUE,
   INPUT_DECIMAL_SCALE,
 } from "@/config/constants";
-import { Formatter, formatter } from "./formatting";
+import { formatRateUnit, Formatter, formatter } from "./formatting";
 
 // The app locale is es-ES: group separator "." and decimal separator ",".
 // Intl emits a non-breaking space (U+00A0) before "%" and a subscript-2 in the
@@ -508,5 +508,31 @@ describe("Formatter — dateForFileName", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(MARCH_5));
     expect(fmt.dateForFileName()).toBe("05-03-2024");
+  });
+});
+
+describe("formatRateUnit", () => {
+  it("adds the CO₂e the numerator of a factor rate always carries", () => {
+    expect(formatRateUnit("kg/kWh")).toBe("kg CO₂e/kWh");
+    // The case that motivated it: bare "kg/kg" gives no way to tell the
+    // emissions from the thing being measured.
+    expect(formatRateUnit("kg/kg")).toBe("kg CO₂e/kg");
+  });
+
+  it("splits on the first slash so a compound denominator survives", () => {
+    expect(formatRateUnit("kg/km-ton")).toBe("kg CO₂e/km-ton");
+    expect(formatRateUnit("kg/cant anim")).toBe("kg CO₂e/cant anim");
+    // Defensive: a denominator that carried its own slash keeps it whole.
+    expect(formatRateUnit("kg/m3/h")).toBe("kg CO₂e/m3/h");
+  });
+
+  it("returns a value that is not a rate untouched", () => {
+    expect(formatRateUnit("kg")).toBe("kg");
+  });
+
+  it("renders nothing when there is no unit", () => {
+    expect(formatRateUnit(null)).toBe("");
+    expect(formatRateUnit(undefined)).toBe("");
+    expect(formatRateUnit("")).toBe("");
   });
 });

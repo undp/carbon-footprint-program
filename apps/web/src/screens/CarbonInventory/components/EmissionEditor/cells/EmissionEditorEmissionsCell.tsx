@@ -2,7 +2,7 @@ import { FC } from "react";
 import { useWatch } from "react-hook-form";
 import { DetailTooltipText } from "@/components";
 import { kgToTon } from "@/utils/number";
-import { formatter } from "@/utils/formatting";
+import { formatRateUnit, formatter } from "@/utils/formatting";
 import { RateMeasurementUnit } from "../../../types";
 
 interface EmissionEditorEmissionsCellProps {
@@ -49,7 +49,7 @@ export const EmissionEditorEmissionsCell: FC<
         unit?.denominatorUnit.abbreviation,
         "×",
         formatter.exact(factorValue),
-        unit?.abbreviation,
+        formatRateUnit(unit?.abbreviation),
         "=",
         formatter.exact(totalEmissionsKg),
         "kg =",
