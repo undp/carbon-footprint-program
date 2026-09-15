@@ -6,3 +6,5 @@ export * from "./sourceCitation/schemas.js";
 export * from "./sourceCitation/types.js";
 export * from "./getCurrentConversation/schemas.js";
 export * from "./getCurrentConversation/types.js";
+export * from "./conversationId/schemas.js";
+export * from "./conversationId/types.js";

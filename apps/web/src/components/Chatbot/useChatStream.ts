@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { SourceCitationWireArraySchema } from "@repo/types";
+import {
+  CHATBOT_CONVERSATION_ID_HEADER,
+  SourceCitationWireArraySchema,
+} from "@repo/types";
 import type { SourceCitationWire } from "@repo/types";
 import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
 import { API_BASE_URL } from "@/config/environment";
-import { clearConversationCookieClient } from "./conversationCookie";
+import {
+  clearConversationId,
+  readConversationId,
+  writeConversationId,
+} from "./conversationStore";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
 // Absolute, like every other call in the app (see api/http/client.ts, which
@@ -381,12 +388,19 @@ export const useChatStream = () => {
           // contract change.
           headers["Last-Event-ID"] = lastEventIdRef.current;
         }
+        // Read at send time rather than captured when the hook mounted: a
+        // turn that opened a new thread has already written the id back, and
+        // "Nueva conversación" may have cleared it since. Omitting the field
+        // is what asks the server for a fresh conversation.
+        const conversationId = readConversationId();
+        const body: { content: string; conversationId?: string } = { content };
+        if (conversationId !== null) body.conversationId = conversationId;
         try {
           const response = await fetch(SEND_URL, {
             method: "POST",
             credentials: "include",
             headers,
-            body: JSON.stringify({ content }),
+            body: JSON.stringify(body),
             signal: controller.signal,
           });
           return { response, transportError: false };
@@ -441,6 +455,16 @@ export const useChatStream = () => {
           }));
           return;
         }
+
+        // Before branching on status: the server commits the conversation and
+        // the user's message before it ever calls the model, so a turn that
+        // ends in 503 still created a thread. Storing the id only on success
+        // would abandon it and open a second one on the retry. Reads null when
+        // the failure happened before a conversation existed, and when a proxy
+        // strips the header or CORS does not expose it — in which case the next
+        // turn starts fresh, which is the same behaviour as a first visit.
+        const attachedId = response.headers.get(CHATBOT_CONVERSATION_ID_HEADER);
+        if (attachedId) writeConversationId(attachedId);
 
         if (!response.ok) {
           // 5xx means the backend itself is failing, so treat it like a
@@ -531,6 +555,9 @@ export const useChatStream = () => {
         credentials: "include",
       });
       if (response.status === 204) {
+        // The rows are gone server-side, so a retained id would point at
+        // nothing and make the next rehydrate a pointless 404.
+        clearConversationId();
         setMessages([]);
         setState("empty");
         lastEventIdRef.current = undefined;
@@ -595,11 +622,10 @@ export const useChatStream = () => {
    * Start a fresh thread. Prior turns stay persisted server-side — this is NOT
    * a delete.
    *
-   * Dropping the conversation cookie is the whole mechanism: POST /message
-   * resolves the thread it continues from that cookie, so its absence makes
-   * the next turn open a new conversation, and a later reload has nothing to
-   * rehydrate. Any in-flight turn is aborted so it cannot stream into the
-   * cleared view.
+   * Dropping the stored conversation id is the whole mechanism: POST /message
+   * continues the thread the client names, so sending no id makes the next
+   * turn open a new conversation, and a later reload has nothing to rehydrate.
+   * Any in-flight turn is aborted so it cannot stream into the cleared view.
    */
   const startNewConversation = useCallback((): void => {
     // Null the ref BEFORE aborting: `isCurrentTurn()` in the in-flight
@@ -609,7 +635,7 @@ export const useChatStream = () => {
     abortRef.current = null;
     inFlight?.abort();
     inFlightAssistantIdRef.current = null;
-    clearConversationCookieClient();
+    clearConversationId();
     setMessages([]);
     setState("empty");
     lastEventIdRef.current = undefined;

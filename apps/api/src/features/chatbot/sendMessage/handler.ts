@@ -1,7 +1,11 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
 import type { Prisma } from "@repo/database";
 import { ChatMessageRole } from "@repo/database/enums";
-import type { SendMessageRequestBody, SourceCitation } from "@repo/types";
+import {
+  CHATBOT_CONVERSATION_ID_HEADER,
+  type SendMessageRequestBody,
+  type SourceCitation,
+} from "@repo/types";
 import {
   CHATBOT_MAX_OUTPUT_TOKENS,
   CHATBOT_MAX_RAG_CONTEXT_TOKENS,
@@ -17,11 +21,6 @@ import {
   type LlmMessage,
   type LlmStreamEvent,
 } from "@/features/chatbot/llmProvider/index.js";
-import {
-  parseConversationIdOrNull,
-  readSignedConversationCookie,
-  setConversationCookie,
-} from "@/features/chatbot/helpers/conversationCookie.js";
 import { getSystemPromptEs } from "@/features/chatbot/prompts/loader.js";
 import {
   executeSearchKnowledgeTool,
@@ -85,7 +84,7 @@ export const sendMessageHandler = async (
     );
   }
 
-  const { content } = request.body;
+  const { content, conversationId: requestedConversationIdRaw } = request.body;
   enforceUserInputCap(content);
 
   // Read (and memoize) the prompt here rather than at module scope: the route
@@ -95,12 +94,14 @@ export const sendMessageHandler = async (
 
   const prisma = request.server.prisma;
 
-  // The thread this turn continues, as pointed at by the client's signed
-  // cookie. `null` — no cookie, or one that does not parse — means start a new
-  // conversation; see resolveOrCreateConversation.
-  const cookieValue = readSignedConversationCookie(request);
+  // The thread this turn continues, as named by the client. `null` — the field
+  // was omitted — means start a new conversation; see
+  // resolveOrCreateConversation. The Zod body schema has already checked the
+  // shape, so BigInt() cannot throw here.
   const requestedConversationId =
-    cookieValue === null ? null : parseConversationIdOrNull(cookieValue);
+    requestedConversationIdRaw === undefined
+      ? null
+      : BigInt(requestedConversationIdRaw);
 
   // History snapshot, turn cap, and message inserts ALL run inside the
   // identity-scoped advisory lock. Doing the cap checks pre-lock would let two
@@ -155,14 +156,21 @@ export const sendMessageHandler = async (
     }
   );
 
-  // Persistence-across-reload affordance: sliding signed
-  // `chatbot_conversation_id` cookie so the widget can rehydrate via GET
-  // /conversations/me/current on mount. Set BEFORE reply.hijack() so
-  // writeSseHeaders forwards it onto reply.raw.writeHead — once we hijack,
-  // Fastify no longer flushes its accumulated headers itself. Re-set on every
-  // turn (sliding refresh) because the row's expires_at moves forward on
-  // create and the cookie should track it.
-  setConversationCookie(reply, conversationId.toString());
+  // Tell the client which thread this turn landed in, so it can send the same
+  // id on the next one and rehydrate it after a reload. Set BEFORE
+  // reply.hijack() for two reasons: writeSseHeaders forwards it onto
+  // reply.raw.writeHead (after hijacking, Fastify no longer flushes its own
+  // header store), and the pre-hijack failure paths below answer with a normal
+  // Fastify response that carries it too. That second case is load-bearing:
+  // the transaction above has already COMMITTED the conversation and the
+  // user's message, so a provider failure that 503s before the hijack leaves a
+  // real thread behind. A client that only learned the id from a successful
+  // stream would abandon it and open a second one on retry.
+  //
+  // The cap rejections do not need this — they throw inside the transaction,
+  // so a brand-new conversation is rolled back and an existing one is the id
+  // the client already holds.
+  reply.header(CHATBOT_CONVERSATION_ID_HEADER, conversationId.toString());
 
   const provider = getLlmProvider();
   const llmMessages = buildLlmMessages(history, content, systemPrompt);

@@ -1,4 +1,5 @@
 import type { FastifyReply } from "fastify";
+import { CHATBOT_CONVERSATION_ID_HEADER } from "@repo/types";
 
 /**
  * Write a single SSE event with optional named event, optional id, and a JSON
@@ -26,6 +27,10 @@ export const writeSseHeaders = (reply: FastifyReply): void => {
   // longer serializes its accumulated headers itself, so omitting this would
   // make every anonymous turn mint a brand-new sessionId.
   const setCookie = reply.getHeader("set-cookie");
+  // Same reason as the cookie above: the handler set this with reply.header()
+  // before hijacking, and it is the client's only way to learn which thread
+  // this turn attached to.
+  const conversationId = reply.getHeader(CHATBOT_CONVERSATION_ID_HEADER);
   const headers: Record<string, string | string[] | number> = {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache, no-transform",
@@ -34,6 +39,9 @@ export const writeSseHeaders = (reply: FastifyReply): void => {
   };
   if (setCookie !== undefined) {
     headers["Set-Cookie"] = setCookie;
+  }
+  if (conversationId !== undefined) {
+    headers[CHATBOT_CONVERSATION_ID_HEADER] = conversationId;
   }
   reply.raw.writeHead(200, headers);
 };

@@ -5,16 +5,18 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
-import { clearConversationCookieClient } from "./conversationCookie";
+import {
+  clearConversationId,
+  readConversationId,
+  writeConversationId,
+} from "./conversationStore";
 import { useChatStream } from "./useChatStream";
 import type { ChatbotMessage } from "./types";
 
-// The cookie write is a document.cookie side effect scoped to /api/chatbot, so
-// it is not readable back from the test document's path. Spy on the helper
-// instead of asserting on document.cookie.
-vi.mock("./conversationCookie", () => ({
-  clearConversationCookieClient: vi.fn(),
-}));
+// The store is exercised for real rather than mocked: it is plain localStorage,
+// which jsdom provides, and asserting on what the next request actually carries
+// is the behaviour that broke before.
+const CONVERSATION_ID_HEADER = "x-conversation-id";
 
 // The hook keeps these user-facing strings private; mirror them here so the
 // assertions read intent instead of magic text. If a copy change breaks a test,
@@ -52,12 +54,14 @@ const makeStreamResponse = (opts: {
   status?: number;
   keepOpenAfterChunks?: boolean;
   signal?: AbortSignal | null;
+  headers?: Record<string, string>;
 }): Response => {
   const {
     chunks = [],
     status = 200,
     keepOpenAfterChunks = false,
     signal,
+    headers = {},
   } = opts;
   let index = 0;
   let rejectPending: ((reason: unknown) => void) | null = null;
@@ -93,6 +97,7 @@ const makeStreamResponse = (opts: {
     ok: status >= 200 && status < 300,
     status,
     body: { getReader: () => reader },
+    headers: new Headers(headers),
     json: () => Promise.resolve({}),
   } as unknown as Response;
 };
@@ -131,6 +136,7 @@ const makeDripResponse = (
     ok: true,
     status: 200,
     body: { getReader: () => reader },
+    headers: new Headers(),
     json: () => Promise.resolve({}),
   } as unknown as Response;
 };
@@ -176,7 +182,9 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
-  vi.mocked(clearConversationCookieClient).mockClear();
+  // Clears both localStorage and the module's in-memory fallback, so one
+  // test's conversation cannot leak into the next one's request body.
+  clearConversationId();
 });
 
 afterEach(() => {
@@ -819,6 +827,82 @@ describe("useChatStream — request shape & guards", () => {
   });
 });
 
+describe("useChatStream — conversation id", () => {
+  const bodyOf = (callIndex: number): { conversationId?: string } =>
+    JSON.parse(
+      (fetchMock.mock.calls[callIndex][1]?.body as string) ?? "{}"
+    ) as { conversationId?: string };
+
+  it("sends no conversationId when none is stored, so the server opens a thread", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    // Omitted, not null and not empty: "absent" is the wire signal for a new
+    // conversation, and the body schema rejects the other two.
+    expect(bodyOf(0)).not.toHaveProperty("conversationId");
+  });
+
+  it("stores the id the server attached and sends it on the next turn", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+          headers: { [CONVERSATION_ID_HEADER]: "7" },
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    await sendTurn(result, "de nuevo");
+
+    expect(readConversationId()).toBe("7");
+    expect(bodyOf(1).conversationId).toBe("7");
+  });
+
+  it("stores the id even when the turn fails, so the thread is not orphaned", async () => {
+    // The server commits the conversation and the user's message before it
+    // calls the model, so a 503 still left a thread behind. Dropping the id
+    // here would strand it and open a second one on the retry.
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          503,
+          { message: "no disponible" },
+          {
+            [CONVERSATION_ID_HEADER]: "11",
+          }
+        )
+      )
+    );
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    expect(readConversationId()).toBe("11");
+
+    await sendTurn(result, "reintento");
+    expect(bodyOf(1).conversationId).toBe("11");
+  });
+});
+
 describe("useChatStream — deleteHistory", () => {
   it("clears messages and resets to empty on 204", async () => {
     fetchMock.mockImplementationOnce((_input, init) =>
@@ -842,6 +926,19 @@ describe("useChatStream — deleteHistory", () => {
 
     expect(result.current.messages).toHaveLength(0);
     expect(result.current.state).toBe("empty");
+  });
+
+  it("drops the stored id on 204, since the rows it points at are gone", async () => {
+    writeConversationId("4");
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(204))
+    );
+    const { result } = renderHook(() => useChatStream());
+    await act(async () => {
+      await result.current.deleteHistory();
+    });
+
+    expect(readConversationId()).toBeNull();
   });
 
   it("sets error state when delete fails", async () => {
@@ -1085,16 +1182,17 @@ describe("useChatStream — startNewConversation", () => {
     expect(fetchMock.mock.calls).toHaveLength(callsAfterTurn);
   });
 
-  it("drops the conversation cookie so a reload does not rehydrate the thread", async () => {
+  it("drops the stored conversation id so a reload does not rehydrate the thread", async () => {
     streamOneTurn();
     const { result } = renderHook(() => useChatStream());
+    writeConversationId("4");
     await sendTurn(result, "hola");
 
     act(() => {
       result.current.startNewConversation();
     });
 
-    expect(clearConversationCookieClient).toHaveBeenCalledTimes(1);
+    expect(readConversationId()).toBeNull();
   });
 
   it("resets Last-Event-ID so the next turn cannot carry a stale one", async () => {

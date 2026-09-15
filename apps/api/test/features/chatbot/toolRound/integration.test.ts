@@ -17,6 +17,7 @@ import {
   CorpusSourceStatus,
   CorpusSourceType,
 } from "@repo/database/enums";
+import { CHATBOT_CONVERSATION_ID_HEADER } from "@repo/types";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { collectSseEvents } from "@test/helpers/sse.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
@@ -549,12 +550,12 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     );
     expect(seed.status).toBe(200);
 
-    // The send path resolves the thread from this cookie, so the follow-up
-    // request has to carry it to land in the conversation seeded below.
-    const conversationCookie = seed.setCookie
-      .find((c) => c.startsWith("chatbot_conversation_id="))
-      ?.split(";")[0];
-    expect(conversationCookie).toBeDefined();
+    // The send path resolves the thread from the id the client sends, so the
+    // follow-up request has to carry it to land in the conversation seeded
+    // below.
+    const conversationId =
+      seed.responseHeaders.get(CHATBOT_CONVERSATION_ID_HEADER) ?? undefined;
+    expect(conversationId).toBeDefined();
 
     const conv = await prisma.chatbotChatConversation.findFirst({
       orderBy: { id: "desc" },
@@ -580,8 +581,8 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     const { status } = await collectSseEvents(
       app,
       "/api/chatbot/message",
-      { content: "segundo mensaje" },
-      { ownsApp: false, cookies: conversationCookie }
+      { content: "segundo mensaje", conversationId },
+      { ownsApp: false }
     );
     expect(status).toBe(413);
   });

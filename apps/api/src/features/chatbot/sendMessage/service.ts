@@ -78,18 +78,17 @@ export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
  * Resolve the conversation this turn belongs to, creating one when there is
  * none to attach to.
  *
- * Cookie-first, deliberately. The signed `chatbot_conversation_id` cookie is
- * the client's pointer to its thread, and GET /conversations/me/current
- * already resolves by that cookie alone. Falling back to "the newest active
- * row for this identity" would undo "Nueva conversación", whose whole
- * mechanism is dropping the cookie: the next turn would reattach to the thread
- * the user just left, feed its history back into the prompt, and re-pin the
- * same id.
+ * Driven entirely by the id the client sends. There is deliberately no
+ * fallback to "the newest active row for this identity": that would undo
+ * "Nueva conversación", whose whole mechanism is omitting the id. The next
+ * turn would reattach to the thread the user just left, feed its history back
+ * into the prompt, and hand back the same id.
  *
- * A cookie that no longer resolves — expired row, or an identity that has
- * since changed (anon -> authenticated) — starts a fresh conversation rather
- * than failing the turn. The rehydrate endpoint is where a stale cookie is
- * reported and cleared; the send path just moves on.
+ * An id that no longer resolves — expired row, or an identity that has since
+ * changed (anon -> authenticated) — starts a fresh conversation rather than
+ * failing the turn, and the response header names the new one. The rehydrate
+ * endpoint is where a stale id is reported as a 404; the send path just moves
+ * on.
  */
 export const resolveOrCreateConversation = async (
   tx: Tx,
@@ -149,14 +148,13 @@ export const loadConversationHistory = async (
  * They avoid the word "turnos" — that is LLM vocabulary; a person counts
  * messages.
  *
- * And only the first one names an action, because it is the only one the user
- * can actually take. Nothing in the widget escapes a full history or a full
- * conversation: "Nueva conversación" clears the cookie client-side, which
- * cannot work when the API is a different origin (see the cross-site
- * requirement in chatbot-conversation-persistence), and the DELETE endpoint is
- * deliberately not wired to a control. Telling someone to start a new
- * conversation would send them to a button that does nothing, which is worse
- * than saying less. Revisit this copy if a server-side detach ever lands.
+ * And each one names the action that actually clears it. The first is the
+ * user's own message, so it asks for a shorter one. The other two are the
+ * thread, and "Nueva conversación" genuinely escapes both now that the client
+ * holds the conversation id itself and starting fresh means omitting it — an
+ * earlier revision of this copy stayed silent because the button relied on
+ * clearing a cookie the page could not reach cross-site, and pointing someone
+ * at a control that does nothing is worse than saying less.
  */
 export const enforceUserInputCap = (userContent: string): void => {
   if (estimateTokens(userContent) > CHATBOT_MAX_USER_INPUT_TOKENS) {
@@ -170,7 +168,7 @@ export const enforceHistoryCap = (history: { content: string }[]): void => {
   const total = history.reduce((sum, m) => sum + estimateTokens(m.content), 0);
   if (total > CHATBOT_MAX_HISTORY_TOKENS) {
     throw new RequestTooLargeError(
-      "Esta conversación acumuló demasiado texto y no puedo continuarla."
+      "Esta conversación acumuló demasiado texto y no puedo continuarla. Inicia una nueva conversación para seguir."
     );
   }
 };
@@ -184,7 +182,7 @@ export const enforceTurnCap = async (
   });
   if (userTurns >= CHATBOT_MAX_TURNS_PER_CONVERSATION) {
     throw new RequestTooLargeError(
-      "Esta conversación llegó a su máximo de mensajes."
+      "Esta conversación llegó a su máximo de mensajes. Inicia una nueva conversación para seguir."
     );
   }
 };

@@ -11,18 +11,14 @@ import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { ChatMessageRole, SystemRole } from "@repo/database/enums";
 import { createTestApp } from "@test/factories/appFactory.js";
-import { CHATBOT_CONVERSATION_COOKIE_NAME } from "@/features/chatbot/helpers/conversationCookie.js";
 
 const FUTURE = (): Date => new Date(Date.now() + 24 * 60 * 60 * 1000);
 const PAST = (): Date => new Date(Date.now() - 60_000);
 
-const signedConversationCookie = (
-  app: FastifyInstance,
-  conversationId: bigint
-): string => {
-  const signed = app.signCookie(conversationId.toString());
-  return `${CHATBOT_CONVERSATION_COOKIE_NAME}=${signed}`;
-};
+const urlFor = (conversationId: bigint | string): string =>
+  `/api/chatbot/conversations/me/current?conversationId=${encodeURIComponent(
+    conversationId.toString()
+  )}`;
 
 const SAMPLE_SOURCE_CITED = [
   {
@@ -67,7 +63,7 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
     forcedUserId = me.id;
   });
 
-  it("returns 204 when no cookie is present", async () => {
+  it("returns 204 when no conversationId is provided", async () => {
     const response = await app.inject({
       method: "GET",
       url: "/api/chatbot/conversations/me/current",
@@ -109,8 +105,7 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
 
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: { cookie: signedConversationCookie(app, conversation.id) },
+      url: urlFor(conversation.id),
     });
     expect(response.statusCode).toBe(200);
     const body: {
@@ -155,8 +150,7 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
     });
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: { cookie: signedConversationCookie(app, conversation.id) },
+      url: urlFor(conversation.id),
     });
     expect(response.statusCode).toBe(200);
     const body: { messages: Array<{ sourcesCited: unknown }> } =
@@ -164,7 +158,7 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
     expect(body.messages[0].sourcesCited).toEqual([]);
   });
 
-  it("returns 404 when the cookie points to an expired conversation", async () => {
+  it("returns 404 when the id points to an expired conversation", async () => {
     const conversation = await prisma.chatbotChatConversation.create({
       data: {
         userId: forcedUserId,
@@ -181,21 +175,14 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
 
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: { cookie: signedConversationCookie(app, conversation.id) },
+      url: urlFor(conversation.id),
     });
+    // 404 is what tells the widget to drop its stored id, so it does not
+    // re-attempt this lookup on every reload.
     expect(response.statusCode).toBe(404);
-    const setCookie = response.headers["set-cookie"];
-    const cookieHeader = Array.isArray(setCookie)
-      ? setCookie.join("; ")
-      : (setCookie ?? "");
-    // Expired → clear the stale cookie so the widget does not re-attempt
-    // this lookup on every reload.
-    expect(cookieHeader).toContain(CHATBOT_CONVERSATION_COOKIE_NAME);
-    expect(cookieHeader).toContain("Max-Age=0");
   });
 
-  it("returns 404 when the cookie points to a different user's conversation (IDOR check)", async () => {
+  it("returns 404 when the id names a different user's conversation (IDOR check)", async () => {
     const otherUser = await prisma.user.create({
       data: {
         idpUserId: "other-user-idp-id",
@@ -213,15 +200,12 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
     });
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: {
-        cookie: signedConversationCookie(app, otherConversation.id),
-      },
+      url: urlFor(otherConversation.id),
     });
     expect(response.statusCode).toBe(404);
   });
 
-  it("returns 404 when the cookie points to an anonymous conversation and the request is authenticated (V1 anon→auth not supported)", async () => {
+  it("returns 404 when the id names an anonymous conversation and the request is authenticated (V1 anon→auth not supported)", async () => {
     // Per Decision 28: V1 does not support the anon → auth claim transition.
     // A user who started anonymously and then logs in receives 404 here, and
     // the client falls back to a new conversation.
@@ -234,46 +218,34 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
     });
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: {
-        cookie: signedConversationCookie(app, anonConversation.id),
-      },
+      url: urlFor(anonConversation.id),
     });
     expect(response.statusCode).toBe(404);
   });
 
-  it("returns 404 when the cookie value is not signed by the server (tampered cookie)", async () => {
-    const conversation = await prisma.chatbotChatConversation.create({
-      data: {
-        userId: forcedUserId,
-        expiresAt: FUTURE(),
-      },
-    });
-    // Raw (un-signed) value — readSignedConversationCookie rejects via
-    // request.unsignCookie which sets `.valid = false`. The handler must treat
-    // this identically to a missing cookie path (204) so a forged cookie can't
-    // probe for a real id.
-    const tampered = `${CHATBOT_CONVERSATION_COOKIE_NAME}=${conversation.id.toString()}`;
+  it("returns 404 when the id is well-formed but names no row (forged id)", async () => {
+    // There is no signature on the id any more, so a caller can name any
+    // number they like. The identity filter is what makes that harmless: the
+    // lookup is scoped to the requester, so an id they do not own misses
+    // exactly like one that never existed. This is the same guarantee the
+    // IDOR case above asserts, stated for an id with no row behind it at all.
     const response = await app.inject({
       method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: { cookie: tampered },
-    });
-    expect(response.statusCode).toBe(204);
-  });
-
-  it("returns 404 when the cookie is signed but the value is not a valid conversation id format", async () => {
-    // Signed but malformed payload (e.g., non-numeric). Defensive parse in the
-    // handler should refuse instead of trusting Prisma to throw on the bigint
-    // coercion downstream.
-    const malformed = app.signCookie("not-a-number");
-    const response = await app.inject({
-      method: "GET",
-      url: "/api/chatbot/conversations/me/current",
-      headers: {
-        cookie: `${CHATBOT_CONVERSATION_COOKIE_NAME}=${malformed}`,
-      },
+      url: urlFor("999999999"),
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  it("returns 400 when the conversationId is not a positive integer", async () => {
+    // Refused at the schema boundary rather than coerced: BigInt("not-a-number")
+    // throws, and a handler that reached Prisma with it would 500 on a request
+    // that is simply malformed.
+    for (const malformed of ["not-a-number", "0", "-1", "1.5", ""]) {
+      const response = await app.inject({
+        method: "GET",
+        url: urlFor(malformed),
+      });
+      expect(response.statusCode).toBe(400);
+    }
   });
 });

@@ -19,8 +19,8 @@ export type CurrentConversationRow = {
 };
 
 /**
- * Fetch the conversation pinned by the caller's `chatbot_conversation_id`
- * cookie iff (a) the row is still within its TTL window, AND (b) the row's
+ * Fetch the conversation named by the caller's `conversationId` query
+ * parameter iff (a) the row is still within its TTL window, AND (b) the row's
  * identity matches the requester strictly:
  *
  *   - authenticated requester → `user_id = caller.userId AND session_id IS NULL`

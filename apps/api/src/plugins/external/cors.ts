@@ -1,5 +1,6 @@
 import fp from "fastify-plugin";
 import cors, { FastifyCorsOptions } from "@fastify/cors";
+import { CHATBOT_CONVERSATION_ID_HEADER } from "@repo/types";
 import { ALLOWED_ORIGIN } from "@/config/environment.js";
 
 export const autoConfig: FastifyCorsOptions = {
@@ -16,11 +17,17 @@ export const autoConfig: FastifyCorsOptions = {
   // every deployment that does not proxy /api, so this is the normal case, not
   // an edge one. Exposing them leaks nothing: the same values are already in
   // the response the caller just received.
+  //
+  // The conversation id rides the same rule: the chatbot widget reads it off
+  // every POST /message response to learn which thread the turn landed in, and
+  // without this the browser hides it from the page exactly like the
+  // rate-limit values.
   exposedHeaders: [
     "x-ratelimit-limit",
     "x-ratelimit-remaining",
     "x-ratelimit-reset",
     "retry-after",
+    CHATBOT_CONVERSATION_ID_HEADER,
   ],
 };
 

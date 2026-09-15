@@ -8,6 +8,7 @@ import {
   inject,
 } from "vitest";
 import { ChatMessageRole } from "@repo/database/enums";
+import { CHATBOT_CONVERSATION_ID_HEADER } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
 import { createTestApp } from "@test/factories/appFactory.js";
@@ -118,11 +119,12 @@ describe("POST /api/chatbot/message — integration", () => {
     expect(response.statusCode).toBe(400);
   });
 
-  it("emits Set-Cookie chatbot_conversation_id and SSE response headers", async () => {
-    // Pins the wire: rehydrate (Decision 28) needs Set-Cookie, the widget
-    // needs the SSE response headers. A regression in writeSseHeaders or
-    // setConversationCookie would silently break both.
-    const { status, responseHeaders, setCookie } = await collectSseEvents(
+  it("emits the conversation id header and the SSE response headers", async () => {
+    // Pins the wire: rehydrate (Decision 28) needs the conversation id, the
+    // widget needs the SSE response headers. Both travel on the hijacked
+    // response, which Fastify does not serialize for us — a regression in
+    // writeSseHeaders would silently drop either one.
+    const { status, responseHeaders } = await collectSseEvents(
       app,
       "/api/chatbot/message",
       { content: "header check" },
@@ -132,14 +134,14 @@ describe("POST /api/chatbot/message — integration", () => {
     expect(responseHeaders.get("content-type")).toMatch(/text\/event-stream/);
     expect(responseHeaders.get("cache-control")).toMatch(/no-cache/);
     expect(responseHeaders.get("x-accel-buffering")).toBe("no");
-    expect(
-      setCookie.some((c) => c.startsWith("chatbot_conversation_id="))
-    ).toBe(true);
+    expect(responseHeaders.get(CHATBOT_CONVERSATION_ID_HEADER)).toMatch(
+      /^\d+$/
+    );
   });
 
-  it("follows the conversation cookie, and starts a new thread without it", async () => {
-    // "Nueva conversación" works purely by dropping the client cookie, so the
-    // send path has to resolve by that cookie. Resolving by identity alone
+  it("follows the conversationId in the body, and starts a new thread without it", async () => {
+    // "Nueva conversación" works purely by dropping the id the client holds,
+    // so the send path has to resolve by that id. Resolving by identity alone
     // would silently reattach the next turn to the thread just discarded.
     const first = await collectSseEvents(
       app,
@@ -147,20 +149,22 @@ describe("POST /api/chatbot/message — integration", () => {
       { content: "primer mensaje" },
       { ownsApp: false }
     );
-    const conversationCookie = first.setCookie
-      .find((c) => c.startsWith("chatbot_conversation_id="))
-      ?.split(";")[0];
-    expect(conversationCookie).toBeDefined();
+    // `?? undefined` rather than the raw null: the field is optional on the
+    // wire and `null` would be a 400, so a missing header must degrade to
+    // "omitted" — which the conversation count below then catches.
+    const conversationId =
+      first.responseHeaders.get(CHATBOT_CONVERSATION_ID_HEADER) ?? undefined;
+    expect(conversationId).toBeDefined();
 
     await collectSseEvents(
       app,
       "/api/chatbot/message",
-      { content: "segundo mensaje" },
-      { ownsApp: false, cookies: conversationCookie }
+      { content: "segundo mensaje", conversationId },
+      { ownsApp: false }
     );
     expect(await prisma.chatbotChatConversation.count()).toBe(1);
 
-    // Same identity, no cookie — the reset case.
+    // Same identity, no id — the reset case.
     await collectSseEvents(
       app,
       "/api/chatbot/message",

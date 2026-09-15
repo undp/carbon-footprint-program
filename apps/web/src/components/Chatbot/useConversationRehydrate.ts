@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SourceCitationWire } from "@repo/types";
 import { API_BASE_URL } from "@/config/environment";
+import { clearConversationId, readConversationId } from "./conversationStore";
 import type { SeedMessage } from "./useChatStream";
 
 // Absolute for the same reason as the URLs in useChatStream.ts — see the note
@@ -40,11 +41,11 @@ type UseConversationRehydrateResult = {
 /**
  * Load the caller's persisted conversation once on mount.
  *
- * The server reads the signed `chatbot_conversation_id` cookie, checks its TTL
- * and that the request identity matches the row, and returns the thread when
- * valid. 204 (no cookie), 404 (expired / identity mismatch — the response also
- * clears the stale cookie), and transport failures ALL collapse to "start
- * empty": rehydration is an affordance, never a fatal path.
+ * The client names the thread it wants; the server checks its TTL and that the
+ * request identity matches the row, and returns it when valid. No stored id,
+ * 404 (expired / identity mismatch — the stale id is dropped here so the next
+ * reload does not repeat the miss), and transport failures ALL collapse to
+ * "start empty": rehydration is an affordance, never a fatal path.
  *
  * Kept separate from `useChatStream` on purpose. Folding this fetch into that
  * hook would make every one of its turn-streaming tests observe an extra
@@ -67,12 +68,29 @@ export const useConversationRehydrate = ({
   useEffect(() => {
     let cancelled = false;
     void (async () => {
+      const conversationId = readConversationId();
+      if (conversationId === null) {
+        // Nothing to rehydrate — a first visit, or one that just started a new
+        // conversation. Skipping the round-trip entirely is the point of
+        // holding the id client-side; the server could not have answered
+        // anything but 204.
+        setHistoryLoading(false);
+        return;
+      }
       try {
-        const response = await fetch(LOAD_URL, {
-          method: "GET",
-          credentials: "include",
-        });
-        if (cancelled || response.status !== 200) return;
+        const response = await fetch(
+          `${LOAD_URL}?conversationId=${encodeURIComponent(conversationId)}`,
+          { method: "GET", credentials: "include" }
+        );
+        if (cancelled) return;
+        if (response.status === 404) {
+          // The row expired, was deleted, or belongs to another identity. Drop
+          // the pointer so the next turn opens a fresh thread instead of
+          // naming one that will never resolve.
+          clearConversationId();
+          return;
+        }
+        if (response.status !== 200) return;
         const body = (await response.json()) as LoadedConversationResponse;
         if (cancelled) return;
         onLoadedRef.current(
