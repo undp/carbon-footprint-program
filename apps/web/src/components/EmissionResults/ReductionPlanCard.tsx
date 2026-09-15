@@ -105,7 +105,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                     WebkitTextFillColor: "transparent",
                   }}
                 >
-                  Ver plan completo
+                  Ver todas las iniciativas
                 </Typography>
               </Button>
             )}
