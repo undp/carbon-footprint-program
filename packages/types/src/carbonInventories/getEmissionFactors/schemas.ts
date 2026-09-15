@@ -24,7 +24,9 @@ const ItemSchema = z
     factorValue: z.number().describe("Total factor value, e.g. 2.395"),
     rateUnit: z
       .string()
-      .describe("Unit for the factor value, e.g. 'kg CO₂e/ton'"),
+      .describe(
+        "Rate unit abbreviation exactly as the catalog stores it, e.g. 'kg/ton'. The CO₂e of the numerator is added when rendering, not here."
+      ),
     gasBreakdownLines: z
       .array(
         z.object({
@@ -35,7 +37,7 @@ const ItemSchema = z
         })
       )
       .describe(
-        "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e of <gas>/<denominator>` where the denominator is derived from `rateUnit`."
+        "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e de <gas>/<denominator>` where the denominator is derived from `rateUnit`."
       ),
     factorSource: EmissionFactorBaseSchema.shape.source,
     factorSourceDetail: z
