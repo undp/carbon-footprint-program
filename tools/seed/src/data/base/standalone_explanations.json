@@ -16,8 +16,8 @@
   },
   {
     "slug": "reduction-plan",
-    "name": "Plan de reducción",
-    "description": "Texto de ayuda mostrado en la sección 'Plan de reducción por categoría'."
+    "name": "Iniciativas de reducción",
+    "description": "Texto de ayuda mostrado en la sección 'Iniciativas de reducción por categoría'."
   },
   {
     "slug": "transparency",
@@ -111,8 +111,8 @@
   },
   {
     "slug": "reduction-plan-initiatives-maintainer",
-    "name": "Mantenedor de iniciativas de plan de reducción",
-    "description": "Texto de ayuda mostrado en el mantenedor de iniciativas para planes de reducción."
+    "name": "Mantenedor de iniciativas de reducción",
+    "description": "Texto de ayuda mostrado en el mantenedor del catálogo de iniciativas de reducción."
   },
   {
     "slug": "subcategory-recommendations-maintainer",

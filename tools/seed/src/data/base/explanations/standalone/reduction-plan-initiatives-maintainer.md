@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Esta pantalla administra el catálogo de Iniciativas tipo que las organizaciones pueden seleccionar al armar su Plan de Reducción de emisiones (por ejemplo, cambio a iluminación LED, electrificación de flota, mejora de eficiencia térmica, sustitución de combustibles, recambio de equipos refrigerantes, entre otras).
+Esta pantalla administra el catálogo de Iniciativas tipo que las organizaciones pueden seleccionar al elegir sus iniciativas de reducción de emisiones (por ejemplo, cambio a iluminación LED, electrificación de flota, mejora de eficiencia térmica, sustitución de combustibles, recambio de equipos refrigerantes, entre otras).
 
 Cada Iniciativa está asociada a una Sub-categoría dentro de una versión de Metodología, lo que permite ofrecer a las organizaciones un set de iniciativas pertinentes al ámbito de emisiones que están trabajando. Las organizaciones eligen iniciativas desde este catálogo al construir su plan; los planes ya guardados referencian la iniciativa por identificador.
 
