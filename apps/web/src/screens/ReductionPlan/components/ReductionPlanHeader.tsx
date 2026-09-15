@@ -61,7 +61,7 @@ export const ReductionPlanHeader: FC<ReductionPlanHeaderProps> = ({
   return (
     <Box className="flex flex-row items-center justify-between gap-4 rounded-lg bg-white p-4">
       <Typography variant="h5" fontWeight={600} noWrap maxWidth="30dvw">
-        {selectedInventoryName || "Plan de reducción"}
+        {selectedInventoryName || "Iniciativas de reducción"}
       </Typography>
       <Box className="flex shrink-0 flex-row gap-4">
         <OrganizationSelector

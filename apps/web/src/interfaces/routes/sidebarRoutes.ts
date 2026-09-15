@@ -18,6 +18,6 @@ export const SidebarRoutesTranslations: Record<SidebarRoute, string> = {
   [SidebarRoutes.MY_ORGANIZATION]: `Mi ${VOCAB.organization.noun.singular}`,
   [SidebarRoutes.CARBON_INVENTORIES]: `Huella ${VOCAB.organization.relationalAdjective}`,
   [SidebarRoutes.REDUCTION_PROJECTS]: "Proyectos de reducción",
-  [SidebarRoutes.REDUCTION_PLAN]: "Plan de reducción",
+  [SidebarRoutes.REDUCTION_PLAN]: "Iniciativas de reducción",
   [SidebarRoutes.RECOGNITIONS]: "Reconocimientos",
 };
