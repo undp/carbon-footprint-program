@@ -7,6 +7,7 @@ import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { DevTool } from "@hookform/devtools";
 import {
+  ConfirmDialog,
   FormAutocompleteField,
   FormSelectField,
   FormTextField,
@@ -18,7 +19,7 @@ import {
   CarbonInventoryNavigationButton,
 } from "./components";
 import { useCarbonInventory } from "@/api/query";
-import { EXIT_DIALOG_CONTENT } from "./constants";
+import { EXIT_DIALOG_CONTENT, YEAR_CHANGE_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -138,18 +139,25 @@ export const BusinessProfilingScreen: FC = () => {
     });
   }, [navigate, inventoryId]);
 
-  const { submit, isSubmitting } = useBusinessProfilingSubmit({
+  const {
+    submit,
+    isSubmitting,
+    yearChangeConfirmation: advanceYearChangeConfirmation,
+  } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
   });
 
   const goToListOrLanding = user ? goToList : goToLanding;
 
-  const { submit: submitAndExit, isSubmitting: isSubmittingAndExiting } =
-    useBusinessProfilingSubmit({
-      inventoryId,
-      onSuccess: goToListOrLanding,
-    });
+  const {
+    submit: submitAndExit,
+    isSubmitting: isSubmittingAndExiting,
+    yearChangeConfirmation: exitYearChangeConfirmation,
+  } = useBusinessProfilingSubmit({
+    inventoryId,
+    onSuccess: goToListOrLanding,
+  });
 
   useInventoryErrorHandler(inventoryError);
 
@@ -393,6 +401,26 @@ export const BusinessProfilingScreen: FC = () => {
         onClose={() => setIsExitDialogOpen(false)}
         onConfirm={goToListOrLanding}
         {...exitDialogProps}
+      />
+
+      {/* One per exit that saves the year. The condition lives in
+          useBusinessProfilingSubmit, so each instance only opens for the submit
+          it belongs to. */}
+      <ConfirmDialog
+        open={advanceYearChangeConfirmation.isOpen}
+        onClose={advanceYearChangeConfirmation.cancel}
+        onConfirm={advanceYearChangeConfirmation.confirm}
+        isLoading={isSubmitting}
+        variant="warning"
+        {...YEAR_CHANGE_DIALOG_CONTENT}
+      />
+      <ConfirmDialog
+        open={exitYearChangeConfirmation.isOpen}
+        onClose={exitYearChangeConfirmation.cancel}
+        onConfirm={exitYearChangeConfirmation.confirm}
+        isLoading={isSubmittingAndExiting}
+        variant="warning"
+        {...YEAR_CHANGE_DIALOG_CONTENT}
       />
     </>
   );
