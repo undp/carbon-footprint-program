@@ -7,6 +7,7 @@ import {
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
 import { AppActionButton } from "@/components";
+import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -46,7 +47,13 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   };
 
   return (
-    <Box className="flex justify-center gap-3">
+    // Tagged on the row of actions rather than on either button: one spotlight
+    // introduces both, and the ids repeat harmlessly across rows because the
+    // resolver takes the first match.
+    <Box
+      className="flex justify-center gap-3"
+      {...onboardingTargetProps("emission-capture-line-actions")}
+    >
       {uploadFiles && (
         <Badge
           badgeContent={totalFilesCount}
