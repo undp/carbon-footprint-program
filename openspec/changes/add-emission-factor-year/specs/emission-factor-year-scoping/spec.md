@@ -1,28 +1,41 @@
 ## ADDED Requirements
 
-### Requirement: An emission factor declares the footprint year it applies to
+### Requirement: Every emission factor declares the footprint year it applies to
 
-`EmissionFactor` SHALL carry a nullable `year` field. A factor with a year SHALL apply only to footprints of that year. A factor without a year SHALL apply to footprints of any year, preserving the behaviour of the entire catalogue as it exists before this change.
+`EmissionFactor` SHALL carry a required `year` field. A factor SHALL apply only to footprints of that year. There SHALL be no undated factor: an administrator who considers a factor still applicable to a later year SHALL say so by dating a factor for that year.
 
 `year` SHALL mean the footprint year the factor is valid for, and SHALL be independent of `source`, which is a free-text label naming the factor or the edition it came from. An administrator MAY name a factor `"DEFRA 2025"` and declare it valid for 2026.
 
-The year accepted by the maintainer SHALL be bounded to `[currentYear - 4 .. currentYear + 1]`, shared with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity.
+The existing catalogue SHALL be dated by migration to the year it serves, without rewriting any `source` string, so each row keeps its edition in the name while stating its validity in the column.
 
-#### Scenario: An undated factor is offered to a footprint of any year
+The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The API SHALL validate only a wide absolute bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
 
-- **WHEN** a footprint for year 2024 requests its methodology
-- **THEN** every ACTIVE factor with `year = NULL` for its subcategories SHALL be offered, exactly as before this change
-
-#### Scenario: A dated factor is offered only to its own year
+#### Scenario: A factor is offered only to footprints of its own year
 
 - **GIVEN** a factor with `year = 2026`
 - **WHEN** a footprint for year 2024 requests its methodology
 - **THEN** that factor SHALL NOT appear among the offered factors
 
-#### Scenario: The maintainer rejects a year outside the bounded range
+#### Scenario: The migration dates the existing catalogue without touching its sources
 
-- **WHEN** an administrator submits an emission factor with a year below `currentYear - 4` or above `currentYear + 1`
-- **THEN** the request SHALL be rejected with a validation error, and no factor SHALL be created or updated
+- **WHEN** the migration runs against a database holding the undated catalogue
+- **THEN** every existing emission factor SHALL end with the year the catalogue serves, AND no `source` string SHALL have been modified, AND the column SHALL be `NOT NULL` afterwards
+
+#### Scenario: An edition can be declared valid for a later year
+
+- **WHEN** an administrator creates a factor with `source = "DEFRA 2025"` and `year = 2026`
+- **THEN** the creation SHALL succeed, AND the factor SHALL be offered to footprints of 2026 and to no other year
+
+#### Scenario: A factor cannot be created without a year
+
+- **WHEN** an administrator submits an emission factor with no year
+- **THEN** the request SHALL be rejected, AND no factor SHALL be created
+
+#### Scenario: An old factor stays editable after the window slides past it
+
+- **GIVEN** a factor dated four or more years before the current year
+- **WHEN** an administrator edits its value without changing its year
+- **THEN** the update SHALL succeed
 
 ### Requirement: Uniqueness accounts for the year across all enforcement layers
 
@@ -30,7 +43,7 @@ Emission-factor uniqueness SHALL admit one factor per `(subcategory, required di
 
 `validateSourceConsistency` SHALL require a single `source` per `(subcategory, year)` rather than per subcategory, so that a catalogue loaded for a new year can carry its own citation without conflicting with a previous year's.
 
-The partial unique index on `emission_factor` SHALL include the year as `COALESCE(year, 0)`, so that adding a nullable column does not cause Postgres' default `NULLS DISTINCT` behaviour to silently void the existing uniqueness of the undated catalogue.
+The partial unique index on `emission_factor` SHALL include the year as a plain column.
 
 #### Scenario: Two factors for the same key in different years coexist
 
@@ -56,37 +69,35 @@ The partial unique index on `emission_factor` SHALL include the year as `COALESC
 - **WHEN** an administrator creates a factor for the same subcategory with `source = "DEFRA 2026"` and `year = 2026`
 - **THEN** the creation SHALL succeed
 
-### Requirement: Capture offers only factors applicable to the footprint's year
+### Requirement: Capture offers only factors of the footprint's year
 
-The methodology returned for a footprint SHALL include only the factors whose year matches the footprint's year, plus those with no year. The filter SHALL be applied in the database query, before each factor is expanded across compatible rate units, so the expansion never operates on a factor from another year.
+The methodology returned for a footprint SHALL include only the factors whose year equals the footprint's year. The filter SHALL be applied in the database query, before each factor is expanded across compatible rate units, so the expansion never operates on a factor from another year.
 
-When both a dated and an undated factor exist for the same `(subcategory, dimension values, rate measurement unit)` key, the dated one SHALL take precedence and the undated one SHALL be omitted. This guarantees the capture screen still resolves a chosen source to exactly one factor, which it requires in order to auto-fill the value.
+When the footprint has no year, no factors SHALL be offered.
 
-When the footprint has no year, only factors with no year SHALL be offered.
+#### Scenario: Only the footprint's year reaches capture
 
-#### Scenario: The dated factor displaces the undated one on the same key
-
-- **GIVEN** an undated factor and a `year = 2026` factor sharing subcategory, dimension values and rate measurement unit
+- **GIVEN** factors for the same subcategory dated 2025 and 2026
 - **WHEN** a footprint for year 2026 requests its methodology
-- **THEN** only the `year = 2026` factor SHALL be offered for that key, AND selecting its source SHALL auto-fill the factor value
+- **THEN** only the 2026 factor SHALL be offered, AND selecting its source SHALL auto-fill the factor value
 
-#### Scenario: The undated factor still serves a year that has no dated factor
+#### Scenario: A year with no catalogue offers nothing
 
-- **GIVEN** an undated factor and a `year = 2026` factor sharing the same key
-- **WHEN** a footprint for year 2024 requests its methodology
-- **THEN** the undated factor SHALL be offered for that key
+- **GIVEN** a catalogue dated 2025 only
+- **WHEN** a footprint for year 2023 requests its methodology
+- **THEN** no emission factors SHALL be offered for its subcategories, leaving the manual factor as the only path
 
-#### Scenario: A footprint with no year is offered only undated factors
+#### Scenario: A footprint with no year is offered nothing
 
 - **GIVEN** a footprint whose `year` is NULL
 - **WHEN** it requests its methodology
-- **THEN** only factors with `year = NULL` SHALL be offered
+- **THEN** no emission factors SHALL be offered
 
 ### Requirement: Line synchronization validates the year and freezes it
 
 `CarbonInventoryLineFactor` SHALL carry a nullable `applied_factor_year`, frozen at capture time alongside the value, source and rate unit it already freezes.
 
-When a line references a catalogue factor, the server SHALL read that factor from the database and SHALL reject the request when its year is neither NULL nor equal to the footprint's year. The rule SHALL apply identically on creation and on update, with no exception for a factor the line already held — clearing the stale factors on a year change means no legitimate request ever carries a mismatched one. The year written to the snapshot SHALL come from the database row, never from the request payload.
+When a line references a catalogue factor, the server SHALL read that factor from the database and SHALL reject the request when its year differs from the footprint's year. The rule SHALL apply identically on creation and on update — clearing the stale factors on a year change means no legitimate request ever carries a mismatched one. The year written to the snapshot SHALL come from the database row, never from the request payload.
 
 When a line uses a custom factor source and therefore has no catalogue factor behind it, `applied_factor_year` SHALL be set to the footprint's year at the moment the line is created.
 
@@ -136,12 +147,6 @@ Because the year is only editable while the footprint is editable, this clearing
 - **GIVEN** a line whose factor was entered with a custom source
 - **WHEN** its footprint's year changes
 - **THEN** that line SHALL keep its factor snapshot, its manual value and its manual source, AND the emission editor SHALL display the year frozen on it
-
-#### Scenario: A line whose factor had no year is cleared like any other catalogue line
-
-- **GIVEN** a line frozen with a catalogue factor whose `applied_factor_year` is NULL
-- **WHEN** its footprint's year changes
-- **THEN** that line SHALL be cleared, so the user picks again from the catalogue offered for the new year
 
 ### Requirement: The year survives methodology duplication, export and seeding
 
