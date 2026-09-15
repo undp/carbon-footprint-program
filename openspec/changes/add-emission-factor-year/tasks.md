@@ -25,8 +25,7 @@
 - [ ] 3.4 Add the year to the `GetAllEmissionFactorsResponseSchema` row shape, so the maintainer grid can render the column.
 - [ ] 3.5 Add the year to the emission-factor entry of `GetMethodologyExportResponseSchema`. `GetCarbonInventoryMethodologyExportResponseSchema` is a literal re-export, so the footprint-scoped export is covered with no further edit.
 - [ ] 3.6 Do **not** add a year to `GetCarbonInventoryMethodologyResponse` nor to `GetEmissionFactorsResponse`. Both are deliberate omissions — see design Decisions 9 and 12.
-- [ ] 3.7 Nothing to do for the line's factor id — PR 647 landed it as `baseFactorId`, the same name the sync request already uses, so a line round-trips unchanged. Read the note in section 9 before touching anything that reads it.
-- [ ] 3.8 Add the ids of the lines left without a factor to the `syncCarbonInventoryLines` response schema, so the client can tell the user which ones need a factor again (section 6). **Two schemas, not one**: `syncCarbonInventoryLines/schemas.ts` declares its own `.strict()` `LineItemSchema` that the sync response uses, structurally parallel to the one in `getCarbonInventoryById/schemas.ts`, and `mapLineToResponse` feeds both. A field added to only one is stripped by the serializer on the other. PR 647 hit exactly this.
+- [ ] 3.7 Nothing to do for the line's factor id — PR 647 landed it as `baseFactorId`, the same name the sync request already uses, so a line round-trips unchanged. Read the note in section 9 before touching anything that reads it. If this change ever does add a field to a line, note that there are **two** parallel `.strict()` line schemas — `getCarbonInventoryById` and `syncCarbonInventoryLines`, both fed by `mapLineToResponse` — and a field added to only one is stripped by the serializer on the other.
 
 ## 4. API — emission factor write path
 
@@ -49,10 +48,9 @@
 - [ ] 6.1 Add `year` to the `carbonInventory.findUnique` select in `syncCarbonInventoryLines/service.ts`. Leave the read where it is, before the transaction opens: with the interleaving accepted (design Decision 7), moving it buys nothing at `READ COMMITTED`.
 - [ ] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. Those ids are always the numeric id of a real `emission_factor` row: `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`, so the composite id of a converted factor (`123-1`) never reaches the payload. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
 - [ ] 6.3 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
-- [ ] 6.4 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class: this is reconciliation, not validation — see design Decision 7.
-- [ ] 6.5 Collect the affected line ids and return them in the response (schema in 3.8).
-- [ ] 6.6 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
-- [ ] 6.7 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
+- [ ] 6.4 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class and no report of what was cleared: this is reconciliation, not validation — see design Decision 7.
+- [ ] 6.5 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
+- [ ] 6.6 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
 
 ## 7. API — duplication and exports
 
@@ -82,18 +80,16 @@
 
 - [ ] 10.1 Add the year to `toFormEmissionFactor` and to the form defaults in `useEmissionFactorsForm.ts`. A new row should default to the current year rather than to empty.
 - [ ] 10.2 Add a required «Año» column to `useEmissionFactorColumns.tsx`, as a select over `[currentYear - 4 .. currentYear + 1]` derived beside `CALCULATOR_YEARS_RANGE_FROM_CURRENT` in `apps/web/src/config/constants.ts`. No "sin año" option.
-- [ ] 10.3 When a row's year falls outside that window, add it to that row's options. A MUI `Select` whose value is not among its options renders blank and warns on the console, so without this the grid misreports the data it exists to show. Per row, so an obsolete year cannot be assigned to a different factor.
-- [ ] 10.4 Add `year` to the create payload in `EmissionFactorsMaintainerScreen.tsx`, which enumerates the fields it sends.
-- [ ] 10.5 Add `year` to the update payload in the same file, and — the one that is easy to miss — to the `hasRealChanges` comparison. Without it, an administrator who corrects only the year sees the row close with no error and nothing saved.
-- [ ] 10.6 Add a TODO at `EmissionFactorsMaintainerScreen` recording that a year filter was deferred, and why filtering is risky here: rows are addressed by field-array index.
+- [ ] 10.3 Add `year` to the create payload in `EmissionFactorsMaintainerScreen.tsx`, which enumerates the fields it sends.
+- [ ] 10.4 Add `year` to the update payload in the same file, and — the one that is easy to miss — to the `hasRealChanges` comparison. Without it, an administrator who corrects only the year sees the row close with no error and nothing saved.
+- [ ] 10.5 Add a TODO at `EmissionFactorsMaintainerScreen` recording that showing a year which has fallen outside the offered window was deferred — a MUI `Select` renders a value that is not among its options as blank, which will not bite until the sliding window passes 2025 — recording that a year filter was deferred, and why filtering is risky here: rows are addressed by field-array index.
 
 ## 11. Web — capture and step 1
 
 - [ ] 11.1 Put the confirmation inside `useBusinessProfilingSubmit`, not in the screen. `BusinessProfilingScreen` instantiates that hook twice — once for advancing, once for saving on the way out — and both exits funnel through the same `submit`, so guarding there covers both and covers a third exit if one is ever added.
 - [ ] 11.2 The Spanish copy must say plainly that the lines using a catalogue factor will be left without one and will have to be reassigned, that their quantities and units are kept, and that manually entered factors are kept as they are. It is shown only when the year actually changed and the footprint already has declared lines.
-- [ ] 11.3 Show the lines the server reports as left without a factor (task 6.6) after a capture save, so a reconciliation is never silent on screen.
-- [ ] 11.4 Verify the cleared lines render through the existing "line without a factor" state, the same one a newly added line uses, and that `useLineValidation` and `fieldValidationService` already flag them as incomplete.
-- [ ] 11.5 Check what capture shows when a footprint's year has no catalogue at all. The subcategory should still be usable through the manual factor, without a confusing empty dropdown.
+- [ ] 11.3 Verify the cleared lines render through the existing "line without a factor" state, the same one a newly added line uses, and that `useLineValidation` and `fieldValidationService` already flag them as incomplete. This is what carries the whole notice: nothing tells the user a factor was removed, so the line has to look unfinished on its own.
+- [ ] 11.4 Check what capture shows when a footprint's year has no catalogue at all. The subcategory should still be usable through the manual factor, without a confusing empty dropdown.
 
 ## 12. Seed
 

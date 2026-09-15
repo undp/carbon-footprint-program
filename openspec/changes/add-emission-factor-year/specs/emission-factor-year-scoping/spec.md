@@ -10,8 +10,6 @@ The existing catalogue SHALL be dated by migration to the year it serves, withou
 
 The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The request schemas SHALL enforce only a wide static bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
 
-A factor whose year falls outside that window SHALL still display its year and remain editable: its own year SHALL be offered as an option of its row.
-
 #### Scenario: A factor is offered only to footprints of its own year
 
 - **GIVEN** a factor with `year = 2026`
@@ -38,12 +36,6 @@ A factor whose year falls outside that window SHALL still display its year and r
 - **GIVEN** a factor dated four or more years before the current year
 - **WHEN** an administrator edits its value without changing its year
 - **THEN** the update SHALL succeed
-
-#### Scenario: A year outside the offered window is still shown
-
-- **GIVEN** a factor whose year falls outside the window the maintainer offers
-- **WHEN** the maintainer grid renders that factor
-- **THEN** its year SHALL be displayed rather than left blank, AND SHALL be selectable on that row
 
 ### Requirement: The migration leaves existing footprints in a state the new rules describe
 
@@ -175,7 +167,7 @@ When the footprint has no year, the service SHALL return the methodology with no
 
 When a line references a catalogue factor, the server SHALL read that factor from the database. When its year differs from the footprint's year, the line SHALL be persisted **without** a factor snapshot and without a computed result, keeping its subcategory, dimension values, measurement unit, quantity, comment and files, so the line returns to asking for a factor. The request SHALL NOT be rejected, and no other line SHALL be affected.
 
-The response SHALL identify the lines left without a factor, so the user is told in Spanish which ones must be reassigned rather than discovering it silently.
+The line SHALL land in the same state as one that never had a factor, so that the existing completeness rules show it as unfinished. Nothing else SHALL report what was cleared.
 
 Lines whose factor was entered manually SHALL be untouched by this rule.
 
@@ -187,19 +179,19 @@ The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a
 
 - **GIVEN** a footprint for year 2026 and a factor with `year = 2024`
 - **WHEN** a sync request creates a line referencing that factor
-- **THEN** the request SHALL succeed, AND the line SHALL be persisted with its subcategory, dimension values, measurement unit and quantity and with no factor snapshot and no result, AND the response SHALL identify that line as left without a factor
+- **THEN** the request SHALL succeed, AND the line SHALL be persisted with its subcategory, dimension values, measurement unit and quantity and with no factor snapshot and no result, AND it SHALL read as incomplete by the same rules as a line that never had a factor
 
 #### Scenario: The rest of the payload is persisted normally
 
 - **GIVEN** a footprint for year 2026 and a sync request carrying one line with a factor of 2024 and another with a factor of 2026
 - **WHEN** the request is processed
-- **THEN** the 2026 line SHALL be persisted with its factor snapshot and result, AND only the other SHALL be reported as left without a factor
+- **THEN** the 2026 line SHALL be persisted with its factor snapshot and result, AND only the other SHALL be left without one
 
 #### Scenario: The same rule applies when updating a line
 
 - **GIVEN** a footprint for year 2026 with an existing line
 - **WHEN** a sync request updates that line to reference a factor with `year = 2024`
-- **THEN** the line SHALL be persisted with no factor snapshot and no result, AND SHALL be reported as left without a factor
+- **THEN** the line SHALL be persisted with no factor snapshot and no result
 
 #### Scenario: A line of the footprint's year is accepted
 
@@ -211,7 +203,7 @@ The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a
 
 - **GIVEN** a line of a 2026 footprint referencing a factor that an administrator has since re-dated to 2027
 - **WHEN** the user saves that subcategory again
-- **THEN** the save SHALL succeed, AND that line SHALL be left without a factor and reported as such, AND the other lines SHALL be unaffected
+- **THEN** the save SHALL succeed, AND that line SHALL be left without a factor, AND the other lines SHALL be unaffected
 
 ### Requirement: Changing a footprint's year clears the catalogue factors of its lines
 

@@ -136,7 +136,7 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 ### Decision 7 — Line synchronization reconciles rather than rejects, under a row lock
 
-**Choice**: when `syncCarbonInventoryLines` finds a line referencing a catalogue factor whose year differs from the footprint's, it writes that line **without** a factor snapshot and without a result — keeping its subcategory, dimension values, measurement unit, quantity, comment and files — and returns the ids of the lines left without a factor so the client can say so in Spanish. Manual-factor lines are untouched.
+**Choice**: when `syncCarbonInventoryLines` finds a line referencing a catalogue factor whose year differs from the footprint's, it writes that line **without** a factor snapshot and without a result — keeping its subcategory, dimension values, measurement unit, quantity, comment and files — leaving the cell empty and the line visibly unfinished. Manual-factor lines are untouched.
 
 **Why reconcile instead of reject**: rejecting produces a state with no way out. The user is told that a factor they never touched is invalid, on a line they may not even have edited, and the whole subcategory refuses to save. Reconciling reaches the same invariant — no line keeps a catalogue factor from another year — through the same outcome the year change already produces, which the user has seen before and knows how to resolve: the cell is empty and asks for a factor.
 
@@ -151,7 +151,7 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 It is not taken, for two reasons. The case requires two people editing the same footprint at the same moment, or one person in two tabs, and that is rare enough to accept. And the honest test for it is expensive — two real connections forced to interleave, not a simulation — to close a window narrower than the deployment window this change already accepts, where the previous API version can write a factor of any year with nothing watching. Under the reconciliation the residue is also self-correcting: the line loses its stale factor the next time that subcategory is saved. Reaching for the lock later costs the same one statement.
 
-**Cost accepted**: the clearing is silent at the moment it happens. The response carries the affected line ids precisely so it is not silent on screen, but a client that ignores that field will drop a factor without saying anything. That is the trade against an error the user cannot act on.
+**Cost accepted**: the clearing is silent. Nothing tells the user that a factor was removed — the line simply comes back without one. What carries the message instead is the state it lands in: `factorSource` returns null, and `fieldValidationService` already reads that line as incomplete by rules that exist today, so it shows up unfinished without anything being added. Reporting the affected line ids was considered and cut: it meant a field in the response schema, its collection in the service and its rendering in the capture screen — three layers for a message, in the rare paths this rule fires at all, when the frequent one (a year change) already warns beforehand with a modal.
 
 **Alternatives considered**:
 
@@ -202,7 +202,7 @@ It is not taken, for two reasons. The case requires two people editing the same 
 
 **Rationale for the range**: DEFRA publishes the year N set during year N (around June), and national grid factors publish year N's factor during N+1; both fall inside it. The forward year covers early publication or a validity that starts next year.
 
-**Out-of-window rows keep their year visible**: when a factor's year falls outside the offered window, that year is added as an option of its own row. A MUI `Select` whose value is not among its options renders blank and warns on the console, so without this the grid would misreport the data it exists to show. Injecting it per row keeps the factor editable and cannot leak an obsolete year into another row, since the option only exists where the value already is. Showing it as read-only text was the alternative — truer to the window's intent, at the cost of having to go to the database to correct a year typed wrong years earlier.
+**Out-of-window rows are deferred**: a MUI `Select` whose value is not among its options renders blank and warns on the console, so a factor dated before the window would eventually show an empty year cell. Adding that year as an option of its own row fixes it in a few lines, and is recorded as a TODO rather than built: with the catalogue dated 2025 and the window reaching back four years, the case does not arise until the window passes 2025, and by then the maintainer will have been through the bulk import and the grid filter anyway.
 
 **Rationale for the split**: the window slides every 1 January. Enforcing it server-side would make every factor of the year that drops out uneditable overnight — including for correcting its value, with an error about a field the administrator never touched. A dropdown is where typos are prevented; a static bound in `packages/types`, already consumed by both apps, still stops a `2205` and needs no new shared constant.
 
