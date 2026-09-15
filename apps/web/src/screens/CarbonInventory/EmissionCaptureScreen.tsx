@@ -40,6 +40,7 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import { useExpertModeOnboardingHighlight } from "./hooks/useExpertModeOnboardingHighlight";
+import { useLineActionsOnboardingHighlight } from "./hooks/useLineActionsOnboardingHighlight";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
 
@@ -290,6 +291,23 @@ export const EmissionCaptureScreen: FC = () => {
     [selectedCategoryData, watchedSubcategories]
   );
   useExpertModeOnboardingHighlight(isExpertModeAvailable);
+
+  // The per-line actions only exist once a source is captured, so the hint that
+  // introduces them waits for a visible line in the selected category.
+  const hasCapturedLines = useMemo(
+    () =>
+      (selectedCategoryData?.subcategories ?? []).some((subcategory) => {
+        const formSubcategory = watchedSubcategories?.[subcategory.id];
+        return (
+          shouldShowSubcategory(subcategory, formSubcategory) &&
+          Object.values(formSubcategory?.lines ?? {}).some(
+            (line) => !line.isDeleted
+          )
+        );
+      }),
+    [selectedCategoryData, watchedSubcategories]
+  );
+  useLineActionsOnboardingHighlight(hasCapturedLines, isExpertModeAvailable);
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 
