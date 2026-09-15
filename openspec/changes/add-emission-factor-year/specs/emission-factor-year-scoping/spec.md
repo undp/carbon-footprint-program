@@ -8,7 +8,7 @@
 
 The existing catalogue SHALL be dated by migration to the year it serves, without rewriting any `source` string, so each row keeps its edition in the name while stating its validity in the column.
 
-The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The API SHALL validate only a wide absolute bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
+The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The request schemas SHALL enforce only a wide static bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
 
 #### Scenario: A factor is offered only to footprints of its own year
 
@@ -73,6 +73,8 @@ The partial unique index on `emission_factor` SHALL include the year as a plain 
 
 The methodology returned for a footprint SHALL include only the factors whose year equals the footprint's year. The filter SHALL be applied in the database query, before each factor is expanded across compatible rate units, so the expansion never operates on a factor from another year.
 
+Because every returned factor is of the footprint's year by construction, the response SHALL NOT repeat the year per factor.
+
 When the footprint has no year, no factors SHALL be offered.
 
 #### Scenario: Only the footprint's year reaches capture
@@ -93,13 +95,11 @@ When the footprint has no year, no factors SHALL be offered.
 - **WHEN** it requests its methodology
 - **THEN** no emission factors SHALL be offered
 
-### Requirement: Line synchronization validates the year and freezes it
+### Requirement: Line synchronization validates the factor's year
 
-`CarbonInventoryLineFactor` SHALL carry a nullable `applied_factor_year`, frozen at capture time alongside the value, source and rate unit it already freezes.
+When a line references a catalogue factor, the server SHALL read that factor from the database and SHALL reject the request when its year differs from the footprint's year. The rule SHALL apply identically on creation and on update — clearing the stale factors on a year change means no legitimate request ever carries a mismatched one.
 
-When a line references a catalogue factor, the server SHALL read that factor from the database and SHALL reject the request when its year differs from the footprint's year. The rule SHALL apply identically on creation and on update — clearing the stale factors on a year change means no legitimate request ever carries a mismatched one. The year written to the snapshot SHALL come from the database row, never from the request payload.
-
-When a line uses a custom factor source and therefore has no catalogue factor behind it, `applied_factor_year` SHALL be set to the footprint's year at the moment the line is created.
+The year SHALL NOT be frozen on the line. A line holding a catalogue factor is guaranteed by this validation and by the clearing rule to be on its footprint's year, so that year is derived rather than stored.
 
 #### Scenario: A payload referencing a factor from another year is rejected
 
@@ -107,17 +107,17 @@ When a line uses a custom factor source and therefore has no catalogue factor be
 - **WHEN** a sync request creates a line referencing that factor
 - **THEN** the request SHALL be rejected, AND no line, input, factor snapshot or result SHALL be persisted for it
 
-#### Scenario: The frozen year comes from the database, not the payload
+#### Scenario: The same rule applies when updating a line
 
-- **GIVEN** a factor with `year = 2026`
-- **WHEN** a sync request creates a line referencing it while claiming a different year in its payload
-- **THEN** the persisted `applied_factor_year` SHALL be `2026`
+- **GIVEN** a footprint for year 2026 with an existing line
+- **WHEN** a sync request updates that line to reference a factor with `year = 2024`
+- **THEN** the request SHALL be rejected
 
-#### Scenario: A manual factor freezes the footprint's year
+#### Scenario: A line of the footprint's year is accepted
 
-- **GIVEN** a footprint for year 2023
-- **WHEN** a line is created with a custom factor source and no catalogue factor
-- **THEN** the persisted `applied_factor_year` SHALL be `2023`
+- **GIVEN** a footprint for year 2026 and a factor with `year = 2026`
+- **WHEN** a sync request creates a line referencing that factor
+- **THEN** the line, its input, its factor snapshot and its result SHALL be persisted
 
 ### Requirement: Changing a footprint's year clears the catalogue factors of its lines
 
@@ -138,7 +138,7 @@ Because the year is only editable while the footprint is editable, this clearing
 
 #### Scenario: Changing the year clears the catalogue factors
 
-- **GIVEN** the duplicated footprint, whose lines froze catalogue factors with `applied_factor_year = 2025`
+- **GIVEN** the duplicated footprint, whose lines hold catalogue factors
 - **WHEN** its year is changed to 2026 and the user confirms
 - **THEN** the user SHALL have been warned before the change was applied, AND each of those lines SHALL have no factor snapshot and no result, AND each SHALL keep its subcategory, dimension values, measurement unit and quantity, AND no replacement factor SHALL have been chosen for any of them
 
@@ -146,7 +146,7 @@ Because the year is only editable while the footprint is editable, this clearing
 
 - **GIVEN** a line whose factor was entered with a custom source
 - **WHEN** its footprint's year changes
-- **THEN** that line SHALL keep its factor snapshot, its manual value and its manual source, AND the emission editor SHALL display the year frozen on it
+- **THEN** that line SHALL keep its factor snapshot, its manual value and its manual source
 
 ### Requirement: The year survives methodology duplication, export and seeding
 
@@ -163,12 +163,12 @@ Duplicating a methodology version SHALL copy each factor's year to the new versi
 - **WHEN** a methodology is exported, either through the maintainer endpoint or through the footprint-scoped one
 - **THEN** every exported factor SHALL include its year
 
-### Requirement: The verifier's factor report reads the frozen snapshot
+### Requirement: The verifier's factor report reads the frozen source
 
-The per-footprint factor report SHALL report, for each line, the year and the source that were frozen at capture time, so a later edit to the catalogue cannot change what an already-submitted footprint reports.
+The per-footprint factor report SHALL report, for each line, the source that was frozen at capture time, so a later edit to the catalogue cannot change what an already-submitted footprint reports. It SHALL report the footprint's year alongside it.
 
 #### Scenario: Editing a factor's source does not change an existing footprint's report
 
 - **GIVEN** a footprint line captured with a factor whose source was `"DEFRA 2026"`
 - **WHEN** an administrator later edits that factor's source
-- **THEN** the footprint's factor report SHALL still show `"DEFRA 2026"`, together with the year frozen on the line
+- **THEN** the footprint's factor report SHALL still show `"DEFRA 2026"`, together with the footprint's year

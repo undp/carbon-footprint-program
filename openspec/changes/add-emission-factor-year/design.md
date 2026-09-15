@@ -8,7 +8,7 @@ Findings from `main` @ `20cb9864` that drive every decision below.
 
 **2. The capture selector keys on `source`, not on the factor.** `EmissionEditorFactorSourceCell` builds its dropdown from `[...new Set(factors.map(f => f.source))]`; `useEmissionEditorForm` then resolves the chosen string back to a factor. When more than one factor matches, it emits a `console.warn` and **silently leaves the cell empty**. That branch is unreachable today precisely because of finding 1, and any design that lets two factors match the same line resurrects it.
 
-**3. `syncCarbonInventoryLines` never reads `emission_factor`.** `createLineFactor` writes `appliedFactorValue`, `appliedFactorSource` and `emissionFactorId` verbatim from the request payload. There is not a single query against the factor table in the whole service. Any server-side year validation, and any server-sourced `applied_factor_year`, requires introducing the first such fetch.
+**3. `syncCarbonInventoryLines` never reads `emission_factor`.** `createLineFactor` writes `appliedFactorValue`, `appliedFactorSource` and `emissionFactorId` verbatim from the request payload. There is not a single query against the factor table in the whole service. Server-side year validation requires introducing the first such fetch.
 
 **4. Silent data loss on methodology duplication.** `cloneEmissionFactors` (`apps/api/src/features/methodologies/duplicateMethodology/helpers.ts:275`) enumerates columns by hand in its `createMany`. A column not listed there is dropped, without error and without warning.
 
@@ -22,7 +22,7 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 - Make every factor state which footprint year it is valid for, as an explicit assertion rather than an omission.
 - Stop offering a factor from another year in capture, and stop trusting the client to respect that.
-- Give the verifier a per-line, frozen answer to "which factor, from which source, for which year".
+- Give the verifier a per-line answer to "which factor, from which source, for which year".
 - Keep a footprint from silently carrying last year's factors when its year changes.
 
 **Non-Goals:**
@@ -72,9 +72,9 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Rationale**: the restriction is a product decision, not a compliance requirement, and this is purely validation — no schema. Lifting it later costs no migration and touches no data.
 
-### Decision 4 — Accept the drip; defer the draft state and the grid filter
+### Decision 4 — Accept the drip; defer the draft state, the grid filter and the bulk import
 
-**Choice**: ship the year on its own. Loading a year's set stays one grid row at a time, and during that load capture shows a half-populated set. The maintainer grid keeps its pagination and gains no year filter. TODOs record both.
+**Choice**: ship the year on its own. Loading a year's set stays one grid row at a time, and during that load capture shows a half-populated set. The maintainer grid keeps its pagination and gains no year filter. TODOs record all three.
 
 **Alternatives considered**:
 
@@ -103,8 +103,6 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Safety bounds**: the year is only editable on an editable footprint (`validateCarbonInventoryIsEditable`), so clearing never touches a submitted or verified one — which is what makes a destructive operation acceptable here at all. A cleared catalogue factor is also one click to restore, since selecting the source auto-fills the value from the methodology; a manual factor is not.
 
-**Residual signal**: `applied_factor_year` is stored regardless, and the emission editor displays it per line. A manual factor entered for 2025 therefore shows `2025` inside a 2026 footprint — the cheap remainder of what the mark would have given, covering the one case clearing does not.
-
 ### Decision 6 — The `sync` year validation is unconditional
 
 **Choice**: `syncCarbonInventoryLines` rejects any line whose referenced catalogue factor has a year different from the footprint's, on create and on update alike.
@@ -113,33 +111,38 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **What it actually guards**: the reachable path is a stale client cache, not a crafted payload. `carbonInventoryKeys.methodology(id)` is `[Root, id, Methodology]` and carries no `AttributesUpdateDependency`, while `useUpdateCarbonInventory` invalidates by the predicate `queryKey.includes(inventoryId) && queryKey.includes(AttributesUpdateDependency)` — so today changing the year does not invalidate the methodology cache. That is harmless only because the response does not yet depend on the year. The primary fix is the query key; this validation is the backstop behind it.
 
-### Decision 7 — Year range: `[currentYear - 4 .. currentYear + 1]` in the UI, a wide bound in the API
+### Decision 7 — No frozen year on the line; it is derivable
 
-**Choice**: the maintainer's year field is a dropdown offering `[currentYear - 4 .. currentYear + 1]`, sharing its lower bound with the footprint's year selector. The API validates only a wide absolute range (roughly `1990 .. currentYear + 1`). The shared constant lives in `@repo/constants`.
+**Choice**: `carbon_inventory_line_factor` gains no `applied_factor_year` column. Wherever a line's year is displayed or reported, it is the footprint's year.
+
+**Rationale**: Decisions 5 and 6 together guarantee that a line holding a catalogue factor can never be on a different year than its footprint — the clearing removes stale ones and the validation refuses new ones. For those lines the column would be a copy of `carbon_inventory.year`, frozen for no reason. For a manual line, which survives a year change, the footprint's year is still the right answer under our own definition: `year` means validity, not provenance, and a user who keeps their manual factor in a 2026 footprint is asserting it is valid for 2026.
+
+**What it removes**: a column and its migration, two entries in the type schemas, its population in `syncCarbonInventoryLines`, its carry-through in `duplicateCarbonInventory`, its exposure in `mapLineToResponse`, its display in the emission editor, and the tests for all of the above. The change goes from two new columns to one.
+
+**Alternatives considered**:
+
+- **Keep the column** — freezes the year beside the value, source and rate unit that table already freezes, for the same reproducibility reason, and stays correct even if someone later relaxes the clearing or the validation. It would also let the editor show that a surviving manual factor came from a different year, the residue of the mark that Decision 5 dropped. Rejected as paying for a column to carry a derivable value.
+- **Keep it only for manual lines** — the only case where it carries information, but a column populated for some rows and null for others invites exactly the "what does null mean here" ambiguity that Decision 1 went out of its way to eliminate.
+
+**What is given up**: the report can no longer distinguish a manual factor typed under a previous year from one entered for the current one. The verifier still sees the manual value and its source and judges those, which is what they said they do.
+
+**Adjacent gap, recorded but out of scope**: `manualFactorSource` stores the literal string `"Otro"`, not a citation. CYCLO asked specifically for _"espacio para poner cuál es la fuente, porque el verificador después llega a ese factor y dice ... ¿de dónde lo sacaste?"_. That is a source problem, not a year problem, and deserves its own issue.
+
+### Decision 8 — Sliding window in the maintainer dropdown, a static bound in the shared schema
+
+**Choice**: the maintainer's year field is a dropdown offering `[currentYear - 4 .. currentYear + 1]`, kept in `apps/web` beside `CALCULATOR_YEARS_RANGE_FROM_CURRENT`. The Zod request schemas in `packages/types` carry a wide static bound (roughly `1990 .. 2100`).
 
 **Rationale for the range**: the two real publication patterns both fall inside it — DEFRA publishes the year N set during year N (around June), and national grid factors publish year N's factor during N+1. The forward year covers early publication or a factor whose regulatory validity starts next year; a 2027 factor created in 2026 is simply not yet reachable from capture, which is anticipated rather than dead data.
 
-**Rationale for the split**: the window slides every 1 January. Enforcing it in the API would make every factor of the year that drops out of the window uneditable overnight — including for correcting its value, with an error about a field the administrator never touched. A dropdown is where typos are actually prevented; a wide server bound still stops a `2205` from a broken payload.
+**Rationale for the split**: the window slides every 1 January. Enforcing it server-side would make every factor of the year that drops out of the window uneditable overnight — including for correcting its value, with an error about a field the administrator never touched. A dropdown is where typos are actually prevented; a static wide bound in the schema still stops a `2205` from a broken payload, and since `packages/types` is already consumed by both apps, it needs no new shared constant and no cross-package move.
 
 **Alternatives considered**:
 
-- **Sliding window in the API, but only when the year changes** — compares against the stored value, so editing other fields of an old factor keeps working. Still leaves an old factor's year uncorrectable, and makes the rule depend on prior state, which is harder to explain and to test.
-- **Sliding window always** — one rule for both verbs, trivial to express in Zod, but it is the annual time bomb described above.
+- **Sliding window in the API, only when the year changes** — compares against the stored value, so editing other fields of an old factor keeps working. Still leaves an old factor's year uncorrectable, and makes the rule depend on prior state.
+- **Sliding window always** — one rule for both verbs, trivial in Zod, but it is the annual time bomb described above.
+- **Two constants in `packages/constants`** — names both rules in one place, per the repo's constants convention. Rejected as four tasks and a cross-package move for a rule unlikely to vary by deployment.
 
 **Note**: this is a write validation, which fails loudly. It is not the failure mode of `MEASURING_ORGANIZATIONS_YEAR_RANGE`, a read filter that silently hid organizations from a grid.
-
-### Decision 8 — A manual factor stamps the footprint's year at capture
-
-**Choice**: when a line uses a custom source (`CUSTOM_FACTOR_SOURCES`, currently `["Otro"]`) there is no catalogue factor behind it, so `applied_factor_year` is populated with the footprint's year at the moment the line is created.
-
-**Alternatives considered**:
-
-- **Ask the user for the year** — the most faithful record when someone knowingly enters a 2024 factor into a 2026 footprint, but it adds a field to the most crowded screen in the product and one more decision for an SME user.
-- **Leave it NULL** — zero change, but a manual factor entered for 2023 then rides into the 2026 copy with nothing marking it, and it is the one line type that Decision 5 does not clear.
-
-**Rationale**: it is free, it needs no UI, it is consistent with `year` meaning "the year this is valid for", and it is what makes the displayed year meaningful on the lines that survive a year change.
-
-**Adjacent gap, recorded but out of scope**: `manualFactorSource` stores the literal string `"Otro"`, not a citation. CYCLO asked specifically for _"espacio para poner cuál es la fuente, porque el verificador después llega a ese factor y dice ... ¿de dónde lo sacaste?"_. That is a source problem, not a year problem, and deserves its own issue.
 
 ### Decision 9 — A footprint with no year is offered no factors
 
@@ -147,23 +150,24 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Rationale**: it falls out of the filter with no special branch, and it degrades in the direction that pushes the user to complete step 1 — which the UI already demands, so only legacy rows can reach this state. `carbon_inventory.year` is left nullable rather than tightened in the same change; making it required is a separate migration with its own legacy-data risk and no bearing on this capability.
 
-### Decision 10 — The verifier's report reads the frozen snapshot
+### Decision 10 — The verifier's report reads the frozen source and the footprint's year
 
-**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`, and the year comes from the snapshot column. The gas breakdown keeps reading live, as a documented exception.
+**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`, and the year shown is the footprint's. The gas breakdown keeps reading live, as a documented exception.
 
 **Context**: the report currently mixes origins — `factorValue` comes from the snapshot, while `source` and `gasBreakdownLines` come from the live table. An admin editing a factor's source therefore changes what an already-verified footprint reports, next to a value that did not change.
 
 **Alternatives considered**:
 
-- **Freeze everything, gas breakdown included** — a JsonB column beside `derivationDetails` would make the report fully reproducible and is the most defensible under ISO 14064-3. But it is a third new column plus its migration, population in sync, and carry-through in `duplicateCarbonInventory`.
-- **Only add the year** — smallest diff, but leaves a frozen year displayed next to a source that may have changed, on the one screen that exists so the verifier can trace the factor's origin.
+- **Freeze everything, gas breakdown included** — a JsonB column beside `derivationDetails` would make the report fully reproducible and is the most defensible under ISO 14064-3. But it is a new column plus its migration, population in sync, and carry-through in `duplicateCarbonInventory`.
+- **Only add the year** — smallest diff, but leaves the year displayed next to a source that may have changed, on the one screen that exists so the verifier can trace the factor's origin.
 
-**Rationale**: `appliedFactorSource` is already stored; it is merely second in the fallback chain. Fixing the order is free and makes the report internally consistent. This is a read-order correction, not the immutability guard that was explicitly rejected.
+**Rationale**: `appliedFactorSource` is already stored; it is merely second in the fallback chain. Fixing the order is free and makes the report internally consistent. This is a read-order correction, not the immutability guard that was explicitly rejected. The year needs no new storage — the service already loads the inventory.
 
 ## Risks
 
 - **Old footprints lose their catalogue** (Decision 1). Anything in progress for a year before 2025 falls back to a manual factor. Check the count of editable footprints with `year < 2025` before rolling out.
 - **Drip during the annual load** (Decision 4), now on a catalogue that must be fully restated each year.
+- **The derivable year depends on two guarantees holding** (Decision 7). If someone later relaxes the clearing or the sync validation, a line could sit on a factor from another year and the reported year would be wrong with nothing to catch it. The tests for Decisions 5 and 6 are what keep that honest.
 - **Live gas breakdown** (Decision 10) in the verifier's report.
 - **No immutability guard** on factors of an active methodology — a standing, previously accepted risk that this change does not address.
 
