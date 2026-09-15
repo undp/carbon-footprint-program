@@ -46,6 +46,27 @@ El cálculo combina peso, distancia y modo de transporte:
 | Aéreo (carga)             | 0,6 kg CO₂e/ton-km           |
 | Refrigerado (cold chain)  | +30-50% sobre el factor base |
 
+### 🔑 La duda que produce los errores más grandes
+
+**¿Sumo todos los pesos y todas las distancias, y después multiplico?**
+
+**No.** El ton-km se calcula **despacho por despacho** y después se suman los ton-km:
+
+> ✅ **Correcto:** $Cantidad$ = $\sum_{despachos} (peso\ del\ despacho \times distancia\ del\ despacho)$
+>
+> ❌ **Incorrecto:** $(\sum peso) \times (\sum distancia)$
+
+La forma incorrecta multiplica cada kilo por kilómetros que ese kilo nunca recorrió. En una operación con muchos despachos el resultado se infla cientos de veces.
+
+💡 Sí puedes agrupar despachos que **comparten la misma distancia**: si hiciste 160 entregas de 5 ton a 200 km, calcula $5 \times 200 = 1.000$ ton-km y multiplícalo por 160. Lo que no se puede es usar **una** distancia promedio contra el peso total cuando las rutas son muy distintas entre sí — ahí conviene separar por ruta o por rango de distancia.
+
+### 🧮 La fórmula práctica para obtener la cantidad
+
+> Por cada ruta o modo:
+> $ton\text{-}km\ de\ la\ ruta$ = $peso\ por\ despacho\ (ton) \times distancia\ del\ despacho\ (km) \times N°\ de\ despachos$
+>
+> Y la cantidad de la línea es la **suma** de los ton-km de las rutas que comparten modo y sub-modo.
+
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
 ---
@@ -113,12 +134,12 @@ Couriers grandes (DHL, FedEx, UPS, entre otros) pueden entregar reporte de huell
 
 Debes rellenar los siguientes campos:
 
-| Campo              | Qué debes ingresar |                                    Ejemplo |
-| :----------------- | :----------------- | -----------------------------------------: |
-| Modo de transporte | Tipo de transporte |                 Terrestre, Aéreo, Marítimo |
-| Sub-modo           | Detalle            | Camión liviano, Camión pesado, Carga aérea |
-| Unidad             | Unidad declarada   |                   ton-km, km, moneda local |
-| Cantidad           | Total anual        |                               1.500 ton-km |
+| Campo              | Qué debes ingresar                                                     |                                    Ejemplo |
+| :----------------- | :--------------------------------------------------------------------- | -----------------------------------------: |
+| Modo de transporte | Tipo de transporte                                                     |                 Terrestre, Aéreo, Marítimo |
+| Sub-modo           | Detalle                                                                | Camión liviano, Camión pesado, Carga aérea |
+| Unidad             | Unidad declarada                                                       |                   ton-km, km, moneda local |
+| Cantidad           | Suma de los ton-km de cada despacho del año (peso × distancia, sumado) |                             160.000 ton-km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -144,18 +165,30 @@ Accede a la calculadora en **modo experto**. En el paso 3, selecciona el checkbo
 
 ### 📌 Ejemplo práctico
 
-Supongamos una **fábrica de alimentos** que despacha durante el año:
+Supongamos una **fábrica de alimentos** que durante el año despacha:
 
-- **800 toneladas** de productos terminados
-- Distancia promedio al cliente: **200 km** (terrestre, camión pesado)
+- **160 entregas de 5 ton** a clientes, terrestre en camión pesado, **200 km** por entrega
+- **6 exportaciones de 2,5 ton** vía aérea a un mercado regional, **2.500 km** por envío
 
-> $CO₂e$ = $800\ ton \times 200\ km \times 0,07\ kg\ CO₂e/ton{\text -}km$ = $11.200\ kg\ CO₂e$
+Primero el ton-km **de cada despacho**, y luego el total de la ruta:
 
-Adicionalmente exporta **15 toneladas** vía aérea a un mercado regional (~2.500 km):
+| Ruta              | Modo      | Peso por despacho | Distancia | ton-km por despacho | Despachos | ton-km de la ruta |
+| :---------------- | :-------- | ----------------: | --------: | ------------------: | --------: | ----------------: |
+| Clientes locales  | Terrestre |             5 ton |    200 km |               1.000 |       160 |           160.000 |
+| Exportación aérea | Aéreo     |           2,5 ton |  2.500 km |               6.250 |         6 |            37.500 |
 
-> $CO₂e\ aéreo$ = $15 \times 2.500 \times 0,6$ = $22.500\ kg\ CO₂e$
+Esos totales de ruta son los que escribes en el campo **Cantidad**, una línea por modo. Después la plataforma calcula las emisiones:
+
+| Ruta              | Modo      | Cantidad (ton-km) | Factor |      Emisiones |
+| :---------------- | :-------- | ----------------: | -----: | -------------: |
+| Clientes locales  | Terrestre |           160.000 |   0,07 | 11.200 kg CO₂e |
+| Exportación aérea | Aéreo     |            37.500 |    0,6 | 22.500 kg CO₂e |
 
 **Total sub-categoría: ~33.700 kg CO₂e al año (33,7 ton CO₂e)**
+
+> ⚠️ **Así se vería el error.** Sumar todos los pesos (800 + 15 = **815 ton**) y todas las distancias (160×200 + 6×2.500 = **47.000 km**) y multiplicarlas da **38.305.000 ton-km** frente a los 197.500 reales: casi **200 veces** la cantidad correcta. Cuantos más despachos, peor es.
+>
+> 💡 Las 15 toneladas aéreas emiten el **doble** que las 800 toneladas terrestres. El modo pesa mucho más que el tonelaje.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
@@ -164,6 +197,7 @@ Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
 
 ## 📝 Notas importantes
 
+> - **El ton-km se calcula despacho por despacho** y después se suma. Sumar todos los pesos y todas las distancias para multiplicarlas al final infla la cantidad de forma dramática
 > - **Diferencia clave con Alcance 1:** si transportas con **flota propia o leasing operativo**, eso va en Alcance 1 (combustiones móviles), no aquí
 > - **Diferencia con upstream:** acá se reporta lo que **sale** de tu empresa hacia el cliente. Lo que **entra** desde proveedores se reporta en _Transporte y distribución aguas arriba_
 > - **Productos refrigerados** tienen factor mayor (cold chain) por consumo del equipo de refrigeración del transporte
