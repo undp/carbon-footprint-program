@@ -3,7 +3,6 @@ import {
   CheckCircleOutlined,
   CodeOutlined,
   GroupsOutlined,
-  PublicOutlined,
   type SvgIconComponent,
 } from "@mui/icons-material";
 import { CalculatorIcon } from "@/icons";
@@ -142,7 +141,8 @@ export const ALLIANCE_BANNER_TEXT =
 
 export interface AllianceActor {
   role: string;
-  name: string;
+  /** Omitted when the partner logo already carries the name. */
+  name?: string;
   description: string;
   /** Partner whose logo heads the card. */
   partnerId?: PartnerId;
@@ -156,14 +156,13 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
     name: "PNUD",
     partnerId: PartnerId.UNDP,
     description:
-      "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la Climate Promise, junto a sus oficinas de país.",
+      "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la iniciativa Climate Promise, junto a sus oficinas de país.",
   },
   {
-    role: "Financia",
-    name: "Suecia",
+    role: "Con el apoyo de",
     partnerId: PartnerId.SWEDEN,
     description:
-      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
+      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
   },
   {
     role: "Diseña y desarrolla",
@@ -246,7 +245,6 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
  */
 export const FUNDING_HIGHLIGHT = {
   badge: "Con el apoyo de",
-  title: "Financiada por el Gobierno de Suecia",
   bodyBeforeProject:
     "Posible gracias al financiamiento de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), en el marco de la iniciativa del PNUD",
   projectName:
@@ -256,16 +254,9 @@ export const FUNDING_HIGHLIGHT = {
 } as const;
 
 export interface OrganizationProfile {
+  /** Reads "Acerca de …" and heads the card on its own. */
   title: string;
   body: string;
-  /** Logo of the partner that heads the card. */
-  partnerId?: PartnerId;
-  /** Icon that replaces the logo when the card doesn't represent a partner. */
-  Icon?: SvgIconComponent;
-  /** Figures that accompany the logo. */
-  figures: readonly AboutStat[];
-  /** Badge that replaces the figures. */
-  badge?: string;
   /** Link embedded at the end of `body`, followed by `bodyAfterLink`. */
   link?: { label: string; href: string };
   bodyAfterLink?: string;
@@ -274,19 +265,12 @@ export interface OrganizationProfile {
 export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
   {
     title: "Acerca del PNUD",
-    partnerId: PartnerId.UNDP,
-    figures: [{ value: "170", label: "países" }],
     body: "El PNUD es la principal agencia de las Naciones Unidas que lucha contra la injusticia de la pobreza, las desigualdades y el cambio climático. Trabajando con una amplia red de expertos y socios en 170 países, el PNUD ayuda a las naciones a desarrollar soluciones integradas y sostenibles por las personas y el planeta. Para obtener más información, visita",
     link: { label: "undp.org/es", href: "https://www.undp.org/es" },
     bodyAfterLink: " o síguenos en las redes sociales vía @PNUD.",
   },
   {
     title: "Acerca de la iniciativa Climate Promise: Forward del PNUD",
-    Icon: PublicOutlined,
-    figures: [
-      { value: "+140", label: "países" },
-      { value: "37 M", label: "personas" },
-    ],
     body: "A través de la iniciativa Climate Promise, la mayor cartera de apoyo a la acción climática del sistema de las Naciones Unidas, el PNUD trabaja con más de 140 países y territorios y beneficia directamente a 37 millones de personas. La cartera permite ejecutar más de 2.450 millones de dólares de los Estados Unidos en financiación basada en subvenciones y aprovechar la experiencia del PNUD en materia de adaptación, mitigación, mercados de carbono, clima y bosques, riesgo y seguridad climáticos y estrategias y políticas climáticas. Visite nuestro sitio web",
     link: {
       label: "climatepromise.undp.org/es",
@@ -296,10 +280,12 @@ export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
   },
   {
     title: "Acerca de IFV LAC",
-    partnerId: PartnerId.SWEDEN,
-    figures: [],
-    badge: "Financiado por ASDI",
-    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional.",
+    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional. Para obtener más información, visita",
+    link: {
+      label: "la página de IFV LAC",
+      href: "https://www.undp.org/es/latin-america/innovacion-para-las-finanzas-verdes-en-america-latina-y-el-caribe",
+    },
+    bodyAfterLink: ".",
   },
 ];
 
