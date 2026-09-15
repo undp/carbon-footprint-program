@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { SourceCitationWire } from "@repo/types";
 import { API_BASE_URL } from "@/config/environment";
+import { buildChatbotHeaders } from "./authHeaders";
 import { clearConversationId, readConversationId } from "./conversationStore";
 import type { SeedMessage } from "./useChatStream";
 
@@ -80,7 +81,11 @@ export const useConversationRehydrate = ({
       try {
         const response = await fetch(
           `${LOAD_URL}?conversationId=${encodeURIComponent(conversationId)}`,
-          { method: "GET", credentials: "include" }
+          {
+            method: "GET",
+            credentials: "include",
+            headers: await buildChatbotHeaders(),
+          }
         );
         if (cancelled) return;
         if (response.status === 404) {

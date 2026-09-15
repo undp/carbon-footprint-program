@@ -140,6 +140,29 @@ This is a PM-owned decision: conversations are auditable and may need server-sid
 - **WHEN** the user clicks the widget's "Nueva conversación" button while a conversation id is stored
 - **THEN** immediately after the click handler returns, reading the store SHALL yield `null`; a widget mounted afterwards SHALL issue no `GET /api/chatbot/conversations/me/current` at all
 
+### Requirement: Widget sends the access token on every chatbot request
+
+All three chatbot calls — `POST /message`, `GET /conversations/me/current`, and `DELETE /conversations/me` — SHALL carry `Authorization: Bearer <token>` when the visitor is signed in, and SHALL omit the header when they are not. They use `fetch` directly rather than `apiClient`, so the header is attached explicitly; `credentials: "include"` is sent either way, because the session cookie remains the anonymous visitor's identity.
+
+This is an identity requirement, not a transport detail. The API registers a permissive `requireAuth` for the whole chatbot router: with the header it resolves `request.currentUser` and `chatbotIdentityPreHandler` keys the conversation to `user_id`; without it the same code silently keys the conversation to the anonymous session cookie instead. A signed-in person's history then lives or dies with a `SameSite=None` cookie.
+
+The `DELETE` case carries the same requirement for a stronger reason: it deletes by caller identity, so an unauthenticated call would remove the anonymous session's rows rather than the account's, and answer 204 either way.
+
+#### Scenario: Signed-in visitor's turn is attributed to their account
+
+- **WHEN** a signed-in visitor sends a message
+- **THEN** the request SHALL carry `Authorization: Bearer <token>` alongside `content-type: application/json`, and the conversation row SHALL be created with `user_id` set and `session_id` NULL
+
+#### Scenario: Signed-out visitor keeps working without the header
+
+- **WHEN** a visitor who is not signed in sends a message
+- **THEN** the request SHALL carry no `Authorization` header, SHALL still send `credentials: "include"`, and the conversation SHALL be keyed to the signed session cookie
+
+#### Scenario: Stop during token resolution does not open a request
+
+- **WHEN** the turn is aborted (Stop, timeout, or unmount) after the token has been requested but before `fetch` is called
+- **THEN** no request SHALL be issued, and the turn SHALL resolve as a cancel — the same outcome `fetch` produces when handed an already-aborted signal
+
 ### Requirement: Widget restores active conversation on mount via the conversation id it holds
 
 On mount, when — and only when — a conversation id is stored, the widget SHALL issue a single `GET /api/chatbot/conversations/me/current?conversationId=<id>` with `credentials: "include"`. With nothing stored there is nothing to restore and the widget SHALL issue no request, saving the round-trip a first visit cannot benefit from. The request SHALL live in a dedicated `useConversationRehydrate` hook rather than inside `useChatStream`: the two have different lifecycles (one mount-time load vs. per-turn streaming state), and `useChatStream` exposes `seedMessages` as the seam between them. The behaviour below is unchanged by that split — it is stated in terms of "the widget" because the requirement is on the composed surface, not on either hook alone. The server reads the `conversationId` query parameter, enforces the TTL (`expires_at > NOW()`) and a strict identity match (authenticated callers match the row's `user_id`; anonymous callers match `session_id` AND `user_id IS NULL`), and returns:

@@ -18,6 +18,15 @@ import type { ChatbotMessage } from "./types";
 // is the behaviour that broke before.
 const CONVERSATION_ID_HEADER = "x-conversation-id";
 
+// The chatbot calls `fetch` directly, so it attaches the OIDC token itself via
+// buildChatbotHeaders. Stubbed at the token seam rather than deeper: the real
+// getAuthToken awaits the OIDC user manager, which never settles under the fake
+// timers these suites install.
+const mockGetAuthToken = vi.fn<() => Promise<string | null>>();
+vi.mock("@/api/http/auth", () => ({
+  getAuthToken: () => mockGetAuthToken(),
+}));
+
 // The hook keeps these user-facing strings private; mirror them here so the
 // assertions read intent instead of magic text. If a copy change breaks a test,
 // that is the reminder to update both sides deliberately.
@@ -182,6 +191,8 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
+  mockGetAuthToken.mockReset();
+  mockGetAuthToken.mockResolvedValue(null);
   // Clears both localStorage and the module's in-memory fallback, so one
   // test's conversation cannot leak into the next one's request body.
   clearConversationId();
@@ -472,11 +483,15 @@ describe("useChatStream — abort, timeout & unmount", () => {
     fetchMock.mockImplementation(
       (_input, init) =>
         new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener(
-            "abort",
-            () => reject(new DOMException("Aborted", "AbortError")),
-            { once: true }
-          );
+          const fail = () => reject(new DOMException("Aborted", "AbortError"));
+          // Real fetch rejects straight away when handed a signal that is
+          // already aborted; a listener-only fake never settles in that case
+          // and hangs the test instead of reproducing the browser.
+          if (init?.signal?.aborted) {
+            fail();
+            return;
+          }
+          init?.signal?.addEventListener("abort", fail, { once: true });
         })
     );
 
@@ -824,6 +839,75 @@ describe("useChatStream — request shape & guards", () => {
     const headers = init?.headers as Record<string, string> | undefined;
     expect(headers?.["Last-Event-ID"]).toBeUndefined();
     expect(headers?.["content-type"]).toBe("application/json");
+  });
+});
+
+describe("useChatStream — authenticated identity", () => {
+  const headersOf = (callIndex: number): Record<string, string> =>
+    (fetchMock.mock.calls[callIndex][1]?.headers ?? {}) as Record<
+      string,
+      string
+    >;
+
+  const streamOk = () =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("sends the bearer token so the turn is stored against the account", async () => {
+    // Without this the API's permissive requireAuth resolves no user and the
+    // conversation is keyed to the anonymous session cookie instead — which is
+    // how a signed-in person loses their thread when that cookie goes.
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)["Authorization"]).toBe("Bearer token-abc");
+  });
+
+  it("sends no Authorization header when signed out, keeping anonymous chat working", async () => {
+    mockGetAuthToken.mockResolvedValue(null);
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)).not.toHaveProperty("Authorization");
+    // The anonymous path is the session cookie, so credentials still ride.
+    expect(fetchMock.mock.calls[0][1]?.credentials).toBe("include");
+  });
+
+  it("keeps the content-type alongside the token", async () => {
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)["content-type"]).toBe("application/json");
+  });
+
+  it("sends the token on deleteHistory too", async () => {
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(204))
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await act(async () => {
+      await result.current.deleteHistory();
+    });
+
+    // Right-to-be-forgotten deletes by identity, so an unauthenticated call
+    // would delete the anonymous session's rows rather than the account's.
+    expect(headersOf(0)["Authorization"]).toBe("Bearer token-abc");
   });
 });
 

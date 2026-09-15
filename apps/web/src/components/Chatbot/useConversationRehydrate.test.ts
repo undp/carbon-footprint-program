@@ -15,6 +15,15 @@ const LOAD_URL = "http://localhost/api/chatbot/conversations/me/current";
 const STORED_ID = "1";
 const EXPECTED_URL = `${LOAD_URL}?conversationId=${STORED_ID}`;
 
+// The chatbot calls `fetch` directly, so it attaches the OIDC token itself via
+// buildChatbotHeaders. Stubbed at the token seam rather than deeper: the real
+// getAuthToken awaits the OIDC user manager, which never settles under the fake
+// timers these suites install.
+const mockGetAuthToken = vi.fn<() => Promise<string | null>>();
+vi.mock("@/api/http/auth", () => ({
+  getAuthToken: () => mockGetAuthToken(),
+}));
+
 type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>;
 
 const makeResponse = (status: number, jsonBody?: unknown): Response =>
@@ -38,6 +47,8 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
+  mockGetAuthToken.mockReset();
+  mockGetAuthToken.mockResolvedValue(null);
   clearConversationId();
   // Every case below except the explicit "nothing stored" one needs a thread
   // to ask for — without an id the hook skips the request entirely.
@@ -62,6 +73,22 @@ describe("useConversationRehydrate", () => {
     expect(call[0]).toBe(EXPECTED_URL);
     expect(call[1]?.method).toBe("GET");
     expect(call[1]?.credentials).toBe("include");
+  });
+
+  it("sends the bearer token so the server can match by account", async () => {
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    fetchMock.mockResolvedValue(makeResponse(204));
+
+    const { result } = renderHook(() =>
+      useConversationRehydrate({ onLoaded: vi.fn() })
+    );
+
+    await waitFor(() => expect(result.current.historyLoading).toBe(false));
+    const headers = (fetchMock.mock.calls[0][1]?.headers ?? {}) as Record<
+      string,
+      string
+    >;
+    expect(headers["Authorization"]).toBe("Bearer token-abc");
   });
 
   it("issues no request at all when no conversation is stored", async () => {

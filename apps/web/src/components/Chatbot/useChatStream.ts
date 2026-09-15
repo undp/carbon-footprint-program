@@ -9,6 +9,7 @@ import {
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
 import { API_BASE_URL } from "@/config/environment";
+import { buildChatbotHeaders } from "./authHeaders";
 import {
   clearConversationId,
   readConversationId,
@@ -377,9 +378,17 @@ export const useChatStream = () => {
         response: Response | null;
         transportError: boolean;
       }> => {
-        const headers: Record<string, string> = {
+        const headers = await buildChatbotHeaders({
           "content-type": "application/json",
-        };
+        });
+        // Resolving the token is an await, so Stop (or a timeout, or unmount)
+        // can land between here and the fetch below. Real `fetch` rejects
+        // immediately on an already-aborted signal, which the caller reads as
+        // a cancel; returning that outcome directly is the same answer without
+        // opening a request nobody is waiting for.
+        if (controller.signal.aborted) {
+          return { response: null, transportError: true };
+        }
         if (lastEventIdRef.current) {
           // Forward-compatibility plumbing only: the foundation backend
           // does not consume Last-Event-ID (it always streams from the
@@ -553,6 +562,7 @@ export const useChatStream = () => {
       const response = await fetch(DELETE_URL, {
         method: "DELETE",
         credentials: "include",
+        headers: await buildChatbotHeaders(),
       });
       if (response.status === 204) {
         // The rows are gone server-side, so a retained id would point at
