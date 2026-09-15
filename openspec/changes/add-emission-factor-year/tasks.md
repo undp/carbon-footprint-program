@@ -1,10 +1,9 @@
 ## 1. Pre-conditions
 
 - [ ] 1.1 Sync the working tree with `main`, run `pnpm install`.
-- [ ] 1.2 Confirm the backfill year with the methodology team. It is **2025**, on the evidence that 195 of the 284 seeded sources say `DEFRA 2025`. That evidence describes the shipped catalogue, not necessarily the production table: factors an administrator added by hand get swept in too. Confirm before the migration is written, because the column ends up `NOT NULL`.
-- [ ] 1.3 Count what the migration will clear — every footprint whose year differs from 2025, broken down by year and by submission state. No longer a precondition, since the clearing spares nothing, but the number is what sizes the gap the 2026 follow-up has to close and what there is to say afterwards.
-- [ ] 1.4 Take a `pg_dump` immediately before running the migration. The clearing is destructive and irreversible in place; this is the whole rollback plan, and it is deliberately not built into the migration.
-- [ ] 1.5 Note that `fix/mati/activity-unit-factor-mismatch` is **postponed**, not a dependency. This change owns the introduction of the factor lookup in `syncCarbonInventoryLines` (section 6) and must leave it in a shape that fix can extend.
+- [ ] 1.2 Tell the methodology team the catalogue is being dated **2025**, and do not wait for an answer. The evidence is that 195 of the 284 seeded sources say `DEFRA 2025`; it describes the shipped catalogue rather than the production table, so a factor an administrator added by hand for some other period is swept into 2025 along with the rest. Accepted: correcting one afterwards is editing a row in the maintainer, and the year being explicit is what makes that correction possible at all.
+- [ ] 1.3 Take a `pg_dump` immediately before running the migration. The clearing is destructive and irreversible in place; this is the whole rollback plan, and it is deliberately not built into the migration.
+- [ ] 1.4 Note that `fix/mati/activity-unit-factor-mismatch` is **postponed**, not a dependency. This change owns the introduction of the factor lookup in `syncCarbonInventoryLines` (section 6) and must leave it in a shape that fix can extend.
 
 ## 2. Database
 
@@ -101,7 +100,7 @@
 - [ ] 12.1 Add the year to the emission-factor entry of the seed schema in `tools/seed/src/scripts/shared.ts` (~line 62), as a required field.
 - [ ] 12.2 Thread it through `seedEmissionFactors.ts`, which currently flattens a fixed list of factor properties.
 - [ ] 12.3 Set `year: 2025` on every factor in `tools/seed/src/data/base/methodologies.json`, leaving all `source` strings untouched. Mirror the change in the testing dataset.
-- [ ] 12.4 Record that the 2026 set is a follow-up PR, not part of this one. With the catalogue dated 2025, footprints of the current year are cleared by the migration and find nothing to choose from until it lands; the manual factor is the documented path in between. Loading it as seed data plus a script sidesteps the deferred bulk import instead of typing 284 rows into the grid.
+- [ ] 12.4 The 2026 set is tracked as issue 651, not part of this one. With the catalogue dated 2025, footprints of the current year are cleared by the migration and find nothing to choose from until it lands; the manual factor is the documented path in between. Loading it as seed data plus a script sidesteps the deferred bulk import instead of typing 284 rows into the grid.
 - [ ] 12.5 Add a TODO alongside `getMethodologyExport` recording the deferred bulk/atomic import, and noting that with no undated factors the whole catalogue must be restated annually.
 
 ## 13. Tests
@@ -121,5 +120,5 @@
 - [ ] 14.1 Run `pnpm format && pnpm lint && pnpm type-check`.
 - [ ] 14.2 Run the API suites for the touched domains: `pnpm test:api -- /emissionFactors --coverage=false`, `/carbonInventories`, `/methodologies`.
 - [ ] 14.3 Run `pnpm test:web`.
-- [ ] 14.4 Before rolling out, re-confirm 1.2 and 1.3 with their answers written down, take the `pg_dump` from 1.4, and announce the deployment window. While the migration has run and the previous container is still serving, creating an emission factor from the maintainer fails against the new `NOT NULL` column, and that container's `sync` still accepts a factor of any year, so it can write back what the migration just cleared. Both are accepted rather than closed with a maintenance window.
+- [ ] 14.4 Before rolling out, take the `pg_dump` from 1.3 and announce the deployment window. While the migration has run and the previous container is still serving, creating an emission factor from the maintainer fails against the new `NOT NULL` column, and that container's `sync` still accepts a factor of any year, so it can write back what the migration just cleared. Both are accepted rather than closed with a maintenance window.
 - [ ] 14.5 After the deployment settles, run a verification query listing every `carbon_inventory_line_factor` on an active input whose factor's year differs from its footprint's year. It should return nothing; anything it returns is residue written during the window, which would otherwise sit unnoticed until someone happened to save that subcategory again. Record the result.

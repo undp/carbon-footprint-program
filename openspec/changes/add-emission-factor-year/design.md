@@ -64,7 +64,7 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Recurring cost accepted**: with no undated factors, the entire catalogue must be restated every year, including the ~86 IPCC and academic rows. That raises the value of the deferred bulk import from convenience to necessity.
 
-**Caveat on the backfill evidence**: the seed counts describe the shipped catalogue, not necessarily the production table. Factors an administrator added by hand are also swept into 2025. Task 1.2 is where that gets confirmed rather than assumed.
+**Caveat on the backfill evidence**: the seed counts describe the shipped catalogue, not necessarily the production table, so a factor an administrator added by hand for some other period is swept into 2025 with the rest. The methodology team is told rather than asked (task 1.2): correcting one afterwards is editing a row in the maintainer, and making the year explicit is what allows the correction in the first place.
 
 ### Decision 2 — The migration carries a data transition, and it spares nothing
 
@@ -253,7 +253,7 @@ Each of these gets an explicit TODO at the site that would otherwise silently hi
 | A real source field for manual factors          | `CUSTOM_FACTOR_SOURCES` handling in `createLineInput`   |
 | Activity-unit vs rate-unit denominator mismatch | the new factor lookup in `syncCarbonInventoryLines`     |
 
-Outside this change: the 2026 factor set. With the year mandatory and the catalogue dated 2025, a footprint of the current year has no factors until that set exists. It arrives in a follow-up PR — most naturally as seed data plus a script, which sidesteps the missing bulk import instead of typing 284 rows into the grid.
+Outside this change: the 2026 factor set, tracked as issue 651. With the year mandatory and the catalogue dated 2025, a footprint of the current year has no factors until that set exists. It arrives as seed data plus a script, which sidesteps the missing bulk import instead of typing 284 rows into the grid.
 
 ### On the postponed unit-mismatch fix
 
@@ -261,8 +261,8 @@ Outside this change: the 2026 factor set. With the year mandatory and the catalo
 
 It lands in the same service as the year validation, and both need a server-side read of the referenced emission factors, which this service has never done. This change introduces that lookup and deliberately selects the rate measurement unit and its denominator alongside the year, even though only the year is consumed here, so the postponed fix becomes a check added to an existing query rather than a second round trip.
 
-## To confirm before rollout
+## Before rollout
 
-The backfill year is **2025**, on the evidence that 195 of 284 seeded source strings say `DEFRA 2025`. That evidence describes the shipped catalogue, not necessarily the production table — factors added by administrators are swept in too, and should be confirmed with the methodology team rather than assumed.
+The backfill year is **2025**, on the evidence that 195 of 284 seeded source strings say `DEFRA 2025`. The methodology team is told, not asked: a factor an administrator loaded for another period is swept in too, and correcting it afterwards is editing one row.
 
-Decision 2's clearing is destructive and irreversible in place, so the migration is run behind a `pg_dump`. Counting what it will touch is no longer a precondition — it touches everything of another year — but it is worth having the number, by year and by submission state, to know what to say afterwards and to size the 2026 gap the follow-up PR has to close.
+Decision 2's clearing is destructive and irreversible in place, so the migration runs behind a `pg_dump`. Counting what it will touch beforehand was dropped — it touches everything of another year, the platform holds no data declared in earnest, and the number changes no decision; the verification query after the deployment reports what happened.
