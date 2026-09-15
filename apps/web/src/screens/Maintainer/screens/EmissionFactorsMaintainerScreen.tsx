@@ -13,6 +13,7 @@ import { useRateMeasurementUnits } from "@/api/query/measurementUnits/useRateMea
 import {
   useEmissionFactorsForm,
   toFormEmissionFactor,
+  getDefaultEmissionFactorYear,
 } from "../hooks/useEmissionFactorsForm";
 import { useEmissionFactorColumns } from "../hooks/useEmissionFactorColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
@@ -51,6 +52,21 @@ const gasDetailsEqual = (
   left.SF6 === right.SF6 &&
   left.NF3 === right.NF3;
 
+// TODO: two things about the year column were deliberately deferred.
+//
+// 1. A year that has fallen outside the offered window renders blank. The cell
+//    is a MUI `Select`, which paints a value that is not among its options as
+//    empty and warns on the console. Adding that row's own year as an extra
+//    option fixes it in a few lines. It does not bite while the catalogue is
+//    dated 2025 and the window reaches back four years — only once the window
+//    slides past 2025, by which time this grid will have been through the bulk
+//    import and the filter below anyway.
+//
+// 2. A year filter on the grid. It only starts hurting once a second year
+//    exists, which is the same moment the bulk import is needed, and it is
+//    riskier here than it looks: rows are addressed by field-array index
+//    (`handleCellChange(rowIndex, …)`), so filtering what is visible while
+//    editing by index is a classic source of edits landing on the wrong row.
 export const EmissionFactorsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -223,6 +239,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           dimensionValue2Name: row.dimensionValue2Name || null,
           rateMeasurementUnitId: row.rateMeasurementUnitId,
           source: row.source,
+          year: row.year,
           gasDetails: row.gasDetails,
           value: row.value,
         });
@@ -256,6 +273,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.dimensionValue2Name !== original.dimensionValue2Name ||
       row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
       row.source !== original.source ||
+      // Without the year here, correcting only the year closes the row with no
+      // error and saves nothing.
+      row.year !== original.year ||
       row.value !== original.value ||
       !gasDetailsEqual(row.gasDetails, original.gasDetails);
 
@@ -269,6 +289,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
             dimensionValue2Name: row.dimensionValue2Name || null,
             rateMeasurementUnitId: row.rateMeasurementUnitId,
             source: row.source,
+            year: row.year,
             gasDetails: row.gasDetails,
             value: row.value,
           },
@@ -350,6 +371,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       dimensionValue2Name: null,
       rateMeasurementUnitId: "",
       source: "",
+      year: getDefaultEmissionFactorYear(),
       value: 0,
       gasDetails: EMPTY_GAS_DETAILS,
     });
