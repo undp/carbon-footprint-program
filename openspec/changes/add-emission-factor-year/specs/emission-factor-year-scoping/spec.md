@@ -10,6 +10,8 @@ The existing catalogue SHALL be dated by migration to the year it serves, withou
 
 The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The request schemas SHALL enforce only a wide static bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
 
+A factor whose year falls outside that window SHALL still display its year and remain editable: its own year SHALL be offered as an option of its row.
+
 #### Scenario: A factor is offered only to footprints of its own year
 
 - **GIVEN** a factor with `year = 2026`
@@ -37,37 +39,67 @@ The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year fi
 - **WHEN** an administrator edits its value without changing its year
 - **THEN** the update SHALL succeed
 
+#### Scenario: A year outside the offered window is still shown
+
+- **GIVEN** a factor whose year falls outside the window the maintainer offers
+- **WHEN** the maintainer grid renders that factor
+- **THEN** its year SHALL be displayed rather than left blank, AND SHALL be selectable on that row
+
 ### Requirement: The migration leaves existing footprints in a state the new rules describe
 
-Dating the catalogue SHALL NOT be assumed to fix the footprints that already used it. In the same migration, every **editable** footprint whose year differs from the catalogue's year SHALL have the factor snapshots and computed results of its catalogue-backed lines removed, by the same rule that a year change applies, so no editable footprint is left holding a total computed from factors it is no longer offered.
+Dating the catalogue SHALL NOT be assumed to fix the footprints that already used it. In the same migration, **every** footprint whose year differs from the catalogue's year SHALL have the factor snapshots and computed results of its catalogue-backed lines removed, regardless of whether it is editable, submitted or verified, so that afterwards no footprint holds a catalogue factor from another year.
 
-Submitted and verified footprints SHALL be left untouched, as the record of what was declared.
+The clearing SHALL act on the active input of each affected line, covering `ACTIVE` and `OUTDATED` lines alike, and SHALL leave superseded input versions untouched.
 
-Duplicating a footprint whose year has no catalogue SHALL produce a copy whose catalogue-backed factor snapshots and results are already cleared, so the copy does not begin by rejecting its first save.
+It SHALL also remove the snapshots that lost their factor reference before this change existed — those with no `emissionFactorId` whose frozen source is not one of the custom sources — since those are catalogue-backed lines damaged by an edit, not manual ones. No attempt SHALL be made to recover the lost reference.
 
-#### Scenario: An editable footprint of another year is cleared by the migration
+Lines whose factor was entered manually SHALL be left untouched.
 
-- **GIVEN** an editable footprint for 2024 whose lines hold catalogue factors, and a catalogue dated 2025
+The migration SHALL record, in a comment, that erasing the factors of a submitted footprint destroys the record of what was declared and is admissible only because no footprint on the platform holds data declared in earnest.
+
+#### Scenario: A footprint of another year is cleared whatever its state
+
+- **GIVEN** a catalogue dated 2025, and footprints for 2024 holding catalogue factors — one editable, one submitted, one verified
 - **WHEN** the migration runs
-- **THEN** those lines SHALL have no factor snapshot and no result, AND SHALL keep their subcategory, dimension values, measurement unit and quantity, AND the footprint SHALL still be for 2024
+- **THEN** all three SHALL have those lines left with no factor snapshot and no result, AND each line SHALL keep its subcategory, dimension values, measurement unit and quantity, AND each footprint SHALL still be for 2024
 
-#### Scenario: A submitted footprint keeps its declared calculation
+#### Scenario: A footprint of the catalogue's own year is untouched
 
-- **GIVEN** a submitted or verified footprint for 2024
+- **GIVEN** a catalogue dated 2025 and a footprint for 2025 holding catalogue factors
 - **WHEN** the migration runs
-- **THEN** its lines, snapshots and results SHALL be unchanged
+- **THEN** its snapshots and results SHALL be unchanged
 
-#### Scenario: Duplicating a footprint of a year with no catalogue
+#### Scenario: Superseded input versions survive the clearing
 
-- **GIVEN** a submitted footprint for 2024 and a catalogue dated 2025 only
-- **WHEN** it is duplicated
-- **THEN** the copy SHALL be for 2024 with its catalogue-backed factor snapshots and results already cleared, AND its manual-factor lines SHALL be copied intact
+- **GIVEN** a line of a 2024 footprint that has been saved more than once, so it has one active input and at least one inactive one
+- **WHEN** the migration runs
+- **THEN** the active input SHALL have no factor snapshot and no result, AND the inactive inputs SHALL keep theirs
+
+#### Scenario: A manual factor survives the migration
+
+- **GIVEN** a line of a 2024 footprint whose factor was entered with a custom source
+- **WHEN** the migration runs
+- **THEN** that line SHALL keep its snapshot, its manual value and its manual source
+
+#### Scenario: A damaged snapshot is cleared rather than recovered
+
+- **GIVEN** a line of a 2024 footprint whose snapshot has no factor reference but whose frozen source names a catalogue source
+- **WHEN** the migration runs
+- **THEN** that snapshot and its result SHALL be removed, AND no attempt SHALL have been made to re-link it to a factor
 
 ### Requirement: A line keeps its factor identity through editing
 
 A line captured against a catalogue factor SHALL keep the reference to that factor across subsequent edits. Editing any other field of the line SHALL NOT turn it into a line with no catalogue factor.
 
-The change SHALL state what becomes of the snapshots that already lost their reference before this rule existed.
+The line as returned by the API SHALL carry the identifier of the factor its snapshot references, so the capture screen can preserve it. Without it the client has nothing to preserve, and the reference is lost on the next save.
+
+Snapshots that already lost their reference SHALL be removed by the migration rather than re-linked.
+
+#### Scenario: The line carries its factor's identifier
+
+- **GIVEN** a line whose snapshot references a catalogue factor
+- **WHEN** its footprint is requested
+- **THEN** the line SHALL carry that factor's identifier
 
 #### Scenario: Editing an unrelated field preserves the factor reference
 
@@ -139,25 +171,37 @@ When the footprint has no year, the service SHALL return the methodology with no
 - **WHEN** it requests its methodology
 - **THEN** no emission factors SHALL be offered
 
-### Requirement: Line synchronization validates the factor's year
+### Requirement: Line synchronization reconciles a line whose factor is of another year
 
-When a line references a catalogue factor, the server SHALL read that factor from the database and SHALL reject the request when its year differs from the footprint's year. The rule SHALL apply identically on creation and on update — clearing the stale factors on a year change means no legitimate request ever carries a mismatched one.
+When a line references a catalogue factor, the server SHALL read that factor from the database. When its year differs from the footprint's year, the line SHALL be persisted **without** a factor snapshot and without a computed result, keeping its subcategory, dimension values, measurement unit, quantity, comment and files, so the line returns to asking for a factor. The request SHALL NOT be rejected, and no other line SHALL be affected.
 
-The footprint SHALL be read inside the same transaction that writes the lines, and the year compared SHALL be the one read there, so a concurrent year change cannot be validated against a year that no longer holds by the time the write lands.
+The response SHALL identify the lines left without a factor, so the user is told in Spanish which ones must be reassigned rather than discovering it silently.
 
-The year SHALL NOT be frozen on the line. The clearing rule, this validation and the preserved factor identity together keep a catalogue-backed line on its footprint's year, so that year is derived rather than stored.
+Lines whose factor was entered manually SHALL be untouched by this rule.
 
-#### Scenario: A payload referencing a factor from another year is rejected
+The rule SHALL apply identically on creation and on update.
+
+The footprint SHALL be read inside the same transaction that writes the lines, and that read SHALL take a row lock on the footprint, which the year change SHALL take as well, so the two operations cannot interleave.
+
+The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a year change and the preserved factor identity together keep a catalogue-backed line on its footprint's year, so that year is derived rather than stored.
+
+#### Scenario: A line referencing a factor from another year is saved without it
 
 - **GIVEN** a footprint for year 2026 and a factor with `year = 2024`
 - **WHEN** a sync request creates a line referencing that factor
-- **THEN** the request SHALL be rejected, AND no line, input, factor snapshot or result SHALL be persisted for it
+- **THEN** the request SHALL succeed, AND the line SHALL be persisted with its subcategory, dimension values, measurement unit and quantity and with no factor snapshot and no result, AND the response SHALL identify that line as left without a factor
+
+#### Scenario: The rest of the payload is persisted normally
+
+- **GIVEN** a footprint for year 2026 and a sync request carrying one line with a factor of 2024 and another with a factor of 2026
+- **WHEN** the request is processed
+- **THEN** the 2026 line SHALL be persisted with its factor snapshot and result, AND only the other SHALL be reported as left without a factor
 
 #### Scenario: The same rule applies when updating a line
 
 - **GIVEN** a footprint for year 2026 with an existing line
 - **WHEN** a sync request updates that line to reference a factor with `year = 2024`
-- **THEN** the request SHALL be rejected
+- **THEN** the line SHALL be persisted with no factor snapshot and no result, AND SHALL be reported as left without a factor
 
 #### Scenario: A line of the footprint's year is accepted
 
@@ -165,9 +209,21 @@ The year SHALL NOT be frozen on the line. The clearing rule, this validation and
 - **WHEN** a sync request creates a line referencing that factor
 - **THEN** the line, its input, its factor snapshot and its result SHALL be persisted
 
+#### Scenario: A concurrent year change cannot slip a stale factor through
+
+- **GIVEN** a footprint for year 2025 with a factor of 2025 in flight in a sync request
+- **WHEN** another request changes that footprint's year to 2026 at the same time
+- **THEN** the two SHALL be serialized by the footprint's row lock, AND whichever runs second SHALL observe the other's result, AND the footprint SHALL NOT end up holding a 2025 factor
+
+#### Scenario: A factor moved to another year by an administrator
+
+- **GIVEN** a line of a 2026 footprint referencing a factor that an administrator has since re-dated to 2027
+- **WHEN** the user saves that subcategory again
+- **THEN** the save SHALL succeed, AND that line SHALL be left without a factor and reported as such, AND the other lines SHALL be unaffected
+
 ### Requirement: Changing a footprint's year clears the catalogue factors of its lines
 
-Editing a footprint's year SHALL warn the user before the change is applied when the footprint already has declared lines.
+Editing a footprint's year SHALL warn the user before the change is applied when the footprint already has declared lines. The warning SHALL be raised on every path that saves the year, including both advancing from the step and saving it on the way out.
 
 Once confirmed, every line whose frozen factor came from the catalogue SHALL have its factor snapshot and its computed result removed, so the line returns to asking for a factor. The line SHALL keep its subcategory, dimension values, measurement unit and quantity. A replacement factor SHALL NEVER be chosen automatically.
 
@@ -223,7 +279,7 @@ The per-footprint factor report SHALL report, for each line, the source that was
 
 The report SHALL NOT carry a year per row: it is scoped to one footprint, so the period is constant across its rows and established by the footprint itself.
 
-The report collapses repeated uses of the same factor into one row. That collapsing SHALL key on what each line froze — the factor, its frozen source and its applied value — rather than on the factor alone, so two lines that froze different snapshots of the same factor each keep a row instead of one being dropped by line order.
+The report collapses repeated uses of the same factor into one row. That collapsing SHALL key on what each line froze — the factor, its frozen source, its applied value and the rate unit that value is expressed in — rather than on the factor alone, so two lines that froze different snapshots of the same factor each keep a row instead of one being dropped by line order. The rate unit belongs in the key because an applied value does not identify a factor without it.
 
 #### Scenario: Editing a factor's source does not change an existing footprint's report
 
@@ -236,3 +292,9 @@ The report collapses repeated uses of the same factor into one row. That collaps
 - **GIVEN** two lines of the same footprint that used the same factor, captured either side of an administrative edit to its source
 - **WHEN** the factor report is requested
 - **THEN** both frozen sources SHALL appear, as two rows
+
+#### Scenario: The same value in two rate units is two rows
+
+- **GIVEN** two lines of the same footprint that applied the same factor value under different rate measurement units
+- **WHEN** the factor report is requested
+- **THEN** both SHALL appear, each with its own rate unit

@@ -1,19 +1,22 @@
 ## 1. Pre-conditions
 
 - [ ] 1.1 Sync the working tree with `main`, run `pnpm install`.
-- [ ] 1.2 Confirm the backfill year with the methodology team. The design proposes **2025**, on the evidence that 195 of the 284 seeded sources say `DEFRA 2025`. Note that this evidence describes the shipped catalogue, not necessarily the production table: factors an administrator added by hand get swept in too. Must be answered before the migration is written, because the column ends up `NOT NULL`.
-- [ ] 1.3 Count what the migration's data transition will clear: editable footprints whose year differs from the catalogue year — **every** such year, not only those before 2025, since 2026 and any other year are equally affected. Break the count down by year and by submission state, and agree the communication before rolling out. This is a destructive bulk operation over user data.
-- [ ] 1.4 Note that `fix/mati/activity-unit-factor-mismatch` is **postponed**, not a dependency. This change owns the introduction of the factor lookup in `syncCarbonInventoryLines` (section 6) and must leave it in a shape that fix can extend.
+- [ ] 1.2 Confirm the backfill year with the methodology team. It is **2025**, on the evidence that 195 of the 284 seeded sources say `DEFRA 2025`. That evidence describes the shipped catalogue, not necessarily the production table: factors an administrator added by hand get swept in too. Confirm before the migration is written, because the column ends up `NOT NULL`.
+- [ ] 1.3 Count what the migration will clear — every footprint whose year differs from 2025, broken down by year and by submission state. No longer a precondition, since the clearing spares nothing, but the number is what sizes the gap the 2026 follow-up has to close and what there is to say afterwards.
+- [ ] 1.4 Take a `pg_dump` immediately before running the migration. The clearing is destructive and irreversible in place; this is the whole rollback plan, and it is deliberately not built into the migration.
+- [ ] 1.5 Note that `fix/mati/activity-unit-factor-mismatch` is **postponed**, not a dependency. This change owns the introduction of the factor lookup in `syncCarbonInventoryLines` (section 6) and must leave it in a shape that fix can extend.
 
 ## 2. Database
 
 - [ ] 2.1 In `packages/database/src/prisma/schema.prisma`, add `year Int` (required) to `EmissionFactor` (~line 672). No column is added to `CarbonInventoryLineFactor` — see design Decision 9.
-- [ ] 2.2 Write the migration: add `year` nullable, `UPDATE emission_factor SET year = <confirmed year>` over every row, then `ALTER COLUMN year SET NOT NULL`. Do **not** add a column default — a default would let a factor be created without stating its year, which Decision 1 exists to prevent.
+- [ ] 2.2 Write the migration: add `year` nullable, `UPDATE emission_factor SET year = 2025` over every row, then `ALTER COLUMN year SET NOT NULL`. Do **not** add a column default — a default would let a factor be created without stating its year, which Decision 1 exists to prevent.
 - [ ] 2.3 In the same migration, drop and recreate `emission_factor_unique_subcategory_dims_source` as `("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "source", "year") WHERE "status" <> 'DELETED'`. No `COALESCE` wrapper: the column is `NOT NULL`. (`dimension_value_1_id` and `dimension_value_2_id` remain nullable — a pre-existing gap, out of scope.)
-- [ ] 2.4 In the same migration, apply the data transition (design Decision 2): for every **editable** footprint whose `year` differs from the catalogue year, delete the `carbon_inventory_line_factor` rows of its lines where `emission_factor_id` is not null, together with their `carbon_inventory_line_result` rows. Cover parked (`OUTDATED`) lines as well as active ones. Leave submitted and verified footprints untouched.
-- [ ] 2.5 Comment both the backfill value and the transition in the migration, naming the evidence, the confirmation from 1.2 and the count from 1.3, so a future reader knows neither was a default.
-- [ ] 2.6 Add a TODO next to the index's `WHERE "status" <> 'DELETED'` recording that it must become `WHERE "status" = 'ACTIVE'` if a draft factor state is ever introduced.
-- [ ] 2.7 Update the two schema comments that describe the partial index so they mention the year.
+- [ ] 2.4 In the same migration, apply the data transition (design Decision 2): for **every** footprint whose `year` differs from 2025 — editable, submitted and verified alike — delete the `carbon_inventory_line_factor` rows of its lines together with their `carbon_inventory_line_result` rows. Do not attempt to reproduce the "editable" state in SQL: it is derived from the footprint's submissions, and `carbon_inventory.is_editable` is a free-floating flag nothing maintains against them.
+- [ ] 2.5 Scope that delete to the **active** input of each line (`carbon_inventory_line_input.is_active = true`), covering `ACTIVE` and `OUTDATED` lines. Superseded input versions keep their snapshots: every reader filters `isActive: true`, so they are audit trail nothing consults.
+- [ ] 2.6 Select the rows to delete as those whose `emission_factor_id` is not null **or** whose `applied_factor_source` is not one of the custom sources. The second half is what reaches the snapshots damaged by the identity defect: they lost their factor id but kept the real catalogue source, which is what tells them apart from a manual line, whose snapshot has a null id and a custom source. Manual lines are left untouched, `manual_factor` and `manual_factor_source` on the input included.
+- [ ] 2.7 Comment the backfill value, the transition, and — in its own paragraph — that erasing the factors of a submitted footprint destroys the record of what was declared, is contrary to what GHG Protocol and ISO 14064-1 ask to preserve, and is admissible here only because no footprint on the platform holds data declared in earnest. It must not read as precedent.
+- [ ] 2.8 Add a TODO next to the index's `WHERE "status" <> 'DELETED'` recording that it must become `WHERE "status" = 'ACTIVE'` if a draft factor state is ever introduced.
+- [ ] 2.9 Update the two schema comments that describe the partial index so they mention the year.
 
 ## 3. Types
 
@@ -23,7 +26,8 @@
 - [ ] 3.4 Add the year to the `GetAllEmissionFactorsResponseSchema` row shape, so the maintainer grid can render the column.
 - [ ] 3.5 Add the year to the emission-factor entry of `GetMethodologyExportResponseSchema`. `GetCarbonInventoryMethodologyExportResponseSchema` is a literal re-export, so the footprint-scoped export is covered with no further edit.
 - [ ] 3.6 Do **not** add a year to `GetCarbonInventoryMethodologyResponse` nor to `GetEmissionFactorsResponse`. Both are deliberate omissions — see design Decisions 9 and 12.
-- [ ] 3.7 Check whether the carbon-inventory line response already carries the line's `emissionFactorId`. Section 9 needs it on the client to hydrate `baseFactorId`; if it is absent, add it.
+- [ ] 3.7 Add the line's `emissionFactorId` to the carbon-inventory line response shape. It is **not** there today: `mapLineToResponse` returns `factorSource`, `factorValue` and `factorRateMeasurementUnitId` but never the id, so section 9 has nothing to hydrate `baseFactorId` from. Nullable, since a manual line has no factor.
+- [ ] 3.8 Add the ids of the lines left without a factor to the `syncCarbonInventoryLines` response schema, so the client can tell the user which ones need a factor again (section 6).
 
 ## 4. API — emission factor write path
 
@@ -43,24 +47,27 @@
 
 ## 6. API — line synchronization
 
-- [ ] 6.1 Move the `carbonInventory.findUnique` in `syncCarbonInventoryLines/service.ts` **inside** the `$transaction`, and add `year` to its select. Today it reads before the transaction opens, which leaves a window where a request validates against 2025, a concurrent request changes the year to 2026 and clears the lines, and the first one then writes a 2025 factor into a 2026 footprint.
-- [ ] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
-- [ ] 6.3 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
-- [ ] 6.4 Reject the request when a referenced factor's year differs from the footprint's year, on create and on update alike. Add a dedicated error class in `apps/api/src/features/carbonInventories/errors.ts`, with a Spanish user-facing message.
-- [ ] 6.5 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
+- [ ] 6.1 Move the `carbonInventory.findUnique` in `syncCarbonInventoryLines/service.ts` **inside** the `$transaction` and add `year` to its select. It reads before the transaction opens today.
+- [ ] 6.2 Take a row lock on the footprint in that read — `SELECT id, year FROM carbon_inventory WHERE id = $1 FOR UPDATE` via `$queryRaw`, since Prisma's query API cannot express it. Moving the read inside the transaction is not enough on its own: these transactions run at `READ COMMITTED`, where a `sync` can read 2025, a concurrent year change to 2026 can commit its clearing, and the `sync` can then write a 2025 factor into a 2026 footprint. Task 8.1 takes the same lock.
+- [ ] 6.3 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
+- [ ] 6.4 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
+- [ ] 6.5 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class: this is reconciliation, not validation — see design Decision 7.
+- [ ] 6.6 Collect the affected line ids and return them in the response (schema in 3.8).
+- [ ] 6.7 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
+- [ ] 6.8 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
 
 ## 7. API — duplication, exports and the verifier report
 
 - [ ] 7.1 In `apps/api/src/features/methodologies/duplicateMethodology/helpers.ts`, add `year: ef.year` to the `createMany` inside `cloneEmissionFactors` and to the `findMany` select that feeds it.
 - [ ] 7.2 Add the year to `methodologyExportSelect` in `apps/api/src/features/methodologies/helpers.ts` and to the emission-factor mapper in `apps/api/src/features/methodologies/mappers.ts`. This covers both export endpoints at once.
 - [ ] 7.3 In `apps/api/src/features/carbonInventories/getEmissionFactors/service.ts`, invert the source fallback chain so the frozen `factor.appliedFactorSource` wins over the live `emissionFactor.source`. No year is added to the rows.
-- [ ] 7.4 In the same service, change the de-duplication key from the factor id alone to the frozen snapshot — factor id plus frozen source plus applied value — and adjust the row identifier to match. Once the frozen source wins, two lines that used the same factor either side of an administrative source edit hold different frozen sources, and keying on the id alone would drop one of them silently, by line order.
+- [ ] 7.4 In the same service, change the de-duplication key from the factor id alone to the frozen snapshot — factor id plus frozen source plus applied value plus `appliedFactorRateUnitId` — and adjust the row identifier to match. The rate unit belongs in the key because a value does not identify a factor without it: `0.21 kg/L` and `0.21 kg/kWh` would otherwise collapse into one row. Once the frozen source wins, two lines that used the same factor either side of an administrative source edit hold different frozen sources, and keying on the id alone would drop one of them silently, by line order.
 - [ ] 7.5 Add a TODO at the `gasBreakdownLines` computation recording that the gas breakdown is still read live because it is not frozen anywhere.
-- [ ] 7.6 In `apps/api/src/features/carbonInventories/duplicateCarbonInventory/service.ts`, skip copying the `carbonInventoryLineFactor` and `carbonInventoryLineResult` of catalogue-backed lines when the source footprint's year has no catalogue, so the copy does not begin by rejecting its first save. Manual-factor lines are copied intact.
+- [ ] 7.6 Leave `duplicateCarbonInventory` alone. It copies snapshots verbatim, which is correct once the migration has cleared every footprint of another year: the copy inherits something already consistent. Leave `reviewSubmission` alone for the same reason — a footprint returned with observations comes back editable holding factors that are already of its own year. Both were candidates for a clearing helper; neither has a source of mismatched data left. See design Decision 2.
 
 ## 8. API and Web — clearing the stale factors on a year change
 
-- [ ] 8.1 In `apps/api/src/features/carbonInventories/updateCarbonInventory/service.ts`, wrap the update in `prisma.$transaction`. It is a single `update` today.
+- [ ] 8.1 In `apps/api/src/features/carbonInventories/updateCarbonInventory/service.ts`, wrap the update in `prisma.$transaction` — it is a single `update` today — and take the same `SELECT … FOR UPDATE` row lock on the footprint as task 6.2, so a year change and a line save cannot interleave.
 - [ ] 8.2 When `data.year` is present and differs from the stored year, delete inside that transaction the `carbonInventoryLineFactor` rows of that footprint's lines **where `emissionFactorId` is not null**, together with their matching `carbonInventoryLineResult` rows.
 - [ ] 8.3 Cover parked lines, not only active ones. `toggleManualTotalEmissions` holds non-direct lines as `OUTDATED` and reactivates them later without passing through `sync`, so an `OUTDATED` line left untouched would carry a factor from another year back into an active footprint.
 - [ ] 8.4 Leave manual-factor lines untouched: their snapshot (`emissionFactorId` null) stays, and so do `manualFactor`, `manualFactorSource` and `manualFactorRateUnitId` on the input.
@@ -70,31 +77,35 @@
 
 ## 9. Web — factor identity
 
-- [ ] 9.1 In `apps/web/src/screens/CarbonInventory/hooks/useEmissionCaptureData.ts:50`, hydrate `baseFactorId` from the line's existing factor snapshot instead of setting it to `null`. This is what makes a catalogue-backed line stay catalogue-backed across edits; without it, saving any edit — a comment is enough — writes a snapshot with no `emissionFactorId`, which the clearing would treat as manual and the validation would skip.
+- [ ] 9.1 In `apps/web/src/screens/CarbonInventory/hooks/useEmissionCaptureData.ts:50`, hydrate `baseFactorId` from the line's `emissionFactorId` (added in 3.7) instead of setting it to `null`. This is what makes a catalogue-backed line stay catalogue-backed across edits; without it, saving any edit — a comment is enough — writes a snapshot with no `emissionFactorId`, which the clearing would treat as manual and the reconciliation would skip.
 - [ ] 9.2 Verify the whole round trip by hand: load a footprint, edit only a comment on a catalogue-backed line, save, and confirm the new snapshot still references the factor.
-- [ ] 9.3 Decide and record what happens to snapshots that already lost their reference. They cannot be recovered from the line alone; the practical options are to leave them as manual-looking rows, or to re-link them where subcategory, dimensions, unit and frozen source identify exactly one factor. Whichever is chosen, write it into the change rather than leaving it implicit.
+- [ ] 9.3 Nothing to decide about the snapshots already damaged: task 2.6 clears them along with the rest, identifying them by a null `emission_factor_id` with a non-custom frozen source. No attempt is made to re-link them — with no real data behind it, a reconciliation query would be written and justified to rescue nothing.
 - [ ] 9.4 Note in the PR description that this also fixes a live defect unrelated to the year: `getEmissionFactors` derives both the gas breakdown and the row identity from the `emissionFactor` relation, so edited lines currently lose their breakdown and appear as `manual-<id>` rows in the verifier's report.
 
 ## 10. Web — maintainer
 
 - [ ] 10.1 Add the year to `toFormEmissionFactor` and to the form defaults in `useEmissionFactorsForm.ts`. A new row should default to the current year rather than to empty.
 - [ ] 10.2 Add a required «Año» column to `useEmissionFactorColumns.tsx`, as a select over `[currentYear - 4 .. currentYear + 1]` derived beside `CALCULATOR_YEARS_RANGE_FROM_CURRENT` in `apps/web/src/config/constants.ts`. No "sin año" option.
-- [ ] 10.3 Add `year` to the create payload in `EmissionFactorsMaintainerScreen.tsx`, which enumerates the fields it sends.
-- [ ] 10.4 Add `year` to the update payload in the same file, and — the one that is easy to miss — to the `hasRealChanges` comparison. Without it, an administrator who corrects only the year sees the row close with no error and nothing saved.
-- [ ] 10.5 Add a TODO at `EmissionFactorsMaintainerScreen` recording that a year filter was deferred, and why filtering is risky here: rows are addressed by field-array index.
+- [ ] 10.3 When a row's year falls outside that window, add it to that row's options. A MUI `Select` whose value is not among its options renders blank and warns on the console, so without this the grid misreports the data it exists to show. Per row, so an obsolete year cannot be assigned to a different factor.
+- [ ] 10.4 Add `year` to the create payload in `EmissionFactorsMaintainerScreen.tsx`, which enumerates the fields it sends.
+- [ ] 10.5 Add `year` to the update payload in the same file, and — the one that is easy to miss — to the `hasRealChanges` comparison. Without it, an administrator who corrects only the year sees the row close with no error and nothing saved.
+- [ ] 10.6 Add a TODO at `EmissionFactorsMaintainerScreen` recording that a year filter was deferred, and why filtering is risky here: rows are addressed by field-array index.
 
 ## 11. Web — capture and step 1
 
-- [ ] 11.1 In `BusinessProfilingScreen.tsx`, add a confirmation modal shown when the year is changed while the footprint already has declared lines. The Spanish copy must say plainly that the lines using a catalogue factor will be left without one and will have to be reassigned, that their quantities and units are kept, and that manually entered factors are kept as they are.
-- [ ] 11.2 Verify the cleared lines render through the existing "line without a factor" state, the same one a newly added line uses, and that `useLineValidation` and `fieldValidationService` already flag them as incomplete.
-- [ ] 11.3 Check what capture shows when a footprint's year has no catalogue at all. The subcategory should still be usable through the manual factor, without a confusing empty dropdown.
+- [ ] 11.1 Put the confirmation inside `useBusinessProfilingSubmit`, not in the screen. `BusinessProfilingScreen` instantiates that hook twice — once for advancing, once for saving on the way out — and both exits funnel through the same `submit`, so guarding there covers both and covers a third exit if one is ever added.
+- [ ] 11.2 The Spanish copy must say plainly that the lines using a catalogue factor will be left without one and will have to be reassigned, that their quantities and units are kept, and that manually entered factors are kept as they are. It is shown only when the year actually changed and the footprint already has declared lines.
+- [ ] 11.3 Show the lines the server reports as left without a factor (task 6.6) after a capture save, so a reconciliation is never silent on screen.
+- [ ] 11.4 Verify the cleared lines render through the existing "line without a factor" state, the same one a newly added line uses, and that `useLineValidation` and `fieldValidationService` already flag them as incomplete.
+- [ ] 11.5 Check what capture shows when a footprint's year has no catalogue at all. The subcategory should still be usable through the manual factor, without a confusing empty dropdown.
 
 ## 12. Seed
 
 - [ ] 12.1 Add the year to the emission-factor entry of the seed schema in `tools/seed/src/scripts/shared.ts` (~line 62), as a required field.
 - [ ] 12.2 Thread it through `seedEmissionFactors.ts`, which currently flattens a fixed list of factor properties.
-- [ ] 12.3 Set the year on every factor in `tools/seed/src/data/base/methodologies.json` to the year confirmed in 1.2, leaving all `source` strings untouched. Mirror the change in the testing dataset.
-- [ ] 12.4 Add a TODO alongside `getMethodologyExport` recording the deferred bulk/atomic import, and noting that with no undated factors the whole catalogue must be restated annually.
+- [ ] 12.3 Set `year: 2025` on every factor in `tools/seed/src/data/base/methodologies.json`, leaving all `source` strings untouched. Mirror the change in the testing dataset.
+- [ ] 12.4 Record that the 2026 set is a follow-up PR, not part of this one. With the catalogue dated 2025, footprints of the current year are cleared by the migration and find nothing to choose from until it lands; the manual factor is the documented path in between. Loading it as seed data plus a script sidesteps the deferred bulk import instead of typing 284 rows into the grid.
+- [ ] 12.5 Add a TODO alongside `getMethodologyExport` recording the deferred bulk/atomic import, and noting that with no undated factors the whole catalogue must be restated annually.
 
 ## 13. Tests
 
@@ -102,17 +113,18 @@
 - [ ] 13.2 Review the four existing suites under `apps/api/test/features/emissionFactors/` — several assert on duplicate and source-conflict behaviour and will shift once the year enters both keys.
 - [ ] 13.3 `createEmissionFactor` / `updateEmissionFactor`: same key different years succeeds; same key same year is rejected; different sources in the same subcategory and year is rejected; different sources across years succeeds; a missing year is rejected; a factor older than the UI window stays editable when its year is not being changed.
 - [ ] 13.4 `getCarbonInventoryMethodology`: only the footprint's year is offered; a year with no catalogue offers nothing; a footprint with a null year offers nothing.
-- [ ] 13.5 `syncCarbonInventoryLines`: a create referencing a factor from another year is rejected and persists nothing; an update to such a factor is rejected too; a line of the footprint's year is accepted.
-- [ ] 13.6 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
-- [ ] 13.7 Duplicating a footprint whose year has no catalogue: the copy arrives with its catalogue-backed snapshots already cleared and its manual lines intact.
+- [ ] 13.5 `syncCarbonInventoryLines`: a create referencing a factor of another year persists the line with no snapshot and no result and reports it in the response; the rest of the payload is persisted normally; an update to such a factor behaves the same; a line of the footprint's year is persisted with its snapshot and result; a manual line is untouched.
+- [ ] 13.6 `syncCarbonInventoryLines` under concurrency: two real transactions interleaved — one saving lines, one changing the year — end with the footprint holding no factor of the old year, whichever commits first. This is the test for the row lock; it has to open two connections, not simulate the race.
+- [ ] 13.7 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
 - [ ] 13.8 `duplicateMethodology`: cloned factors keep their year.
-- [ ] 13.9 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; and two lines that froze different snapshots of the same factor both appear.
-- [ ] 13.10 Migration: against a database seeded with the undated catalogue plus footprints of several years, every factor ends dated, no `source` string changed, the column is `NOT NULL`, editable footprints of other years are cleared, and submitted ones are untouched.
-- [ ] 13.11 Factor identity: a line edited without touching its factor keeps its `emissionFactorId`, and is still cleared as catalogue-backed when the year changes.
+- [ ] 13.9 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; two lines that froze different snapshots of the same factor both appear; and the same value under two rate units yields two rows.
+- [ ] 13.10 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
+- [ ] 13.11 Factor identity: the line response carries `emissionFactorId`; a line edited without touching its factor keeps it; and such a line is still treated as catalogue-backed when the year changes.
 
 ## 14. Verification
 
 - [ ] 14.1 Run `pnpm format && pnpm lint && pnpm type-check`.
 - [ ] 14.2 Run the API suites for the touched domains: `pnpm test:api -- /emissionFactors --coverage=false`, `/carbonInventories`, `/methodologies`.
 - [ ] 14.3 Run `pnpm test:web`.
-- [ ] 14.4 Before rolling out, re-confirm 1.2 and 1.3 with their answers written down, and announce the deployment window: while migrations have run and the previous container is still serving, creating an emission factor from the maintainer fails against the new `NOT NULL` column. Admin-only and retryable, but it should not be a surprise mid-catalogue-load.
+- [ ] 14.4 Before rolling out, re-confirm 1.2 and 1.3 with their answers written down, take the `pg_dump` from 1.4, and announce the deployment window. While the migration has run and the previous container is still serving, creating an emission factor from the maintainer fails against the new `NOT NULL` column, and that container's `sync` still accepts a factor of any year, so it can write back what the migration just cleared. Both are accepted rather than closed with a maintenance window.
+- [ ] 14.5 After the deployment settles, run a verification query listing every `carbon_inventory_line_factor` on an active input whose factor's year differs from its footprint's year. It should return nothing; anything it returns is residue written during the window, which would otherwise sit unnoticed until someone happened to save that subcategory again. Record the result.

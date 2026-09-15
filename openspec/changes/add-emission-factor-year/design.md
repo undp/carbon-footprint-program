@@ -8,7 +8,7 @@ Findings from `main` @ `20cb9864` that drive every decision below.
 
 **2. The capture selector keys on `source`, not on the factor.** `EmissionEditorFactorSourceCell` builds its dropdown from `[...new Set(factors.map(f => f.source))]`; `useEmissionEditorForm` then resolves the chosen string back to a factor. When more than one factor matches, it emits a `console.warn` and **silently leaves the cell empty**. That branch is unreachable today precisely because of finding 1, and any design that lets two factors match the same line resurrects it.
 
-**3. `syncCarbonInventoryLines` never reads `emission_factor`.** `createLineFactor` writes `appliedFactorValue`, `appliedFactorSource` and `emissionFactorId` verbatim from the request payload. There is not a single query against the factor table in the whole service. Server-side year validation requires introducing the first such fetch. The service also reads the footprint **before** opening its transaction.
+**3. `syncCarbonInventoryLines` never reads `emission_factor`.** `createLineFactor` writes `appliedFactorValue`, `appliedFactorSource` and `emissionFactorId` verbatim from the request payload. There is not a single query against the factor table in the whole service. Any server-side rule about the factor's year requires introducing the first such fetch. The service also reads the footprint **before** opening its transaction, and no transaction in the repository's carbon-inventory paths raises its isolation level — `Serializable` appears in five services, none of them here — so they run at `READ COMMITTED`.
 
 **4. Silent data loss on methodology duplication.** `cloneEmissionFactors` (`apps/api/src/features/methodologies/duplicateMethodology/helpers.ts:275`) enumerates columns by hand in its `createMany`. A column not listed there is dropped, without error and without warning.
 
@@ -17,6 +17,12 @@ Findings from `main` @ `20cb9864` that drive every decision below.
 **6. A line loses its factor identity the first time it is edited.** `useEmissionCaptureData.ts:50` initialises every line recovered from the server with `baseFactorId: null`. Saving any edit — even changing only a comment — therefore writes a snapshot whose `emissionFactorId` is null, while keeping the frozen value and source. This is a live defect independent of the year: in `getEmissionFactors`, `gasBreakdownLines` and the row identifier both derive from the `emissionFactor` relation, so an edited line already loses its gas breakdown in the verifier's report and shows up as a `manual-<id>` row.
 
 **7. Lines can be parked and restored outside `sync`.** `toggleManualTotalEmissions` flips lines between `ACTIVE` and `OUTDATED`; an `OUTDATED` line keeps its snapshot and can be reactivated later without passing through `syncCarbonInventoryLines`.
+
+**8. A footprint's editable state is derived, not stored.** It is computed from the footprint's submissions (`apps/api/src/features/carbonInventories/helpers.ts:388-406`): a `REVIEWED` calculation or verification submission yields `CALCULATION_REVIEWED` or `VERIFICATION_REVIEWED`, both of which `isCarbonInventoryEditable` treats as editable. `reviewSubmissionService` only flips the submission's status, so returning a footprint with observations makes it editable again without any code path touching its lines. The `carbon_inventory.is_editable` column exists but is a free-floating flag set through `updateCarbonInventory` and never reconciled with the submission state, so no SQL predicate can rely on it.
+
+**9. Line inputs are versioned, and only the active one is read.** Each save deactivates the current input and inserts a replacement, under a unique index of one active input per line. Every reader — the mappers, the summaries, the verifier's report, duplication — filters `isActive: true`, so the superseded versions are audit trail that nothing in the application consults.
+
+**10. A manual line also has a factor snapshot.** `createLineFactor` is called unconditionally, so a line with a custom source produces a `carbon_inventory_line_factor` row too, with `emission_factor_id` null and `applied_factor_source` holding that custom source. A snapshot damaged by finding 6 has the same null id but keeps the real catalogue source, which is what separates the two.
 
 Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.year`, so a duplicate starts in the same year and a mismatch only appears once the user edits it; and the footprint's year selector offers `[currentYear - 4 .. currentYear]`, driven by `CALCULATOR_YEARS_RANGE_FROM_CURRENT = 5` in `apps/web/src/config/constants.ts:13` — **not** by `MEASURING_ORGANIZATIONS_YEAR_RANGE`, which is the dashboard KPI window.
 
@@ -37,7 +43,7 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 - No re-resolution of a line's factor when the footprint's year changes.
 - No immutability guard and no admin warnings when editing factors of an active methodology.
 - No bulk load, no maintainer grid filter, no draft state, no multi-source — all deferred.
-- No launch procedure for loading the 2026 catalogue. Coordinated outside this change.
+- No 2026 factor set. The catalogue is dated 2025 and the 2026 factors arrive in a follow-up PR.
 
 ## Decisions
 
@@ -60,18 +66,26 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Caveat on the backfill evidence**: the seed counts describe the shipped catalogue, not necessarily the production table. Factors an administrator added by hand are also swept into 2025. Task 1.2 is where that gets confirmed rather than assumed.
 
-### Decision 2 — The migration carries a data transition, not just a column
+### Decision 2 — The migration carries a data transition, and it spares nothing
 
-**Choice**: dating the catalogue does not retroactively fix the footprints that used it. In the same migration, every **editable** footprint whose year differs from the catalogue year has the factor snapshots and results of its catalogue-backed lines removed — the same rule as a year change, applied to history. Submitted and verified footprints are left untouched as the record of what was declared. Duplicating a footprint whose year has no catalogue produces a copy with those factors already cleared, so it does not start life rejecting its first save.
+**Choice**: dating the catalogue does not retroactively fix the footprints that used it. In the same migration, **every** footprint whose year differs from the catalogue year has the factor snapshots and results of its catalogue-backed lines removed — regardless of whether it is editable, submitted or verified. The clearing acts on the active input of each line, leaving the superseded input versions as they are.
 
-**What forced it**: after the backfill, a 2024 footprint still holds snapshots and a total computed from factors now dated 2025, which the selector no longer offers it. Nothing clears them, because no year change occurred. If the line still carries its factor id, the new sync validation then rejects the next save with an error about a field the user never touched. The exposure is not `year < 2025`: it is every year other than the catalogue year, 2026 included.
+**Why it spares nothing**: the platform has no real data. The requests grid shows eleven requests in total, of which the only two verification recognitions belong to test organizations, there are no pending requests, and every live period is 2025 or 2026. Nothing being erased was declared in earnest.
+
+That matters because sparing submitted footprints is what created the two re-entry routes found in review. A submitted 2024 footprint keeping its 2025 factors can be duplicated once a 2024 catalogue exists, or be returned with observations and become editable again — in both cases arriving at an editable footprint holding factors the selector will not offer. `reviewSubmissionService` only flips the submission's status, and the editable state is derived from the submissions (`carbonInventories/helpers.ts:400`), so nothing in that path could clear anything. Clear everything once and neither route has a source of mismatched data: duplication copies something already consistent, and a return restores something already consistent. Neither needs code.
+
+**This is a one-time exception and the migration must say so.** Erasing the factors of a submitted footprint destroys the record of what was declared, which is exactly what GHG Protocol and ISO 14064-1 require to be preserved. It is defensible here and only here, because there is nothing real behind it. A comment in the migration states that, so nobody reads it as precedent.
+
+**Reversibility**: a `pg_dump` before running the migration, which is standard practice and costs no code. The alternative considered was versioning the clearing the way `sync` does — deactivating each input and inserting a replacement without a factor — so the previous state stayed queryable in the database. Rejected: that is building a backup into a migration.
+
+**Scope of the delete**: every reader of line inputs filters `isActive: true`, so the superseded versions are audit trail that nothing in the application consults. The clearing therefore touches the active input of `ACTIVE` and `OUTDATED` lines and leaves the history alone.
 
 **Alternatives considered**:
 
-- **Touch no data, document the inherited state** — no writes over user data during deployment and nobody loses work overnight. Rejected: the defect survives intact in exactly the data it was meant to fix, and the user meets an inexplicable rejection the first time they edit any line.
-- **Exempt pre-existing footprints from the validation** — a grace flag so they stay editable with their inherited factors. Rejected: it means modelling, persisting and eventually retiring a second rule inside the same service, and it keeps footprints that declare one year and compute with another alive indefinitely.
+- **Touch no data, document the inherited state** — no writes over user data during deployment. Rejected: the defect survives intact in exactly the data it was meant to fix.
+- **Spare submitted footprints and pay for it in code** — the conservative reading, which respects the declared record and pays with a clearing helper invoked from the migration, the year change, `duplicateCarbonInventory` and `reviewSubmission`, plus a test per route. Rejected on the evidence above: it is a correctness argument about data that does not exist, and its correctness depends on having enumerated every route into an editable state — a list that breaks silently the day someone adds a fifth.
 
-**Cost accepted**: this is a destructive bulk operation at deploy time. It has to be communicated beforehand, and task 1.3 has to count what it will touch — across all years, not just the ones before 2025.
+**What it removes**: the per-line catalogue check in `duplicateCarbonInventory`, any change to `reviewSubmission`, and the "editable" SQL predicate the migration would otherwise need — which could not have keyed on `carbon_inventory.is_editable` anyway, since that column is a free-floating flag nothing maintains against the submission state.
 
 ### Decision 3 — `source` is a free name; the year lives in the column
 
@@ -118,21 +132,39 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 **Safety bounds**: the year is only editable while the footprint is editable, so clearing never touches a submitted or verified one. A cleared catalogue factor is one click to restore; a manual one is not.
 
-### Decision 7 — The `sync` year validation is unconditional, and reads inside its transaction
+**Where the confirmation lives**: inside `useBusinessProfilingSubmit`, not in the screen. Step 1 has two exits that save — advancing and saving on the way out — and `BusinessProfilingScreen` instantiates the hook twice, once for each, but both funnel through the same `submit`. Putting the confirmation there covers both, and covers a third exit if one is ever added. The alternative, a modal at each call site, duplicates the condition and leaves that future exit uncovered; warning at the moment the field changes was rejected because a user who reverts the year or abandons without saving would have been alarmed about something that never happened.
 
-**Choice**: `syncCarbonInventoryLines` rejects any line whose referenced catalogue factor has a year different from the footprint's, on create and on update alike. The footprint is read **inside** the transaction that writes the lines, and the year compared is the one read there.
+**The lock**: the year change takes the same `SELECT … FOR UPDATE` on the footprint row as line synchronization, so the two cannot interleave. See Decision 7.
 
-**Rationale for unconditional**: it is only tenable because of Decision 6. While stale factors survived on a line, a blanket rejection would have made those lines uneditable — a user could not fix a quantity without first swapping the factor, and between January and June there may be no factor of the new year to swap to.
+### Decision 7 — Line synchronization reconciles rather than rejects, under a row lock
 
-**Rationale for the transaction**: the service currently reads the footprint before opening its transaction. That leaves a window where a request validates against 2025, another request changes the year to 2026 and clears the lines, and the first one then writes a 2025 factor into a 2026 footprint — producing exactly the state the design declares impossible. Wrapping the clearing alone does not close it; the read has to move.
+**Choice**: when `syncCarbonInventoryLines` finds a line referencing a catalogue factor whose year differs from the footprint's, it writes that line **without** a factor snapshot and without a result — keeping its subcategory, dimension values, measurement unit, quantity, comment and files — and returns the ids of the lines left without a factor so the client can say so in Spanish. Manual-factor lines are untouched. The footprint row is read with `SELECT … FOR UPDATE` inside the transaction that writes the lines, and the same lock is taken by the year change.
 
-**What it actually guards**: the reachable path is a stale client cache, not a crafted payload. `carbonInventoryKeys.methodology(id)` is `[Root, id, Methodology]` and carries no `AttributesUpdateDependency`, while `useUpdateCarbonInventory` invalidates by the predicate `queryKey.includes(inventoryId) && queryKey.includes(AttributesUpdateDependency)` — so today changing the year does not invalidate the methodology cache. That is harmless only because the response does not yet depend on the year. The primary fix is the query key; this validation is the backstop behind it.
+**Why reconcile instead of reject**: rejecting produces a state with no way out. The user is told that a factor they never touched is invalid, on a line they may not even have edited, and the whole subcategory refuses to save. Reconciling reaches the same invariant — no line keeps a catalogue factor from another year — through the same outcome the year change already produces, which the user has seen before and knows how to resolve: the cell is empty and asks for a factor.
+
+**What it absorbs**, each of which would otherwise need its own mechanism:
+
+- an administrator moving a factor's year while lines point at it — the line is cleared on its next save instead of becoming unsavable, which is why Decision 9's stated limit is now a described behaviour rather than an accepted hazard;
+- a stale client cache, the reachable path this validation existed for in the first place;
+- any route into an editable footprint that this design failed to enumerate;
+- a lost race, which degrades from "an incompatible factor persists forever" to "it is corrected on the next save of that subcategory".
+
+**Why the lock is still needed**: moving the read inside the transaction does not close the race on its own. The repository's Prisma client sets no global isolation level, so these transactions run at `READ COMMITTED`, where a `sync` can read year 2025, a concurrent transaction can change the year to 2026 and commit its clearing, and the first can then write a 2025 factor into a 2026 footprint. `SELECT … FOR UPDATE` on `carbon_inventory`, taken by both operations, serializes exactly those two paths.
+
+**Why a row lock rather than `Serializable`**: the repository already uses `Serializable` in five services, all of them small deletes and updates. `sync` is the heaviest transaction in the application; raising its isolation level means handling `40001` with a retry loop around a write that touches lines, inputs, factor snapshots, results and file links. A lock on one row costs one statement and no retry.
+
+**Cost accepted**: the clearing is silent at the moment it happens. The response carries the affected line ids precisely so it is not silent on screen, but a client that ignores that field will drop a factor without saying anything. That is the trade against an error the user cannot act on.
+
+**Alternatives considered**:
+
+- **Reject unconditionally** — what this design said before. Tenable only while Decision 6 guarantees no legitimate request carries a mismatched factor, and that guarantee turned out to have holes on every side: a duplicated historical footprint, a footprint returned with observations, an administrator editing a factor's year, a lost race.
+- **Reject, with an exemption for pre-existing footprints** — a grace flag so inherited factors stay editable. Rejected: a second rule to model, persist and eventually retire inside the same service.
 
 ### Decision 8 — A line keeps its factor identity through editing
 
-**Choice**: `useEmissionCaptureData` hydrates `baseFactorId` from the line's existing factor snapshot instead of nulling it, so a catalogue-backed line stays catalogue-backed across edits. The change also has to state what happens to snapshots that already lost their id.
+**Choice**: the line response gains the referenced factor's id, `useEmissionCaptureData` hydrates `baseFactorId` from it instead of nulling it, and the snapshots already damaged are cleared by the migration rather than recovered.
 
-**Why it is in scope**: the whole design rests on telling a catalogue line from a manual one and on having an id to validate the year against. Today, `useEmissionCaptureData.ts:50` sets `baseFactorId: null` on every recovered line, so editing anything — a comment is enough — writes a snapshot with `emissionFactorId` null while keeping the frozen value and source. Under the rules above, that line would be treated as manual by the clearing and skipped by the validation. Both guarantees would fall through an ordinary edit.
+**Why it is in scope**: the whole design rests on telling a catalogue line from a manual one and on having an id to validate the year against. Today, `useEmissionCaptureData.ts:50` sets `baseFactorId: null` on every recovered line, so editing anything — a comment is enough — writes a snapshot with `emissionFactorId` null while keeping the frozen value and source. Under the rules above, that line would be treated as manual by the clearing and skipped by the reconciliation. Both guarantees would fall through an ordinary edit.
 
 **It is also a live defect**: in `getEmissionFactors`, the gas breakdown and the row identifier both derive from the `emissionFactor` relation, so an edited line already loses its gas breakdown in the verifier's report and appears as a `manual-<id>` row. Fixing the identity fixes that too, independently of the year.
 
@@ -141,21 +173,25 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 - **Classify by the source instead of the id** — ask whether `factorSource` is in `CUSTOM_FACTOR_SOURCES`, as the frontend already does in `isFactorValueEditable`. Works on today's data and classifies the damaged lines correctly. Rejected: the year validation still has no id to look up, so it would have to re-resolve the factor from subcategory, dimensions, unit and source, and the gas-breakdown defect stays.
 - **Accept the loss and lower the guarantees** — smallest scope, but Decision 9 falls with it and an edited line keeps a factor from another year forever.
 
-**Cost accepted**: an integrity fix that is not about the year enters this change, together with a decision about the rows already damaged.
+**The API has to expose the id first.** `mapLineToResponse` returns the frozen value, source and rate unit but not `emissionFactorId`, so there is nothing for the hook to hydrate from. Fixing this on the client alone is impossible; `packages/types` and the mapper are part of the fix.
+
+**The damaged rows are identifiable, and they are cleared.** `createLineFactor` runs for every line, so a manual line also has a snapshot — with `emission_factor_id` null and `applied_factor_source` holding a custom source such as `"Otro"`. A damaged catalogue line has the same null id but keeps the real catalogue source, which separates the two without ambiguity. Decision 2's migration uses that discriminator to clear them along with everything else. No attempt is made to recover the reference by matching subcategory, dimensions, unit and frozen source: with no real data behind it, a reconciliation query would be written, tested and justified to rescue nothing.
+
+**Cost accepted**: an integrity fix that is not about the year enters this change, and it reaches into the API response, not only the hook.
 
 ### Decision 9 — No frozen year on the line; it is derived, within stated limits
 
 **Choice**: `carbon_inventory_line_factor` gains no `applied_factor_year` column. Wherever a line's year is needed, it is the footprint's year.
 
-**Rationale**: Decisions 6, 7 and 8 together keep a catalogue-backed line on its footprint's year — the clearing removes stale ones, the validation refuses new ones, and the identity fix keeps the classification honest. For a manual line, which survives a year change, the footprint's year is still the right answer under our own definition: `year` means validity, not provenance, and a user who keeps their manual factor in a 2026 footprint is asserting it is valid for 2026.
+**Rationale**: Decisions 6, 7 and 8 together keep a catalogue-backed line on its footprint's year — the clearing removes stale ones, the reconciliation strips new ones, and the identity fix keeps the classification honest. For a manual line, which survives a year change, the footprint's year is still the right answer under our own definition: `year` means validity, not provenance, and a user who keeps their manual factor in a 2026 footprint is asserting it is valid for 2026.
 
-**Stated limit**: an administrator may move a factor's year while lines already point at it. Nothing prevents that, deliberately — no guards are built over an active methodology. The derived year survives it, because it answers _"which period was this line reporting"_, not _"how is the factor dated today"_; the footprint's period does not change when the catalogue is edited underneath. What degrades is the quality of the factor for that period, which is a judgement the verifier makes, not a lie in the data.
+**An administrator may move a factor's year while lines point at it.** Nothing prevents that, deliberately — no guards are built over an active methodology. The derived year survives it, because it answers _"which period was this line reporting"_, not _"how is the factor dated today"_; the footprint's period does not change when the catalogue is edited underneath. Under Decision 7 the affected lines are cleared on their next save and the user is told which ones, so this is a described behaviour rather than a hazard to accept. Warning the administrator with a count of the lines that would be affected was considered and deferred: it informs without blocking, but it costs a count query per row in the maintainer, and nothing is lost by adding it later.
 
 **What it removes**: a column and its migration, two entries in the type schemas, its population in `sync`, its carry-through in `duplicateCarbonInventory`, its exposure in `mapLineToResponse`, and the tests for all of it.
 
 **Alternatives considered**:
 
-- **Keep the column** — stays correct even if someone later relaxes the clearing or the validation, and would let the editor show a surviving manual factor as coming from another year. Rejected as paying for a column to carry a derivable value.
+- **Keep the column** — stays correct even if someone later relaxes the clearing or the reconciliation, and would let the editor show a surviving manual factor as coming from another year. Rejected as paying for a column to carry a derivable value.
 - **Keep it only for manual lines** — the only case where it carries information, but a column populated for some rows and null for others invites the "what does null mean here" ambiguity Decision 1 removed.
 
 **Adjacent gap, recorded but out of scope**: `manualFactorSource` stores the literal string `"Otro"`, not a citation. CYCLO asked specifically for _"espacio para poner cuál es la fuente ... ¿de dónde lo sacaste?"_. A source problem, not a year problem.
@@ -165,6 +201,8 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 **Choice**: the maintainer's year field is a dropdown offering `[currentYear - 4 .. currentYear + 1]`, kept in `apps/web` beside `CALCULATOR_YEARS_RANGE_FROM_CURRENT`. The Zod request schemas in `packages/types` carry a wide static bound (roughly `1990 .. 2100`).
 
 **Rationale for the range**: DEFRA publishes the year N set during year N (around June), and national grid factors publish year N's factor during N+1; both fall inside it. The forward year covers early publication or a validity that starts next year.
+
+**Out-of-window rows keep their year visible**: when a factor's year falls outside the offered window, that year is added as an option of its own row. A MUI `Select` whose value is not among its options renders blank and warns on the console, so without this the grid would misreport the data it exists to show. Injecting it per row keeps the factor editable and cannot leak an obsolete year into another row, since the option only exists where the value already is. Showing it as read-only text was the alternative — truer to the window's intent, at the cost of having to go to the database to correct a year typed wrong years earlier.
 
 **Rationale for the split**: the window slides every 1 January. Enforcing it server-side would make every factor of the year that drops out uneditable overnight — including for correcting its value, with an error about a field the administrator never touched. A dropdown is where typos are prevented; a static bound in `packages/types`, already consumed by both apps, still stops a `2205` and needs no new shared constant.
 
@@ -180,11 +218,11 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 ### Decision 12 — The verifier's report: frozen source, snapshot-keyed rows, no year
 
-**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`. The de-duplication key becomes the frozen snapshot — factor id plus frozen source plus applied value — rather than the factor id alone. No year is added to the rows. The gas breakdown keeps reading live, as a documented exception.
+**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`. The de-duplication key becomes the frozen snapshot — factor id plus frozen source plus applied value plus applied rate unit — rather than the factor id alone. No year is added to the rows. The gas breakdown keeps reading live, as a documented exception.
 
 **Context**: the report mixes origins today — `factorValue` comes from the snapshot, `source` and `gasBreakdownLines` from the live table. An admin editing a factor's source changes what an already-verified footprint reports, next to a value that did not change.
 
-**Why the de-duplication key changes**: the report is a list of factors used, not of lines, and collapsing repeats is intentional. But once the frozen source wins, two lines that used the same factor before and after an administrative edit hold different frozen sources, and keying on the factor id alone would drop one of them silently, picking by line order. Keying on the snapshot keeps identical uses collapsed and distinct ones visible. The requirement is worded as "each factor used", which is what the report always was.
+**Why the de-duplication key changes**: the report is a list of factors used, not of lines, and collapsing repeats is intentional. But once the frozen source wins, two lines that used the same factor before and after an administrative edit hold different frozen sources, and keying on the factor id alone would drop one of them silently, picking by line order. Keying on the snapshot keeps identical uses collapsed and distinct ones visible. The rate unit belongs in that key because an applied value means nothing without it: `0.21 kg/L` and `0.21 kg/kWh` are different factors that a value-and-source key would collapse into one row. Grouping by factor id alone was reconsidered and rejected for the opposite reason — the same factor expanded into two rate units is precisely what the verifier needs to see broken out. The requirement is worded as "each factor used", which is what the report always was.
 
 **Why no year**: the report is scoped to a single footprint, so the year is constant across rows and established by the footprint itself. ISO 14064-3 asks the verifier to judge whether the factor corresponded to the period; knowing the period and which factor each line used satisfies that.
 
@@ -196,9 +234,10 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 ## Risks
 
-- **The migration performs a destructive bulk operation** (Decision 2) over editable footprints of other years. It needs a count and a heads-up before deployment, not just a changelog line.
-- **The derived year depends on three guarantees holding** (Decision 9): the clearing, the sync validation and the identity fix. If any is later relaxed, a line could sit on a factor from another year with nothing to catch it. The tests for Decisions 6, 7 and 8 are what keep it honest.
-- **A deployment window where factor creation fails**: migrations run before containers are replaced, so the previous API version briefly faces a `NOT NULL` column it does not populate. Creating an emission factor from the maintainer fails until the new container is up. Admin-only, low frequency, visible and retryable — accepted, not mitigated with a column default, because a default would let a factor be created without stating its year, which is what Decision 1 exists to prevent.
+- **The migration performs a destructive bulk operation** (Decision 2) over every footprint of another year, submitted and verified ones included. It needs a `pg_dump`, a count and a heads-up before deployment, not just a changelog line.
+- **The derived year depends on three guarantees holding** (Decision 9): the clearing, the sync reconciliation and the identity fix. If any is later relaxed, a line could sit on a factor from another year with nothing to catch it. The tests for Decisions 6, 7 and 8 are what keep it honest.
+- **A deployment window in which the previous API version is still serving.** Migrations run before containers are replaced, so for a few minutes the old code faces a `NOT NULL` column it does not populate — creating a factor from the maintainer fails — and, worse, its `sync` still accepts a factor of any year, so it can write back exactly what the migration has just cleared. A maintenance window would close both, and with no real users it would cost nothing; it was considered and not taken. What is accepted instead: creation failures are admin-only, visible and retryable, and a factor written back during the window is cleared on the next save of that subcategory under Decision 7. The residue that survives is a footprint nobody saves again, which would keep an incompatible factor unnoticed — so a verification query after the deployment lists any line factor whose year differs from its footprint's, making that residue visible rather than hypothetical. No column default is added: a default would let a factor be created without stating its year, which is what Decision 1 exists to prevent.
+- **The current year has no catalogue on day one.** The backfill dates everything 2025, so footprints for 2026 — the year in progress — are cleared by Decision 2's migration and find nothing to choose from until the 2026 set is loaded by a follow-up PR. The manual factor is the documented path in the meantime, which is what the verifier prescribes, but it is a real gap in the product between the two deployments.
 - **Drip during the annual load** (Decision 5), on a catalogue that must be fully restated each year.
 - **Live gas breakdown** (Decision 12) in the verifier's report.
 - **No immutability guard** on factors of an active methodology — a standing, previously accepted risk.
@@ -217,7 +256,7 @@ Each of these gets an explicit TODO at the site that would otherwise silently hi
 | A real source field for manual factors          | `CUSTOM_FACTOR_SOURCES` handling in `createLineInput`   |
 | Activity-unit vs rate-unit denominator mismatch | the new factor lookup in `syncCarbonInventoryLines`     |
 
-Outside the code entirely: loading and verifying the 2026 catalogue at launch. With the year mandatory, a footprint of the current year has no factors until that set exists. Deliberately left out of this change and coordinated separately.
+Outside this change: the 2026 factor set. With the year mandatory and the catalogue dated 2025, a footprint of the current year has no factors until that set exists. It arrives in a follow-up PR — most naturally as seed data plus a script, which sidesteps the missing bulk import instead of typing 284 rows into the grid.
 
 ### On the postponed unit-mismatch fix
 
@@ -227,4 +266,6 @@ It lands in the same service as the year validation, and both need a server-side
 
 ## To confirm before rollout
 
-The backfill year is set to **2025** by decision, on the evidence that 195 of 284 seeded source strings say `DEFRA 2025`. That evidence describes the shipped catalogue, not necessarily the production table — factors added by administrators are swept in too. Confirm with the methodology team, and count what Decision 2's transition will clear, across every year rather than only those before 2025.
+The backfill year is **2025**, on the evidence that 195 of 284 seeded source strings say `DEFRA 2025`. That evidence describes the shipped catalogue, not necessarily the production table — factors added by administrators are swept in too, and should be confirmed with the methodology team rather than assumed.
+
+Decision 2's clearing is destructive and irreversible in place, so the migration is run behind a `pg_dump`. Counting what it will touch is no longer a precondition — it touches everything of another year — but it is worth having the number, by year and by submission state, to know what to say afterwards and to size the 2026 gap the follow-up PR has to close.
