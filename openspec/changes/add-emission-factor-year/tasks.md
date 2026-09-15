@@ -55,14 +55,12 @@
 - [ ] 6.6 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
 - [ ] 6.7 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
 
-## 7. API — duplication, exports and the verifier report
+## 7. API — duplication and exports
 
 - [ ] 7.1 In `apps/api/src/features/methodologies/duplicateMethodology/helpers.ts`, add `year: ef.year` to the `createMany` inside `cloneEmissionFactors` and to the `findMany` select that feeds it.
 - [ ] 7.2 Add the year to `methodologyExportSelect` in `apps/api/src/features/methodologies/helpers.ts` and to the emission-factor mapper in `apps/api/src/features/methodologies/mappers.ts`. This covers both export endpoints at once.
-- [ ] 7.3 In `apps/api/src/features/carbonInventories/getEmissionFactors/service.ts`, invert the source fallback chain so the frozen `factor.appliedFactorSource` wins over the live `emissionFactor.source`. No year is added to the rows.
-- [ ] 7.4 In the same service, change the de-duplication key from the factor id alone to the frozen snapshot — factor id plus frozen source plus applied value plus `appliedFactorRateUnitId` — and adjust the row identifier to match. The rate unit belongs in the key because a value does not identify a factor without it: `0.21 kg/L` and `0.21 kg/kWh` would otherwise collapse into one row. Once the frozen source wins, two lines that used the same factor either side of an administrative source edit hold different frozen sources, and keying on the id alone would drop one of them silently, by line order.
-- [ ] 7.5 Add a TODO at the `gasBreakdownLines` computation recording that the gas breakdown is still read live because it is not frozen anywhere.
-- [ ] 7.6 Leave `duplicateCarbonInventory` alone. It copies snapshots verbatim, which is correct once the migration has cleared every footprint of another year: the copy inherits something already consistent. Leave `reviewSubmission` alone for the same reason — a footprint returned with observations comes back editable holding factors that are already of its own year. Both were candidates for a clearing helper; neither has a source of mismatched data left. See design Decision 2.
+- [ ] 7.3 Leave `duplicateCarbonInventory` alone. It copies snapshots verbatim, which is correct once the migration has cleared every footprint of another year: the copy inherits something already consistent. Leave `reviewSubmission` alone for the same reason — a footprint returned with observations comes back editable holding factors that are already of its own year. Both were candidates for a clearing helper; neither has a source of mismatched data left. See design Decision 2.
+- [ ] 7.4 Leave `getEmissionFactors` alone as well, beyond not adding a year to its rows. It still reads the factor's source and gas breakdown live, so an administrator editing a factor changes what an already-verified footprint reports. Out of scope by decision — see design Decision 12 — and nothing about the year makes it worse: a new year's factors are new rows, not edits to existing ones.
 
 ## 8. API and Web — clearing the stale factors on a year change
 
@@ -115,9 +113,8 @@
 - [ ] 13.5 `syncCarbonInventoryLines`: a create referencing a factor of another year persists the line with no snapshot and no result and reports it in the response; the rest of the payload is persisted normally; an update to such a factor behaves the same; a line of the footprint's year is persisted with its snapshot and result; a manual line is untouched.
 - [ ] 13.6 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
 - [ ] 13.7 `duplicateMethodology`: cloned factors keep their year.
-- [ ] 13.8 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; two lines that froze different snapshots of the same factor both appear; and the same value under two rate units yields two rows.
-- [ ] 13.9 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
-- [ ] 13.10 Factor identity: PR 647 covers the round trip in the sync integration suite. What is left for this change is that a line edited without touching its factor is still treated as catalogue-backed when the year changes — assert it in the year-change test rather than duplicating 647's.
+- [ ] 13.8 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
+- [ ] 13.9 Factor identity: PR 647 covers the round trip in the sync integration suite. What is left for this change is that a line edited without touching its factor is still treated as catalogue-backed when the year changes — assert it in the year-change test rather than duplicating 647's.
 
 ## 14. Verification
 

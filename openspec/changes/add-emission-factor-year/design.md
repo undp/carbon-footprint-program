@@ -216,21 +216,17 @@ It is not taken, for two reasons. The case requires two people editing the same 
 
 `carbon_inventory.year` is left nullable rather than tightened here: that is a second `NOT NULL` migration over user data, and unlike the catalogue there is no evidence from which to infer the year of a footprint that never declared one.
 
-### Decision 12 — The verifier's report: frozen source, snapshot-keyed rows, no year
+### Decision 12 — The verifier's report is left alone
 
-**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`. The de-duplication key becomes the frozen snapshot — factor id plus frozen source plus applied value plus applied rate unit — rather than the factor id alone. No year is added to the rows. The gas breakdown keeps reading live, as a documented exception.
+**Choice**: `getEmissionFactors` is not touched. It keeps reading the factor's `source` and gas breakdown live from `emission_factor`, keeps de-duplicating by factor id, and gains no year on its rows.
 
-**Context**: the report mixes origins today — `factorValue` comes from the snapshot, `source` and `gasBreakdownLines` from the live table. An admin editing a factor's source changes what an already-verified footprint reports, next to a value that did not change.
+**What was considered and rejected**: the report mixes origins — `factorValue` comes from the frozen snapshot while `source` and `gasBreakdownLines` come from the live table — so an administrator who edits a factor's source changes what an already-verified footprint reports, next to a value that did not change. Inverting the fallback chain so the frozen source wins would fix that, and would then force the de-duplication key to become the whole snapshot, since two lines that froze different sources of one factor would otherwise silently collapse into one row chosen by line order. That in turn would force the row identifier to change, because the report is rendered by a MUI `DataGrid` that requires `id` to be unique.
 
-**Why the de-duplication key changes**: the report is a list of factors used, not of lines, and collapsing repeats is intentional. But once the frozen source wins, two lines that used the same factor before and after an administrative edit hold different frozen sources, and keying on the factor id alone would drop one of them silently, picking by line order. Keying on the snapshot keeps identical uses collapsed and distinct ones visible. The rate unit belongs in that key because an applied value means nothing without it: `0.21 kg/L` and `0.21 kg/kWh` are different factors that a value-and-source key would collapse into one row. Grouping by factor id alone was reconsidered and rejected for the opposite reason — the same factor expanded into two rate units is precisely what the verifier needs to see broken out. The requirement is worded as "each factor used", which is what the report always was.
+**Why it is not done**: an administrator renaming a factor that verified footprints already used is read as their own carelessness, not as a defect of the platform. The behaviour is intelligible to whoever caused it, and the chain of consequences above — three coupled changes and a grid identifier — is disproportionate to that.
 
-**Why no year**: the report is scoped to a single footprint, so the year is constant across rows and established by the footprint itself. ISO 14064-3 asks the verifier to judge whether the factor corresponded to the period; knowing the period and which factor each line used satisfies that.
+**It costs this change nothing.** A new year's factors are new rows, not edits to existing ones, so dating the catalogue does not make the live read any less accurate than it is today. The report stays scoped to one footprint, which is why no year is added to its rows either: the period is constant across them and established by the footprint itself.
 
-**Alternatives considered**:
-
-- **A year on every row** — self-describing once exported to a spreadsheet where a header can be lost. Rejected as repeating in every row what the footprint already determines.
-- **A single year at the response root** — `GetEmissionFactorsResponse` is a bare `z.array`, so a root field means changing the response shape and its consumer: more work than either alternative.
-- **Freeze everything, gas breakdown included** — fully reproducible under ISO 14064-3, but a new column plus migration, population and carry-through.
+**Why no year on the rows, specifically**: ISO 14064-3 asks the verifier to judge whether the factor corresponded to the period. Knowing the period and which factor each line used satisfies that. Adding a year to every row repeats what the footprint already determines, and putting one at the response root would mean changing a bare `z.array` response shape and its consumer.
 
 ## Risks
 
@@ -240,7 +236,7 @@ It is not taken, for two reasons. The case requires two people editing the same 
 - **The current year has no catalogue on day one.** The backfill dates everything 2025, so footprints for 2026 — the year in progress — are cleared by Decision 2's migration and find nothing to choose from until the 2026 set is loaded by a follow-up PR. The manual factor is the documented path in the meantime, which is what the verifier prescribes, but it is a real gap in the product between the two deployments.
 - **A year change interleaving with a line save** (Decision 7): rare enough to accept, self-correcting on the next save, and closable later with a single `FOR UPDATE` statement.
 - **Drip during the annual load** (Decision 5), on a catalogue that must be fully restated each year.
-- **Live gas breakdown** (Decision 12) in the verifier's report.
+- **The verifier's report reads the catalogue live** (Decision 12): the source and the gas breakdown of an already-verified footprint follow later edits to the factor. Pre-existing, unchanged by this design, and accepted as an administrator's own doing.
 - **No immutability guard** on factors of an active methodology — a standing, previously accepted risk.
 
 ## Deferred work
@@ -253,7 +249,7 @@ Each of these gets an explicit TODO at the site that would otherwise silently hi
 | Year filter on the maintainer grid              | `EmissionFactorsMaintainerScreen`                       |
 | Multi-source per `(subcategory, year)`          | `validateSourceConsistency`                             |
 | Draft / active state on the factor              | `EmissionFactorStatus`, plus the index's `WHERE` clause |
-| Frozen gas breakdown                            | `getEmissionFactors`                                    |
+| Frozen source and gas breakdown in the report   | `getEmissionFactors`                                    |
 | A real source field for manual factors          | `CUSTOM_FACTOR_SOURCES` handling in `createLineInput`   |
 | Activity-unit vs rate-unit denominator mismatch | the new factor lookup in `syncCarbonInventoryLines`     |
 
