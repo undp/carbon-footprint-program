@@ -45,6 +45,10 @@ export const EmissionEquivalenceCard: FC<EmissionEquivalenceCardProps> = ({
         </Typography>
         <InfoButton
           color="primary"
+          // `label` is the tooltip; without an explicit short name a screen
+          // reader would announce the whole paragraph as the button's name.
+          aria-label="Más información sobre el indicador de intensidad"
+          sx={{ flexShrink: 0 }}
           label={`Relaciona tus emisiones totales con la actividad principal que declaraste. Sirve para comparar tu desempeño entre un año y otro aunque tu ${VOCAB.organization.noun.singular} haya crecido.`}
         />
       </Box>
