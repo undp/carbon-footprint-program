@@ -66,14 +66,16 @@ export const AllianceActorCard: FC<Props> = ({ actor }) => {
       <Box className="flex items-center" sx={{ height: EMBLEM_SLOT_HEIGHT }}>
         {renderEmblem()}
       </Box>
-      <Typography
-        variant="subtitle1"
-        component="h3"
-        fontWeight="fontWeightBold"
-        sx={{ fontSize: 16, color: theme.palette.common.deepForestDark }}
-      >
-        {actor.name}
-      </Typography>
+      {actor.name && (
+        <Typography
+          variant="subtitle1"
+          component="h3"
+          fontWeight="fontWeightBold"
+          sx={{ fontSize: 16, color: theme.palette.common.deepForestDark }}
+        >
+          {actor.name}
+        </Typography>
+      )}
       <Typography
         variant="body2"
         color="text.primary"
