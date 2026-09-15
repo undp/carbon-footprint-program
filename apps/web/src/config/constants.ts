@@ -200,7 +200,7 @@ export const TERMS_CONDITIONS_FILE_URL = `${API_BASE_URL_NORMALIZED}/terms-condi
  * its own contact (a program focal point, a shared inbox), so it lives here
  * instead of being embedded in the footer copy.
  */
-export const REPLICATION_CONTACT_EMAIL = "valeria.correa@undp.org";
+export const REPLICATION_CONTACT_EMAIL = "enrique.crespo@undp.org";
 
 /** Folder name (within the carbon-inventory ZIP) that bundles line file attachments. */
 export const CARBON_INVENTORY_ZIP_FILES_DIR = "archivos";
