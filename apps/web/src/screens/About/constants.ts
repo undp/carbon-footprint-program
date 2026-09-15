@@ -296,7 +296,7 @@ export const ABOUT_DISCLAIMER =
 export const ABOUT_HERO = {
   badge: "Bien público digital · América Latina y el Caribe",
   title: "Sobre la iniciativa",
-  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
+  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
 } as const;
 
 export const ABOUT_SECTION_TITLES = {
