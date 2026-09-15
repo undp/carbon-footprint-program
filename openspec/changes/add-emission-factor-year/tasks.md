@@ -47,14 +47,13 @@
 
 ## 6. API — line synchronization
 
-- [ ] 6.1 Move the `carbonInventory.findUnique` in `syncCarbonInventoryLines/service.ts` **inside** the `$transaction` and add `year` to its select. It reads before the transaction opens today.
-- [ ] 6.2 Take a row lock on the footprint in that read — `SELECT id, year FROM carbon_inventory WHERE id = $1 FOR UPDATE` via `$queryRaw`, since Prisma's query API cannot express it. Moving the read inside the transaction is not enough on its own: these transactions run at `READ COMMITTED`, where a `sync` can read 2025, a concurrent year change to 2026 can commit its clearing, and the `sync` can then write a 2025 factor into a 2026 footprint. Task 8.1 takes the same lock.
-- [ ] 6.3 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
-- [ ] 6.4 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
-- [ ] 6.5 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class: this is reconciliation, not validation — see design Decision 7.
-- [ ] 6.6 Collect the affected line ids and return them in the response (schema in 3.8).
-- [ ] 6.7 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
-- [ ] 6.8 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
+- [ ] 6.1 Add `year` to the `carbonInventory.findUnique` select in `syncCarbonInventoryLines/service.ts`. Leave the read where it is, before the transaction opens: with the interleaving accepted (design Decision 7), moving it buys nothing at `READ COMMITTED`.
+- [ ] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
+- [ ] 6.3 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
+- [ ] 6.4 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class: this is reconciliation, not validation — see design Decision 7.
+- [ ] 6.5 Collect the affected line ids and return them in the response (schema in 3.8).
+- [ ] 6.6 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
+- [ ] 6.7 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
 
 ## 7. API — duplication, exports and the verifier report
 
@@ -67,7 +66,7 @@
 
 ## 8. API and Web — clearing the stale factors on a year change
 
-- [ ] 8.1 In `apps/api/src/features/carbonInventories/updateCarbonInventory/service.ts`, wrap the update in `prisma.$transaction` — it is a single `update` today — and take the same `SELECT … FOR UPDATE` row lock on the footprint as task 6.2, so a year change and a line save cannot interleave.
+- [ ] 8.1 In `apps/api/src/features/carbonInventories/updateCarbonInventory/service.ts`, wrap the update in `prisma.$transaction`. It is a single `update` today, and the year change and the clearing have to land together or not at all.
 - [ ] 8.2 When `data.year` is present and differs from the stored year, delete inside that transaction the `carbonInventoryLineFactor` rows of that footprint's lines **where `emissionFactorId` is not null**, together with their matching `carbonInventoryLineResult` rows.
 - [ ] 8.3 Cover parked lines, not only active ones. `toggleManualTotalEmissions` holds non-direct lines as `OUTDATED` and reactivates them later without passing through `sync`, so an `OUTDATED` line left untouched would carry a factor from another year back into an active footprint.
 - [ ] 8.4 Leave manual-factor lines untouched: their snapshot (`emissionFactorId` null) stays, and so do `manualFactor`, `manualFactorSource` and `manualFactorRateUnitId` on the input.
@@ -114,12 +113,11 @@
 - [ ] 13.3 `createEmissionFactor` / `updateEmissionFactor`: same key different years succeeds; same key same year is rejected; different sources in the same subcategory and year is rejected; different sources across years succeeds; a missing year is rejected; a factor older than the UI window stays editable when its year is not being changed.
 - [ ] 13.4 `getCarbonInventoryMethodology`: only the footprint's year is offered; a year with no catalogue offers nothing; a footprint with a null year offers nothing.
 - [ ] 13.5 `syncCarbonInventoryLines`: a create referencing a factor of another year persists the line with no snapshot and no result and reports it in the response; the rest of the payload is persisted normally; an update to such a factor behaves the same; a line of the footprint's year is persisted with its snapshot and result; a manual line is untouched.
-- [ ] 13.6 `syncCarbonInventoryLines` under concurrency: two real transactions interleaved — one saving lines, one changing the year — end with the footprint holding no factor of the old year, whichever commits first. This is the test for the row lock; it has to open two connections, not simulate the race.
-- [ ] 13.7 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
-- [ ] 13.8 `duplicateMethodology`: cloned factors keep their year.
-- [ ] 13.9 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; two lines that froze different snapshots of the same factor both appear; and the same value under two rate units yields two rows.
-- [ ] 13.10 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
-- [ ] 13.11 Factor identity: the line response carries `emissionFactorId`; a line edited without touching its factor keeps it; and such a line is still treated as catalogue-backed when the year changes.
+- [ ] 13.6 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
+- [ ] 13.7 `duplicateMethodology`: cloned factors keep their year.
+- [ ] 13.8 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; two lines that froze different snapshots of the same factor both appear; and the same value under two rate units yields two rows.
+- [ ] 13.9 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
+- [ ] 13.10 Factor identity: the line response carries `emissionFactorId`; a line edited without touching its factor keeps it; and such a line is still treated as catalogue-backed when the year changes.
 
 ## 14. Verification
 

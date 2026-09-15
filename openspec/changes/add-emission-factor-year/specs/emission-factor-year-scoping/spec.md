@@ -181,8 +181,6 @@ Lines whose factor was entered manually SHALL be untouched by this rule.
 
 The rule SHALL apply identically on creation and on update.
 
-The footprint SHALL be read inside the same transaction that writes the lines, and that read SHALL take a row lock on the footprint, which the year change SHALL take as well, so the two operations cannot interleave.
-
 The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a year change and the preserved factor identity together keep a catalogue-backed line on its footprint's year, so that year is derived rather than stored.
 
 #### Scenario: A line referencing a factor from another year is saved without it
@@ -208,12 +206,6 @@ The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a
 - **GIVEN** a footprint for year 2026 and a factor with `year = 2026`
 - **WHEN** a sync request creates a line referencing that factor
 - **THEN** the line, its input, its factor snapshot and its result SHALL be persisted
-
-#### Scenario: A concurrent year change cannot slip a stale factor through
-
-- **GIVEN** a footprint for year 2025 with a factor of 2025 in flight in a sync request
-- **WHEN** another request changes that footprint's year to 2026 at the same time
-- **THEN** the two SHALL be serialized by the footprint's row lock, AND whichever runs second SHALL observe the other's result, AND the footprint SHALL NOT end up holding a 2025 factor
 
 #### Scenario: A factor moved to another year by an administrator
 
