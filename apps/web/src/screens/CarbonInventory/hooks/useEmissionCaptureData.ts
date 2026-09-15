@@ -44,10 +44,13 @@ export const useEmissionCaptureData = ({
 
           return {
             ...subcategory,
+            // `baseFactorId` comes straight from the server: the sync payload
+            // echoes it back on every edit, so dropping it here would silently
+            // detach the line from its catalog factor the next time the user
+            // saves any unrelated field.
             lines: (inventorySubcategory?.lines || []).map((line) => ({
               ...line,
               lineId: line.id,
-              baseFactorId: null,
               files: line.files ?? [],
               removedFileIds: [],
             })),
