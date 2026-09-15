@@ -52,7 +52,7 @@ Cada fila expone un acceso a un editor de explicación enriquecida (markdown). E
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**
-> Las Sub-categorías son referenciadas por Factores de Emisión, Dimensiones de Factor de Emisión, Líneas de Inventario, iniciativas del Plan de Reducción, Proyectos de Reducción y Recomendaciones por sector. Eliminar una Sub-categoría puede orfanear Factores de Emisión y dejar datos de inventarios históricos sin referencia activa visible. Cambiar la Categoría asociada o el nombre afecta cómo se agrupan y reportan datos ya capturados.
+> Las Sub-categorías son referenciadas por Factores de Emisión, Dimensiones de Factor de Emisión, Líneas de Inventario, Iniciativas de reducción, Proyectos de Reducción y Recomendaciones por sector. Eliminar una Sub-categoría puede orfanear Factores de Emisión y dejar datos de inventarios históricos sin referencia activa visible. Cambiar la Categoría asociada o el nombre afecta cómo se agrupan y reportan datos ya capturados.
 
 > ℹ️ **Cuándo modificar**
 > Es apropiado intervenir este mantenedor durante el onboarding de la metodología, al incorporar nuevas fuentes de emisión derivadas de la normativa del país, o cuando se requiere ajustar la lista de Unidades de Medida válidas para una sub-categoría existente.
