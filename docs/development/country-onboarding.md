@@ -327,6 +327,25 @@ DATABASE_URL="postgresql://..." SEEDS_DATASET=base pnpm --filter @repo/seed seed
 
 > Never run `db:restore` against a production database — it drops all data first.
 
+### Content migrations do not reach your methodology
+
+When the upstream repository corrects methodology **content** — a dimension label, a subcategory
+guide, a factor — it ships the fix twice: as an edit to the seed data (which only reaches fresh
+installs) and as a data migration for environments that are already populated. Those migrations
+deliberately scope themselves to the demo country's base methodology, matching on
+`country.iso_code = 'PD'` and `methodology_version.name = 'Metodología inicial'`, precisely so they
+never overwrite a decision a country has made in its own methodology.
+
+The consequence is that **a deployment maintaining its own methodology receives none of those
+content corrections**. `prod:deploy` will apply the migration and report success while touching zero
+rows. Whoever owns the methodology has to decide whether each correction applies and re-enter it
+through the maintainer.
+
+So when you track an upstream release, read the migrations that touch `subcategory.explanation`,
+`emission_factor_dimension.name` or `emission_factor`, and treat them as a changelog of content
+decisions to review — not as changes you have already received. The migration headers state what
+changed in the text and why.
+
 ---
 
 ## Step 12 — Publish the Deployment's Operational Contacts
