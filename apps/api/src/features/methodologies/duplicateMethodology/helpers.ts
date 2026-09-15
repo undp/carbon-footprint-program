@@ -283,6 +283,9 @@ export const cloneEmissionFactors = async (
         : null,
       rateMeasurementUnitId: ef.rateMeasurementUnitId,
       source: ef.source,
+      // `createMany` enumerates its columns by hand: a column left out here is
+      // dropped from the clone without error and without warning.
+      year: ef.year,
       gasDetails: ef.gasDetails ?? Prisma.JsonNull,
       value: ef.value,
       status: EmissionFactorStatus.ACTIVE,
