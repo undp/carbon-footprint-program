@@ -181,7 +181,7 @@ export const useReductionPlanInitiativeColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onDelete={() => onDelete(params.row)}
-              deleteConfirmMessage="Los planes de reducción existentes seguirán mostrando el nombre de la iniciativa. ¿Eliminar?"
+              deleteConfirmMessage="Las huellas que ya tienen esta iniciativa sugerida seguirán mostrando su nombre. ¿Eliminar?"
             />
           );
         },

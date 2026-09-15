@@ -333,7 +333,7 @@ export const ReductionPlanInitiativesMaintainerScreen: FC = () => {
   return (
     <FormProvider {...form}>
       <MaintainerPageHeader
-        title="Iniciativas para planes de reducción"
+        title="Catálogo de iniciativas de reducción"
         onAddRow={handleAddRow}
         addDisabled={editingRowId !== null || !selectedMethodologyVersionId}
         addLabel="Agregar fila"

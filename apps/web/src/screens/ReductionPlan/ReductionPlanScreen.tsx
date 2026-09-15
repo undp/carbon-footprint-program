@@ -187,7 +187,7 @@ export const ReductionPlanScreen: FC = () => {
     return (
       <ScreenEmptyState
         title="Aún no tienes una huella"
-        description="Crea tu primera huella para comenzar a ver tu plan de reducción."
+        description="Crea tu primera huella para comenzar a ver tus iniciativas de reducción."
         action={{
           label: `Ir a Huella ${capitalize(VOCAB.organization.relationalAdjective)}`,
           onClick: () => void navigate({ to: Routes.CARBON_INVENTORIES }),
@@ -224,7 +224,7 @@ export const ReductionPlanScreen: FC = () => {
         <Box className="flex items-center justify-between">
           <Box className="flex items-center gap-1">
             <Typography variant="h6">
-              Plan de reducción por categoría
+              Iniciativas de reducción por categoría
             </Typography>
             <InfoButton
               label="Más información"
@@ -254,7 +254,7 @@ export const ReductionPlanScreen: FC = () => {
         )}
 
         {!isLoadingPlan && isErrorPlan && (
-          <LoadingErrorStateMessage message="Ocurrió un error al cargar el plan de reducción." />
+          <LoadingErrorStateMessage message="Ocurrió un error al cargar las iniciativas de reducción." />
         )}
 
         {!isLoadingPlan && !isErrorPlan && reductionPlan && (
@@ -298,7 +298,7 @@ export const ReductionPlanScreen: FC = () => {
                 ? selectedOrganizationId === "none"
                   ? `No hay huellas sin ${VOCAB.organization.noun.singular}.`
                   : `Esta ${VOCAB.organization.noun.singular} no tiene huellas disponibles.`
-                : "Selecciona una huella para ver el plan de reducción."
+                : "Selecciona una huella para ver las iniciativas de reducción."
             }
           />
         )}
