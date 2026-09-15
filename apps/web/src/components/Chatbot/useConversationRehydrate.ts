@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { SourceCitationWire } from "@repo/types";
+import { CHATBOT_REHYDRATE_TIMEOUT_MS } from "@/config/constants";
 import { API_BASE_URL } from "@/config/environment";
 import { buildChatbotHeaders } from "./authHeaders";
 import { clearConversationId, readConversationId } from "./conversationStore";
@@ -68,6 +69,15 @@ export const useConversationRehydrate = ({
 
   useEffect(() => {
     let cancelled = false;
+    // Bounds the request and ties it to unmount. Without it a server that
+    // accepts the connection and then hangs never settles the promise, so the
+    // `finally` below never runs and `historyLoading` stays true for the life
+    // of the page — a permanently blank panel rather than an empty one.
+    const controller = new AbortController();
+    const timer = setTimeout(
+      () => controller.abort(),
+      CHATBOT_REHYDRATE_TIMEOUT_MS
+    );
     void (async () => {
       const conversationId = readConversationId();
       if (conversationId === null) {
@@ -75,6 +85,7 @@ export const useConversationRehydrate = ({
         // conversation. Skipping the round-trip entirely is the point of
         // holding the id client-side; the server could not have answered
         // anything but 204.
+        clearTimeout(timer);
         setHistoryLoading(false);
         return;
       }
@@ -85,6 +96,7 @@ export const useConversationRehydrate = ({
             method: "GET",
             credentials: "include",
             headers: await buildChatbotHeaders(),
+            signal: controller.signal,
           }
         );
         if (cancelled) return;
@@ -110,11 +122,14 @@ export const useConversationRehydrate = ({
         // Best-effort: a transport failure or malformed body means we start
         // visually empty, not in an error state.
       } finally {
+        clearTimeout(timer);
         if (!cancelled) setHistoryLoading(false);
       }
     })();
     return () => {
       cancelled = true;
+      clearTimeout(timer);
+      controller.abort();
     };
   }, []);
 

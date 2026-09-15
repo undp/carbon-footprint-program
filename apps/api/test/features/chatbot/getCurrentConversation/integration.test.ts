@@ -146,6 +146,9 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
         role: ChatMessageRole.ASSISTANT,
         content: "No dispongo de fuentes verificadas...",
         sourcesCited: [],
+        // A successful turn always sets latencyMs at finalization; the row is
+        // otherwise indistinguishable from a failed one and is now excluded.
+        latencyMs: 120,
       },
     });
     const response = await app.inject({
@@ -221,6 +224,70 @@ describe("GET /api/chatbot/conversations/me/current — integration", () => {
       url: urlFor(anonConversation.id),
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  it("omits an assistant row that never finalized", async () => {
+    // latencyMs NULL means in flight, or a turn that failed or was stopped. The
+    // row carries "" or a partial answer, and the widget would render it as a
+    // finished reply with no error styling — the prompt path already excludes
+    // exactly these rows, and the rehydrate path did not.
+    const conversation = await prisma.chatbotChatConversation.create({
+      data: { userId: forcedUserId, expiresAt: FUTURE() },
+    });
+    await prisma.chatbotChatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: ChatMessageRole.USER,
+        content: "pregunta",
+        createdAt: new Date(Date.now() - 2_000),
+      },
+    });
+    await prisma.chatbotChatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: ChatMessageRole.ASSISTANT,
+        content: "",
+        latencyMs: null,
+        createdAt: new Date(Date.now() - 1_000),
+      },
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: urlFor(conversation.id),
+    });
+    expect(response.statusCode).toBe(200);
+    const body: { messages: Array<{ role: string; content: string }> } =
+      response.json();
+    // The user's question survives — it carries latencyMs NULL too, so the
+    // exclusion has to be scoped to the ASSISTANT role.
+    expect(body.messages).toHaveLength(1);
+    expect(body.messages[0].role).toBe(ChatMessageRole.USER);
+  });
+
+  it("keeps a partial assistant row out of the thread as well", async () => {
+    // The stopped-mid-stream shape: real content, still unfinalized. Rendering
+    // it is worse than dropping it, because it reads as a complete answer.
+    const conversation = await prisma.chatbotChatConversation.create({
+      data: { userId: forcedUserId, expiresAt: FUTURE() },
+    });
+    await prisma.chatbotChatMessage.create({
+      data: {
+        conversationId: conversation.id,
+        role: ChatMessageRole.ASSISTANT,
+        content: "Las emisiones de alcance 3 son",
+        truncated: true,
+        latencyMs: null,
+      },
+    });
+
+    const response = await app.inject({
+      method: "GET",
+      url: urlFor(conversation.id),
+    });
+    expect(response.statusCode).toBe(200);
+    const body: { messages: unknown[] } = response.json();
+    expect(body.messages).toHaveLength(0);
   });
 
   it("returns 404 when the id is well-formed but names no row (forged id)", async () => {

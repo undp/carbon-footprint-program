@@ -62,6 +62,18 @@ export const CHATBOT_INTRODUCED_KEY = "huella-latam:chatbot-introduced";
 export const CHATBOT_STREAM_IDLE_TIMEOUT_MS = 30_000;
 export const CHATBOT_STREAM_OVERALL_TIMEOUT_MS = 120_000;
 
+/**
+ * Budget for the mount-time rehydrate request.
+ *
+ * Much tighter than the stream budgets because the work is different: one
+ * small GET, not a model completion. It exists for the same reason they do —
+ * an API that accepts the connection and then goes quiet would otherwise leave
+ * `historyLoading` true forever, and the chat surface suppresses its
+ * "¿En qué puedo ayudarte?" placeholder while that flag is set, so the panel
+ * stays blank with no way back except a reload.
+ */
+export const CHATBOT_REHYDRATE_TIMEOUT_MS = 10_000;
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 

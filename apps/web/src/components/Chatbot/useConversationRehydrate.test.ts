@@ -1,11 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Mock } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import {
   clearConversationId,
   readConversationId,
   writeConversationId,
 } from "./conversationStore";
+import { CHATBOT_REHYDRATE_TIMEOUT_MS } from "@/config/constants";
 import { useConversationRehydrate } from "./useConversationRehydrate";
 import type { SeedMessage } from "./useChatStream";
 
@@ -191,6 +192,53 @@ describe("useConversationRehydrate", () => {
 
     await waitFor(() => expect(result.current.historyLoading).toBe(false));
     expect(onLoaded).not.toHaveBeenCalled();
+  });
+
+  it("gives up on a server that accepts the request and then hangs", async () => {
+    // The failure this guards is silent: historyLoading only clears in the
+    // `finally`, and the chat surface suppresses its placeholder while that
+    // flag is set. A promise that never settles leaves a blank panel with no
+    // way out but a reload — and a hung API is exactly the deployment case
+    // that motivated making these URLs absolute.
+    vi.useFakeTimers();
+    fetchMock.mockImplementation(
+      (_input, init) =>
+        new Promise<Response>((_resolve, reject) => {
+          init?.signal?.addEventListener(
+            "abort",
+            () => reject(new DOMException("Aborted", "AbortError")),
+            { once: true }
+          );
+        })
+    );
+    const onLoaded = vi.fn();
+
+    const { result } = renderHook(() => useConversationRehydrate({ onLoaded }));
+    expect(result.current.historyLoading).toBe(true);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(CHATBOT_REHYDRATE_TIMEOUT_MS + 100);
+    });
+
+    expect(result.current.historyLoading).toBe(false);
+    expect(onLoaded).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("aborts the in-flight rehydrate on unmount", async () => {
+    let signal: AbortSignal | undefined;
+    fetchMock.mockImplementation((_input, init) => {
+      signal = init?.signal ?? undefined;
+      return new Promise<Response>(() => undefined);
+    });
+
+    const { unmount } = renderHook(() =>
+      useConversationRehydrate({ onLoaded: vi.fn() })
+    );
+    await waitFor(() => expect(signal).toBeDefined());
+    unmount();
+
+    expect(signal?.aborted).toBe(true);
   });
 
   it("fetches once even when the caller passes a new closure each render", async () => {

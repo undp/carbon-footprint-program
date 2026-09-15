@@ -527,6 +527,44 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     expect(done.outputTokens).toEqual(expect.any(Number));
   });
 
+  it("answers 503 and marks the row when the first round throws after its tool_call", async () => {
+    // The drain that follows a tool_call is still a provider interaction: an
+    // upstream error or an idle-timeout abort surfaces as a throw right there.
+    // Unguarded it escaped the handler, so failBeforeHijack never ran — the
+    // assistant row stayed at latency_ms NULL with truncated = false, which is
+    // precisely the state an operator query for failed turns cannot see — and
+    // the caller got a 500 instead of the 503 every other pre-hijack failure
+    // maps to.
+    vi.spyOn(mockProvider, "streamCompletion").mockImplementation(
+      async function* () {
+        await Promise.resolve();
+        yield {
+          type: "tool_call",
+          id: "stub-call-drain",
+          name: "searchKnowledge",
+          arguments: JSON.stringify({ query: "alcance 3" }),
+        };
+        throw new Error("upstream died while draining");
+      }
+    );
+
+    const { status } = await collectSseEvents(
+      app,
+      "/api/chatbot/message",
+      { content: "pregunta" },
+      { ownsApp: false }
+    );
+
+    expect(status).toBe(503);
+
+    const assistantRow = await prisma.chatbotChatMessage.findFirst({
+      where: { role: ChatMessageRole.ASSISTANT },
+      orderBy: { id: "desc" },
+    });
+    expect(assistantRow).not.toBeNull();
+    expect(assistantRow!.truncated).toBe(true);
+  });
+
   // Maps to spec scenario "History over the budget is trimmed, not refused".
   //
   // This case used to assert HTTP 413: history past CHATBOT_MAX_HISTORY_TOKENS

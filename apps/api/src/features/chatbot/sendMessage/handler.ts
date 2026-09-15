@@ -171,9 +171,8 @@ export const sendMessageHandler = async (
   // real thread behind. A client that only learned the id from a successful
   // stream would abandon it and open a second one on retry.
   //
-  // The cap rejections do not need this — they throw inside the transaction,
-  // so a brand-new conversation is rolled back and an existing one is the id
-  // the client already holds.
+  // `enforceUserInputCap` does not need this: it runs before the transaction,
+  // so its 413 leaves no conversation behind to name.
   reply.header(CHATBOT_CONVERSATION_ID_HEADER, conversationId.toString());
 
   const provider = getLlmProvider();
@@ -403,10 +402,26 @@ export const sendMessageHandler = async (
     // Drain anything left in the first iterator. A tool_call event terminates
     // the stream, so the next .next() returns done immediately — drain
     // defensively so a provider that leaks events still releases resources.
-    let firstRemaining: IteratorResult<LlmStreamEvent>;
-    do {
-      firstRemaining = await firstIterator.next();
-    } while (!firstRemaining.done);
+    //
+    // Guarded because it is still a provider interaction: an upstream error or
+    // an idle-timeout abort surfaces here as a throw. Unguarded it escaped the
+    // handler entirely, so failBeforeHijack never ran and the assistant row
+    // stayed at `latency_ms = NULL, truncated = false` — invisible to the
+    // operator query for failed turns, which is exactly the state that
+    // function exists to prevent — while the caller got a 500 instead of the
+    // 503 every other pre-hijack failure maps to.
+    try {
+      let firstRemaining: IteratorResult<LlmStreamEvent>;
+      do {
+        firstRemaining = await firstIterator.next();
+      } while (!firstRemaining.done);
+    } catch (err) {
+      await failBeforeHijack(
+        { err, round: 1 },
+        "chatbot first-round drain errored after tool_call"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
 
     let toolResult;
     try {

@@ -1,7 +1,10 @@
 import type { PrismaClient } from "@repo/database";
 import { z } from "zod";
 import { SourceCitationSchema, type SourceCitation } from "@repo/types";
-import { searchKnowledge } from "@/features/chatbot/searchKnowledge/index.js";
+import {
+  InvalidQueryError,
+  searchKnowledge,
+} from "@/features/chatbot/searchKnowledge/index.js";
 import type { ChunkWithMetadata } from "@/features/chatbot/searchKnowledge/index.js";
 
 const SearchKnowledgeArgsSchema = z.object({
@@ -70,7 +73,21 @@ export const executeSearchKnowledgeTool = async (
   if (!argsResult.success) {
     return emptyResult();
   }
-  const chunks = await searchKnowledge(prisma, argsResult.data.query);
+  // InvalidQueryError degrades to the empty result rather than escaping.
+  // The tool schema advertises `maxLength: 2000` on `query`, but a JSON-schema
+  // length is a hint the model is free to ignore, and searchKnowledge refuses
+  // anything past QUERY_TOKEN_LIMIT (512 ≈ 2048 chars). A query a few
+  // characters over that used to throw out of here, hit the handler's catch,
+  // and answer 503 — a whole turn lost to the model being verbose. Everything
+  // else (a dropped connection, a provider outage) still propagates: those are
+  // real failures, not a badly-shaped argument.
+  let chunks;
+  try {
+    chunks = await searchKnowledge(prisma, argsResult.data.query);
+  } catch (err) {
+    if (err instanceof InvalidQueryError) return emptyResult();
+    throw err;
+  }
   const validSources: SourceCitation[] = [];
   for (const chunk of chunks) {
     const candidate = buildCandidateCitation(chunk);

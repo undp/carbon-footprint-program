@@ -51,8 +51,17 @@ export const findCurrentConversation = async (
       createdAt: true,
       expiresAt: true,
       messages: {
+        // Same exclusion loadConversationHistory applies, for the same reason:
+        // an assistant row is created empty inside the turn transaction and
+        // only gets `latencyMs` once its stream finalizes successfully. A row
+        // still at NULL is in flight, or belongs to a turn that failed or was
+        // stopped. Returning it renders an empty bubble — or a partial answer
+        // styled as a complete one — the next time the widget mounts. User rows
+        // also carry `latencyMs = null`, so the exclusion is scoped to the
+        // ASSISTANT role.
         where: {
           role: { in: [ChatMessageRole.USER, ChatMessageRole.ASSISTANT] },
+          NOT: { role: ChatMessageRole.ASSISTANT, latencyMs: null },
         },
         // `id` breaks the tie for the same reason as in loadConversationHistory:
         // both rows of a turn are written in one transaction, and TIMESTAMP(3)
