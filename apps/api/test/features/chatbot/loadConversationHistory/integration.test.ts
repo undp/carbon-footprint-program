@@ -78,7 +78,11 @@ describe("loadConversationHistory — integration", () => {
   it("returns them oldest-first, the order the prompt is built in", async () => {
     await seedMessages(6);
 
-    const history = await loadConversationHistory(prisma, conversationId);
+    // Explicit limit: this case is about ORDER, not about the window, and
+    // tying it to CHATBOT_MAX_HISTORY_MESSAGES would make it fail whenever that
+    // constant is tuned below the seed count — which is exactly what happens on
+    // a branch that lowers the caps to exercise the error paths.
+    const history = await loadConversationHistory(prisma, conversationId, 10);
 
     expect(history.map((m) => m.content)).toEqual([
       "mensaje 0",
