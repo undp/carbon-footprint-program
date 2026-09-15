@@ -76,7 +76,7 @@
 
 ## 9. Factor identity — landed in PR 647, not in this change
 
-- [ ] 9.1 Confirm PR 647 (`fix/mati/line-factor-identity`, commit 21cb3db6) is merged before starting section 6. It is a hard dependency: the reconciliation looks the year up through the line's factor id, so without it the edited lines — the ones most likely to hold a stale factor — are exactly the ones skipped.
+- [x] 9.1 PR 647 (`fix/mati/line-factor-identity`) is merged, landing on `main` as f989cbdc. It is a hard dependency: the reconciliation looks the year up through the line's factor id, so without it the edited lines — the ones most likely to hold a stale factor — are exactly the ones skipped.
 - [ ] 9.2 What it did, for reference: `mapLineToResponse` now returns `baseFactorId`, both line schemas carry it, and `useEmissionCaptureData` hydrates it instead of nulling it. It also fixed a live defect unrelated to the year — `getEmissionFactors` derives the gas breakdown and the row identity from the `emissionFactor` relation, so edited lines were losing their breakdown and showing as `manual-<id>` in the verifier's report.
 - [ ] 9.3 Nothing to decide about the snapshots already damaged: task 2.6 clears them along with the rest, identifying them by a null `emission_factor_id` with a non-custom frozen source. No attempt is made to re-link them — with no real data behind it, a reconciliation query would be written and justified to rescue nothing.
 - [ ] 9.4 Note that nothing reads `baseFactorId` as a manual-factor signal, verified in PR 647: it is only ever written, and every manual check is `factorSource ∈ CUSTOM_FACTOR_SOURCES`. The clearing and the reconciliation can rely on the id without contradicting that.

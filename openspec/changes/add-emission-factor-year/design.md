@@ -2,7 +2,7 @@
 
 Emission factors live in `emission_factor`, keyed by `(subcategory, dimensionValue1, dimensionValue2, rateMeasurementUnit)` with a free-text `source` and a `gas_details` JsonB breakdown. A footprint line freezes what it used in `carbon_inventory_line_factor`: `emissionFactorId`, `appliedFactorValue`, `appliedFactorRateUnitId`, `appliedFactorSource`, `derivationDetails`. `carbon_inventory.year` is `Int?` although the UI requires it in step 1.
 
-Findings from `main` @ `20cb9864` that drive every decision below.
+Findings from `main` @ `f989cbdc` that drive every decision below.
 
 **1. Uniqueness is enforced in three places, not one.** The partial unique index `emission_factor_unique_subcategory_dims_source` (`packages/database/src/prisma/migrations/20251227203015_create_methodology_tables/migration.sql:169`) covers `(subcategory_id, dimension_value_1_id, dimension_value_2_id, source) WHERE status <> 'DELETED'`. `checkDuplicateEmissionFactor` (`apps/api/src/features/emissionFactors/helpers.ts:65`) rejects a second ACTIVE factor for the same subcategory and required-dimension combination — it never looks at `source`, so it is **stricter than the index** and is what actually blocks. `validateSourceConsistency` (same file, line 109) forces every ACTIVE factor of a subcategory to share one source.
 
@@ -14,7 +14,7 @@ Findings from `main` @ `20cb9864` that drive every decision below.
 
 **5. The catalogue already half-states its own year.** Of the 284 seeded factors, the `source` strings are `DEFRA 2025` (195), `IPCC` (83), `EcoAct 2020` (3) and `Kool, A.` (3).
 
-**6. A line loses its factor identity the first time it is edited.** `useEmissionCaptureData.ts:50` initialises every line recovered from the server with `baseFactorId: null`. Saving any edit — even changing only a comment — therefore writes a snapshot whose `emissionFactorId` is null, while keeping the frozen value and source. This is a live defect independent of the year: in `getEmissionFactors`, `gasBreakdownLines` and the row identifier both derive from the `emissionFactor` relation, so an edited line already loses its gas breakdown in the verifier's report and shows up as a `manual-<id>` row.
+**6. A line used to lose its factor identity the first time it was edited — fixed in PR 647.** `useEmissionCaptureData` initialised every line recovered from the server with `baseFactorId: null`, so saving any edit — even changing only a comment — wrote a snapshot whose factor reference was null while keeping the frozen value and source. It was a live defect independent of the year: in `getEmissionFactors`, `gasBreakdownLines` and the row identifier both derive from the `emissionFactor` relation, so an edited line lost its gas breakdown in the verifier's report and showed up as a `manual-<id>` row. The line now carries `baseFactorId` through `mapLineToResponse` and both line schemas, and the hook hydrates it. This design depends on that: without it, the clearing would read edited lines as manual and the reconciliation would skip them.
 
 **7. Lines can be parked and restored outside `sync`.** `toggleManualTotalEmissions` flips lines between `ACTIVE` and `OUTDATED`; an `OUTDATED` line keeps its snapshot and can be reactivated later without passing through `syncCarbonInventoryLines`.
 
