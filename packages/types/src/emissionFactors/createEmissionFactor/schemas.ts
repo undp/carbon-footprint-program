@@ -1,5 +1,7 @@
 import { z } from "zod";
 import {
+  EMISSION_FACTOR_YEAR_MAX,
+  EMISSION_FACTOR_YEAR_MIN,
   EmissionFactorBaseSchema,
   SubcategoryBaseSchema,
   EmissionFactorDimensionValueBaseSchema,
@@ -20,6 +22,7 @@ export const CreateEmissionFactorRequestSchema = z.strictObject({
     .describe("Name for dimension value 2 (find-or-create)"),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
   source: z.string().min(1, "Fuente es requerida"),
+  year: EmissionFactorBaseSchema.shape.year,
   gasDetails: GasDetailsSchema,
   value: z.number(),
 });
@@ -29,6 +32,7 @@ export const CreateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
     id: true,
     value: true,
     source: true,
+    year: true,
   }
 ).extend({
   subcategoryId: SubcategoryBaseSchema.shape.id,
@@ -50,6 +54,11 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
   source: z.string().min(1, "Fuente es requerida"),
+  year: z
+    .number({ error: "Año es requerido" })
+    .int()
+    .min(EMISSION_FACTOR_YEAR_MIN)
+    .max(EMISSION_FACTOR_YEAR_MAX),
   value: z
     .number({ error: "Valor es requerido" })
     .nonnegative("Debe ser no negativo")
