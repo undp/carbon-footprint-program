@@ -26,8 +26,8 @@
 - [ ] 3.4 Add the year to the `GetAllEmissionFactorsResponseSchema` row shape, so the maintainer grid can render the column.
 - [ ] 3.5 Add the year to the emission-factor entry of `GetMethodologyExportResponseSchema`. `GetCarbonInventoryMethodologyExportResponseSchema` is a literal re-export, so the footprint-scoped export is covered with no further edit.
 - [ ] 3.6 Do **not** add a year to `GetCarbonInventoryMethodologyResponse` nor to `GetEmissionFactorsResponse`. Both are deliberate omissions — see design Decisions 9 and 12.
-- [ ] 3.7 Add the line's `emissionFactorId` to the carbon-inventory line response shape. It is **not** there today: `mapLineToResponse` returns `factorSource`, `factorValue` and `factorRateMeasurementUnitId` but never the id, so section 9 has nothing to hydrate `baseFactorId` from. Nullable, since a manual line has no factor.
-- [ ] 3.8 Add the ids of the lines left without a factor to the `syncCarbonInventoryLines` response schema, so the client can tell the user which ones need a factor again (section 6).
+- [ ] 3.7 Nothing to do for the line's factor id — PR 647 landed it as `baseFactorId`, the same name the sync request already uses, so a line round-trips unchanged. Read the note in section 9 before touching anything that reads it.
+- [ ] 3.8 Add the ids of the lines left without a factor to the `syncCarbonInventoryLines` response schema, so the client can tell the user which ones need a factor again (section 6). **Two schemas, not one**: `syncCarbonInventoryLines/schemas.ts` declares its own `.strict()` `LineItemSchema` that the sync response uses, structurally parallel to the one in `getCarbonInventoryById/schemas.ts`, and `mapLineToResponse` feeds both. A field added to only one is stripped by the serializer on the other. PR 647 hit exactly this.
 
 ## 4. API — emission factor write path
 
@@ -48,7 +48,7 @@
 ## 6. API — line synchronization
 
 - [ ] 6.1 Add `year` to the `carbonInventory.findUnique` select in `syncCarbonInventoryLines/service.ts`. Leave the read where it is, before the transaction opens: with the interleaving accepted (design Decision 7), moving it buys nothing at `READ COMMITTED`.
-- [ ] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
+- [ ] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. Those ids are always the numeric id of a real `emission_factor` row: `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`, so the composite id of a converted factor (`123-1`) never reaches the payload. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
 - [ ] 6.3 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
 - [ ] 6.4 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class: this is reconciliation, not validation — see design Decision 7.
 - [ ] 6.5 Collect the affected line ids and return them in the response (schema in 3.8).
@@ -74,12 +74,12 @@
 - [ ] 8.6 Add `CarbonInventoryQueryKey.AttributesUpdateDependency` to `carbonInventoryKeys.methodology(id)` in `apps/web/src/api/query/carbonInventories/keys.ts`. Today that key is `[Root, id, Methodology]` and `useUpdateCarbonInventory`'s invalidation predicate never matches it, so after a year change capture would keep serving the previous year's factors for the whole `staleTime`.
 - [ ] 8.7 In `useUpdateCarbonInventory`, also invalidate `EmissionsUpdateDependency` when the payload carries a year. Clearing results invalidates the emissions summary, the subcategory and sector rankings, the factor report and the reduction plan, all of which hang off that token and none of which the mutation touches today.
 
-## 9. Web — factor identity
+## 9. Factor identity — landed in PR 647, not in this change
 
-- [ ] 9.1 In `apps/web/src/screens/CarbonInventory/hooks/useEmissionCaptureData.ts:50`, hydrate `baseFactorId` from the line's `emissionFactorId` (added in 3.7) instead of setting it to `null`. This is what makes a catalogue-backed line stay catalogue-backed across edits; without it, saving any edit — a comment is enough — writes a snapshot with no `emissionFactorId`, which the clearing would treat as manual and the reconciliation would skip.
-- [ ] 9.2 Verify the whole round trip by hand: load a footprint, edit only a comment on a catalogue-backed line, save, and confirm the new snapshot still references the factor.
+- [ ] 9.1 Confirm PR 647 (`fix/mati/line-factor-identity`, commit 21cb3db6) is merged before starting section 6. It is a hard dependency: the reconciliation looks the year up through the line's factor id, so without it the edited lines — the ones most likely to hold a stale factor — are exactly the ones skipped.
+- [ ] 9.2 What it did, for reference: `mapLineToResponse` now returns `baseFactorId`, both line schemas carry it, and `useEmissionCaptureData` hydrates it instead of nulling it. It also fixed a live defect unrelated to the year — `getEmissionFactors` derives the gas breakdown and the row identity from the `emissionFactor` relation, so edited lines were losing their breakdown and showing as `manual-<id>` in the verifier's report.
 - [ ] 9.3 Nothing to decide about the snapshots already damaged: task 2.6 clears them along with the rest, identifying them by a null `emission_factor_id` with a non-custom frozen source. No attempt is made to re-link them — with no real data behind it, a reconciliation query would be written and justified to rescue nothing.
-- [ ] 9.4 Note in the PR description that this also fixes a live defect unrelated to the year: `getEmissionFactors` derives both the gas breakdown and the row identity from the `emissionFactor` relation, so edited lines currently lose their breakdown and appear as `manual-<id>` rows in the verifier's report.
+- [ ] 9.4 Note that nothing reads `baseFactorId` as a manual-factor signal, verified in PR 647: it is only ever written, and every manual check is `factorSource ∈ CUSTOM_FACTOR_SOURCES`. The clearing and the reconciliation can rely on the id without contradicting that.
 
 ## 10. Web — maintainer
 
@@ -117,7 +117,7 @@
 - [ ] 13.7 `duplicateMethodology`: cloned factors keep their year.
 - [ ] 13.8 `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports; two lines that froze different snapshots of the same factor both appear; and the same value under two rate units yields two rows.
 - [ ] 13.9 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
-- [ ] 13.10 Factor identity: the line response carries `emissionFactorId`; a line edited without touching its factor keeps it; and such a line is still treated as catalogue-backed when the year changes.
+- [ ] 13.10 Factor identity: PR 647 covers the round trip in the sync integration suite. What is left for this change is that a line edited without touching its factor is still treated as catalogue-backed when the year changes — assert it in the year-change test rather than duplicating 647's.
 
 ## 14. Verification
 

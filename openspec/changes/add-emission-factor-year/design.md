@@ -158,9 +158,11 @@ It is not taken, for two reasons. The case requires two people editing the same 
 - **Reject unconditionally** — what this design said before. Tenable only while Decision 6 guarantees no legitimate request carries a mismatched factor, and that guarantee turned out to have holes on every side: a duplicated historical footprint, a footprint returned with observations, an administrator editing a factor's year, a lost race.
 - **Reject, with an exemption for pre-existing footprints** — a grace flag so inherited factors stay editable. Rejected: a second rule to model, persist and eventually retire inside the same service.
 
-### Decision 8 — A line keeps its factor identity through editing
+### Decision 8 — A line keeps its factor identity through editing (landed in PR 647)
 
 **Choice**: the line response gains the referenced factor's id, `useEmissionCaptureData` hydrates `baseFactorId` from it instead of nulling it, and the snapshots already damaged are cleared by the migration rather than recovered.
+
+**Where it lives**: the first two halves shipped separately, in PR 647 (`fix/mati/line-factor-identity`, commit 21cb3db6), because they fix a live defect that has nothing to do with the year and deserved to be reviewed on their own. This change depends on that PR being merged; the reasoning below is kept because the design rests on it. The field is named `baseFactorId`, matching the name the sync request already used, and it had to be added to two parallel `.strict()` line schemas — `getCarbonInventoryById` and `syncCarbonInventoryLines`, both fed by `mapLineToResponse` — since a field present in only one is stripped by the serializer on the other. Worth remembering if this change adds another line field.
 
 **Why it is in scope**: the whole design rests on telling a catalogue line from a manual one and on having an id to validate the year against. Today, `useEmissionCaptureData.ts:50` sets `baseFactorId: null` on every recovered line, so editing anything — a comment is enough — writes a snapshot with `emissionFactorId` null while keeping the frozen value and source. Under the rules above, that line would be treated as manual by the clearing and skipped by the reconciliation. Both guarantees would fall through an ordinary edit.
 
@@ -168,14 +170,14 @@ It is not taken, for two reasons. The case requires two people editing the same 
 
 **Alternatives considered**:
 
-- **Classify by the source instead of the id** — ask whether `factorSource` is in `CUSTOM_FACTOR_SOURCES`, as the frontend already does in `isFactorValueEditable`. Works on today's data and classifies the damaged lines correctly. Rejected: the year validation still has no id to look up, so it would have to re-resolve the factor from subcategory, dimensions, unit and source, and the gas-breakdown defect stays.
+- **Classify by the source instead of the id** — ask whether `factorSource` is in `CUSTOM_FACTOR_SOURCES`, which is in fact how every manual check in the frontend works; PR 647 confirmed that nothing reads `baseFactorId` as a manual signal, so the two classifications do not contradict each other. Works on today's data and classifies the damaged lines correctly. Rejected: the year validation still has no id to look up, so it would have to re-resolve the factor from subcategory, dimensions, unit and source, and the gas-breakdown defect stays.
 - **Accept the loss and lower the guarantees** — smallest scope, but Decision 9 falls with it and an edited line keeps a factor from another year forever.
 
 **The API has to expose the id first.** `mapLineToResponse` returns the frozen value, source and rate unit but not `emissionFactorId`, so there is nothing for the hook to hydrate from. Fixing this on the client alone is impossible; `packages/types` and the mapper are part of the fix.
 
 **The damaged rows are identifiable, and they are cleared.** `createLineFactor` runs for every line, so a manual line also has a snapshot — with `emission_factor_id` null and `applied_factor_source` holding a custom source such as `"Otro"`. A damaged catalogue line has the same null id but keeps the real catalogue source, which separates the two without ambiguity. Decision 2's migration uses that discriminator to clear them along with everything else. No attempt is made to recover the reference by matching subcategory, dimensions, unit and frozen source: with no real data behind it, a reconciliation query would be written, tested and justified to rescue nothing.
 
-**Cost accepted**: an integrity fix that is not about the year enters this change, and it reaches into the API response, not only the hook.
+**Cost accepted**: none, now that it ships separately — what remains here is a dependency on PR 647 rather than a widening of this change.
 
 ### Decision 9 — No frozen year on the line; it is derived, within stated limits
 
