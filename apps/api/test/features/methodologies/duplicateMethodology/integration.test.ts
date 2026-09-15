@@ -516,11 +516,13 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
       dimensionValue1Id: val1.id,
       source: "IPCC",
+      year: 2025,
       value: "2.5",
     });
     await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
       dimensionValue1Id: val2.id,
       source: "IPCC",
+      year: 2026,
       value: "3.0",
     });
 
@@ -570,6 +572,10 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
     expect(dupFactors[0].dimensionValue1Id).toBe(dupValues[0].id);
     expect(dupFactors[1].value.toString()).toBe("3");
     expect(dupFactors[1].dimensionValue1Id).toBe(dupValues[1].id);
+    // `createMany` enumerates its columns by hand, so a clone that drops the
+    // year fails here rather than silently undating the copy.
+    expect(dupFactors[0].year).toBe(2025);
+    expect(dupFactors[1].year).toBe(2026);
 
     // Ensure new IDs are different from originals
     expect(dupDimensions[0].id).not.toBe(dim.id);
@@ -1161,6 +1167,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
           subcategoryId: sub.id,
           rateMeasurementUnitId: rateUnitId,
           source: "Test - Null Gas Source",
+          year: 2025,
           gasDetails: Prisma.JsonNull,
           value: new Prisma.Decimal("1"),
           status: EmissionFactorStatus.ACTIVE,

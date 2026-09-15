@@ -175,6 +175,131 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     return { methodology, category, subcategory, rateUnitId };
   }
 
+  describe("Year scoping", () => {
+    it("should update the year on its own", async () => {
+      const { subcategory, rateUnitId } =
+        await buildBaseSubcategory("Year Only Update");
+
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025 }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${ef.id.toString()}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
+      expect(body.year).toBe(2026);
+      expect(body.source).toBe("DEFRA 2025");
+
+      const stored = await prisma.emissionFactor.findUniqueOrThrow({
+        where: { id: ef.id },
+        select: { year: true },
+      });
+      expect(stored.year).toBe(2026);
+    });
+
+    it("should return 409 when a year-only change lands on a year whose source differs", async () => {
+      const { subcategory, rateUnitId } = await buildBaseSubcategory(
+        "Year Source Conflict"
+      );
+
+      await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+        source: "DEFRA 2025",
+        year: 2025,
+      });
+      const efToMove = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "DEFRA 2026", year: 2026 }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${efToMove.id.toString()}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect((JSON.parse(response.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_SOURCE_CONFLICT"
+      );
+    });
+
+    it("should return 409 when a year-only change collides with the key of that year", async () => {
+      const { subcategory, rateUnitId } =
+        await buildBaseSubcategory("Year Duplicate");
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dim1.id,
+        { value: "A" }
+      );
+
+      await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+        source: "DEFRA 2025",
+        year: 2025,
+        dimensionValue1Id: value.id,
+      });
+      const efToMove = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2026, dimensionValue1Id: value.id }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${efToMove.id.toString()}`,
+        payload: { year: 2025 },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect((JSON.parse(response.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_DUPLICATE"
+      );
+    });
+
+    it("should keep a factor dated before the maintainer window editable", async () => {
+      const { subcategory, rateUnitId } =
+        await buildBaseSubcategory("Year Out Of Window");
+
+      // Outside `[currentYear - 4 .. currentYear + 1]`, the window the
+      // maintainer dropdown offers, but well inside the schema's static bound:
+      // the window slides every 1 January and must not make an old factor
+      // uneditable — not even for correcting its value.
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "IPCC", year: 2005 }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${ef.id.toString()}`,
+        payload: { value: 9.5 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
+      expect(body.value).toBe("9.5");
+      expect(body.year).toBe(2005);
+    });
+  });
+
   describe("Field-by-field updates", () => {
     it("should update rateMeasurementUnitId to a different valid unit", async () => {
       const { subcategory, rateUnitId } =
@@ -711,6 +836,7 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
             dimensionValue2Id: targetDim2Value.id,
             rateMeasurementUnitId: rateUnitId,
             source: "Test Transactional Race Source",
+            year: 2025,
             gasDetails: {
               CO2_FOSSIL: 0,
               CH4: 0,

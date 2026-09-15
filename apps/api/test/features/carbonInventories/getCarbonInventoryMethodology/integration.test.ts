@@ -20,6 +20,11 @@ import {
 } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import {
+  createTestEmissionFactor,
+  getTestRateMeasurementUnitId,
+  SEEDED_CATALOGUE_YEAR,
+} from "@test/factories/emissionFactorFactory.js";
+import {
   convertEmissionFactorValue,
   generateConvertedEmissionFactors,
 } from "@/features/carbonInventories/getCarbonInventoryMethodology/helper.js";
@@ -51,6 +56,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
     await cleanupTestCategories(prisma, [
       "Test - Deleted Category",
       "Test - Subcategory Ordering",
+      "Test - Year Scoping Category",
     ]);
   });
 
@@ -60,7 +66,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -88,7 +94,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -119,7 +125,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -159,7 +165,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -213,7 +219,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -284,7 +290,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -328,7 +334,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -357,7 +363,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -431,7 +437,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -455,7 +461,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -481,7 +487,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -530,7 +536,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -559,7 +565,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -586,7 +592,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -621,7 +627,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       const response = await app.inject({
@@ -690,6 +696,110 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         expect(convertedPair).toBeDefined();
         expect(convertedPair).toBe(originalPair);
       }
+    });
+  });
+
+  describe("Year scoping", () => {
+    const countOfferedFactors = (
+      body: GetCarbonInventoryMethodologyResponse
+    ): number =>
+      body.categories
+        .flatMap((category) => category.subcategories)
+        .reduce(
+          (total, subcategory) => total + subcategory.emissionFactors.length,
+          0
+        );
+
+    const fetchMethodology = async (carbonInventoryId: bigint | number) => {
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventoryId.toString()}/methodology`,
+      });
+      expect(response.statusCode).toBe(200);
+      return JSON.parse(response.body) as GetCarbonInventoryMethodologyResponse;
+    };
+
+    it("should offer only the factors of the footprint's year", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const category = await createTestCategory(prisma, methodologyId, {
+        name: "Test - Year Scoping Category",
+        position: 900,
+      });
+      const subcategory = await createTestSubcategory(prisma, category.id, {
+        name: "Test - Year Scoping Subcategory",
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const factorOf2025 = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025 }
+      );
+      const factorOf2026 = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { source: "DEFRA 2026", year: 2026 }
+      );
+
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId, year: 2026 }
+      );
+
+      const body = await fetchMethodology(carbonInventory.id);
+      const offered = body.categories
+        .flatMap((cat) => cat.subcategories)
+        .find((sub) => sub.id === subcategory.id.toString());
+
+      expect(offered).toBeDefined();
+      // The factor of the footprint's year, plus whatever converted variants
+      // its rate unit allows — every one of them derived from that factor and
+      // from no other year's.
+      const offeredOriginalIds = new Set(
+        offered!.emissionFactors.map(
+          (factor) => factor.originalEmissionFactorId ?? factor.id
+        )
+      );
+      expect(offeredOriginalIds).toEqual(new Set([factorOf2026.id.toString()]));
+      expect(offeredOriginalIds.has(factorOf2025.id.toString())).toBe(false);
+      expect(
+        offered!.emissionFactors.every(
+          (factor) => factor.source === "DEFRA 2026"
+        )
+      ).toBe(true);
+    });
+
+    it("should offer nothing for a year with no catalogue", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId, year: 2023 }
+      );
+
+      const body = await fetchMethodology(carbonInventory.id);
+
+      // The categories and subcategories are still there — only the factors
+      // are gone, leaving the manual factor as the only path.
+      expect(body.categories.length).toBeGreaterThan(0);
+      expect(countOfferedFactors(body)).toBe(0);
+    });
+
+    it("should offer nothing for a footprint with no year", async () => {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId, year: null }
+      );
+
+      const body = await fetchMethodology(carbonInventory.id);
+
+      expect(body.categories.length).toBeGreaterThan(0);
+      expect(countOfferedFactors(body)).toBe(0);
     });
   });
 
