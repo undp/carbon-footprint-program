@@ -27,6 +27,7 @@ export async function seedEmissionFactors(
           dimensionValue2: ef.dimensionValue2,
           rateMeasurementUnitAbbreviation: ef.rateMeasurementUnitAbbreviation,
           source: ef.source,
+          year: ef.year,
           value: ef.value,
         }))
       )
@@ -159,6 +160,7 @@ export async function seedEmissionFactors(
       dimensionValue2Id: dimensionValue2Id,
       rateMeasurementUnitId: rateMeasurementUnit.id,
       source: ef.source,
+      year: ef.year,
       gasDetails: {},
       value: ef.value,
     };
