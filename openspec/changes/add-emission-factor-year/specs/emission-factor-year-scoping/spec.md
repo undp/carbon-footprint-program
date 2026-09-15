@@ -165,10 +165,12 @@ Duplicating a methodology version SHALL copy each factor's year to the new versi
 
 ### Requirement: The verifier's factor report reads the frozen source
 
-The per-footprint factor report SHALL report, for each line, the source that was frozen at capture time, so a later edit to the catalogue cannot change what an already-submitted footprint reports. It SHALL report the footprint's year alongside it.
+The per-footprint factor report SHALL report, for each line, the source that was frozen at capture time, so a later edit to the catalogue cannot change what an already-submitted footprint reports.
+
+The report SHALL NOT carry a year per row: it is scoped to one footprint, so the period is constant across its rows and established by the footprint itself.
 
 #### Scenario: Editing a factor's source does not change an existing footprint's report
 
 - **GIVEN** a footprint line captured with a factor whose source was `"DEFRA 2026"`
 - **WHEN** an administrator later edits that factor's source
-- **THEN** the footprint's factor report SHALL still show `"DEFRA 2026"`, together with the footprint's year
+- **THEN** the footprint's factor report SHALL still show `"DEFRA 2026"`

@@ -21,7 +21,7 @@ Competitive note: the Huella Chile programme uses a single database for every ye
 - **Validate the year server-side in `syncCarbonInventoryLines`.** Filtering is not validating: a stale client payload would otherwise write a factor from another year and the filter would never notice.
 - **Add the year to the maintainer**: a required field in the emission-factor form and a column in the grid. The dropdown offers `[currentYear - 4 .. currentYear + 1]`; the shared Zod schema carries only a wide static bound, so a factor does not become uneditable because the sliding window moved past it.
 - **Clear the stale factors on a year change**: editing a footprint's year clears the frozen factor and result of every line that used a catalogue factor, after a confirmation modal in step 1. Lines keep their subcategory, dimensions, unit and quantity, and simply ask for a factor again. Lines with a manual factor are kept, because their value and source were typed by the user and no catalogue can restore them.
-- **Carry the year through** methodology duplication, both methodology exports, and the per-footprint factor report the verifier reads — which additionally switches from reading the live `emission_factor.source` to the frozen `applied_factor_source`.
+- **Carry the year through** methodology duplication and both methodology exports. The per-footprint factor report the verifier reads carries no year of its own — it is scoped to one footprint, so the year is constant across its rows — but it does switch from reading the live `emission_factor.source` to the frozen `applied_factor_source`.
 
 No breaking API contract: `emission_factor.year` is populated by the migration before it is required, and every other change is additive.
 

@@ -21,7 +21,7 @@
 - [ ] 3.3 Add the year to `UpdateEmissionFactorRequestSchema` and `UpdateEmissionFactorResponseSchema`. The request schema is `.partial()`, so an update that omits the year leaves it unchanged; when present it is validated against the same static bound.
 - [ ] 3.4 Add the year to the `GetAllEmissionFactorsResponseSchema` row shape, so the maintainer grid can render the column.
 - [ ] 3.5 Add the year to the emission-factor entry of `GetMethodologyExportResponseSchema`. Note that `GetCarbonInventoryMethodologyExportResponseSchema` is a literal re-export of it, so the footprint-scoped export is covered with no further edit.
-- [ ] 3.6 Add the year to the row shape of `GetEmissionFactorsResponse` (the verifier's per-footprint report). Do **not** add it to `GetCarbonInventoryMethodologyResponse`: every factor there is of the footprint's year by construction.
+- [ ] 3.6 Do **not** add a year to `GetCarbonInventoryMethodologyResponse` nor to `GetEmissionFactorsResponse`. In the first, every factor is of the footprint's year by construction; in the second, the report is scoped to one footprint so the year is constant across its rows. Both are deliberate omissions — see design Decisions 7 and 10.
 
 ## 4. API — emission factor write path
 
@@ -50,7 +50,7 @@
 
 - [ ] 7.1 In `apps/api/src/features/methodologies/duplicateMethodology/helpers.ts`, add `year: ef.year` to the `createMany` inside `cloneEmissionFactors` and to the `findMany` select that feeds it. This enumerates columns by hand; with the column required, omitting it now fails loudly instead of silently erasing the dating, but it still has to be added.
 - [ ] 7.2 Add the year to `methodologyExportSelect` in `apps/api/src/features/methodologies/helpers.ts` and to the emission-factor mapper in `apps/api/src/features/methodologies/mappers.ts`. This covers `getMethodologyExport` and `getCarbonInventoryMethodologyExport` at once, since the latter reuses the same select, mapper and response schema.
-- [ ] 7.3 In `apps/api/src/features/carbonInventories/getEmissionFactors/service.ts`, invert the source fallback chain so the frozen `factor.appliedFactorSource` wins over the live `emissionFactor.source`, and add the footprint's year to the response row. The service already loads the inventory through `fetchInventory`, so the year needs no new query.
+- [ ] 7.3 In `apps/api/src/features/carbonInventories/getEmissionFactors/service.ts`, invert the source fallback chain so the frozen `factor.appliedFactorSource` wins over the live `emissionFactor.source`. Nothing else in this service changes: no year is added to the rows.
 - [ ] 7.4 Add a TODO at the `gasBreakdownLines` computation recording that the gas breakdown is still read live because it is not frozen anywhere, and that freezing it would mean a JsonB column beside `derivationDetails`, populated in sync and carried in `duplicateCarbonInventory`.
 - [ ] 7.5 Leave `duplicateCarbonInventory` unchanged: with no year on the line factor, its hand-enumerated `carbonInventoryLineFactor.create` needs no new field.
 
@@ -91,7 +91,7 @@
 - [ ] 12.5 Add integration coverage for `syncCarbonInventoryLines`: a create referencing a factor from another year is rejected and persists nothing; an update to such a factor is rejected too; a line of the footprint's year is accepted.
 - [ ] 12.6 Add integration coverage for `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual-factor lines survive untouched; no replacement factor is ever chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 7 honest — the reported year is only derivable while this behaviour holds.
 - [ ] 12.7 Add integration coverage for `duplicateMethodology`: cloned factors keep their year.
-- [ ] 12.8 Add integration coverage for `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports.
+- [ ] 12.8 Add integration coverage for `getEmissionFactors`: editing a factor's source afterwards does not change what an existing footprint reports. This is the one behaviour change in that service.
 - [ ] 12.9 Add a migration check: against a database seeded with the undated catalogue, every factor ends dated, no `source` string changed, and the column is `NOT NULL`.
 
 ## 13. Verification

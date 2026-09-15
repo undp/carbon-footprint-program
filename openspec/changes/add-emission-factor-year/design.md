@@ -22,7 +22,7 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 - Make every factor state which footprint year it is valid for, as an explicit assertion rather than an omission.
 - Stop offering a factor from another year in capture, and stop trusting the client to respect that.
-- Give the verifier a per-line answer to "which factor, from which source, for which year".
+- Give the verifier a per-line answer to "which factor, from which source", against a footprint whose period is unambiguous.
 - Keep a footprint from silently carrying last year's factors when its year changes.
 
 **Non-Goals:**
@@ -150,18 +150,21 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 
 **Rationale**: it falls out of the filter with no special branch, and it degrades in the direction that pushes the user to complete step 1 — which the UI already demands, so only legacy rows can reach this state. `carbon_inventory.year` is left nullable rather than tightened in the same change; making it required is a separate migration with its own legacy-data risk and no bearing on this capability.
 
-### Decision 10 — The verifier's report reads the frozen source and the footprint's year
+### Decision 10 — The verifier's report reads the frozen source, and carries no year
 
-**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`, and the year shown is the footprint's. The gas breakdown keeps reading live, as a documented exception.
+**Choice**: in `getEmissionFactors`, the source's fallback chain is inverted so `appliedFactorSource` wins over the live `emissionFactor.source`. No year is added to the report's rows. The gas breakdown keeps reading live, as a documented exception.
 
 **Context**: the report currently mixes origins — `factorValue` comes from the snapshot, while `source` and `gasBreakdownLines` come from the live table. An admin editing a factor's source therefore changes what an already-verified footprint reports, next to a value that did not change.
 
+**Why no year**: the report is scoped to a single footprint, so the year is constant across every row and already established by the footprint itself. Repeating it per row restates a header in each line. ISO 14064-3 asks the verifier to judge whether the factor corresponded to the period; knowing the footprint's period and which factor each line used satisfies that.
+
 **Alternatives considered**:
 
-- **Freeze everything, gas breakdown included** — a JsonB column beside `derivationDetails` would make the report fully reproducible and is the most defensible under ISO 14064-3. But it is a new column plus its migration, population in sync, and carry-through in `duplicateCarbonInventory`.
-- **Only add the year** — smallest diff, but leaves the year displayed next to a source that may have changed, on the one screen that exists so the verifier can trace the factor's origin.
+- **A year on every row** — self-describing when the listing is exported and read outside the application, in a spreadsheet or a PDF where a header can be lost in a copy or a crop, and the most literal reading of the traceability requirement. Rejected as a field repeated in every row for information the footprint already determines.
+- **A single year at the response root** — the natural middle, and it would make the contract state that the report is scoped to a period. Rejected on cost: `GetEmissionFactorsResponse` is a bare `z.array`, so a root field means changing the response's shape and adapting its consumer — more work than either of the others.
+- **Freeze everything, gas breakdown included** — a JsonB column beside `derivationDetails` would make the report fully reproducible under ISO 14064-3, but it is a new column plus its migration, population in sync, and carry-through in `duplicateCarbonInventory`.
 
-**Rationale**: `appliedFactorSource` is already stored; it is merely second in the fallback chain. Fixing the order is free and makes the report internally consistent. This is a read-order correction, not the immutability guard that was explicitly rejected. The year needs no new storage — the service already loads the inventory.
+**Rationale**: `appliedFactorSource` is already stored; it is merely second in the fallback chain. Fixing the order is free and makes the report internally consistent. This is a read-order correction, not the immutability guard that was explicitly rejected.
 
 ## Risks
 
