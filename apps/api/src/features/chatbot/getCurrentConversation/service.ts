@@ -54,7 +54,11 @@ export const findCurrentConversation = async (
         where: {
           role: { in: [ChatMessageRole.USER, ChatMessageRole.ASSISTANT] },
         },
-        orderBy: { createdAt: "asc" },
+        // `id` breaks the tie for the same reason as in loadConversationHistory:
+        // both rows of a turn are written in one transaction, and TIMESTAMP(3)
+        // does not reliably separate them — a rehydrated thread must not render
+        // the answer above the question it replies to.
+        orderBy: [{ createdAt: "asc" }, { id: "asc" }],
         select: {
           id: true,
           role: true,

@@ -38,6 +38,16 @@ export const CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000;
 /** Max tokens the LLM may produce in a single turn. */
 export const CHATBOT_MAX_OUTPUT_TOKENS = 1500;
 
+/**
+ * Max messages of prior history loaded into a turn's prompt.
+ *
+ * A ceiling on the query, not on the conversation: the newest N are taken and
+ * anything older is simply not sent to the model. CHATBOT_MAX_HISTORY_TOKENS is
+ * the cap that actually rejects a turn; this one only bounds how much the
+ * database is asked for, so a long thread cannot grow the query unboundedly.
+ */
+export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
+
 /** Max user turns persisted per conversation before HTTP 413. */
 export const CHATBOT_MAX_TURNS_PER_CONVERSATION = 50;
 

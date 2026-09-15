@@ -283,6 +283,29 @@ The header SHALL be listed in the CORS `exposedHeaders` (`plugins/external/cors.
 - **WHEN** a caller POSTs a turn whose `conversationId` is not a positive integer string (`"0"`, `"-1"`, `"1.5"`, `""`, `null`, or a non-numeric string)
 - **THEN** the request SHALL be rejected with HTTP 400 before the handler runs — never coerced, since `BigInt()` on such a value throws and would surface as a 500 on a request that is simply malformed
 
+### Requirement: Prompt history is the newest window of the conversation, oldest-first
+
+`loadConversationHistory` SHALL return at most `CHATBOT_MAX_HISTORY_MESSAGES` rows, selected as the **newest** of the conversation and returned in ascending chronological order for prompt construction. Selecting the oldest window instead — `orderBy: created_at ASC` with a `take` — SHALL NOT be used: past the limit it stops feeding the model anything recent, so the assistant answers from the opening of the thread while appearing to work, with no error on any surface.
+
+Ordering SHALL break ties on `id`. `created_at` is `TIMESTAMP(3)` and both rows of a turn are written inside a single transaction, so that column alone does not reliably separate a user message from its own reply; `id` is `BIGSERIAL` and always orders them by insertion. The same tiebreaker SHALL apply to the message ordering returned by `GET /api/chatbot/conversations/me/current`, for the same reason — a rehydrated thread must not render an answer above the question it replies to.
+
+`CHATBOT_MAX_HISTORY_MESSAGES` bounds the query, not the conversation: rows outside the window are simply not sent to the model, and nothing is rejected on its account. `CHATBOT_MAX_HISTORY_TOKENS` remains the cap that refuses a turn.
+
+#### Scenario: A thread longer than the limit contributes its most recent messages
+
+- **WHEN** a conversation holds more than `CHATBOT_MAX_HISTORY_MESSAGES` finalized messages and a turn is sent
+- **THEN** the loaded history SHALL have exactly `CHATBOT_MAX_HISTORY_MESSAGES` entries, its LAST entry SHALL be the most recently created message in the conversation, and its FIRST entry SHALL be the message `CHATBOT_MAX_HISTORY_MESSAGES` positions back — never the conversation's opening messages
+
+#### Scenario: A user message precedes its own reply when both carry the same timestamp
+
+- **WHEN** a user row and its assistant row share an identical `created_at`
+- **THEN** the loaded history SHALL place the user row first, ordered by `id`
+
+#### Scenario: Taking the newest window does not admit an unfinalized assistant row
+
+- **WHEN** the most recently created row in the conversation is an assistant row with `latency_ms IS NULL` (in flight, or belonging to a failed turn)
+- **THEN** it SHALL be excluded from the loaded history exactly as it was before the window changed direction — the newest-first selection SHALL NOT bypass the finalization filter
+
 ### Requirement: tokens_used on the assistant chat_message row uses the second-round usage event in the tool path
 
 In the two-round (tool path) case introduced by this change, the values used to populate `chatbot_chat_message.tokens_used` on the assistant row SHALL come from the **SECOND (terminal) `usage` event** — the one that closed the assistant turn — NOT a sum across both rounds and NOT the first-round event (which carries no `usage` because the first invocation terminated on `tool_call`). The `tokens_used` value SHALL be `inputTokens + outputTokens` from that second-round `usage` event, matching the foundation contract.

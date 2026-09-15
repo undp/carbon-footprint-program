@@ -2,6 +2,7 @@ import type { Prisma, PrismaClient } from "@repo/database";
 import { ChatMessageRole } from "@repo/database/enums";
 import {
   CHATBOT_CONVERSATION_TTL_DAYS,
+  CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
   CHATBOT_MAX_TURNS_PER_CONVERSATION,
   CHATBOT_MAX_USER_INPUT_TOKENS,
@@ -106,12 +107,27 @@ export const resolveOrCreateConversation = async (
   return createConversation(tx, identity);
 };
 
+/**
+ * The prior turns fed into this turn's prompt, oldest-first.
+ *
+ * Takes the NEWEST `limit` rows and reverses them. Taking the oldest instead —
+ * `orderBy: asc` with a `take` — is the same query to read and quietly wrong:
+ * past `limit` messages the model stops seeing anything recent and answers from
+ * the opening of the thread, with no error anywhere to say so.
+ *
+ * The secondary sort on `id` is load-bearing, not tidiness. `created_at` is
+ * TIMESTAMP(3) and both rows of a turn are written inside one transaction, so
+ * the column does not reliably separate a user message from its own reply.
+ * Sorting on it alone leaves their order to the planner, and a prompt that puts
+ * the answer before the question is worse than one missing the pair. `id` is a
+ * BIGSERIAL, so it always breaks the tie in insertion order.
+ */
 export const loadConversationHistory = async (
   prisma: Tx | PrismaClient,
   conversationId: bigint,
-  limit = 50
+  limit = CHATBOT_MAX_HISTORY_MESSAGES
 ) => {
-  return prisma.chatbotChatMessage.findMany({
+  const newestFirst = await prisma.chatbotChatMessage.findMany({
     // Exclude unfinalized assistant rows: an assistant row is created empty
     // inside the turn transaction and only gets `latencyMs` set once its
     // stream finalizes successfully. A row left with `latencyMs = null` is
@@ -123,9 +139,10 @@ export const loadConversationHistory = async (
       conversationId,
       NOT: { role: ChatMessageRole.ASSISTANT, latencyMs: null },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: limit,
   });
+  return newestFirst.reverse();
 };
 
 /**
