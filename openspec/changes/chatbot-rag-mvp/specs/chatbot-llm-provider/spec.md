@@ -40,6 +40,26 @@ The Azure chat provider's API version SHALL be configurable via `AZURE_OPENAI_AP
 
 ## MODIFIED Requirements
 
+### Requirement: Token caps are defined as named constants in API config
+
+The system SHALL define the following token cap constants in `apps/api/src/config/constants.ts` with the exact values listed:
+
+- `CHATBOT_MAX_USER_INPUT_TOKENS = 4000`
+- `CHATBOT_MAX_HISTORY_TOKENS = 8000`
+- `CHATBOT_MAX_HISTORY_MESSAGES = 50`
+- `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000`
+- `CHATBOT_MAX_OUTPUT_TOKENS = 1500`
+- `CHATBOT_CONVERSATION_TTL_DAYS = 30`
+
+`CHATBOT_MAX_TURNS_PER_CONVERSATION` is removed — see the removed turn-cap requirement in `chatbot-message-streaming`.
+
+Two of these bound a query or a prompt rather than rejecting a request, and the distinction is the point: `CHATBOT_MAX_HISTORY_MESSAGES` caps how many rows are read for the prompt, and `CHATBOT_MAX_HISTORY_TOKENS` caps the size of the request sent upstream, with anything over it dropped from the oldest end. Only `CHATBOT_MAX_USER_INPUT_TOKENS` and `CHATBOT_MAX_RAG_CONTEXT_TOKENS` refuse work.
+
+#### Scenario: Constants exist with the documented values
+
+- **WHEN** `apps/api/src/config/constants.ts` is inspected
+- **THEN** the six constants above SHALL be exported with the exact numeric values listed, and `CHATBOT_MAX_TURNS_PER_CONVERSATION` SHALL NOT be exported
+
 ### Requirement: System exposes an LLMProvider interface
 
 `LLMProvider` SHALL define `streamCompletion(messages, options)` accepting `LlmMessage[]` and `options` including `maxOutputTokens: number`, optional `signal?: AbortSignal`, and optional `tools?: LlmToolDefinition[]`. The method SHALL return an async iterable yielding `delta` (`{ type: "delta", content: string }`), `tool_call` (`{ type: "tool_call", id, name, arguments }` — at most once per stream when accumulated), and a final `usage` (`{ type: "usage", inputTokens, outputTokens }`).

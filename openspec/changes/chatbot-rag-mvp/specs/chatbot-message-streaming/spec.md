@@ -329,35 +329,54 @@ The implementation regression that motivates this clarification: the foundation 
 - **WHEN** any successful turn completes and emits its terminal `done` SSE event with `{ inputTokens: N, outputTokens: M, ... }`
 - **THEN** the persisted `chatbot_chat_message.tokens_used` for the assistant row SHALL equal `N + M` — the wire and the persisted value cannot drift
 
+## REMOVED Requirements
+
+### Requirement: Endpoint enforces a per-conversation turn cap
+
+**Reason**: the cap made a conversation unusable once it was reached — every later message met the same 413, and the only escape was to abandon the thread. Trimming the history to the token budget (see the modified cap requirement below) bounds the cost of a turn without bounding the life of the conversation, which is what the cap was really trying to do. It also removes a `COUNT` query per turn from inside the identity advisory lock.
+
+**Migration**: `CHATBOT_MAX_TURNS_PER_CONVERSATION` is deleted along with `enforceTurnCap`. `CHATBOT_CONVERSATION_TTL_DAYS` remains the bound on a conversation's lifetime, and the rate limiter remains the bound on how fast turns can arrive.
+
 ## MODIFIED Requirements
 
-### Requirement: Endpoint enforces token caps before invoking the LLM provider
+### Requirement: Endpoint fits the prompt to its token budget before invoking the LLM provider
 
-The handler SHALL validate the token budget before invoking the `LLMProvider`. User message tokens SHALL NOT exceed `CHATBOT_MAX_USER_INPUT_TOKENS`. System prompt + prior history tokens SHALL NOT exceed `CHATBOT_MAX_HISTORY_TOKENS`. Tool-result message tokens within a turn SHALL NOT exceed `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000`. Token counts use `estimateTokens(text)`. Any pre-LLM cap exceeded → HTTP 413 with `REQUEST_TOO_LARGE`. RAG-context cap exceeded after the first LLM round (response head already sent) → terminal SSE `error` with `code = "EXTERNAL_SERVICE_ERROR"` and the generic Spanish error.
+The handler SHALL bound the request sent to the `LLMProvider`. Token counts use `estimateTokens(text)`.
+
+Two of the three budgets refuse the turn, and one does not:
+
+- User message tokens SHALL NOT exceed `CHATBOT_MAX_USER_INPUT_TOKENS` → HTTP 413 with `REQUEST_TOO_LARGE`. The caller can act on this: a shorter message is accepted.
+- Tool-result message tokens within a turn SHALL NOT exceed `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000`. Exceeded after the first LLM round (response head already sent) → terminal SSE `error` with `code = "EXTERNAL_SERVICE_ERROR"` and the generic Spanish error.
+- `CHATBOT_MAX_HISTORY_TOKENS` bounds the whole upstream request — system prompt, the incoming user message, and prior history. It SHALL NOT reject a turn. The handler SHALL instead drop prior messages from the OLDEST end until the request fits, and send what remains.
+
+The system prompt and the incoming user message are charged against the budget but SHALL NOT be dropped: they are not history, and the turn is meaningless without them. Since `CHATBOT_MAX_USER_INPUT_TOKENS` already bounds the message, the two together are a known quantity that the budget is required to accommodate; a configuration where it does not SHALL fail loudly as a misconfiguration rather than silently send an oversized prompt.
+
+Trimming SHALL leave a contiguous chronological suffix, never a gap in the middle of the conversation.
 
 #### Scenario: Oversized user input rejected
 
 - **WHEN** the request body contains a user message whose `estimateTokens(content)` exceeds `CHATBOT_MAX_USER_INPUT_TOKENS`
 - **THEN** the response SHALL be HTTP 413 with body `{ code: "REQUEST_TOO_LARGE", message: ... }` and SHALL NOT include any SSE events
 
-#### Scenario: Oversized history rejected (now including system prompt)
+#### Scenario: History over the budget is trimmed, not refused
 
-- **WHEN** the system prompt plus the prior messages add up to an estimated token count exceeding `CHATBOT_MAX_HISTORY_TOKENS`
-- **THEN** the response SHALL be HTTP 413 with code `REQUEST_TOO_LARGE` and SHALL NOT invoke the LLM provider
+- **WHEN** the system prompt plus the incoming message plus the prior messages add up to an estimated token count exceeding `CHATBOT_MAX_HISTORY_TOKENS`
+- **THEN** the turn SHALL proceed: the oldest prior messages SHALL be dropped until the total fits, the LLM provider SHALL be invoked with what remains, and the turn SHALL be persisted like any other
+- **AND** the response SHALL NOT be HTTP 413 — a conversation that has accumulated text stays usable, it does not become a dead end
+
+#### Scenario: Trimming keeps the messages nearest the question
+
+- **WHEN** history must be trimmed to fit
+- **THEN** the messages retained SHALL be the most recent ones, in chronological order, with no gap between them — the model may lose the start of a long conversation, never its middle
 
 #### Scenario: Oversized RAG context aborts the second round
 
 - **WHEN** the tool result message that would be appended for the second round has `estimateTokens(toolResultContent) > CHATBOT_MAX_RAG_CONTEXT_TOKENS`
 - **THEN** the handler SHALL NOT invoke the second LLM round, SHALL emit a terminal SSE error event with `code = "EXTERNAL_SERVICE_ERROR"` and the generic Spanish error, and SHALL mark the assistant row `truncated = true` via the existing disconnect-finalizer path
 
-#### Scenario: Per-turn turn cap unchanged
-
-- **WHEN** the conversation already contains `CHATBOT_MAX_TURNS_PER_CONVERSATION` user messages and a new chat message arrives
-- **THEN** the response SHALL be HTTP 413 with code `REQUEST_TOO_LARGE` (foundation behavior, unchanged)
-
 #### Scenario: LLM provider not invoked on cap rejection
 
-- **WHEN** any pre-LLM cap rejection occurs (user input or history)
+- **WHEN** the user-input cap rejects a request
 - **THEN** `streamCompletion` SHALL NOT be called for that request
 
 ### Requirement: Successful turn ends with a `done` SSE event carrying usage

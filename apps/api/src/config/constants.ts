@@ -29,7 +29,14 @@ export const MEASURING_ORGANIZATIONS_YEAR_RANGE = 2;
 /** Max tokens accepted on a single user chat message before HTTP 413. */
 export const CHATBOT_MAX_USER_INPUT_TOKENS = 4000;
 
-/** Max combined token count of prior conversation history before HTTP 413. */
+/**
+ * Token budget for a single request to the provider: system prompt, the
+ * incoming user message, and as much prior history as still fits.
+ *
+ * Not a rejection threshold. History past the budget is dropped from the
+ * oldest end by `trimHistoryToBudget`, so a long conversation degrades by
+ * forgetting its start rather than by refusing to continue.
+ */
 export const CHATBOT_MAX_HISTORY_TOKENS = 8000;
 
 /** Max tokens reserved for RAG context per turn (declared now, unused until V1). */
@@ -47,9 +54,6 @@ export const CHATBOT_MAX_OUTPUT_TOKENS = 1500;
  * database is asked for, so a long thread cannot grow the query unboundedly.
  */
 export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
-
-/** Max user turns persisted per conversation before HTTP 413. */
-export const CHATBOT_MAX_TURNS_PER_CONVERSATION = 50;
 
 /** Days a chatbot conversation persists before it expires (pg_cron purge deferred). */
 export const CHATBOT_CONVERSATION_TTL_DAYS = 30;

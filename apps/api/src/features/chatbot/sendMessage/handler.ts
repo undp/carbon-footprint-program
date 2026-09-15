@@ -28,11 +28,10 @@ import {
 } from "@/features/chatbot/tools/searchKnowledge/index.js";
 import {
   acquireIdentityAdvisoryLock,
-  enforceHistoryCap,
-  enforceTurnCap,
   enforceUserInputCap,
   loadConversationHistory,
   resolveOrCreateConversation,
+  trimHistoryToBudget,
 } from "./service.js";
 import { writeSseEvent, writeSseHeaders } from "./helpers.js";
 
@@ -119,10 +118,15 @@ export const sendMessageHandler = async (
       );
 
       const lockedHistory = await loadConversationHistory(tx, conversation.id);
-      // Count the system prompt against the cap: it is part of every request
-      // sent upstream, so excluding it would understate the real token load.
-      enforceHistoryCap([...lockedHistory, { content: systemPrompt }]);
-      await enforceTurnCap(tx, conversation.id);
+      // Charge the system prompt and this turn's message against the budget:
+      // both are part of every request sent upstream, so excluding them would
+      // understate the real token load. Whatever does not fit is dropped from
+      // the oldest end rather than refusing the turn.
+      const windowedHistory = trimHistoryToBudget(
+        lockedHistory,
+        systemPrompt,
+        content
+      );
 
       await tx.chatbotChatMessage.create({
         data: {
@@ -148,7 +152,7 @@ export const sendMessageHandler = async (
       return {
         assistantRowId: assistantRow.id,
         conversationId: conversation.id,
-        history: lockedHistory.map((m) => ({
+        history: windowedHistory.map((m) => ({
           role: m.role,
           content: m.content,
         })),

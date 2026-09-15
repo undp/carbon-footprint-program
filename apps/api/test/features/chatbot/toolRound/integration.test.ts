@@ -527,20 +527,20 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     expect(done.outputTokens).toEqual(expect.any(Number));
   });
 
-  // Maps to spec scenario "Oversized history rejected (now including system
-  // prompt)":
-  //   THEN the response SHALL be HTTP 413 with code `REQUEST_TOO_LARGE` and
-  //   SHALL NOT invoke the LLM provider.
+  // Maps to spec scenario "History over the budget is trimmed, not refused".
+  //
+  // This case used to assert HTTP 413: history past CHATBOT_MAX_HISTORY_TOKENS
+  // refused the turn, and the conversation was finished — every later message
+  // hit the same wall. It now asserts the opposite, and the seeding is what
+  // makes that meaningful: five 8000-char rows are ~10000 estimated tokens of
+  // history against an 8000-token budget, so the turn can only succeed if the
+  // oldest rows were actually dropped.
   //
   // Strategy: post once to materialize a conversation row (with the
-  // forced-user identity), then directly INSERT 5 huge messages into that
-  // conversation via Prisma to bypass the handler's caps. Each huge message
-  // contributes ~2000 estimated tokens (8000 chars / 4); 5 messages plus
-  // the system prompt (~870 tokens for the ~3.5 KB prompt file) push the
-  // cap-check input above the 8000-token CHATBOT_MAX_HISTORY_TOKENS budget.
-  // A subsequent POST then trips enforceHistoryCap before the LLM is
-  // invoked.
-  it("system prompt counts toward CHATBOT_MAX_HISTORY_TOKENS", async () => {
+  // forced-user identity), then INSERT the huge messages directly via Prisma,
+  // which is the only way to get a thread into that state now that nothing
+  // rejects one.
+  it("streams a turn whose history is over the token budget, trimming the oldest", async () => {
     // First request: seeds the conversation row + 2 small messages.
     const seed = await collectSseEvents(
       app,
@@ -563,8 +563,8 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
     expect(conv).not.toBeNull();
 
     // 8000 chars = ~2000 estimated tokens per inserted row. Five rows
-    // contribute ~10000 tokens of history content, well above the cap
-    // even before the system prompt's ~870-token contribution.
+    // contribute ~10000 tokens of history content, above the budget on their
+    // own and further over it once the ~1088-token system prompt is charged.
     const HUGE = "a".repeat(8000);
     for (let i = 0; i < 5; i++) {
       await prisma.chatbotChatMessage.create({
@@ -578,13 +578,21 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
       });
     }
 
-    const { status } = await collectSseEvents(
+    const { status, events } = await collectSseEvents(
       app,
       "/api/chatbot/message",
       { content: "segundo mensaje", conversationId },
       { ownsApp: false }
     );
-    expect(status).toBe(413);
+    expect(status).toBe(200);
+    expect(events.some((e) => e.event === "done")).toBe(true);
+
+    // And the turn is persisted, so the conversation keeps going rather than
+    // being stuck at the wall the old cap put in front of it.
+    const persisted = await prisma.chatbotChatMessage.count({
+      where: { conversationId: conv!.id, content: "segundo mensaje" },
+    });
+    expect(persisted).toBe(1);
   });
 
   // Maps to spec scenario "Oversized RAG context aborts the second round":

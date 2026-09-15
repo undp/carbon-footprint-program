@@ -4,7 +4,6 @@ import {
   CHATBOT_CONVERSATION_TTL_DAYS,
   CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
-  CHATBOT_MAX_TURNS_PER_CONVERSATION,
   CHATBOT_MAX_USER_INPUT_TOKENS,
 } from "@/config/constants.js";
 import { RequestTooLargeError } from "@/errors/RequestTooLargeError.js";
@@ -158,20 +157,17 @@ export const loadConversationHistory = async (
  * Removing it now would silently drop that protection when the cap moves.
  */
 /*
- * The three 413 messages below reach the end user verbatim: the widget shows
- * the server's `message` rather than a fixed string, so these are UI copy, not
- * operator logs. Two constraints shape them.
+ * The 413 below reaches the end user verbatim: the widget shows the server's
+ * `message` rather than a fixed string, so this is UI copy, not an operator
+ * log. It avoids the word "turnos" — that is LLM vocabulary; a person counts
+ * messages — and it names the one action that clears it.
  *
- * They avoid the word "turnos" — that is LLM vocabulary; a person counts
- * messages.
- *
- * And each one names the action that actually clears it. The first is the
- * user's own message, so it asks for a shorter one. The other two are the
- * thread, and "Nueva conversación" genuinely escapes both now that the client
- * holds the conversation id itself and starting fresh means omitting it — an
- * earlier revision of this copy stayed silent because the button relied on
- * clearing a cookie the page could not reach cross-site, and pointing someone
- * at a control that does nothing is worse than saying less.
+ * It is also the ONLY 413 the chatbot can answer with. Two earlier ones said
+ * the conversation had accumulated too much text, or had reached its maximum
+ * number of messages, and both were dead ends: the thread could never carry
+ * another turn. They are gone, replaced by trimHistoryToBudget below, which
+ * drops old turns instead of refusing new ones. A conversation no longer fills
+ * up, so there is nothing left to tell the user about it.
  */
 export const enforceUserInputCap = (userContent: string): void => {
   if (estimateTokens(userContent) > CHATBOT_MAX_USER_INPUT_TOKENS) {
@@ -181,25 +177,52 @@ export const enforceUserInputCap = (userContent: string): void => {
   }
 };
 
-export const enforceHistoryCap = (history: { content: string }[]): void => {
-  const total = history.reduce((sum, m) => sum + estimateTokens(m.content), 0);
-  if (total > CHATBOT_MAX_HISTORY_TOKENS) {
-    throw new RequestTooLargeError(
-      "Esta conversación acumuló demasiado texto y no puedo continuarla. Inicia una nueva conversación para seguir."
+/**
+ * Fit the prompt inside CHATBOT_MAX_HISTORY_TOKENS by dropping the oldest
+ * turns, and return what survives.
+ *
+ * Replaces a pair of hard caps. The old behaviour refused the turn — 413 on a
+ * history that had grown past the budget, and a second 413 once the
+ * conversation reached a fixed number of user messages. Both left the thread
+ * permanently unusable: every subsequent message hit the same wall, and the
+ * only escape was to abandon the conversation. That is not how a chat is
+ * expected to behave, and the turn cap additionally cost a COUNT query per
+ * turn inside the identity advisory lock.
+ *
+ * The system prompt and the incoming user message are charged against the
+ * budget but never dropped — they are not history, and the turn is
+ * meaningless without them. `enforceUserInputCap` has already bounded the user
+ * message, so the two together are a known quantity.
+ *
+ * Trimming from the oldest end leaves a contiguous, chronological suffix: the
+ * model may lose the start of a long conversation, which is the intended
+ * trade, but it never sees a gap in the middle.
+ */
+export const trimHistoryToBudget = <T extends { content: string }>(
+  history: T[],
+  systemPrompt: string,
+  userContent: string
+): T[] => {
+  const fixedCost = estimateTokens(systemPrompt) + estimateTokens(userContent);
+  if (fixedCost > CHATBOT_MAX_HISTORY_TOKENS) {
+    // Not reachable with the shipped constants: the system prompt is ~1088
+    // tokens and the user message is capped at CHATBOT_MAX_USER_INPUT_TOKENS.
+    // If it ever is, the deployment is misconfigured rather than the request
+    // oversized, and failing loudly beats sending a prompt we know is too big.
+    throw new Error(
+      `Chatbot token budget is misconfigured: the system prompt plus a maximum-size user message (${fixedCost} tokens) exceed CHATBOT_MAX_HISTORY_TOKENS (${CHATBOT_MAX_HISTORY_TOKENS}). Raise the budget or shorten the system prompt.`
     );
   }
-};
 
-export const enforceTurnCap = async (
-  prisma: Tx | PrismaClient,
-  conversationId: bigint
-): Promise<void> => {
-  const userTurns = await prisma.chatbotChatMessage.count({
-    where: { conversationId, role: ChatMessageRole.USER },
-  });
-  if (userTurns >= CHATBOT_MAX_TURNS_PER_CONVERSATION) {
-    throw new RequestTooLargeError(
-      "Esta conversación llegó a su máximo de mensajes. Inicia una nueva conversación para seguir."
-    );
+  let budget = CHATBOT_MAX_HISTORY_TOKENS - fixedCost;
+  // Walk from the newest backwards, keeping what fits, so the messages closest
+  // to the question are the ones that survive.
+  const kept: T[] = [];
+  for (let i = history.length - 1; i >= 0; i--) {
+    const cost = estimateTokens(history[i].content);
+    if (cost > budget) break;
+    budget -= cost;
+    kept.push(history[i]);
   }
+  return kept.reverse();
 };
