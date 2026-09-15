@@ -210,24 +210,25 @@ V1 does NOT ship a user-facing affordance to delete persisted conversation histo
 
 **Architectural note for V3+ (no V1 spec change)**: V3 will ingest platform-usage docs as additional corpus sources. The current `chatbot_corpus_source` schema distinguishes by `source_type` (PDF/MD/URL/XLSX) and `scope` (GLOBAL/NATIONAL) but does NOT carry a `corpus_kind` discriminator (METHODOLOGY vs. PLATFORM_GUIDE vs. REGULATION). For V3, the implementer will need to choose between: (a) adding a nullable `corpus_kind` enum column, (b) reusing a `name` prefix convention (`methodology:GHG-Protocol` vs. `platform:Huella-Manual`), or (c) routing by `source_type` (PDF=methodology, MD=platform-guide). Option (a) is cleanest for retrieval filtering; (b) avoids a migration but is fragile; (c) couples taxonomy to file format and breaks if a future platform manual is published as PDF. **No decision is forced now** — V3 makes this call when the platform-guide corpus is real. This change leaves the schema unconstrained on this axis.
 
-### 28. Persistence-across-reload via signed chatbot_conversation_id cookie; V1 anon→auth transition NOT supported
+### 28. Persistence-across-reload via a client-held conversation id; V1 anon→auth transition NOT supported
 
-**Decision**: A separate signed cookie `chatbot_conversation_id` pins the caller's active conversation across reloads. The widget reads it implicitly via `GET /api/chatbot/conversations/me/current` on mount; the server returns the persisted thread when the cookie is valid, the row is within TTL, AND the request identity matches the row's identity strictly. The cookie is:
+**Decision**: The client holds the id of its active conversation and names it explicitly on every request — in the `conversationId` field of the `POST /api/chatbot/message` body, and in the `conversationId` query parameter of `GET /api/chatbot/conversations/me/current`. The server answers each turn with an `x-conversation-id` response header naming the thread the turn landed in; the client stores that value in `localStorage` under `chatbot_conversation_id` and sends it back on the next turn. Omitting the field is the wire signal for "open a new conversation".
 
-- **Signed** with `COOKIE_SECRET` — the same secret already used by `chatbot_session_id`. No new signing infrastructure.
-- **Path-scoped** to `/api/chatbot`. Same path as the session cookie.
-- **`Max-Age` aligned** to `CHATBOT_CONVERSATION_TTL_DAYS * 86400` (30 days). Sliding refresh on every successful `sendMessage` turn.
-- **`SameSite=Lax`**, `Secure` only in production.
-- **`httpOnly: false`** — intentional, asymmetric with `chatbot_session_id` (which stays `HttpOnly`). The widget's "Nueva conversación" affordance drops the cookie client-side via `document.cookie` with `Max-Age=0`. Letting JS read+clear the cookie removes the need for a dedicated server-side clear endpoint (smaller V1 surface area).
+**Superseded**: an earlier revision of this decision used a signed, `httpOnly: false` cookie of the same name, cleared from page JS by "Nueva conversación". That is recorded here because the PR review threads reference it. It was wrong for one reason: reading and clearing a cookie through `document.cookie` requires the API to share the page's origin, and it does not — the front end is a Static Web App and the API has its own App Service domain, which `chatbot-conversation-persistence` states as a cross-site requirement. The button therefore created and deleted a cookie of the page's own origin that nothing ever sent, while the browser kept attaching the real one. "Nueva conversación" cleared the view and the server stayed on the same thread; combined with the turn cap, a conversation could reach a state with no exit. `SameSite=None` is also a third-party cookie, which Safari already blocks and other engines are phasing out, so the send path had a deadline of its own.
 
-**Threat model considered (why httpOnly=false is acceptable here)**:
+**Why the id is the better carrier**, beyond fixing that:
 
-- The cookie does NOT carry credentials. It is an opaque pointer to a conversation row. Authentication is handled by the session cookie (`chatbot_session_id`, HttpOnly) or by the application's auth provider.
-- The signing protects against tampering — an XSS-injected script cannot forge a conversation_id pointing to another user's row. The cookie's only forgery-resistant property is what matters for the IDOR boundary.
-- XSS that can read the cookie value can also issue the `GET /api/chatbot/conversations/me/current` request directly and exfiltrate the conversation content — `httpOnly` here is defense-in-depth, not load-bearing. The chat content itself is the high-value asset; the cookie is just a pointer to it.
-- `chatbot_session_id` stays HttpOnly precisely because it IS the anonymous user's de-facto auth token. The asymmetry is correct.
+- **The page owns it.** Clearing it is a local operation that cannot silently fail in a topology the code did not anticipate.
+- **"Continue" and "start fresh" become distinguishable.** With an ambient cookie, "no cookie" means both "new visitor" and "the user asked for a fresh thread", which is why `resolveOrCreateConversation` is forbidden from falling back to "the newest row for this identity". With an explicit id the two are different requests, so a future "resume my latest conversation" endpoint — the only thing that can carry a thread across devices — is expressible without breaking the reset.
+- **It deletes code.** The signing, `parseConversationIdOrNull`, the `Set-Cookie` merge needed because `reply.hijack()` skips Fastify's `onSend`, the `httpOnly: false` exception, and the client-side cookie module all go away, replaced by one header and one optional field.
 
-**V1 deliberately does NOT support the anon → auth claim transition**: a user who starts a conversation anonymously and then logs in receives 404 from the rehydrate endpoint (their cookie points to an `user_id IS NULL` row whose identity does not match an authenticated request). The widget falls back to an empty thread and the user starts a fresh conversation. This is documented as Deferred Debt in `proposal.md` and will be picked up by a future change covering private data (V5 in the documented vision).
+**Storage choice**: `localStorage`, not `sessionStorage`. The superseded cookie carried a 30-day `Max-Age` and survived closing the browser; dropping to per-tab lifetime would be a regression. Both are per-browser and per-device, and tabs of the same origin share the id exactly as they shared the cookie. A module-scoped fallback covers the turns where storage throws (Safari private mode, blocked site data): the page session stays coherent and loses the id on reload, which is the same outcome as having no storage at all.
+
+**Why a header and not an SSE event**: the turn's transaction commits the conversation and the user's message before the model is ever called, so a provider failure that answers 503 pre-hijack has still created a thread. A client that only learned the id from a successful stream would abandon it and open a second one on the retry. A header is on every response — the hijacked stream (forwarded by `writeSseHeaders`, which Fastify no longer serializes for us after the hijack) and the ordinary error responses alike. It must be listed in the CORS `exposedHeaders` or a cross-origin caller reads `null`.
+
+**The id is not a credential and is not signed.** It is an opaque pointer, and the IDOR boundary is enforced at the lookup, not at the pointer: both the send path and the rehydrate endpoint filter by caller identity, so an id the caller does not own misses exactly like one that never existed. Naming someone else's conversation returns 404 from `GET /current` and opens a fresh thread on `POST /message`. This is the same guarantee the signature provided, obtained from the query instead of from a secret. Authentication remains the session cookie (`chatbot_session_id`, still `HttpOnly`) or the application's auth provider.
+
+**V1 deliberately does NOT support the anon → auth claim transition**: a user who starts a conversation anonymously and then logs in receives 404 from the rehydrate endpoint (their id names a `user_id IS NULL` row whose identity does not match an authenticated request). The widget drops the stale id and starts a fresh conversation. This is documented as Deferred Debt in `proposal.md` and will be picked up by a future change covering private data (V5 in the documented vision).
 
 **Strict identity match at the endpoint (IDOR guard)** — the `findCurrentConversation` service function filters by:
 
@@ -236,18 +237,20 @@ V1 does NOT ship a user-facing affordance to delete persisted conversation histo
 
 The TTL filter (`expires_at > NOW()`) is applied in the same SELECT so an expired row never leaves a stale answer on the wire — this is what compensates for the absence of `pg_cron` purge at the visibility layer (the row remains in the table until the eventual purge job is implemented, but it is invisible to the user from the moment it expires).
 
-**Cookie lifecycle**:
+**Conversation id lifecycle**:
 
-| Event                                                         | Cookie state                                                                                                                                                                                 |
-| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| First-ever `sendMessage` (no prior cookie)                    | Server `Set-Cookie` writes the signed conv_id                                                                                                                                                |
-| Subsequent `sendMessage` on same conversation                 | Server re-asserts the cookie (sliding `Max-Age` refresh)                                                                                                                                     |
-| F5 / reload while cookie valid                                | `GET /current` returns 200; widget rehydrates                                                                                                                                                |
-| F5 / reload after expiry or identity mismatch                 | `GET /current` returns 404 + `Max-Age=0`; widget starts empty                                                                                                                                |
-| "Nueva conversación" click                                    | Widget clears cookie via `document.cookie`; next reload starts empty                                                                                                                         |
-| `DELETE /api/chatbot/conversations/me` (support-operated D11) | Server clears session cookie via the existing `clearSessionCookie` helper; conversation cookie remains client-side but the row is gone, so the next `GET /current` returns 404 + `Max-Age=0` |
+| Event                                                         | Client state                                                                                                   |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| First-ever `sendMessage` (nothing stored)                     | Body omits `conversationId`; server creates a row and returns `x-conversation-id`, which the client stores     |
+| Subsequent `sendMessage` on same conversation                 | Body carries the stored id; server re-asserts the same id on the response                                      |
+| `sendMessage` that fails pre-stream (e.g. 503)                | The header is still on the response, so the committed thread is not orphaned by the retry                      |
+| F5 / reload with an id stored                                 | `GET /current?conversationId=…` returns 200; widget rehydrates                                                 |
+| F5 / reload with nothing stored                               | No request is issued at all — the client already knows there is nothing to restore                             |
+| F5 / reload after expiry or identity mismatch                 | `GET /current` returns 404; the widget drops the stored id and starts empty                                    |
+| "Nueva conversación" click                                    | Widget clears the stored id; the next turn omits the field and the server opens a new thread                   |
+| `DELETE /api/chatbot/conversations/me` (support-operated D11) | Server clears the session cookie via `clearSessionCookie`; the widget drops the stored id, whose rows are gone |
 
-**Re-evaluation triggers**: when V4 / V5 introduce private-data tools and the per-user consent toggle lands, revisit (a) whether `httpOnly: false` is still defensible (private data raises the exfiltration cost), and (b) whether the anon → auth claim transition should be supported. Both are isolated to this cookie + endpoint pair and can be tightened without breaking the V1 contract.
+**Re-evaluation triggers**: when V4 / V5 introduce private-data tools and the per-user consent toggle lands, revisit (a) whether an unsigned pointer is still the right shape once a conversation can contain private data, and (b) whether the anon → auth claim transition should be supported. Both are isolated to this field + endpoint pair and can be tightened without breaking the V1 contract.
 
 ### 26. Test fixture path declared in spec; PDF binary commit deferred
 

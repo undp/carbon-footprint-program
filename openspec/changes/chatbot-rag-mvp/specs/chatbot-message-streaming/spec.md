@@ -249,30 +249,39 @@ The terminal `done` payload SHALL change from `{ inputTokens, outputTokens }` to
 - **WHEN** a client that only parses `inputTokens` and `outputTokens` from the `done` payload receives a payload that includes `sources`
 - **THEN** the client SHALL successfully parse `inputTokens` and `outputTokens` (the additional `sources` field SHALL NOT cause a JSON parse failure or other error in foundation-era code)
 
-### Requirement: Streaming handler sets a signed chatbot_conversation_id cookie on every turn that resolves or creates a conversation
+### Requirement: Streaming handler names the conversation on an x-conversation-id response header
 
-After the streaming handler's identity-scoped transaction returns a `conversationId` (whether the row was just created or an existing active row was reused), the handler SHALL emit a `Set-Cookie: chatbot_conversation_id=<signed-value>; Path=/api/chatbot; Max-Age=<CHATBOT_CONVERSATION_TTL_DAYS * 86400>; SameSite=<None; Secure in production, Lax otherwise>` header on the response. The cookie is signed with the same `COOKIE_SECRET` used by `chatbot_session_id` (no new signing infrastructure). The cookie is `httpOnly: false` intentionally — see `design.md` Decision 28 for the threat-model rationale.
+The `POST /api/chatbot/message` body SHALL accept an optional `conversationId` field (a decimal string matching `^[1-9]\d*$`). It names the thread the turn continues; omitting it is the wire signal to open a new one. The two are deliberately distinguishable — `resolveOrCreateConversation` SHALL NOT fall back to "the newest active row for this identity", because that would silently reattach the turn to the thread a "Nueva conversación" click just left.
 
-`SameSite` SHALL mirror `chatbot_session_id` exactly (`helpers/identity.ts`): `None` with `Secure` in production, `Lax` outside it. This is load-bearing, not cosmetic. The deployed web app and API sit on different registrable domains, so both cookies ride cross-site `credentials: "include"` requests; a `Lax` cookie is not sent on those, which makes persistence work in local development and silently do nothing in production. `SameSite=None` requires `Secure`, which production already sets. An earlier revision of this spec mandated `SameSite=Lax` unconditionally and the implementation shipped that way until the defect was caught — do not "simplify" back to it.
+An id the caller is not entitled to SHALL NOT be an error: the lookup filters by caller identity, misses, and the turn opens a fresh conversation. The field therefore cannot be used to read or append to another identity's thread, which is the property the superseded cookie obtained from its signature — see `design.md` Decision 28.
 
-The handler SHALL write the cookie BEFORE invoking `reply.hijack()` so that `writeSseHeaders` forwards it onto `reply.raw.writeHead` — once the response is hijacked, Fastify's onSend hook no longer serializes accumulated headers and a late `reply.setCookie()` call would silently drop. The cookie write is the multi-cookie-aware variant (reads any existing `Set-Cookie` header — `chatbot_session_id` may already be there from the identity preHandler — and appends instead of clobbering).
+After the streaming handler's identity-scoped transaction returns a `conversationId` (whether the row was just created or an existing active row was reused), the handler SHALL set an `x-conversation-id` response header carrying that id as a decimal string.
 
-The cookie value is the conversation row's `id` (coerced to a decimal string). Sliding refresh: the cookie's `Max-Age` is re-asserted on every successful turn, tracking the conversation row's `expires_at` even as the foundation `lastMessageAt` update extends the row's lifetime.
+The header SHALL be written BEFORE `reply.hijack()`, for two reasons. `writeSseHeaders` forwards it onto `reply.raw.writeHead` — once the response is hijacked, Fastify's onSend hook no longer serializes accumulated headers and a late write would silently drop. And the pre-hijack failure paths answer with an ordinary Fastify response that carries the header too: the transaction has already COMMITTED the conversation and the user's message, so a provider failure answering 503 leaves a real thread behind, and a client that only learned the id from a successful stream would abandon it and open a second one on the retry.
 
-#### Scenario: Cookie is set on the first turn that creates a conversation
+The header SHALL be listed in the CORS `exposedHeaders` (`plugins/external/cors.ts`). It is not CORS-safelisted, and the web app and API are separate origins in every deployment that does not proxy `/api`, so without that entry the browser receives the header and the page reads `null` — the same failure mode the rate-limit headers had.
 
-- **WHEN** an authenticated or anonymous caller POSTs to `/api/chatbot/message` with no prior `chatbot_conversation_id` cookie AND `resolveOrCreateConversation` creates a new row
-- **THEN** the response headers SHALL include a `Set-Cookie` whose name is `chatbot_conversation_id`, whose value is the signed form of the newly-created row's `id` (decimal string), whose `Path` is `/api/chatbot`, whose `Max-Age` matches `CHATBOT_CONVERSATION_TTL_DAYS * 86400`, whose `SameSite` is `None` with `Secure` in production (`Lax` outside it, matching `chatbot_session_id`), and which is NOT `HttpOnly`
+#### Scenario: Header is set on the first turn that creates a conversation
 
-#### Scenario: Cookie is re-asserted (sliding refresh) on subsequent turns that reuse an existing conversation
+- **WHEN** an authenticated or anonymous caller POSTs to `/api/chatbot/message` with no `conversationId` in the body AND `resolveOrCreateConversation` creates a new row
+- **THEN** the response headers SHALL include `x-conversation-id` whose value is the newly-created row's `id` as a decimal string
 
-- **WHEN** the caller POSTs to `/api/chatbot/message` and `resolveOrCreateConversation` reuses an existing active conversation row
-- **THEN** the response SHALL include a fresh `Set-Cookie: chatbot_conversation_id=<signed>` with `Max-Age` re-asserted to the full TTL window (sliding refresh)
+#### Scenario: Body conversationId is followed, and its absence starts a new thread
 
-#### Scenario: Cookie write does not clobber the chatbot_session_id cookie
+- **WHEN** a caller POSTs a turn carrying the `conversationId` returned by a previous turn
+- **THEN** no new conversation row SHALL be created and the response SHALL carry the same `x-conversation-id`
+- **AND WHEN** the same caller then POSTs a turn omitting `conversationId`
+- **THEN** a second conversation row SHALL be created, carrying only its own turn — the prior thread's history SHALL NOT be fed into the new one
 
-- **WHEN** the chatbot identity preHandler has already written a `chatbot_session_id` cookie via `reply.header("Set-Cookie", ...)` for an anonymous caller AND the streaming handler then writes the `chatbot_conversation_id` cookie
-- **THEN** the final response SHALL carry BOTH `Set-Cookie` headers — neither one SHALL be overwritten by the other; `reply.getHeader("set-cookie")` immediately before `writeSseHeaders` SHALL return an array of length 2
+#### Scenario: Header survives the hijack alongside the session cookie
+
+- **WHEN** the chatbot identity preHandler has already written a `chatbot_session_id` cookie via `reply.header("Set-Cookie", ...)` for an anonymous caller AND the streaming handler then sets `x-conversation-id`
+- **THEN** the hijacked response SHALL carry BOTH — `writeSseHeaders` forwards the `Set-Cookie` and the `x-conversation-id` it reads back off the reply, and neither SHALL displace the other
+
+#### Scenario: A malformed conversationId is refused at the schema boundary
+
+- **WHEN** a caller POSTs a turn whose `conversationId` is not a positive integer string (`"0"`, `"-1"`, `"1.5"`, `""`, `null`, or a non-numeric string)
+- **THEN** the request SHALL be rejected with HTTP 400 before the handler runs — never coerced, since `BigInt()` on such a value throws and would surface as a 500 on a request that is simply malformed
 
 ### Requirement: tokens_used on the assistant chat_message row uses the second-round usage event in the tool path
 

@@ -2,9 +2,9 @@
 
 Security controls specific to the AI assistant: the model-supplied input it accepts, the corpus it is allowed to quote, the cookies it issues, and the credentials it uses to reach Azure OpenAI.
 
-The chatbot is off unless `CHATBOT_ENABLED=true`. A deployment that leaves it off runs no AI code path, issues no conversation cookie, and needs no Azure OpenAI resource — none of the controls below are load-bearing in that configuration.
+The chatbot is off unless `CHATBOT_ENABLED=true`. A deployment that leaves it off runs no AI code path, issues no session cookie, and needs no Azure OpenAI resource — none of the controls below are load-bearing in that configuration.
 
-Related: [Sensitive Data Handling](./sensitive-data.md) covers the conversation cookies and the PII inventory; [Secrets Management](./secrets.md) covers credential delivery; [Infrastructure Hardening](./hardening.md) covers input validation across the rest of the API.
+Related: [Sensitive Data Handling](./sensitive-data.md) covers the session cookie, the conversation pointer, and the PII inventory; [Secrets Management](./secrets.md) covers credential delivery; [Infrastructure Hardening](./hardening.md) covers input validation across the rest of the API.
 
 ---
 
@@ -88,7 +88,7 @@ This is a release-gate invariant: the integration test asserting that an `OUTDAT
 
 Full treatment — including the deliberate non-`HttpOnly` decision and the IDOR reasoning — is in [Sensitive Data Handling](./sensitive-data.md#chatbot-conversation-persistence-and-retention). Two points are repeated here because they are the ones most likely to be "simplified" by mistake:
 
-- **`chatbot_conversation_id` is intentionally readable by JavaScript.** The signature is the security property, not `HttpOnly`. `GET /api/chatbot/conversations/me/current` re-checks TTL and caller identity on every read, so a forged or edited id yields `404` (and clears the cookie) rather than another user's thread.
+- **The conversation id is client-held and unsigned.** It is an opaque pointer the page stores in `localStorage`, not a credential, so the identity filter — not a signature — is the security property. `GET /api/chatbot/conversations/me/current` re-checks TTL and caller identity on every read, so a forged or edited id yields `404` (and clears the cookie) rather than another user's thread.
 - **`SameSite` must mirror `chatbot_session_id`:** `None; Secure` in production, `Lax` outside it. The web app and API are served from different registrable domains, so a `Lax` cookie is simply never sent — persistence would work in local development and silently do nothing in production. This shipped as a defect once; do not narrow it back.
 
 ---

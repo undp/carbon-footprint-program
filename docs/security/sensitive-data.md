@@ -186,20 +186,19 @@ The Huella Latam chatbot persists conversations to power per-user history and ri
 - `SameSite=None; Secure` in production — the web app and API are served from different registrable domains (cross-site), so the cookie must be `SameSite=None` (which requires `Secure`) to ride the frontend's `credentials: "include"` requests. In local dev it is `SameSite=Lax` without `Secure` (plain HTTP; the Vite proxy keeps the widget same-origin). The clearing cookie emitted on delete mirrors these attributes.
 - A tampered cookie (signature invalid) is treated as no session and a fresh one is minted.
 
-**Second cookie — `chatbot_conversation_id` (conversation persistence):**
+**Conversation pointer — `chatbot_conversation_id` in `localStorage` (conversation persistence):**
 
-A separate cookie pins the thread the widget rehydrates on page load, so a reload does not start an empty conversation.
+The thread the widget rehydrates on page load is named by the client, so a reload does not start an empty conversation. There is no second cookie: an earlier revision used one, and it is described in Decision 28 of the RAG change's `design.md` together with why it was replaced.
 
-- Name: `chatbot_conversation_id`. Also signed with `COOKIE_SECRET`.
-- `Path=/api/chatbot`, `Max-Age` derived from `CHATBOT_CONVERSATION_TTL_DAYS` (30 days), re-set on every turn so the window slides with use and tracks the row's `expires_at`.
-- `SameSite` and `Secure` mirror `chatbot_session_id` exactly (`None; Secure` in production, `Lax` in dev). Both cookies ride the same `credentials: "include"` requests, so a narrower `SameSite` here would simply drop the cookie cross-site and silently disable rehydration.
-- **Not `HttpOnly` — deliberately, and asymmetric with `chatbot_session_id`.** The widget's "Nueva conversación" control drops the cookie from JavaScript to detach from the current thread without a server round-trip. The signature is what provides the security property: an attacker cannot forge or edit a conversation id, so the `GET` endpoint cannot be turned into an IDOR against someone else's thread. Revisit this if a later phase puts private data in a conversation — see Decision 28 in the RAG change's `design.md`.
-- Reading it is never sufficient on its own: `GET /api/chatbot/conversations/me/current` re-checks that the row is inside its TTL **and** that the request identity matches (`user_id` for authenticated callers, `session_id` with `user_id IS NULL` for anonymous ones). A cookie that is expired, or that belongs to another identity, yields `404` and is cleared in the response, so a stale cookie self-heals instead of leaking a thread.
+- The server names the thread on an `x-conversation-id` response header of every `POST /api/chatbot/message`. The widget stores that value under `localStorage["chatbot_conversation_id"]` and sends it back as `conversationId` in the next request body, and as a query parameter on the rehydrate `GET`.
+- **The id is not a credential and is not signed.** It is an opaque pointer to a row. Anyone can put any number in the field; that is not a vulnerability, because the IDOR boundary is enforced at the lookup rather than at the pointer.
+- `GET /api/chatbot/conversations/me/current` and the send path both re-check that the row is inside its TTL **and** that the request identity matches (`user_id` for authenticated callers, `session_id` with `user_id IS NULL` for anonymous ones). An id that is expired, fabricated, or belongs to another identity yields `404` on the rehydrate and opens a fresh conversation on a send, so it can neither read nor append to a thread the caller does not own. This is the property the removed signature provided, obtained from the query instead of from a secret.
+- Because it is not a cookie, it is not attached automatically, is not sent to any other path, and is unaffected by third-party cookie restrictions. It is per-browser and per-device, and it is cleared with the site's data.
 
 **Right to be forgotten:**
 
 - `DELETE /api/chatbot/conversations/me` deletes every conversation row scoped to the caller identity, idempotently. The cascade removes all message rows.
 - For anonymous callers, the response also clears the `chatbot_session_id` cookie via `Set-Cookie: chatbot_session_id=; Max-Age=0; …`.
 - For authenticated callers, only `user_id`-scoped conversations are removed — earlier conversations created under an anonymous `session_id` are not touched by the user-id path.
-- A `chatbot_conversation_id` cookie left over from a deleted thread is harmless: it now points at a row that no longer exists, so the next rehydrate returns `404` and clears it. Deletion does not depend on the client cooperating.
+- A stored conversation id left over from a deleted thread is harmless: it now points at a row that no longer exists, so the next rehydrate returns `404` and the widget drops it. Deletion does not depend on the client cooperating.
 - Deletion does not touch `chatbot_corpus_*`. That data is operator-ingested reference material with no link to any caller.
