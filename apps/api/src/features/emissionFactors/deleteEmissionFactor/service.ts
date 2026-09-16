@@ -1,7 +1,11 @@
 import type { PrismaClient } from "@repo/database";
 import { EmissionFactorStatus, User } from "@repo/types";
-import { EmissionFactorNotFoundError } from "../errors.js";
+import {
+  EmissionFactorInUseError,
+  EmissionFactorNotFoundError,
+} from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
+import { countActiveLineReferences } from "../helpers.js";
 
 export const deleteEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -25,6 +29,17 @@ export const deleteEmissionFactorService = async (
 
     if (!emissionFactor) {
       throw new EmissionFactorNotFoundError(id);
+    }
+
+    // A factor a footprint depends on cannot be removed either. The delete is a
+    // soft one, so the row would survive for the snapshots that point at it,
+    // but it would disappear from the catalogue while lines still report it.
+    const referencedLineCount = await countActiveLineReferences(
+      tx,
+      emissionFactorId
+    );
+    if (referencedLineCount > 0) {
+      throw new EmissionFactorInUseError(referencedLineCount.toString());
     }
 
     await tx.emissionFactor.update({

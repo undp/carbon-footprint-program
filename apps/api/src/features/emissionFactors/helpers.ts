@@ -146,6 +146,42 @@ export async function validateSourceConsistency(
 }
 
 /**
+ * How many active lines depend on this factor.
+ *
+ * A factor is immutable while any of them does. The predicate is the dependency
+ * itself rather than the status of the methodology version the factor hangs
+ * off: `PUBLISHED` is a poor proxy for it in both directions — a version
+ * published yesterday has no dependents, and the version unpublished when it
+ * was superseded keeps all of its.
+ *
+ * Only inputs whose `isActive` is true are counted. Line inputs are versioned,
+ * one active per line, and every reader in the application filters on that, so
+ * a reference surviving in a superseded input is audit trail nothing consults;
+ * counting it would freeze a factor permanently on the strength of a row no
+ * code reads. The line's own `ACTIVE`/`OUTDATED` state is deliberately not
+ * filtered: a parked line keeps its snapshot and is reactivated without passing
+ * through `syncCarbonInventoryLines`, so excluding it would let an edited
+ * factor return to a live footprint through the back door.
+ *
+ * TODO: the softer rule was deferred. The same count, surfaced as a warning
+ * that informs without blocking, is what `add-emission-factor-year` Decision 9
+ * had in mind. Lifting the block to a warning means deleting the guards that
+ * call this and rendering the count the maintainer already receives — a UI
+ * change with no contract change.
+ */
+export async function countActiveLineReferences(
+  tx: Prisma.TransactionClient,
+  emissionFactorId: bigint
+): Promise<number> {
+  return tx.carbonInventoryLineFactor.count({
+    where: {
+      emissionFactorId,
+      lineInput: { isActive: true },
+    },
+  });
+}
+
+/**
  * Validates that the gas details breakdown sums to the declared value.
  * Skips validation when the breakdown sums to zero.
  */
