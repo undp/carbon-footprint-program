@@ -88,7 +88,7 @@ Findings that drive every decision below. All verified on `mrivas00/append-facto
 
 **Choice**: `GetAllEmissionFactorsResponse` rows gain `referencedLineCount: number`, produced by a filtered relation count in the existing `findMany` (Prisma 7.9.1; filtered relation counts need no preview flag).
 
-**Rationale**: the `_count` returns the number either way, so the boolean would throw information away for nothing. The count turns an opaque disabled row into *"Usado por 12 líneas"*, and it is the exact datum the deferred warning would need, so that relaxation becomes a UI change with no contract change.
+**Rationale**: the `_count` returns the number either way, so the boolean would throw information away for nothing. The count turns an opaque disabled row into _"Usado por 12 líneas"_, and it is the exact datum the deferred warning would need, so that relaxation becomes a UI change with no contract change.
 
 **Alternatives considered**:
 
@@ -143,11 +143,11 @@ Plain `CREATE INDEX`, not `CONCURRENTLY`: Prisma runs a migration inside a trans
 
 ## Deferred work
 
-| Deferred                                          | TODO site                                             |
-| ------------------------------------------------- | ----------------------------------------------------- |
-| Warning with a line count that does not block     | the usage helper in `emissionFactors/helpers.ts`      |
-| `FOR UPDATE` on the factor row across the check   | the guard in `updateEmissionFactor`                   |
-| Year filter on the maintainer grid                | already recorded in `EmissionFactorsMaintainerScreen` — correct its stated reason |
+| Deferred                                        | TODO site                                                                         |
+| ----------------------------------------------- | --------------------------------------------------------------------------------- |
+| Warning with a line count that does not block   | the usage helper in `emissionFactors/helpers.ts`                                  |
+| `FOR UPDATE` on the factor row across the check | the guard in `updateEmissionFactor`                                               |
+| Year filter on the maintainer grid              | already recorded in `EmissionFactorsMaintainerScreen` — correct its stated reason |
 
 ## Before rollout
 
