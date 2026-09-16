@@ -19,6 +19,7 @@
     "test": "turbo run test",
     "test:api": "turbo run test --filter=api",
     "test:seed": "turbo run test --filter=@repo/seed",
+    "test:packages": "turbo run test --filter='./packages/*'",
     "test:api:leg": "turbo run test:leg --filter=api",
     "test:api:coverage:merge": "turbo run test:coverage:merge --filter=api",
     "test:api:verify-storage-manifest": "turbo run test:verify-storage-manifest --filter=api",
