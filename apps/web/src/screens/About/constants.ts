@@ -266,6 +266,13 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
  */
 export const FUNDING_HIGHLIGHT = {
   badge: "Con el apoyo de",
+  /**
+   * Heading for the block, read by screen readers only. Comms asked for the
+   * visible title to go because it repeated the attribution already carried by
+   * the badge, the logo and the body — but this is the donor-attribution block,
+   * so it still needs to be reachable by heading navigation.
+   */
+  accessibleTitle: "Con el apoyo del Gobierno de Suecia",
   bodyBeforeProject:
     "Posible gracias al financiamiento de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), en el marco de la iniciativa del PNUD",
   projectName:

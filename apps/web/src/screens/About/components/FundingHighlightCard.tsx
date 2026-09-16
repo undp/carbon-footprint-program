@@ -20,6 +20,9 @@ export const FundingHighlightCard: FC = () => {
         py: 3.75,
       }}
     >
+      <Typography variant="subtitle1" component="h3" className="sr-only">
+        {FUNDING_HIGHLIGHT.accessibleTitle}
+      </Typography>
       <Chip
         label={FUNDING_HIGHLIGHT.badge}
         size="small"
