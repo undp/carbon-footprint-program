@@ -530,6 +530,23 @@ describe("formatRateUnit", () => {
     expect(formatRateUnit("kg")).toBe("kg");
   });
 
+  it("leaves a numerator that already names the gas alone", () => {
+    // The base seed never spells the gas into the abbreviation, but a country
+    // loading its own methodology can — the onboarding guide's own example was
+    // exactly this — and doubling it would read "kg CO2e CO₂e/m3".
+    expect(formatRateUnit("kg CO2e/m3")).toBe("kg CO2e/m3");
+    expect(formatRateUnit("kg CO₂e/kWh")).toBe("kg CO₂e/kWh");
+    expect(formatRateUnit("kg CO2-e/ton")).toBe("kg CO2-e/ton");
+    expect(formatRateUnit("t co2e/km")).toBe("t co2e/km");
+  });
+
+  it("only inspects the numerator for the gas", () => {
+    // A denominator mentioning the gas is not the numerator's business: this
+    // rate is emissions per unit of reported emissions, and the numerator still
+    // needs its label.
+    expect(formatRateUnit("kg/ton CO2e")).toBe("kg CO₂e/ton CO2e");
+  });
+
   it("renders nothing when there is no unit", () => {
     expect(formatRateUnit(null)).toBe("");
     expect(formatRateUnit(undefined)).toBe("");

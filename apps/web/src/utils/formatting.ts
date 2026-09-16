@@ -458,14 +458,24 @@ export class Formatter {
  * Splits on the first slash: the numerator is one unit and denominators can
  * carry their own (`kg/km-ton`). A value without a slash is not a rate and is
  * returned untouched.
+ *
+ * A numerator that already names the gas is left alone. The base seed never
+ * does this, but a country loading its own methodology can: the onboarding
+ * guide's own example wrote `"kg CO2e/m3"`, which would otherwise render as
+ * `kg CO2e CO₂e/m3`. The spelling is matched loosely because that data is
+ * hand-written — `CO2e`, `CO₂e` and `CO2-e` all count.
  */
+const NUMERATOR_NAMES_THE_GAS = /co\s*[2₂]\s*-?\s*e/i;
+
 export const formatRateUnit = (
   abbreviation: string | null | undefined
 ): string => {
   if (!abbreviation) return "";
   const slash = abbreviation.indexOf("/");
   if (slash === -1) return abbreviation;
-  return `${abbreviation.slice(0, slash)} CO₂e${abbreviation.slice(slash)}`;
+  const numerator = abbreviation.slice(0, slash);
+  if (NUMERATOR_NAMES_THE_GAS.test(numerator)) return abbreviation;
+  return `${numerator} CO₂e${abbreviation.slice(slash)}`;
 };
 
 export const formatter = new Formatter(APP_LOCALE, INPUT_DECIMAL_SCALE);
