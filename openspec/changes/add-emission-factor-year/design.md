@@ -41,7 +41,7 @@ Two further facts shape the UX: `duplicateCarbonInventory` copies `year: source.
 - No methodology version per year.
 - No new set/catalogue tables.
 - No re-resolution of a line's factor when the footprint's year changes.
-- No immutability guard and no admin warnings when editing factors of an active methodology.
+- No immutability guard and no admin warnings when editing factors of an active methodology. None ships here; Decision 9 records what supersedes the reasoning behind it.
 - No bulk load, no maintainer grid filter, no draft state, no multi-source — all deferred.
 - No 2026 factor set. The catalogue is dated 2025 and the 2026 factors arrive in a follow-up PR.
 
@@ -142,7 +142,7 @@ The clearing covers `OUTDATED` lines as well as active ones. `toggleManualTotalE
 
 **What it absorbs**, each of which would otherwise need its own mechanism:
 
-- an administrator moving a factor's year while lines point at it — the line is cleared on its next save instead of becoming unsavable, which is why Decision 9's stated limit is now a described behaviour rather than an accepted hazard;
+- an administrator moving a factor's year while lines point at it — the line is cleared on its next save instead of becoming unsavable, which is why Decision 9's stated limit is a described behaviour rather than an accepted hazard. This is the case with a shelf life: once `guard-emission-factor-edits-by-usage` lands, the move is refused while any active line input references the factor, so the reconciliation stops seeing it. The other three below are unaffected;
 - a stale client cache, the reachable path this validation existed for in the first place;
 - any route into an editable footprint that this design failed to enumerate;
 - a lost race, which degrades from "an incompatible factor persists forever" to "it is corrected on the next save of that subcategory".
@@ -185,7 +185,9 @@ It is not taken, for two reasons. The case requires two people editing the same 
 
 **Rationale**: Decisions 6, 7 and 8 together keep a catalogue-backed line on its footprint's year — the clearing removes stale ones, the reconciliation strips new ones, and the identity fix keeps the classification honest. For a manual line, which survives a year change, the footprint's year is still the right answer under our own definition: `year` means validity, not provenance, and a user who keeps their manual factor in a 2026 footprint is asserting it is valid for 2026.
 
-**An administrator may move a factor's year while lines point at it.** Nothing prevents that, deliberately — no guards are built over an active methodology. The derived year survives it, because it answers _"which period was this line reporting"_, not _"how is the factor dated today"_; the footprint's period does not change when the catalogue is edited underneath. Under Decision 7 the affected lines are cleared on their next save and the user is told which ones, so this is a described behaviour rather than a hazard to accept. Warning the administrator with a count of the lines that would be affected was considered and deferred: it informs without blocking, but it costs a count query per row in the maintainer, and nothing is lost by adding it later.
+**An administrator may move a factor's year while lines point at it.** Nothing in this change prevents that, and nothing needs to: the derived year survives it, because it answers _"which period was this line reporting"_, not _"how is the factor dated today"_; the footprint's period does not change when the catalogue is edited underneath. Under Decision 7 the affected lines are cleared on their next save, so this is a described behaviour rather than a hazard to accept.
+
+**The wider claim this paragraph used to make is superseded.** It read that no guards are built over an active methodology, deliberately, and that warning the administrator with a count of the affected lines was deferred because it costs a count query per row. `guard-emission-factor-edits-by-usage` builds the guard: a factor is immutable while any active line input references it, enforced by the API rather than by the maintainer, so after it a move of this kind is refused rather than reconciled. That does not contradict the rejection recorded in the Non-Goals, because it keys on the dependency instead of on the version's status — the proxy that fails in both directions, freezing a freshly published version with no dependents while leaving an unpublished one with hundreds wide open. **No guard ships in this change**; the derived year stands on Decisions 6, 7 and 8 exactly as described above.
 
 **What it removes**: a column and its migration, two entries in the type schemas, its population in `sync`, its carry-through in `duplicateCarbonInventory`, its exposure in `mapLineToResponse`, and the tests for all of it.
 
@@ -237,7 +239,7 @@ It is not taken, for two reasons. The case requires two people editing the same 
 - **A year change interleaving with a line save** (Decision 7): rare enough to accept, self-correcting on the next save, and closable later with a single `FOR UPDATE` statement.
 - **Drip during the annual load** (Decision 5), on a catalogue that must be fully restated each year.
 - **The verifier's report reads the catalogue live** (Decision 12): the source and the gas breakdown of an already-verified footprint follow later edits to the factor. Pre-existing, unchanged by this design, and accepted as an administrator's own doing.
-- **No immutability guard** on factors of an active methodology — a standing, previously accepted risk.
+- **No immutability guard** on factors of an active methodology — a standing, previously accepted risk, and one this change does not close. It is closed by `guard-emission-factor-edits-by-usage`, keyed on whether an active line depends on the factor rather than on whether the version is published.
 
 ## Deferred work
 
