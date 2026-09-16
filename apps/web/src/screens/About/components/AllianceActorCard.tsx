@@ -66,13 +66,24 @@ export const AllianceActorCard: FC<Props> = ({ actor }) => {
       <Box className="flex items-center" sx={{ height: EMBLEM_SLOT_HEIGHT }}>
         {renderEmblem()}
       </Box>
+      {/*
+        A card whose logo carries the name still reserves the slot, the same way
+        EMBLEM_SLOT_HEIGHT reserves the logo's: the five cards sit in one grid
+        row, so dropping the element outright would start that card's
+        description a line above its neighbours'. A hidden element is left out
+        of the accessibility tree, so the placeholder is not announced.
+      */}
       <Typography
         variant="subtitle1"
         component="h3"
         fontWeight="fontWeightBold"
-        sx={{ fontSize: 16, color: theme.palette.common.deepForestDark }}
+        sx={{
+          fontSize: 16,
+          color: theme.palette.common.deepForestDark,
+          ...(actor.nameInLogo ? { visibility: "hidden" } : {}),
+        }}
       >
-        {actor.name}
+        {actor.nameInLogo ? "\u00a0" : actor.name}
       </Typography>
       <Typography
         variant="body2"

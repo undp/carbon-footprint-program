@@ -3,7 +3,6 @@ import {
   CheckCircleOutlined,
   CodeOutlined,
   GroupsOutlined,
-  PublicOutlined,
   type SvgIconComponent,
 } from "@mui/icons-material";
 import { CalculatorIcon } from "@/icons";
@@ -141,8 +140,23 @@ export const ALLIANCE_BANNER_TEXT =
   "Una plataforma construida entre quienes financian, diseñan, operan y usan los programas nacionales de huella de carbono.";
 
 export interface AllianceActor {
+  /**
+   * Stable identity for the card list — deliberately not display copy. Every
+   * label in this file is editorial and rewritten per deployment, so keying
+   * the list on `role` or `name` would break the moment comms reuses a label
+   * or drops a name. Must stay unique; `AllianceSection.test.tsx` asserts it.
+   */
+  id: string;
   role: string;
   name: string;
+  /**
+   * True when the partner's logo already carries the wordmark, so the card
+   * would repeat it. Deliberately a flag rather than an absent `name`: the
+   * logos in `config/partners.ts` are placeholders each deployment replaces,
+   * and artwork without a wordmark must be able to show the name again by
+   * flipping this — not by remembering to add a field back.
+   */
+  nameInLogo?: boolean;
   description: string;
   /** Partner whose logo heads the card. */
   partnerId?: PartnerId;
@@ -152,20 +166,24 @@ export interface AllianceActor {
 
 export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
   {
+    id: "undp",
     role: "Lidera e implementa",
     name: "PNUD",
     partnerId: PartnerId.UNDP,
     description:
-      "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la Climate Promise, junto a sus oficinas de país.",
+      "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la iniciativa Climate Promise, junto a sus oficinas de país.",
   },
   {
-    role: "Financia",
+    id: "sweden",
+    role: "Con el apoyo de",
     name: "Suecia",
+    nameInLogo: true,
     partnerId: PartnerId.SWEDEN,
     description:
-      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
+      "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
   },
   {
+    id: "inventures",
     role: "Diseña y desarrolla",
     name: "Inventures",
     partnerId: PartnerId.INVENTURES,
@@ -173,6 +191,7 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
       "Inventures, consultora de tecnología e innovación con base en Chile, está a cargo de la investigación, el diseño UX/UI y el desarrollo de la plataforma de código abierto.",
   },
   {
+    id: "governments",
     role: "Operan los programas",
     name: "Gobiernos de la región",
     Icon: AccountBalanceOutlined,
@@ -180,6 +199,7 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
       "Los programas nacionales de huella de carbono y los gobiernos que desarrollan nuevos programas operan la plataforma en sus países.",
   },
   {
+    id: "organizations",
     role: "Miden y reducen",
     name: "Organizaciones y empresas",
     Icon: GroupsOutlined,
@@ -246,7 +266,13 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
  */
 export const FUNDING_HIGHLIGHT = {
   badge: "Con el apoyo de",
-  title: "Financiada por el Gobierno de Suecia",
+  /**
+   * Heading for the block, read by screen readers only. Comms asked for the
+   * visible title to go because it repeated the attribution already carried by
+   * the badge, the logo and the body — but this is the donor-attribution block,
+   * so it still needs to be reachable by heading navigation.
+   */
+  accessibleTitle: "Con el apoyo del Gobierno de Suecia",
   bodyBeforeProject:
     "Posible gracias al financiamiento de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), en el marco de la iniciativa del PNUD",
   projectName:
@@ -256,16 +282,9 @@ export const FUNDING_HIGHLIGHT = {
 } as const;
 
 export interface OrganizationProfile {
+  /** Reads "Acerca de …" and heads the card on its own. */
   title: string;
   body: string;
-  /** Logo of the partner that heads the card. */
-  partnerId?: PartnerId;
-  /** Icon that replaces the logo when the card doesn't represent a partner. */
-  Icon?: SvgIconComponent;
-  /** Figures that accompany the logo. */
-  figures: readonly AboutStat[];
-  /** Badge that replaces the figures. */
-  badge?: string;
   /** Link embedded at the end of `body`, followed by `bodyAfterLink`. */
   link?: { label: string; href: string };
   bodyAfterLink?: string;
@@ -274,19 +293,12 @@ export interface OrganizationProfile {
 export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
   {
     title: "Acerca del PNUD",
-    partnerId: PartnerId.UNDP,
-    figures: [{ value: "170", label: "países" }],
     body: "El PNUD es la principal agencia de las Naciones Unidas que lucha contra la injusticia de la pobreza, las desigualdades y el cambio climático. Trabajando con una amplia red de expertos y socios en 170 países, el PNUD ayuda a las naciones a desarrollar soluciones integradas y sostenibles por las personas y el planeta. Para obtener más información, visita",
     link: { label: "undp.org/es", href: "https://www.undp.org/es" },
     bodyAfterLink: " o síguenos en las redes sociales vía @PNUD.",
   },
   {
     title: "Acerca de la iniciativa Climate Promise: Forward del PNUD",
-    Icon: PublicOutlined,
-    figures: [
-      { value: "+140", label: "países" },
-      { value: "37 M", label: "personas" },
-    ],
     body: "A través de la iniciativa Climate Promise, la mayor cartera de apoyo a la acción climática del sistema de las Naciones Unidas, el PNUD trabaja con más de 140 países y territorios y beneficia directamente a 37 millones de personas. La cartera permite ejecutar más de 2.450 millones de dólares de los Estados Unidos en financiación basada en subvenciones y aprovechar la experiencia del PNUD en materia de adaptación, mitigación, mercados de carbono, clima y bosques, riesgo y seguridad climáticos y estrategias y políticas climáticas. Visite nuestro sitio web",
     link: {
       label: "climatepromise.undp.org/es",
@@ -296,10 +308,12 @@ export const ORGANIZATION_PROFILES: readonly OrganizationProfile[] = [
   },
   {
     title: "Acerca de IFV LAC",
-    partnerId: PartnerId.SWEDEN,
-    figures: [],
-    badge: "Financiado por ASDI",
-    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional.",
+    body: "Esta herramienta fue desarrollada en el marco de la iniciativa IFV LAC, financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Esta herramienta no refleja ni compromete el punto de vista de nuestros socios. IFV LAC forma parte de los esfuerzos del PNUD por promover la movilización de financiamiento verde en América Latina y el Caribe, y acelerar la implementación de planes climáticos y ambientales a nivel nacional y regional. Para obtener más información, visita",
+    link: {
+      label: "la página de IFV LAC",
+      href: "https://www.undp.org/es/latin-america/innovacion-para-las-finanzas-verdes-en-america-latina-y-el-caribe",
+    },
+    bodyAfterLink: ".",
   },
 ];
 
@@ -310,7 +324,7 @@ export const ABOUT_DISCLAIMER =
 export const ABOUT_HERO = {
   badge: "Bien público digital · América Latina y el Caribe",
   title: "Sobre la iniciativa",
-  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
+  lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
 } as const;
 
 export const ABOUT_SECTION_TITLES = {

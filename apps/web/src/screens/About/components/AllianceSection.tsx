@@ -22,7 +22,7 @@ export const AllianceSection: FC = () => (
       }}
     >
       {ALLIANCE_ACTORS.map((actor) => (
-        <AllianceActorCard key={actor.name} actor={actor} />
+        <AllianceActorCard key={actor.id} actor={actor} />
       ))}
     </Box>
   </Box>
