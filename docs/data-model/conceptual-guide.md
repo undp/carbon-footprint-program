@@ -74,6 +74,8 @@ Statuses are modeled as data, not booleans.
 
 Each country has versioned methodologies, with exactly one active version at a time.
 
+A carbon inventory is bound to the version that was active when it was created, and that binding never changes — publishing a new version only affects inventories created afterwards. So a factor an existing inventory needs has to enter the version it already references, which for every recent inventory is the active one.
+
 ### Category Hierarchy
 
 Methodology → Category → Subcategory
@@ -90,6 +92,10 @@ Calculations are anchored at subcategory level.
 ### Emission Factors
 
 Factors are uniquely defined per subcategory and dimension combination, versioned via status.
+
+**Mutability is decided by usage, not by the methodology's status.** A factor may be changed or removed while no active line input references it, and becomes immutable once one does — the same rule on the active version and on a superseded one. The API enforces it (`EMISSION_FACTOR_IN_USE`, 409); the maintainer only stops offering what would be refused, showing how many lines depend on the factor.
+
+References held only by superseded line inputs do not count: inputs are versioned, one active per line, and every reader filters on that, so those are audit trail. Adding a factor is never blocked, since nothing can reference one that does not exist yet.
 
 ---
 
