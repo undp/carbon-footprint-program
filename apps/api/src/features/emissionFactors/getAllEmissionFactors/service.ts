@@ -73,6 +73,18 @@ export const getAllEmissionFactorsService = async (
       rateMeasurementUnit: {
         select: { id: true, name: true },
       },
+      // How many active lines depend on each factor, so the maintainer can
+      // leave a factor in use inert instead of offering an edit the API will
+      // refuse. Filtered on the input's `isActive` for the reason given on
+      // `countActiveLineReferences`: a reference surviving only in a superseded
+      // input is audit trail nothing reads. It stays one round trip — a
+      // filtered relation count, not a query per row — and it is what the index
+      // on `carbon_inventory_line_factor(emission_factor_id)` exists for.
+      _count: {
+        select: {
+          lineFactors: { where: { lineInput: { isActive: true } } },
+        },
+      },
     },
     where: whereClause,
     // `id` closes all three ties the position keys leave open: a DELETED
@@ -107,5 +119,6 @@ export const getAllEmissionFactorsService = async (
     rateMeasurementUnitId: ef.rateMeasurementUnit.id.toString(),
     rateMeasurementUnitName: ef.rateMeasurementUnit.name,
     gasDetails: parseGasDetails(ef.gasDetails, ef.id),
+    referencedLineCount: ef._count.lineFactors,
   }));
 };
