@@ -1,6 +1,6 @@
 # Stage 1: Base image with pnpm
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS base
+FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868 AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 # Node 26 no longer bundles Corepack, so install it from npm before enabling it.
@@ -99,7 +99,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
 
 # Stage 5: Production image
 # Digest-pinned for reproducibility; bump the tag and digest together.
-FROM node:26-alpine@sha256:2d984a15c9b54fd0aeb608b8e0d0d83529eb34d2966db27a1fb4f1edc3d298a3 AS runner
+FROM node:26-alpine@sha256:ef24c5053d50fdc3e4e56eb4e7ddb7861874ab0fdc797046ba897581deb8e868 AS runner
 WORKDIR /app
 
 # Set environment to production
