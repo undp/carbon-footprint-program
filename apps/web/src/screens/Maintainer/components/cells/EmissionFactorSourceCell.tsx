@@ -68,7 +68,7 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
     const displayValue = lockedSource ?? formValue;
     return (
       <Tooltip
-        title="La fuente es compartida por todos los factores de emisión de esta subcategoría y no puede ser modificada individualmente."
+        title="La fuente es compartida por todos los factores de emisión de esta subcategoría en este año y no puede ser modificada individualmente."
         arrow
         placement="top"
       >
@@ -100,8 +100,8 @@ export const EmissionFactorSourceCell: FC<EmissionFactorSourceCellProps> = ({
   if (isSourceLocked && !isEditing) {
     const displayValue = lockedSource ?? formValue;
     const tooltipText = isOverflowed
-      ? `${displayValue} — La fuente es compartida por todos los factores de esta subcategoría.`
-      : "La fuente es compartida por todos los factores de emisión de esta subcategoría.";
+      ? `${displayValue} — La fuente es compartida por todos los factores de esta subcategoría en este año.`
+      : "La fuente es compartida por todos los factores de emisión de esta subcategoría en este año.";
     return (
       <Tooltip title={tooltipText} arrow placement="top" enterDelay={500}>
         <Typography

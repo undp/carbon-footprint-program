@@ -25,6 +25,7 @@ import {
 } from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
+import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
@@ -548,18 +549,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const subcategoryId = formRow?.subcategoryId;
 
-          const allRows = getValues();
-          const otherRowsWithSameSubcategory = subcategoryId
-            ? allRows.filter(
-                (r) => r.subcategoryId === subcategoryId && r.id !== formRow?.id
-              )
-            : [];
-          const isSourceLocked = otherRowsWithSameSubcategory.length > 0;
-          const lockedSource = isSourceLocked
-            ? otherRowsWithSameSubcategory[0]?.source
-            : undefined;
+          const lockedSource = resolveLockedSource(getValues(), formRow);
+          const isSourceLocked = lockedSource !== undefined;
 
           return (
             <EmissionFactorSourceCell
