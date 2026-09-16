@@ -140,9 +140,23 @@ export const ALLIANCE_BANNER_TEXT =
   "Una plataforma construida entre quienes financian, diseñan, operan y usan los programas nacionales de huella de carbono.";
 
 export interface AllianceActor {
+  /**
+   * Stable identity for the card list — deliberately not display copy. Every
+   * label in this file is editorial and rewritten per deployment, so keying
+   * the list on `role` or `name` would break the moment comms reuses a label
+   * or drops a name. Must stay unique; `AllianceSection.test.tsx` asserts it.
+   */
+  id: string;
   role: string;
-  /** Omitted when the partner logo already carries the name. */
-  name?: string;
+  name: string;
+  /**
+   * True when the partner's logo already carries the wordmark, so the card
+   * would repeat it. Deliberately a flag rather than an absent `name`: the
+   * logos in `config/partners.ts` are placeholders each deployment replaces,
+   * and artwork without a wordmark must be able to show the name again by
+   * flipping this — not by remembering to add a field back.
+   */
+  nameInLogo?: boolean;
   description: string;
   /** Partner whose logo heads the card. */
   partnerId?: PartnerId;
@@ -152,6 +166,7 @@ export interface AllianceActor {
 
 export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
   {
+    id: "undp",
     role: "Lidera e implementa",
     name: "PNUD",
     partnerId: PartnerId.UNDP,
@@ -159,12 +174,16 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
       "El PNUD impulsa la iniciativa a través de su equipo regional de Clima para América Latina y el Caribe y la iniciativa Climate Promise, junto a sus oficinas de país.",
   },
   {
+    id: "sweden",
     role: "Con el apoyo de",
+    name: "Suecia",
+    nameInLogo: true,
     partnerId: PartnerId.SWEDEN,
     description:
       "Esta iniciativa cuenta con el apoyo de Suecia, a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI), y contribuye a la acción climática y el desarrollo sostenible de la región.",
   },
   {
+    id: "inventures",
     role: "Diseña y desarrolla",
     name: "Inventures",
     partnerId: PartnerId.INVENTURES,
@@ -172,6 +191,7 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
       "Inventures, consultora de tecnología e innovación con base en Chile, está a cargo de la investigación, el diseño UX/UI y el desarrollo de la plataforma de código abierto.",
   },
   {
+    id: "governments",
     role: "Operan los programas",
     name: "Gobiernos de la región",
     Icon: AccountBalanceOutlined,
@@ -179,6 +199,7 @@ export const ALLIANCE_ACTORS: readonly AllianceActor[] = [
       "Los programas nacionales de huella de carbono y los gobiernos que desarrollan nuevos programas operan la plataforma en sus países.",
   },
   {
+    id: "organizations",
     role: "Miden y reducen",
     name: "Organizaciones y empresas",
     Icon: GroupsOutlined,
