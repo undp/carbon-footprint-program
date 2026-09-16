@@ -63,7 +63,7 @@ RUN pnpm turbo build --filter=web
 # of mainline's newer features, and stable gets the same security backports).
 # Digest-pinned for reproducibility; bump the tag and digest together, and move
 # to the next stable branch (1.32.x) deliberately rather than tracking mainline.
-FROM nginxinc/nginx-unprivileged:1.30.4-alpine-slim@sha256:e88d990b349df8cf4aa82f16642d7a23375016638c9ace4e5c6ca25028e62e65 AS runner
+FROM nginxinc/nginx-unprivileged:1.30.5-alpine-slim@sha256:c2c3905bda3dc8de80023e19bed0a45745279d26e5586cdee64370c8f9b12348 AS runner
 
 # Origins for the build-time CSP (the runner has no runtime env). Picked up from
 # the same compose build args as the Vite build; empty IdP issuer → no IdP origin
