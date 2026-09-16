@@ -208,13 +208,15 @@ export const useMethodologyColumns = ({
               onStopEditCells={onStopEditRow}
               onCancelEdit={onCancelEditRow}
               onEdit={() => onEdit(params.row)}
-              editDisabled={isPublished || actionsLocked}
+              // The published version is editable too: what may be changed
+              // inside it is decided per emission factor, by whether an active
+              // line depends on it, and the API enforces that. Deleting it is
+              // still refused — that is about the version, not about a factor.
+              editDisabled={actionsLocked}
               editTooltipTitle={
                 actionsLocked
                   ? METHODOLOGY_ACTION_TOOLTIPS.lockedWhileEditing
-                  : isPublished
-                    ? METHODOLOGY_ACTION_TOOLTIPS.editActive
-                    : undefined
+                  : undefined
               }
               onView={() => onView(params.row)}
               onDuplicate={() => onDuplicate(params.row)}

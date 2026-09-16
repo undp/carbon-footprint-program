@@ -10,6 +10,17 @@ import { MethodologySelector } from "../components/MethodologySelector";
 
 export type ScopedMethodologyContext = {
   isViewOnly: boolean;
+  /**
+   * Whether the emission-factor screen may write, which the published version
+   * no longer forbids: what can change inside it is decided per factor, by
+   * whether an active line depends on it, and the API enforces that.
+   *
+   * Deliberately separate from `isViewOnly`, which keeps its `PUBLISHED` term
+   * so Categories, Subcategories and Dimensions stay read-only over the live
+   * version. No dependency rule stands behind those three, and deleting a
+   * subcategory cascades to its emission factors whether or not they are used.
+   */
+  canEditEmissionFactors: boolean;
   selectorDisabled: boolean;
   methodologies: GetAllMethodologiesResponse;
   effectiveMethodologyId?: string;
@@ -70,6 +81,7 @@ export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
     isViewOnly:
       !editingMethodology ||
       targetMethodology?.status === MethodologyVersionStatus.PUBLISHED,
+    canEditEmissionFactors: !!editingMethodology,
     selectorDisabled: !!editingMethodology,
     methodologies,
     effectiveMethodologyId,

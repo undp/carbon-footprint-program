@@ -8,7 +8,16 @@ import {
   type EmissionFactorForm,
 } from "@repo/types";
 
-type EmissionFactor = GetAllEmissionFactorsResponse[number];
+/**
+ * What the form reads off a server factor. Narrower than the listing row on
+ * purpose: `referencedLineCount` is a read-only fact about the catalogue, not a
+ * form field, and the create and update responses do not carry it — omitting it
+ * here lets all three be mapped by the same function.
+ */
+type ServerEmissionFactor = Omit<
+  GetAllEmissionFactorsResponse[number],
+  "referencedLineCount"
+>;
 
 export interface DimensionRequirements {
   var1Required: boolean;
@@ -62,7 +71,9 @@ export const createNewEmissionFactorRow = (
 });
 
 /** Transform server response to form shape. */
-export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
+export function toFormEmissionFactor(
+  ef: ServerEmissionFactor
+): EmissionFactorForm {
   return {
     id: ef.id,
     subcategoryId: ef.subcategoryId,
