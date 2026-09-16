@@ -45,6 +45,13 @@ export const DetailTooltipText: FC<DetailTooltipTextProps> = ({
       describeChild
       enterTouchDelay={0}
       leaveTouchDelay={6000}
+      // Every detail this component shows is one line — an unrounded value or
+      // a calculation chain. MUI caps a tooltip at 300px, which broke the
+      // chain across two lines and stranded the final unit on its own: an
+      // equation someone is checking by hand has to read as one equation.
+      slotProps={{
+        tooltip: { sx: { maxWidth: "none", whiteSpace: "nowrap" } },
+      }}
     >
       <Typography
         tabIndex={tabIndex}
