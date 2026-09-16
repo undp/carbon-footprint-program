@@ -462,7 +462,7 @@ export class Formatter {
  * A numerator that already names the gas is left alone. The base seed never
  * does this, but a country loading its own methodology can: the onboarding
  * guide's own example wrote `"kg CO2e/m3"`, which would otherwise render as
- * `kg CO2e CO₂e/m3`. The spelling is matched loosely because that data is
+ * `kg CO2eCO₂e/m3`. The spelling is matched loosely because that data is
  * hand-written — `CO2e`, `CO₂e` and `CO2-e` all count.
  */
 const NUMERATOR_NAMES_THE_GAS = /co\s*[2₂]\s*-?\s*e/i;
@@ -475,7 +475,7 @@ export const formatRateUnit = (
   if (slash === -1) return abbreviation;
   const numerator = abbreviation.slice(0, slash);
   if (NUMERATOR_NAMES_THE_GAS.test(numerator)) return abbreviation;
-  return `${numerator} CO₂e${abbreviation.slice(slash)}`;
+  return `${numerator}CO₂e${abbreviation.slice(slash)}`;
 };
 
 export const formatter = new Formatter(APP_LOCALE, INPUT_DECIMAL_SCALE);

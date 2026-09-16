@@ -329,7 +329,7 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     expect(header.getCell(1).value).toBe("Categoría / Alcance");
     expect(header.getCell(2).value).toBe("Sub-categoría");
     expect(header.getCell(3).value).toBe("Parámetros de actividad");
-    expect(header.getCell(4).value).toBe("Factor (kg CO₂e/unidad)");
+    expect(header.getCell(4).value).toBe("Factor (kgCO₂e/unidad)");
     expect(header.getCell(5).value).toBe("Fuente");
 
     // Row 2: synonyms present + source detail present.
@@ -340,14 +340,14 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
     // The factor is a number a spreadsheet formula can multiply; the rate
     // unit rides in the cell's number format instead of inside the value.
     expect(row2.getCell(4).value).toBe(0.5);
-    expect(row2.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/kWh"');
+    expect(row2.getCell(4).numFmt).toBe('#,##0.00########" kgCO₂e/kWh"');
     expect(row2.getCell(5).value).toBe("SEN - Red nacional");
 
     // Row 3: no synonyms + no source detail.
     const row3 = worksheet.getRow(3);
     expect(row3.getCell(1).value).toBe("Combustión");
     expect(row3.getCell(4).value).toBe(2.68);
-    expect(row3.getCell(4).numFmt).toBe('#,##0.00########" kg CO₂e/L"');
+    expect(row3.getCell(4).numFmt).toBe('#,##0.00########" kgCO₂e/L"');
     expect(row3.getCell(5).value).toBe("IPCC");
   });
 
@@ -370,7 +370,7 @@ describe("buildCarbonInventoryWorkbook — Factores utilizados sheet", () => {
 
     const cell = worksheet.getRow(2).getCell(4);
     expect(cell.value).toBe(0.0569441234);
-    expect(cell.numFmt).toBe('#,##0.00########" kg CO₂e/L"');
+    expect(cell.numFmt).toBe('#,##0.00########" kgCO₂e/L"');
   });
 
   it("drops the unit rather than the sheet when the rate unit is absurdly long", async () => {

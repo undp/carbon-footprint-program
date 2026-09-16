@@ -73,7 +73,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
       },
       {
         field: "factorValue",
-        headerName: "Factor (kg CO₂e/unidad)",
+        headerName: "Factor (kgCO₂e/unidad)",
         minWidth: 180,
         headerClassName,
         cellClassName,
@@ -108,7 +108,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
                   color="text.secondary"
                   sx={{ fontSize: "0.65rem" }}
                 >
-                  {formatter.emissionFactor(line.value)} kg CO₂e de {line.gas}/
+                  {formatter.emissionFactor(line.value)} kgCO₂e de {line.gas}/
                   {denominator}
                 </Typography>
               ))}

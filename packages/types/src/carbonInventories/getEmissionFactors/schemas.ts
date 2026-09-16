@@ -37,7 +37,7 @@ const ItemSchema = z
         })
       )
       .describe(
-        "Per-gas factor breakdown. Render as `<formatted value> kg CO₂e de <gas>/<denominator>` where the denominator is derived from `rateUnit`."
+        "Per-gas factor breakdown. Render as `<formatted value> kgCO₂e de <gas>/<denominator>` where the denominator is derived from `rateUnit`."
       ),
     factorSource: EmissionFactorBaseSchema.shape.source,
     factorSourceDetail: z

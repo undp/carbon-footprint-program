@@ -513,17 +513,17 @@ describe("Formatter — dateForFileName", () => {
 
 describe("formatRateUnit", () => {
   it("adds the CO₂e the numerator of a factor rate always carries", () => {
-    expect(formatRateUnit("kg/kWh")).toBe("kg CO₂e/kWh");
+    expect(formatRateUnit("kg/kWh")).toBe("kgCO₂e/kWh");
     // The case that motivated it: bare "kg/kg" gives no way to tell the
     // emissions from the thing being measured.
-    expect(formatRateUnit("kg/kg")).toBe("kg CO₂e/kg");
+    expect(formatRateUnit("kg/kg")).toBe("kgCO₂e/kg");
   });
 
   it("splits on the first slash so a compound denominator survives", () => {
-    expect(formatRateUnit("kg/km-ton")).toBe("kg CO₂e/km-ton");
-    expect(formatRateUnit("kg/cant anim")).toBe("kg CO₂e/cant anim");
+    expect(formatRateUnit("kg/km-ton")).toBe("kgCO₂e/km-ton");
+    expect(formatRateUnit("kg/cant anim")).toBe("kgCO₂e/cant anim");
     // Defensive: a denominator that carried its own slash keeps it whole.
-    expect(formatRateUnit("kg/m3/h")).toBe("kg CO₂e/m3/h");
+    expect(formatRateUnit("kg/m3/h")).toBe("kgCO₂e/m3/h");
   });
 
   it("returns a value that is not a rate untouched", () => {
@@ -533,7 +533,7 @@ describe("formatRateUnit", () => {
   it("leaves a numerator that already names the gas alone", () => {
     // The base seed never spells the gas into the abbreviation, but a country
     // loading its own methodology can — the onboarding guide's own example was
-    // exactly this — and doubling it would read "kg CO2e CO₂e/m3".
+    // exactly this — and doubling it would read "kg CO2eCO₂e/m3".
     expect(formatRateUnit("kg CO2e/m3")).toBe("kg CO2e/m3");
     expect(formatRateUnit("kg CO₂e/kWh")).toBe("kg CO₂e/kWh");
     expect(formatRateUnit("kg CO2-e/ton")).toBe("kg CO2-e/ton");
@@ -544,7 +544,7 @@ describe("formatRateUnit", () => {
     // A denominator mentioning the gas is not the numerator's business: this
     // rate is emissions per unit of reported emissions, and the numerator still
     // needs its label.
-    expect(formatRateUnit("kg/ton CO2e")).toBe("kg CO₂e/ton CO2e");
+    expect(formatRateUnit("kg/ton CO2e")).toBe("kgCO₂e/ton CO2e");
   });
 
   it("renders nothing when there is no unit", () => {

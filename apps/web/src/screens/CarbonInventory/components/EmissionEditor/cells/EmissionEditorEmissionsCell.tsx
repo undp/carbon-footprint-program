@@ -43,6 +43,12 @@ export const EmissionEditorEmissionsCell: FC<
   // of 0,12345 would read "0,12 × 0,056944 = 0,00703", a line that does not
   // multiply out and defeats the whole point of showing it. A line without
   // quantity or without factor has no chain to show.
+  //
+  // Both results name the gas. Litres × kgCO₂e/L is kgCO₂e, and a bare "kg"
+  // next to a column headed "Emisiones (tCO₂e)" is the ambiguity the rate
+  // label was added to remove — halfway through the chain it reads as the mass
+  // of the fuel. Spelling follows the app's convention of no space between the
+  // mass unit and the gas, as `formatter.emissions` does one line below.
   const calculationDetail = isComputable
     ? [
         formatter.exact(quantity),
@@ -52,9 +58,9 @@ export const EmissionEditorEmissionsCell: FC<
         formatRateUnit(unit?.abbreviation),
         "=",
         formatter.exact(totalEmissionsKg),
-        "kg =",
+        "kgCO₂e =",
         formatter.exact(totalEmissions),
-        "t",
+        "tCO₂e",
       ]
         .filter(Boolean)
         .join(" ")
