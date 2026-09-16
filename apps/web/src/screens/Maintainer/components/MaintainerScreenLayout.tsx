@@ -20,6 +20,15 @@ interface MaintainerScreenLayoutProps {
   errorMessage: string | null;
   onAddRow?: () => void;
   addDisabled?: boolean;
+  /**
+   * Overrides `!scope.isViewOnly` for screens whose write permission is not the
+   * shared one. Only the emission-factor screen passes it: the published
+   * version is writable there, decided per factor by whether an active line
+   * depends on it, while the other three screens stay read-only over it.
+   */
+  canEdit?: boolean;
+  /** Qualifies the edit-mode toolbar, e.g. over the published methodology. */
+  editModeNote?: string;
   onExitEditMode: () => void;
   exitEditModeOpen: boolean;
   onExitEditModeOpenChange: (open: boolean) => void;
@@ -43,6 +52,8 @@ export const MaintainerScreenLayout = ({
   errorMessage,
   onAddRow,
   addDisabled,
+  canEdit: canEditOverride,
+  editModeNote,
   onExitEditMode,
   exitEditModeOpen,
   onExitEditModeOpenChange,
@@ -61,6 +72,8 @@ export const MaintainerScreenLayout = ({
     targetMethodology,
     methodologySelector,
   } = scope;
+
+  const canEdit = canEditOverride ?? !isViewOnly;
 
   if (!isLoadingMethodologies && errorMessage) {
     return (
@@ -85,8 +98,8 @@ export const MaintainerScreenLayout = ({
     <FormProvider {...form}>
       <MaintainerPageHeader
         title={title}
-        subtitle={isViewOnly ? readOnlyDescription : editDescription}
-        onAddRow={isViewOnly ? undefined : onAddRow}
+        subtitle={canEdit ? editDescription : readOnlyDescription}
+        onAddRow={canEdit ? onAddRow : undefined}
         addDisabled={addDisabled}
         addLabel={addLabel}
         extra={methodologySelector}
@@ -94,15 +107,16 @@ export const MaintainerScreenLayout = ({
       />
       <Box
         className="rounded-sm bg-white p-3"
-        sx={!isViewOnly ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
+        sx={canEdit ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
       >
         <form id={formId} noValidate>
           <Box className="flex w-full">{children}</Box>
         </form>
       </Box>
-      {!isViewOnly && (
+      {canEdit && (
         <EditModeToolbar
           methodologyName={targetMethodology?.name ?? ""}
+          note={editModeNote}
           onExitClick={() => onExitEditModeOpenChange(true)}
         />
       )}

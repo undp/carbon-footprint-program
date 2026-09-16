@@ -26,6 +26,7 @@ import {
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
+import type { EmissionFactorRowLock } from "../utils/emissionFactorRowLock";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
@@ -55,7 +56,13 @@ export interface SubcategoryDimensions {
 
 interface UseEmissionFactorColumnsParams {
   editingRowId: string | null;
-  viewOnly: boolean;
+  /** Whether the screen may write at all. Decides the actions column. */
+  canEdit: boolean;
+  /**
+   * Per row, because the rule is per row: a factor is immutable while an active
+   * line depends on it, whatever the status of the methodology version.
+   */
+  getRowLock: (rowId: string) => EmissionFactorRowLock;
   onCellChange: (
     rowIndex: number,
     field: keyof EmissionFactorForm,
@@ -209,7 +216,8 @@ const DimensionValueEditSelect: FC<{
 
 export const useEmissionFactorColumns = ({
   editingRowId,
-  viewOnly,
+  canEdit,
+  getRowLock,
   onCellChange,
   onStartEditRow,
   onStopEditRow,
@@ -250,6 +258,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
 
           if (editing) {
             return (
@@ -270,25 +281,27 @@ export const useEmissionFactorColumns = ({
             subcategories.find((sc) => sc.id === formRow?.subcategoryId)
               ?.name ?? params.row.subcategoryName;
           return (
-            <Typography
-              variant="body2"
-              onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
-              }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                width: "100%",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {name}
-            </Typography>
+            <Tooltip title={lockReason ?? ""} arrow placement="top">
+              <Typography
+                variant="body2"
+                onClick={
+                  rowEditable ? () => onStartEditRow(params.row.id) : undefined
+                }
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: rowEditable ? "pointer" : "default",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  width: "100%",
+                  "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
+                }}
+              >
+                {name}
+              </Typography>
+            </Tooltip>
           );
         },
       },
@@ -300,6 +313,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim1;
           const isDimEnabled = !!dimInfo?.required;
@@ -332,19 +346,19 @@ export const useEmissionFactorColumns = ({
               <Typography
                 variant="body2"
                 onClick={
-                  !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                  rowEditable ? () => onStartEditRow(params.row.id) : undefined
                 }
                 sx={{
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
-                  cursor: !viewOnly ? "pointer" : "default",
+                  cursor: rowEditable ? "pointer" : "default",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                   width: "100%",
                   color: !isDimEnabled ? "text.disabled" : "text.primary",
-                  "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                  "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
                 }}
               >
                 {formRow?.dimensionValue1Name ?? "—"}
@@ -361,6 +375,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim2;
           const isDimEnabled = !!dimInfo?.required;
@@ -392,19 +407,19 @@ export const useEmissionFactorColumns = ({
               <Typography
                 variant="body2"
                 onClick={
-                  !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                  rowEditable ? () => onStartEditRow(params.row.id) : undefined
                 }
                 sx={{
                   px: 1,
                   py: 0.5,
                   borderRadius: 1,
-                  cursor: !viewOnly ? "pointer" : "default",
+                  cursor: rowEditable ? "pointer" : "default",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
                   width: "100%",
                   color: !isDimEnabled ? "text.disabled" : "text.primary",
-                  "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                  "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
                 }}
               >
                 {formRow?.dimensionValue2Name ?? "—"}
@@ -420,6 +435,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
           return (
             <EditableNumberCell
               formArrayName="emissionFactors"
@@ -428,7 +444,7 @@ export const useEmissionFactorColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "value", value)}
               onClick={
-                !viewOnly && !editing
+                rowEditable && !editing
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
@@ -444,6 +460,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
 
           const selectedSubcategory = subcategories.find(
             (sc) => sc.id === formRow?.subcategoryId
@@ -476,14 +493,14 @@ export const useEmissionFactorColumns = ({
             <Typography
               variant="body2"
               onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                rowEditable ? () => onStartEditRow(params.row.id) : undefined
               }
               sx={{
                 px: 1,
                 py: 0.5,
                 borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                cursor: rowEditable ? "pointer" : "default",
+                "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
               }}
             >
               {unit?.abbreviation ?? params.row.rateMeasurementUnitName}
@@ -501,6 +518,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
           const gd = formRow?.gasDetails;
           const hasBreakdown =
             gd &&
@@ -519,7 +537,9 @@ export const useEmissionFactorColumns = ({
               variant="outlined"
               startIcon={<FlameIcon />}
               onClick={() => onOpenGEIBreakdown(rowIndex)}
-              disabled={(viewOnly && !hasBreakdown) || blockedByOtherEditing}
+              disabled={
+                (!rowEditable && !hasBreakdown) || blockedByOtherEditing
+              }
               sx={{
                 textTransform: "none",
                 borderColor: hasBreakdown ? "success.main" : "grey.400",
@@ -530,7 +550,7 @@ export const useEmissionFactorColumns = ({
                 },
               }}
             >
-              {viewOnly
+              {!rowEditable
                 ? hasBreakdown
                   ? "Ver"
                   : "—"
@@ -549,6 +569,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
 
           const lockedSource = resolveLockedSource(getValues(), formRow);
           const isSourceLocked = lockedSource !== undefined;
@@ -559,7 +580,7 @@ export const useEmissionFactorColumns = ({
               isEditing={editing}
               onChange={(value) => onCellChange(rowIndex, "source", value)}
               onClick={
-                !viewOnly && !editing
+                rowEditable && !editing
                   ? () => onStartEditRow(params.row.id)
                   : undefined
               }
@@ -576,6 +597,7 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
+          const { canEdit: rowEditable } = getRowLock(params.row.id);
 
           if (editing) {
             return (
@@ -591,14 +613,14 @@ export const useEmissionFactorColumns = ({
             <Typography
               variant="body2"
               onClick={
-                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+                rowEditable ? () => onStartEditRow(params.row.id) : undefined
               }
               sx={{
                 px: 1,
                 py: 0.5,
                 borderRadius: 1,
-                cursor: !viewOnly ? "pointer" : "default",
-                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+                cursor: rowEditable ? "pointer" : "default",
+                "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
               }}
             >
               {formRow?.year ?? params.row.year}
@@ -606,7 +628,7 @@ export const useEmissionFactorColumns = ({
           );
         },
       },
-      ...(!viewOnly
+      ...(canEdit
         ? [
             {
               field: "actions",
@@ -620,6 +642,9 @@ export const useEmissionFactorColumns = ({
               renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
                 const anyEditing = editingRowId !== null;
                 const { row: formRow } = getFormRow(params.row.id);
+                const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+                  params.row.id
+                );
 
                 return (
                   <ActionButtons
@@ -628,6 +653,8 @@ export const useEmissionFactorColumns = ({
                     onStopEditCells={onStopEditRow}
                     onCancelEdit={onCancelEditRow}
                     onDelete={formRow ? () => onDelete(formRow) : undefined}
+                    deleteDisabled={!rowEditable}
+                    deleteTooltipTitle={lockReason}
                     deleteConfirmMessage="¿Estás seguro de que deseas eliminar este factor de emisión?"
                   />
                 );
@@ -637,7 +664,8 @@ export const useEmissionFactorColumns = ({
         : []),
     ],
     [
-      viewOnly,
+      canEdit,
+      getRowLock,
       getFormRow,
       getValues,
       isEditing,
