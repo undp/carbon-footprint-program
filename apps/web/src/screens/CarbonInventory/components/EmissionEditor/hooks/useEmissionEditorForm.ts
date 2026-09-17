@@ -231,6 +231,11 @@ export const useEmissionEditorForm = ({
         console.warn(
           "There are no available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
+        // No factor backs the new source, so the previous selection is dropped
+        // rather than left behind: `baseFactorId` now survives a reload (the
+        // capture payload echoes it back), so keeping it would persist a
+        // snapshot whose factor identity contradicts its own source.
+        resetFactorValueFields(subcategoryId, lineId);
         return;
       }
 
@@ -239,6 +244,8 @@ export const useEmissionEditorForm = ({
         console.warn(
           "There are multiple available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
+        // Ambiguous: no selection can be made, so none is kept.
+        resetFactorValueFields(subcategoryId, lineId);
         return;
       }
 
@@ -250,6 +257,9 @@ export const useEmissionEditorForm = ({
         console.warn(
           "The available factor has an invalid value. Cannot auto-fill a factor value."
         );
+        // The factor exists but cannot be applied, which is no better than not
+        // having found one.
+        resetFactorValueFields(subcategoryId, lineId);
         return;
       }
 
@@ -269,7 +279,14 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
+    [
+      emissionFactors,
+      rateMeasurementUnits,
+      setValue,
+      subcategoryId,
+      getValues,
+      resetFactorValueFields,
+    ]
   );
 
   const determineAutoLoadFactorSource = useCallback(
