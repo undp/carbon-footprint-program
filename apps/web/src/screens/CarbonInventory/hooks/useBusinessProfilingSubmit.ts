@@ -98,9 +98,19 @@ export const useBusinessProfilingSubmit = ({
       // ever added. Warning when the field itself changes was rejected: a user
       // who reverts the year or abandons without saving would have been alarmed
       // about something that never happened.
+      if (inventory === undefined) {
+        // Both checks below read the detail query. While it has not resolved —
+        // or if it errored — neither whether the year changed nor whether there
+        // are lines to lose can be answered, so the save is confirmed instead
+        // of applied: a warning nobody needed is recoverable, silently wiping
+        // every captured factor is not.
+        setPendingRequest(requestData);
+        return;
+      }
+
       const yearChanged =
-        requestData.year !== undefined && requestData.year !== inventory?.year;
-      const hasDeclaredLines = (inventory?.subcategories ?? []).some(
+        requestData.year !== undefined && requestData.year !== inventory.year;
+      const hasDeclaredLines = inventory.subcategories.some(
         (subcategory) => subcategory.lines.length > 0
       );
 
@@ -116,9 +126,13 @@ export const useBusinessProfilingSubmit = ({
 
   const confirmYearChange = useCallback(() => {
     if (!pendingRequest) return;
-    const requestData = pendingRequest;
-    setPendingRequest(null);
-    void persist(requestData);
+    // The request is held until the mutation settles so the dialog stays open —
+    // and keeps showing its loading state — while the transaction that clears
+    // every frozen factor runs. Releasing it first closed the dialog on the
+    // same render the PATCH started, leaving the user without feedback and a
+    // second «Guardar» one click away. `persist` handles its own errors, so
+    // `finally` is what closes the dialog on either outcome.
+    void persist(pendingRequest).finally(() => setPendingRequest(null));
   }, [pendingRequest, persist]);
 
   const cancelYearChange = useCallback(() => setPendingRequest(null), []);
