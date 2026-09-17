@@ -19,6 +19,7 @@ import { getSuggestedReductionPlanRoute } from "@/features/carbonInventories/get
 import { getReductionPlanRoute } from "@/features/carbonInventories/getReductionPlan/route.js";
 import { getEmissionsDetailedSummaryRoute } from "@/features/carbonInventories/getEmissionsDetailedSummary/route.js";
 import { getEmissionFactorsRoute } from "@/features/carbonInventories/getEmissionFactors/route.js";
+import { getEmissionFactorYearsRoute } from "@/features/carbonInventories/getEmissionFactorYears/route.js";
 import { getCarbonInventoryMetadataRoute } from "@/features/carbonInventories/getCarbonInventoryMetadata/route.js";
 import { getCarbonInventoryAccessRoute } from "@/features/carbonInventories/getCarbonInventoryAccess/route.js";
 import { getCarbonInventoryBadgesRoute } from "@/features/carbonInventories/getCarbonInventoryBadges/route.js";
@@ -56,6 +57,7 @@ export default function carbonInventoriesRoutes(fastify: FastifyZodInstance) {
       getReductionPlanRoute,
       getEmissionsDetailedSummaryRoute,
       getEmissionFactorsRoute,
+      getEmissionFactorYearsRoute,
       getCarbonInventoryMetadataRoute,
       getCarbonInventoryAccessRoute,
       getSubcategoryRecommendationsRoute,
