@@ -1,4 +1,5 @@
 import { CarbonInventoryLineStatus, type Prisma } from "@repo/database";
+import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 
 /**
  * Removes the frozen catalogue factor and the computed result of every line of
@@ -14,10 +15,16 @@ import { CarbonInventoryLineStatus, type Prisma } from "@repo/database";
  * What is kept:
  *  - the line itself, with its subcategory, dimension selections, measurement
  *    unit, quantity, comment and files. No replacement factor is ever chosen.
- *  - manual factors (`emissionFactorId` null): their value and source were typed
- *    by the user and no catalogue can restore them, so the snapshot stays and so
- *    do `manualFactor`, `manualFactorSource` and `manualFactorRateUnitId` on the
- *    input.
+ *  - manual factors: their value and source were typed by the user and no
+ *    catalogue can restore them, so the snapshot stays and so do `manualFactor`,
+ *    `manualFactorSource` and `manualFactorRateUnitId` on the input. A manual
+ *    factor is recognised by its source, not by its null `emissionFactorId`: a
+ *    snapshot that lost its factor id but kept a catalogue source is a
+ *    catalogue factor with a broken link, and leaving it behind would let a
+ *    footprint keep a total computed from another year's factor -- the one
+ *    thing this function exists to prevent. The backfill migration sweeps the
+ *    same shape. A snapshot with no id and no source at all is left alone:
+ *    nothing tells it apart from a manual factor whose source was never typed.
  *  - the superseded input versions, as the migration does: every reader filters
  *    `isActive: true`, so they are audit trail nothing in the application
  *    consults.
@@ -33,7 +40,11 @@ export async function clearCatalogueFactorsOfLines(
 ): Promise<void> {
   const staleFactors = await tx.carbonInventoryLineFactor.findMany({
     where: {
-      emissionFactorId: { not: null },
+      OR: [
+        { emissionFactorId: { not: null } },
+        // A null source never matches `notIn`, so an untyped one is left alone.
+        { appliedFactorSource: { notIn: [...CUSTOM_FACTOR_SOURCES] } },
+      ],
       lineInput: {
         isActive: true,
         line: {
