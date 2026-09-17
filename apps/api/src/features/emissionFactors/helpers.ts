@@ -1,8 +1,10 @@
 import type { Prisma } from "@repo/database";
 import {
+  CarbonInventoryLineStatus,
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  InventoryStatus,
 } from "@repo/types";
 import { EMISSION_FACTOR_GAS_DETAILS_TOLERANCE } from "@/config/constants.js";
 import {
@@ -146,22 +148,54 @@ export async function validateSourceConsistency(
 }
 
 /**
- * How many active lines depend on this factor.
+ * The line references that make an emission factor immutable.
  *
- * A factor is immutable while any of them does. The predicate is the dependency
- * itself rather than the status of the methodology version the factor hangs
- * off: `PUBLISHED` is a poor proxy for it in both directions — a version
- * published yesterday has no dependents, and the version unpublished when it
- * was superseded keeps all of its.
+ * The predicate is the dependency itself rather than the status of the
+ * methodology version the factor hangs off: `PUBLISHED` is a poor proxy for it
+ * in both directions — a version published yesterday has no dependents, and the
+ * version unpublished when it was superseded keeps all of its.
  *
- * Only inputs whose `isActive` is true are counted. Line inputs are versioned,
- * one active per line, and every reader in the application filters on that, so
- * a reference surviving in a superseded input is audit trail nothing consults;
- * counting it would freeze a factor permanently on the strength of a row no
- * code reads. The line's own `ACTIVE`/`OUTDATED` state is deliberately not
- * filtered: a parked line keeps its snapshot and is reactivated without passing
- * through `syncCarbonInventoryLines`, so excluding it would let an edited
- * factor return to a live footprint through the back door.
+ * `isActive` on the input: line inputs are versioned, one active per line, and
+ * every reader in the application filters on that, so a reference surviving in
+ * a superseded input is audit trail nothing consults. Counting it would freeze
+ * a factor permanently on the strength of a row no code reads.
+ *
+ * `ACTIVE` or `OUTDATED` on the line, never `DELETED`. A parked (OUTDATED) line
+ * keeps its snapshot and is reactivated by `toggleManualTotalEmissions` without
+ * passing through `syncCarbonInventoryLines`, so it still depends on the
+ * factor; excluding it would let an edited factor return to a live footprint
+ * through the back door. A DELETED line is the opposite case: deleting a line
+ * is a soft delete that leaves the active input and its snapshot in place, and
+ * no code path anywhere returns a line to `ACTIVE`, so counting it would lock
+ * the factor forever against a line nobody can see, restore or point at.
+ *
+ * `ACTIVE` on the footprint, for the same reason one level up: deleting a
+ * footprint only sets its own status, leaving every line, input and snapshot
+ * below it untouched.
+ *
+ * Shared with the maintainer listing's `_count`, deliberately: the grid decides
+ * whether to offer an edit from the count, and the API decides whether to
+ * refuse one. If the two predicates drift, the grid either locks rows the API
+ * would accept or offers edits the API will answer with a 409.
+ */
+export const activeLineReferenceWhere = {
+  lineInput: {
+    isActive: true,
+    line: {
+      status: {
+        in: [
+          CarbonInventoryLineStatus.ACTIVE,
+          CarbonInventoryLineStatus.OUTDATED,
+        ],
+      },
+      carbonInventory: { status: InventoryStatus.ACTIVE },
+    },
+  },
+} satisfies Prisma.CarbonInventoryLineFactorWhereInput;
+
+/**
+ * How many live lines depend on this factor. A factor is immutable while any of
+ * them does. See `activeLineReferenceWhere` for what counts as one.
  *
  * TODO: the softer rule was deferred. The same count, surfaced as a warning
  * that informs without blocking, is what `add-emission-factor-year` Decision 9
@@ -174,10 +208,7 @@ export async function countActiveLineReferences(
   emissionFactorId: bigint
 ): Promise<number> {
   return tx.carbonInventoryLineFactor.count({
-    where: {
-      emissionFactorId,
-      lineInput: { isActive: true },
-    },
+    where: { emissionFactorId, ...activeLineReferenceWhere },
   });
 }
 
