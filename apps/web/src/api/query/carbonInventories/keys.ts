@@ -18,6 +18,7 @@ export enum CarbonInventoryQueryKey {
   SuggestedReductionPlan = "suggested-reduction-plan",
   EmissionsDetailedSummary = "emissions-detailed-summary",
   EmissionFactors = "emission-factors",
+  EmissionFactorYears = "emission-factor-years",
   Metadata = "metadata",
   Access = "access",
   Minimal = "minimal",
@@ -110,6 +111,17 @@ export const carbonInventoryKeys = {
       id,
       CarbonInventoryQueryKey.EmissionFactors,
       CarbonInventoryQueryKey.EmissionsUpdateDependency,
+    ] as const,
+  // Deliberately carries no update-dependency token. The years come from the
+  // catalogue of the methodology the footprint is pinned to, and nothing a user
+  // does to their own footprint can change them: the year they pick does not
+  // move the catalogue, and the methodology version never changes. Only the
+  // maintainer adds a year, from the other app and its own key namespace.
+  emissionFactorYears: (id: string) =>
+    [
+      CarbonInventoryQueryKey.Root,
+      id,
+      CarbonInventoryQueryKey.EmissionFactorYears,
     ] as const,
   metadata: (id: string) =>
     [

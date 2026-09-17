@@ -34,6 +34,8 @@ export * from "./getEmissionsDetailedSummary/schemas.js";
 export * from "./getEmissionsDetailedSummary/types.js";
 export * from "./getEmissionFactors/schemas.js";
 export * from "./getEmissionFactors/types.js";
+export * from "./getEmissionFactorYears/schemas.js";
+export * from "./getEmissionFactorYears/types.js";
 export * from "./getCarbonInventoryMetadata/schemas.js";
 export * from "./getCarbonInventoryMetadata/types.js";
 export * from "./getCarbonInventoryAccess/schemas.js";

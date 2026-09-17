@@ -3,6 +3,7 @@ import type { GetCarbonInventoryMethodologyExportResponse } from "@repo/types";
 import { MethodologyNotFoundError } from "@/features/methodologies/errors.js";
 import { findMethodologyExportByVersionId } from "@/features/methodologies/helpers.js";
 import { mapMethodologyExportToResponse } from "@/features/methodologies/mappers.js";
+import { scopeMethodologyExportToYear } from "./helper.js";
 
 export const getCarbonInventoryMethodologyExportService = async (
   prismaClient: PrismaClient,
@@ -10,7 +11,7 @@ export const getCarbonInventoryMethodologyExportService = async (
 ): Promise<GetCarbonInventoryMethodologyExportResponse> => {
   const inventory = await prismaClient.carbonInventory.findUniqueOrThrow({
     where: { id: BigInt(carbonInventoryId) },
-    select: { methodologyVersionId: true },
+    select: { methodologyVersionId: true, year: true },
   });
 
   const methodology = await findMethodologyExportByVersionId(prismaClient, {
@@ -27,5 +28,7 @@ export const getCarbonInventoryMethodologyExportService = async (
     throw new MethodologyNotFoundError();
   }
 
-  return mapMethodologyExportToResponse(methodology);
+  return mapMethodologyExportToResponse(
+    scopeMethodologyExportToYear(methodology, inventory.year)
+  );
 };
