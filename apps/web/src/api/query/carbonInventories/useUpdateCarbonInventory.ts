@@ -38,7 +38,10 @@ export const useUpdateCarbonInventory = (inventoryId: string) => {
         // emissions and not only to the attributes: the emissions summary, the
         // subcategory and sector rankings, the verifier's factor report and the
         // reduction plan all hang off this token and none of them off the
-        // attributes one.
+        // attributes one. `useBusinessProfilingSubmit` sends the year only when
+        // it actually changed, so an unchanged one does not drag the whole
+        // dashboard into a refetch; a caller that always sent it would merely
+        // over-invalidate.
         ...(variables.year !== undefined
           ? [
               queryClient.invalidateQueries({

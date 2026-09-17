@@ -119,7 +119,14 @@ export const useBusinessProfilingSubmit = ({
         return;
       }
 
-      await persist(requestData);
+      // The year travels only when it actually changed. The form always emits
+      // it — the field is required and never empty — and a payload carrying it
+      // is precisely what tells `useUpdateCarbonInventory` that the frozen
+      // factors may be gone and the emissions views have to refetch, so sending
+      // it unchanged made every rename refetch the whole dashboard.
+      await persist(
+        yearChanged ? requestData : { ...requestData, year: undefined }
+      );
     },
     [inventoryId, enqueueSnackbar, onSuccess, inventory, persist]
   );
