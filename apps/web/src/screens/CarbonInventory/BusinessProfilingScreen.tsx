@@ -1,4 +1,4 @@
-import { FC, useCallback, useState } from "react";
+import { FC, useCallback, useMemo, useState } from "react";
 import { Box, Divider, Typography } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import { useNavigate, useParams } from "@tanstack/react-router";
@@ -18,12 +18,12 @@ import {
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
 } from "./components";
-import { useCarbonInventory } from "@/api/query";
+import { useCarbonInventory, useEmissionFactorYears } from "@/api/query";
 import { EXIT_DIALOG_CONTENT, YEAR_CHANGE_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
-import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
+import { buildYearOptions } from "./utils/buildYearOptions";
 import {
   IS_DEVELOPMENT,
   LOCAL_BYPASS_REQUIRED_FIELDS,
@@ -39,13 +39,8 @@ import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
 import { toSafeString } from "@/utils/string";
 
-const YEARS = Array.from(
-  { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
-  (_, index) => {
-    const year = new Date().getFullYear() - index;
-    return year.toString();
-  }
-).reverse();
+const NO_CATALOGUE_YEARS_MESSAGE =
+  "La metodología aún no tiene factores de emisión cargados para ningún año. Escribe al equipo de metodología antes de continuar.";
 
 const ERROR_MESSAGE = {
   title: "No se encontró la huella",
@@ -81,6 +76,17 @@ export const BusinessProfilingScreen: FC = () => {
   } = useCarbonInventory(inventoryId);
 
   const hasOrganization = !!existingInventory?.organizationId;
+
+  // The year selector offers what the catalogue covers, not a window around
+  // today: a factor serves the footprints of its own year, so a year with no
+  // factors leaves every subcategory of the capture step empty.
+  const { data: catalogueYears = [], isLoading: areCatalogueYearsLoading } =
+    useEmissionFactorYears(inventoryId);
+
+  const yearOptions = useMemo(
+    () => buildYearOptions(catalogueYears, existingInventory?.year ?? null),
+    [catalogueYears, existingInventory?.year]
+  );
 
   const { isReady, mustNavigateAway } =
     useCarbonInventoryRouteGuard(inventoryId);
@@ -213,7 +219,7 @@ export const BusinessProfilingScreen: FC = () => {
   const isFormDisabled =
     globalSubmitting || isInventoryLoading || hasInventoryError;
 
-  const isLoading = isInventoryLoading || !isReady;
+  const isLoading = isInventoryLoading || areCatalogueYearsLoading || !isReady;
 
   if (!isLoading && mustNavigateAway) return null;
 
@@ -284,10 +290,15 @@ export const BusinessProfilingScreen: FC = () => {
                     control={control}
                     label={yearLabel}
                     labelId="year-label"
-                    options={YEARS.map((year) => ({
+                    options={yearOptions.map((year) => ({
                       label: year,
                       value: year,
                     }))}
+                    helperText={
+                      yearOptions.length === 0
+                        ? NO_CATALOGUE_YEARS_MESSAGE
+                        : undefined
+                    }
                     required
                   />
                   <FormTextField

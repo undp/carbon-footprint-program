@@ -7,8 +7,15 @@ import { API_BASE_URL } from "./environment";
 export const STALE_TIME_MS = 1000 * 60 * 5; // 5 minutes
 
 /**
- * Number of past years (counting back from the current year) offered as options
- * in the carbon inventory business-profiling year selector.
+ * Number of past years (counting back from the current year) a footprint may
+ * reasonably be declared for. It is the lower bound of the maintainer's
+ * emission-factor year window, so the maintainer can date a factor for every
+ * year a user could still want to report.
+ *
+ * It no longer builds the business-profiling year selector: that one reads the
+ * years its methodology's catalogue actually covers
+ * (`useEmissionFactorYears`), because a year offered without factors behind it
+ * leaves the whole capture step empty.
  */
 export const CALCULATOR_YEARS_RANGE_FROM_CURRENT = 5;
 
