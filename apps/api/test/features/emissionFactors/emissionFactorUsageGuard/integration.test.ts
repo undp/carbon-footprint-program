@@ -28,6 +28,7 @@ import {
   Prisma,
   CarbonInventoryLineStatus,
   EmissionFactorStatus,
+  InventoryStatus,
   MethodologyVersionStatus,
   type EmissionFactor,
   type PrismaClient,
@@ -94,18 +95,23 @@ describe("Emission factor usage guard - Integration Tests", () => {
     return { methodology, subcategory, rateUnitId, factor };
   }
 
-  /** Points a line at the factor. The input's `isActive` is what counts. */
+  /**
+   * Points a line at the factor. A reference counts only while all three of the
+   * input, the line and the footprint are live, so each is an option here.
+   */
   async function referenceFactor(
     context: Awaited<ReturnType<typeof createUnusedFactor>>,
     options?: {
       inputIsActive?: boolean;
       lineStatus?: CarbonInventoryLineStatus;
+      inventoryStatus?: InventoryStatus;
     }
   ) {
     const inventory = await createCarbonInventory(prisma, {
       ...carbonInventoryPatterns.simplifiedDraft(),
       methodologyVersionId: context.methodology.id,
       year: 2025,
+      status: options?.inventoryStatus ?? InventoryStatus.ACTIVE,
     });
     const line = await createCarbonInventoryLine(
       prisma,
@@ -225,6 +231,43 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expectInUse(response.body);
     });
 
+    // Deleting a line is a soft delete: the line keeps its active input and its
+    // snapshot, and nothing anywhere returns a line to ACTIVE. Counting it
+    // would lock the factor forever against a line nobody can see or restore.
+    it("ignores a line that was deleted", async () => {
+      const context = await createUnusedFactor("Deleted Line");
+      await referenceFactor(context, {
+        lineStatus: CarbonInventoryLineStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { value: 6.75 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).value.toString()).toBe("6.75");
+    });
+
+    // Deleting a footprint only sets its own status, leaving every line, input
+    // and snapshot below it in place. Same reasoning one level up.
+    it("ignores a line under a deleted footprint", async () => {
+      const context = await createUnusedFactor("Deleted Footprint");
+      await referenceFactor(context, {
+        inventoryStatus: InventoryStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { value: 7.25 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).value.toString()).toBe("7.25");
+    });
+
     it("applies the same rule on a published methodology version", async () => {
       const unused = await createUnusedFactor(
         "Published Unused",
@@ -340,6 +383,14 @@ describe("Emission factor usage guard - Integration Tests", () => {
       );
       await referenceFactor(context);
       await referenceFactor(context);
+      // The grid has to agree with the guard on what does not count, or it
+      // locks rows the API would happily accept.
+      await referenceFactor(context, {
+        lineStatus: CarbonInventoryLineStatus.DELETED,
+      });
+      await referenceFactor(context, {
+        inventoryStatus: InventoryStatus.DELETED,
+      });
 
       const response = await app.inject({
         method: "GET",
