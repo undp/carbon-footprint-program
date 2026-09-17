@@ -52,15 +52,19 @@ Findings that drive every decision below. All verified on `mrivas00/append-facto
 - **Keep the UI block and change nothing else** — rejected: it is the premise `add-emission-factor-year` shipped on, and it is false.
 - **Session-scoped editability of rows added in this mount** — enough to fix a typo in a row just created, and cheap. Rejected once the usage predicate was chosen: it answers the same need with a rule that survives a refresh and means something.
 
-### Decision 2 — "In use" means an active line input references it
+### Decision 2 — "In use" means a live line references it
 
-**Choice**: a factor is in use when a `carbon_inventory_line_factor` row points at it **from an input whose `isActive` is true**. `ACTIVE` and `OUTDATED` lines both count. Superseded input versions do not.
+**Choice**: a factor is in use when a `carbon_inventory_line_factor` row points at it **from an input whose `isActive` is true, on a line in `ACTIVE` or `OUTDATED`, under a footprint in `ACTIVE`**. Superseded input versions, deleted lines and deleted footprints do not count.
 
 **Rationale**: finding 5 — the superseded snapshots are audit trail nothing reads. Under a UI-only rule, counting them would merely be conservative; under a hard 409 it would be permanent, freezing a factor forever because of a row no reader of the application ever looks at.
 
 `OUTDATED` lines are included because of finding 7: they keep their snapshot and can be reactivated without passing through `sync`, so a rule that ignored them would let an edited factor walk back into a live footprint through the back door.
 
-**Cost accepted**: the count needs a join to `carbon_inventory_line_input`, so it is not the one-line `count` over a foreign key. With the index from Decision 6 this is a small nested loop.
+`DELETED` lines and deleted footprints are excluded for the mirror image of that reason. Both deletions are soft — `syncCarbonInventoryLines` sets `line.status = DELETED` and `deleteCarbonInventory` sets `carbonInventory.status = DELETED`, neither touching the input or its snapshot — and no code path returns either to `ACTIVE`. The back door finding 7 guards against does not exist here, so counting them would only lock a factor permanently against a line nobody can see, restore or point at. This was missed in the first cut of the guard and corrected before merge; `updateCarbonInventory/helpers.ts` already carried the right line predicate.
+
+**Cost accepted**: the count needs a join to `carbon_inventory_line_input` and on through the line to the footprint, so it is not the one-line `count` over a foreign key. With the index from Decision 6 doing the coarse narrowing, the rest is primary-key lookups.
+
+**Kept in one place**: the predicate lives in `activeLineReferenceWhere` and is shared by the guard and the listing's `_count`, rather than restated at each site. The grid decides whether to offer an edit and the API decides whether to refuse one; if the two drift, the maintainer either locks rows the API would accept or offers edits that will come back a 409. This is the `satisfies`-const case the repo's soft-delete convention carves out, not a builder function.
 
 **Alternatives considered**:
 
