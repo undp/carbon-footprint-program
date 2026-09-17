@@ -1,4 +1,4 @@
-import type { PrismaClient } from "@repo/database";
+import type { Prisma, PrismaClient } from "@repo/database";
 import {
   GetCarbonInventoryMethodologyResponse,
   CategoryStatus,
@@ -20,6 +20,64 @@ import {
 
 type JSONType = z.infer<ReturnType<typeof z.json>>;
 
+/**
+ * Builds the `where` for the factors offered to a footprint.
+ *
+ * A factor applies only to footprints of its own year, so the year is filtered
+ * in the database — before `generateConvertedEmissionFactors` expands each
+ * factor across compatible rate units, so the expansion never operates on a
+ * factor from another year. The response carries no per-factor year: every
+ * factor in it is of the footprint's year by construction.
+ *
+ * A footprint with no year is offered nothing, through this explicit branch
+ * rather than a year filter. `emission_factor.year` is not nullable, so Prisma's
+ * generated `where` has no year value that means "matches nothing", and a
+ * sentinel year would rely on nobody ever dating a factor with it — which the
+ * deliberately wide schema bound does not forbid.
+ */
+const buildEmissionFactorWhere = (
+  footprintYear: number | null
+): Prisma.EmissionFactorWhereInput => {
+  if (footprintYear === null) return { id: { in: [] } };
+
+  return {
+    status: EmissionFactorStatus.ACTIVE,
+    year: footprintYear,
+    AND: [
+      {
+        OR: [
+          { dimensionValue1Id: null },
+          {
+            dimensionValue1: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+      {
+        OR: [
+          { dimensionValue2Id: null },
+          {
+            dimensionValue2: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+    ],
+  };
+};
+
 export const getCarbonInventoryMethodologyService = async (
   prismaClient: PrismaClient,
   carbonInventoryId: bigint
@@ -31,6 +89,7 @@ export const getCarbonInventoryMethodologyService = async (
     },
     select: {
       methodologyVersionId: true,
+      year: true,
     },
   });
 
@@ -39,6 +98,8 @@ export const getCarbonInventoryMethodologyService = async (
 
   if (!carbonInventory.methodologyVersionId)
     throw new MethodologyNotFoundError(carbonInventoryId);
+
+  const emissionFactorWhere = buildEmissionFactorWhere(carbonInventory.year);
 
   // Then, get the methodology with all its related data
   /*
@@ -106,45 +167,7 @@ export const getCarbonInventoryMethodologyService = async (
                 },
               },
               emissionFactors: {
-                where: {
-                  status: EmissionFactorStatus.ACTIVE,
-                  AND: [
-                    {
-                      OR: [
-                        { dimensionValue1Id: null },
-                        {
-                          dimensionValue1: {
-                            is: {
-                              status: EmissionFactorDimensionValueStatus.ACTIVE,
-                              dimension: {
-                                is: {
-                                  status: EmissionFactorDimensionStatus.ACTIVE,
-                                },
-                              },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                    {
-                      OR: [
-                        { dimensionValue2Id: null },
-                        {
-                          dimensionValue2: {
-                            is: {
-                              status: EmissionFactorDimensionValueStatus.ACTIVE,
-                              dimension: {
-                                is: {
-                                  status: EmissionFactorDimensionStatus.ACTIVE,
-                                },
-                              },
-                            },
-                          },
-                        },
-                      ],
-                    },
-                  ],
-                },
+                where: emissionFactorWhere,
                 select: {
                   id: true,
                   dimensionValue1Id: true,

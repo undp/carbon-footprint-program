@@ -11,6 +11,8 @@ import {
   createLineInput,
   createLineFactor,
   createLineResult,
+  findReferencedEmissionFactors,
+  isFactorOfFootprintYear,
   linkFilesToCarbonInventoryLine,
   unlinkFilesFromCarbonInventoryLine,
 } from "./helper.js";
@@ -37,6 +39,7 @@ export const syncCarbonInventoryLinesService = async (
     where: { id: carbonInventoryId },
     select: {
       methodologyVersionId: true,
+      year: true,
       ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
@@ -105,6 +108,17 @@ export const syncCarbonInventoryLinesService = async (
     }
   }
 
+  // Read every factor the payload references, so a line whose factor is of
+  // another year can be persisted without it. The footprint was read before the
+  // transaction opened and stays there: these transactions run at READ
+  // COMMITTED and the interleaving with a concurrent year change is accepted —
+  // it needs two people editing the same footprint at once, and the line loses
+  // its stale factor on the next save of that subcategory.
+  const referencedFactors = await findReferencedEmissionFactors(prismaClient, [
+    ...request.create,
+    ...request.update,
+  ]);
+
   // Execute all operations in a transaction
   const createdLineIds: bigint[] = [];
   const updatedLineIds: bigint[] = [];
@@ -136,8 +150,19 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      await createLineFactor(tx, newInput.id, createItem, userId);
-      await createLineResult(tx, newInput.id, createItem, inputType, userId);
+      // A factor of another year is left off the line entirely: no snapshot and
+      // no result, so the cell comes back empty and the line reads as
+      // unfinished. Everything else the payload carries is persisted.
+      if (
+        isFactorOfFootprintYear(
+          createItem,
+          referencedFactors,
+          carbonInventory.year
+        )
+      ) {
+        await createLineFactor(tx, newInput.id, createItem, userId);
+        await createLineResult(tx, newInput.id, createItem, inputType, userId);
+      }
 
       if (createItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(
@@ -169,8 +194,16 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      await createLineFactor(tx, newInput.id, updateItem, userId);
-      await createLineResult(tx, newInput.id, updateItem, inputType, userId);
+      if (
+        isFactorOfFootprintYear(
+          updateItem,
+          referencedFactors,
+          carbonInventory.year
+        )
+      ) {
+        await createLineFactor(tx, newInput.id, updateItem, userId);
+        await createLineResult(tx, newInput.id, updateItem, inputType, userId);
+      }
 
       if (updateItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(

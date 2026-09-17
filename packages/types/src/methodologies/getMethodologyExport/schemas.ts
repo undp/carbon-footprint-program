@@ -50,6 +50,7 @@ const ExportEmissionFactorSchema = EmissionFactorBaseSchema.pick({
   id: true,
   source: true,
   value: true,
+  year: true,
 }).extend({
   gasDetails: GasDetailsSchema.describe(
     "Per-gas breakdown for the emission factor"

@@ -12,6 +12,20 @@ import {
   EmissionFactorStatus,
 } from "@repo/types";
 
+/**
+ * The year test factors are dated with unless a test says otherwise. Explicit
+ * rather than "the current year": a suite that asserts on the year should read
+ * the same on any date, and the footprint factories are free to pick their own.
+ */
+export const TEST_EMISSION_FACTOR_YEAR = 2025;
+
+/**
+ * The footprint year the seeded catalogue serves. Every factor in the seed
+ * datasets is dated 2025, so a footprint must be of this year to be offered any
+ * of them — a footprint of another year, or of none, is offered nothing.
+ */
+export const SEEDED_CATALOGUE_YEAR = 2025;
+
 const DEFAULT_GAS_DETAILS: GetAllEmissionFactorsResponse[number]["gasDetails"] =
   {
     CO2_FOSSIL: 0,
@@ -34,6 +48,7 @@ export async function createTestEmissionFactor(
     dimensionValue1Id: bigint | null;
     dimensionValue2Id: bigint | null;
     source: string;
+    year: number;
     gasDetails: object;
     value: string;
     status: string;
@@ -46,6 +61,7 @@ export async function createTestEmissionFactor(
       dimensionValue2Id: overrides?.dimensionValue2Id ?? null,
       rateMeasurementUnitId,
       source: overrides?.source ?? `Test Source`,
+      year: overrides?.year ?? TEST_EMISSION_FACTOR_YEAR,
       gasDetails: overrides?.gasDetails ?? DEFAULT_GAS_DETAILS,
       value: new Prisma.Decimal(overrides?.value ?? "1.5"),
       status:

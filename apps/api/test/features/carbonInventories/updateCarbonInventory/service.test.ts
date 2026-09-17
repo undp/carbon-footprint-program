@@ -10,15 +10,33 @@ const editableInventory = {
   submission: null,
   organizationId: null,
   organizationData: null,
+  // The stored year is what the service compares the payload's year against;
+  // these cases all send the same one, so nothing is cleared and the mocks stay
+  // about what they test. The clearing itself is covered by the integration
+  // suite, against real rows.
+  year: 2024,
+};
+
+/**
+ * Wraps a prisma double so `$transaction` runs its callback against the same
+ * double. The update now shares a transaction with the clearing of the stale
+ * catalogue factors, so a client with no `$transaction` no longer stands in for
+ * one.
+ */
+const withTransaction = (client: Record<string, unknown>): PrismaClient => {
+  const prisma: Record<string, unknown> = { ...client };
+  prisma.$transaction = (callback: (tx: PrismaClient) => unknown) =>
+    callback(prisma as unknown as PrismaClient);
+  return prisma as unknown as PrismaClient;
 };
 
 describe("updateCarbonInventoryService", () => {
   it("throws CarbonInventoryNotFoundError when the inventory does not exist", async () => {
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(null),
       },
-    } as unknown as PrismaClient;
+    });
 
     await expect(
       updateCarbonInventoryService(prisma, "999", { year: 2024 }, null)
@@ -43,7 +61,7 @@ describe("updateCarbonInventoryService", () => {
       updatedById: null,
       organizationData: null,
     });
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(editableInventory),
         update: updateMock,
@@ -52,7 +70,7 @@ describe("updateCarbonInventoryService", () => {
       countrySubsector: { findUnique: vi.fn() },
       countryOrganizationSize: { findUnique: vi.fn() },
       organizationMainActivity: { findUnique: vi.fn() },
-    } as unknown as PrismaClient;
+    });
 
     await updateCarbonInventoryService(prisma, "1", { year: 2024 }, null);
 
@@ -80,7 +98,7 @@ describe("updateCarbonInventoryService", () => {
       updatedById: null,
       organizationData: null,
     });
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(editableInventory),
         update: updateMock,
@@ -89,7 +107,7 @@ describe("updateCarbonInventoryService", () => {
       countrySubsector: { findUnique: vi.fn() },
       countryOrganizationSize: { findUnique: vi.fn() },
       organizationMainActivity: { findUnique: vi.fn() },
-    } as unknown as PrismaClient;
+    });
 
     const user = { id: "9" } as User;
     await updateCarbonInventoryService(prisma, "1", { year: 2024 }, user);
@@ -105,12 +123,12 @@ describe("updateCarbonInventoryService", () => {
       "Record to update not found.",
       { code: "P2025", clientVersion: "test" }
     );
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(editableInventory),
         update: vi.fn().mockRejectedValue(prismaError),
       },
-    } as unknown as PrismaClient;
+    });
 
     await expect(
       updateCarbonInventoryService(prisma, "1", { year: 2024 }, null)
@@ -122,12 +140,12 @@ describe("updateCarbonInventoryService", () => {
       "Unique constraint failed.",
       { code: "P2002", clientVersion: "test" }
     );
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(editableInventory),
         update: vi.fn().mockRejectedValue(prismaError),
       },
-    } as unknown as PrismaClient;
+    });
 
     await expect(
       updateCarbonInventoryService(prisma, "1", { year: 2024 }, null)
@@ -136,12 +154,12 @@ describe("updateCarbonInventoryService", () => {
 
   it("rethrows a non-Prisma error unchanged", async () => {
     const genericError = new Error("boom");
-    const prisma = {
+    const prisma = withTransaction({
       carbonInventory: {
         findUnique: vi.fn().mockResolvedValue(editableInventory),
         update: vi.fn().mockRejectedValue(genericError),
       },
-    } as unknown as PrismaClient;
+    });
 
     await expect(
       updateCarbonInventoryService(prisma, "1", { year: 2024 }, null)

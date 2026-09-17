@@ -15,12 +15,17 @@ import type {
 } from "@repo/types";
 
 import {
+  CALCULATOR_YEARS_RANGE_FROM_CURRENT,
+  EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT,
+} from "@/config/constants";
+import {
   EditableNumberCell,
   EmissionFactorSourceCell,
   SubcategoryGroupedSelectCell,
 } from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
+import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
@@ -66,6 +71,59 @@ interface UseEmissionFactorColumnsParams {
   rateUnits: RateMeasurementUnit[];
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
 }
+
+// `[currentYear - 4 .. currentYear + 1]`, newest first: the same lower bound as
+// the footprint year selector plus one year of forward slack. Computed at module
+// load like the footprint selector's own list — the window only slides on
+// 1 January.
+const YEAR_OPTIONS = Array.from(
+  {
+    length:
+      CALCULATOR_YEARS_RANGE_FROM_CURRENT +
+      EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT,
+  },
+  (_, index) =>
+    new Date().getFullYear() +
+    EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT -
+    index
+);
+
+const YearEditSelect: FC<{
+  rowIndex: number;
+  value: number | null;
+  onChange: (value: number) => void;
+}> = ({ rowIndex, value, onChange }) => {
+  const { control } = useFormContext();
+  const { errors } = useFormState({
+    control,
+    name: `emissionFactors.${rowIndex}.year`,
+  });
+  const fieldError = getNestedError(
+    errors,
+    "emissionFactors",
+    rowIndex,
+    "year"
+  );
+
+  return (
+    <TextField
+      select
+      fullWidth
+      size="small"
+      value={value ?? ""}
+      onChange={(e) => onChange(Number(e.target.value))}
+      error={!!fieldError}
+      label={fieldError?.message ?? ""}
+      sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
+    >
+      {YEAR_OPTIONS.map((year) => (
+        <MenuItem key={year} value={year}>
+          {year}
+        </MenuItem>
+      ))}
+    </TextField>
+  );
+};
 
 const UnitEditSelect: FC<{
   rowIndex: number;
@@ -491,18 +549,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const subcategoryId = formRow?.subcategoryId;
 
-          const allRows = getValues();
-          const otherRowsWithSameSubcategory = subcategoryId
-            ? allRows.filter(
-                (r) => r.subcategoryId === subcategoryId && r.id !== formRow?.id
-              )
-            : [];
-          const isSourceLocked = otherRowsWithSameSubcategory.length > 0;
-          const lockedSource = isSourceLocked
-            ? otherRowsWithSameSubcategory[0]?.source
-            : undefined;
+          const lockedSource = resolveLockedSource(getValues(), formRow);
+          const isSourceLocked = lockedSource !== undefined;
 
           return (
             <EmissionFactorSourceCell
@@ -517,6 +566,43 @@ export const useEmissionFactorColumns = ({
               isSourceLocked={isSourceLocked}
               lockedSource={lockedSource}
             />
+          );
+        },
+      },
+      {
+        field: "year",
+        headerName: "Año",
+        width: 110,
+        renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
+          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
+          const editing = isEditing(params.row.id);
+
+          if (editing) {
+            return (
+              <YearEditSelect
+                rowIndex={rowIndex}
+                value={formRow?.year ?? null}
+                onChange={(value) => onCellChange(rowIndex, "year", value)}
+              />
+            );
+          }
+
+          return (
+            <Typography
+              variant="body2"
+              onClick={
+                !viewOnly ? () => onStartEditRow(params.row.id) : undefined
+              }
+              sx={{
+                px: 1,
+                py: 0.5,
+                borderRadius: 1,
+                cursor: !viewOnly ? "pointer" : "default",
+                "&:hover": !viewOnly ? { backgroundColor: "grey.100" } : {},
+              }}
+            >
+              {formRow?.year ?? params.row.year}
+            </Typography>
           );
         },
       },

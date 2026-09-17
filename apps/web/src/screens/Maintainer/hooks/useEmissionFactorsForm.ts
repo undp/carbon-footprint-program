@@ -29,6 +29,14 @@ const DEFAULT_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
   NF3: 0,
 };
 
+/**
+ * The year a new row starts on. Every factor states the footprint year it is
+ * valid for, so a new row is born dated rather than empty — the current year is
+ * the only sensible guess.
+ */
+export const getDefaultEmissionFactorYear = (): number =>
+  new Date().getFullYear();
+
 /** Transform server response to form shape. */
 export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
   return {
@@ -38,6 +46,7 @@ export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
     dimensionValue2Name: ef.dimensionValue2Name,
     rateMeasurementUnitId: ef.rateMeasurementUnitId,
     source: ef.source,
+    year: ef.year,
     value: Number(ef.value),
     gasDetails: ef.gasDetails ?? DEFAULT_GAS_DETAILS,
   };

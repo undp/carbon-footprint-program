@@ -25,6 +25,85 @@ export type ItemData = {
 };
 
 /**
+ * Reads every emission factor referenced by the payload, keyed by id as a
+ * string.
+ *
+ * This service never queried the factor table before: `createLineFactor`
+ * persists the value, the source and the id straight from the request. The
+ * lookup exists so the year can be checked against the footprint's — filtering
+ * the capture selector is not enforcing, since a stale client payload would
+ * otherwise write a factor from another year and the filter would never notice.
+ *
+ * The referenced ids are always the numeric id of a real `emission_factor` row:
+ * `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`,
+ * so the composite id of a converted factor (`123-1`) never reaches the
+ * payload. Manual-factor lines carry a null `baseFactorId` and never enter the
+ * lookup at all.
+ *
+ * TODO(fix/mati/activity-unit-factor-mismatch): `rateMeasurementUnitId` and the
+ * rate unit's `denominatorMeasurementUnit` are selected here although only the
+ * year is read, so the postponed unit-mismatch fix — the line's
+ * `measurementUnitId` is never cross-checked against the denominator of the
+ * applied factor's rate unit, so a `kg/kg` factor over a quantity in tonnes
+ * yields a result a thousand times too large — becomes a check added to this
+ * query rather than a second round trip.
+ */
+export async function findReferencedEmissionFactors(
+  prisma: Prisma.TransactionClient,
+  items: Pick<ItemData, "baseFactorId">[]
+): Promise<Map<string, { year: number }>> {
+  const referencedIds = [
+    ...new Set(
+      items
+        .map((item) => item.baseFactorId)
+        .filter((id): id is string => id !== null)
+    ),
+  ];
+
+  if (referencedIds.length === 0) return new Map();
+
+  const factors = await prisma.emissionFactor.findMany({
+    where: { id: { in: referencedIds.map((id) => BigInt(id)) } },
+    select: {
+      id: true,
+      year: true,
+      rateMeasurementUnitId: true,
+      rateMeasurementUnit: {
+        select: { denominatorMeasurementUnit: { select: { id: true } } },
+      },
+    },
+  });
+
+  return new Map(factors.map((factor) => [factor.id.toString(), factor]));
+}
+
+/**
+ * Whether the line's frozen factor may be persisted for this footprint.
+ *
+ * A line referencing a catalogue factor of another year is saved without its
+ * factor snapshot and without its result, keeping everything else — this is
+ * reconciliation, not validation: rejecting would tell the user that a factor
+ * they never touched is invalid, on a line they may not have edited, and refuse
+ * the whole subcategory with no way out. Leaving the cell empty lands the line
+ * in the state a year change already produces, which the existing completeness
+ * rules read as unfinished.
+ *
+ * A line with no `baseFactorId` is either manual or has no factor yet; both are
+ * left to `createLineFactor`'s own guards. A referenced factor that is not in
+ * the map cannot be of the footprint's year either, and a footprint with no
+ * year is offered no factors at all, so both are reconciled the same way.
+ */
+export function isFactorOfFootprintYear(
+  item: Pick<ItemData, "baseFactorId">,
+  factorsById: Map<string, { year: number }>,
+  footprintYear: number | null
+): boolean {
+  if (item.baseFactorId === null) return true;
+
+  return factorsById.get(item.baseFactorId)?.year === footprintYear;
+}
+
+/**
  * Creates a carbon inventory line input
  */
 export async function createLineInput(

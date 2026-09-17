@@ -44,6 +44,12 @@ export const carbonInventoryKeys = {
       CarbonInventoryQueryKey.Root,
       id,
       CarbonInventoryQueryKey.Methodology,
+      // The offered emission factors are filtered by the footprint's year, so
+      // the methodology shifts when that attribute changes. Without this token
+      // `useUpdateCarbonInventory`'s invalidation predicate never matches this
+      // key and capture keeps serving the previous year's factors for the whole
+      // `staleTime`.
+      CarbonInventoryQueryKey.AttributesUpdateDependency,
     ] as const,
   subcategoriesSummary: (id: string) =>
     [

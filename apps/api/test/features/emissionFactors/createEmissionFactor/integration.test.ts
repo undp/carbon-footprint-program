@@ -15,6 +15,7 @@ import {
   getTestRateMeasurementUnitId,
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
+  TEST_EMISSION_FACTOR_YEAR,
 } from "@test/factories/emissionFactorFactory.js";
 import { createEmissionFactorService } from "@/features/emissionFactors/createEmissionFactor/service.js";
 import { mapUserToResponse } from "@/features/users/mappers.js";
@@ -72,6 +73,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
         dimensionValue2Name: null,
         rateMeasurementUnitId: rateUnitId.toString(),
         source: "DEFRA 2025",
+        year: TEST_EMISSION_FACTOR_YEAR,
         gasDetails: {
           CO2_FOSSIL: 1.5,
           CH4: 0,
@@ -359,6 +361,161 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
     });
   });
 
+  describe("Year scoping", () => {
+    it("should create two factors for the same key in different years", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC year scoping",
+        dimensionValue1Name: "A",
+        dimensionValue2Name: null,
+        year: 2025,
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+      expect(
+        (JSON.parse(first.body) as CreateEmissionFactorResponse).year
+      ).toBe(2025);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, year: 2026 },
+      });
+
+      expect(second.statusCode).toBe(201);
+      expect(
+        (JSON.parse(second.body) as CreateEmissionFactorResponse).year
+      ).toBe(2026);
+
+      const stored = await prisma.emissionFactor.findMany({
+        where: { subcategoryId: subcategory.id },
+        select: { year: true, status: true },
+        orderBy: { year: "asc" },
+      });
+      expect(stored.map(({ year }) => year)).toEqual([2025, 2026]);
+      expect(
+        stored.every(({ status }) => status === EmissionFactorStatus.ACTIVE)
+      ).toBe(true);
+    });
+
+    it("should return 409 for the same key in the same year", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "IPCC same year dup",
+        dimensionValue1Name: "A",
+        dimensionValue2Name: null,
+        year: 2026,
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "A",
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(second.statusCode).toBe(409);
+      expect((JSON.parse(second.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_DUPLICATE"
+      );
+    });
+
+    it("should return 409 for a different source in the same subcategory and year", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "DEFRA 2026",
+        year: 2026,
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, source: "IPCC 2020" },
+      });
+
+      expect(second.statusCode).toBe(409);
+      expect((JSON.parse(second.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_SOURCE_CONFLICT"
+      );
+    });
+
+    it("should allow a different source in the same subcategory for another year", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "DEFRA 2025",
+        year: 2025,
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, source: "DEFRA 2026", year: 2026 },
+      });
+
+      expect(second.statusCode).toBe(201);
+      const body = JSON.parse(second.body) as CreateEmissionFactorResponse;
+      expect(body.source).toBe("DEFRA 2026");
+      expect(body.year).toBe(2026);
+    });
+
+    it("should return 400 when the year is missing", async () => {
+      const { payload } = await buildEmissionFactorPayload();
+      const { year: _year, ...payloadWithoutYear } = payload;
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: payloadWithoutYear,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(
+        await prisma.emissionFactor.count({
+          where: { subcategoryId: BigInt(payload.subcategoryId) },
+        })
+      ).toBe(0);
+    });
+  });
+
   describe("Validation errors", () => {
     it("should return 400 when body is empty", async () => {
       const response = await app.inject({
@@ -396,6 +553,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
           dimensionValue2Name: null,
           rateMeasurementUnitId: rateUnitId.toString(),
           source: "DEFRA 2025",
+          year: TEST_EMISSION_FACTOR_YEAR,
           gasDetails: {
             CO2_FOSSIL: 0,
             CH4: 0,
@@ -500,6 +658,7 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
             dimensionValue2Id: dim2Value.id,
             rateMeasurementUnitId: rateUnitId,
             source: "IPCC transactional race",
+            year: 2025,
             gasDetails: {
               CO2_FOSSIL: 0,
               CH4: 0,

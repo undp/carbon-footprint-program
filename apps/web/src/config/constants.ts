@@ -13,6 +13,22 @@ export const STALE_TIME_MS = 1000 * 60 * 5; // 5 minutes
 export const CALCULATOR_YEARS_RANGE_FROM_CURRENT = 5;
 
 /**
+ * Number of future years offered, beyond the current one, in the maintainer's
+ * emission-factor year field. Together with
+ * `CALCULATOR_YEARS_RANGE_FROM_CURRENT` it spans
+ * `[currentYear - 4 .. currentYear + 1]`: the same lower bound as the footprint
+ * year selector, so every declarable footprint year is datable, plus one year of
+ * forward slack. DEFRA publishes the year N set during year N (around June) and
+ * national grid factors publish year N's factor during N + 1, so both fall
+ * inside it; the forward year covers a set published ahead of its validity.
+ *
+ * This is a UI window only. The request schemas in `packages/types` enforce a
+ * wide static bound instead, so a factor does not become uneditable — not even
+ * for correcting its value — merely because the window slid past its year.
+ */
+export const EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT = 1;
+
+/**
  * Default `refetchInterval` for TanStack Query hooks that need to keep their
  * data fresh in the background (typically admin lists/KPIs that change while
  * the page is open).

@@ -1,6 +1,24 @@
 export const INCOMPLETE_SOURCES_TOOLTIP =
   "Hay fuentes de emisión incompletas; el total solo considera las completadas.";
 
+/**
+ * Shown before a year change is applied to a footprint that already has
+ * declared lines. Each emission factor is valid only for the year it declares,
+ * so the frozen catalogue factors of every line are removed and the lines ask
+ * for a factor again. The copy has to be explicit about what is lost and what
+ * survives, because nothing marks the cleared lines afterwards beyond coming
+ * back without a factor.
+ */
+export const YEAR_CHANGE_DIALOG_CONTENT = {
+  title: "¿Cambiar el año de la huella?",
+  message:
+    "Las líneas que usan un factor del catálogo quedarán sin factor y tendrás que asignarles uno nuevamente, porque cada factor de emisión es válido solo para el año que declara.",
+  description:
+    "Las cantidades, las unidades y las variables de cada línea se mantienen, y los factores que ingresaste manualmente quedan tal como están.",
+  confirmLabel: "Cambiar el año",
+  cancelLabel: "Mantener el año actual",
+} as const;
+
 export const EXIT_DIALOG_CONTENT = {
   LOGGED_IN: {
     title: "¿Salir sin guardar?",

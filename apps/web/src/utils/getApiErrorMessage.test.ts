@@ -181,7 +181,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   ],
   [
     "EMISSION_FACTOR_SOURCE_CONFLICT",
-    "Todos los factores de emisión activos de esta sub-categoría deben usar la misma fuente.",
+    "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   ],
   [
     "EMISSION_FACTOR_GAS_DETAILS_MISMATCH",

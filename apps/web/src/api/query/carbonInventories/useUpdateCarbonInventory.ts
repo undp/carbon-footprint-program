@@ -20,7 +20,7 @@ export const useUpdateCarbonInventory = (inventoryId: string) => {
       apiClient
         .patch(`carbon-inventories/${inventoryId}`, { json: data, headers })
         .json(),
-    onSuccess: async () => {
+    onSuccess: async (_response, variables) => {
       await Promise.all([
         queryClient.invalidateQueries({
           predicate: (query) =>
@@ -33,6 +33,26 @@ export const useUpdateCarbonInventory = (inventoryId: string) => {
           predicate: (query) =>
             query.queryKey.includes(CarbonInventoryQueryKey.ListDependency),
         }),
+        // A payload carrying the year may have cleared the frozen catalogue
+        // factors and their computed results, which is a change to the
+        // emissions and not only to the attributes: the emissions summary, the
+        // subcategory and sector rankings, the verifier's factor report and the
+        // reduction plan all hang off this token and none of them off the
+        // attributes one. `useBusinessProfilingSubmit` sends the year only when
+        // it actually changed, so an unchanged one does not drag the whole
+        // dashboard into a refetch; a caller that always sent it would merely
+        // over-invalidate.
+        ...(variables.year !== undefined
+          ? [
+              queryClient.invalidateQueries({
+                predicate: (query) =>
+                  query.queryKey.includes(inventoryId) &&
+                  query.queryKey.includes(
+                    CarbonInventoryQueryKey.EmissionsUpdateDependency
+                  ),
+              }),
+            ]
+          : []),
       ]);
     },
   });

@@ -43,6 +43,7 @@ export const updateEmissionFactorService = async (
           id: true,
           subcategoryId: true,
           source: true,
+          year: true,
           dimensionValue1Id: true,
           dimensionValue2Id: true,
           gasDetails: true,
@@ -54,7 +55,13 @@ export const updateEmissionFactorService = async (
         throw new EmissionFactorNotFoundError(id);
       }
 
-      if (data.source !== undefined || data.subcategoryId !== undefined) {
+      const effectiveYear = data.year ?? existing.year;
+
+      if (
+        data.source !== undefined ||
+        data.subcategoryId !== undefined ||
+        data.year !== undefined
+      ) {
         const targetSubcategoryId =
           data.subcategoryId !== undefined
             ? BigInt(data.subcategoryId)
@@ -63,6 +70,7 @@ export const updateEmissionFactorService = async (
           tx,
           targetSubcategoryId,
           data.source ?? existing.source,
+          effectiveYear,
           emissionFactorId
         );
       }
@@ -88,6 +96,7 @@ export const updateEmissionFactorService = async (
       if (data.rateMeasurementUnitId !== undefined)
         updateData.rateMeasurementUnitId = BigInt(data.rateMeasurementUnitId);
       if (data.source !== undefined) updateData.source = data.source;
+      if (data.year !== undefined) updateData.year = data.year;
       if (data.gasDetails !== undefined)
         updateData.gasDetails = data.gasDetails;
       if (data.value !== undefined)
@@ -132,8 +141,9 @@ export const updateEmissionFactorService = async (
       const subcategoryChanged = data.subcategoryId !== undefined;
       const dim1Changed = data.dimensionValue1Name !== undefined;
       const dim2Changed = data.dimensionValue2Name !== undefined;
+      const yearChanged = data.year !== undefined;
 
-      if (subcategoryChanged || dim1Changed || dim2Changed) {
+      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
         const effectiveSubcategoryId =
           updateData.subcategoryId != null
             ? BigInt(updateData.subcategoryId as bigint)
@@ -150,6 +160,7 @@ export const updateEmissionFactorService = async (
           effectiveSubcategoryId,
           effectiveDim1Id,
           effectiveDim2Id,
+          effectiveYear,
           emissionFactorId
         );
       }
@@ -177,6 +188,7 @@ export const updateEmissionFactorService = async (
         id: emissionFactor.id.toString(),
         value: emissionFactor.value.toString(),
         source: emissionFactor.source,
+        year: emissionFactor.year,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,
         dimensionValue1Id:
