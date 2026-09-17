@@ -37,17 +37,25 @@ Campos y validaciones:
 
 Hacer clic sobre la fila para entrar en modo edición y modificar los campos editables. El desglose por GEI se edita en un modal dedicado al que se accede desde la propia fila.
 
+Sólo puede editarse un Factor que ninguna línea de huella esté usando. Un Factor en uso queda inerte en la tabla —no entra en modo edición y no ofrece eliminar— e indica cuántas líneas dependen de él. Esto vale igual en la Metodología activa y en una versión anterior: lo que decide no es el estado de la versión, sino si alguna línea vigente apunta al Factor.
+
 ### Eliminar Factor de Emisión
 
-La operación se realiza como eliminación lógica: el Factor queda marcado como eliminado y deja de mostrarse en los listados activos. Las líneas de inventarios históricos que ya referencian este Factor conservan el vínculo a través de su factor congelado por línea.
+La operación se realiza como eliminación lógica: el Factor queda marcado como eliminado y deja de mostrarse en los listados activos.
+
+Rige la misma regla que para editar: un Factor que alguna línea vigente esté usando no puede eliminarse. Las líneas de huellas anteriores que lo usaron y luego cambiaron a otro Factor no lo bloquean, porque ya no dependen de él.
 
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**
-> Los Factores de Emisión son la base del cálculo de huella. Modificar el valor o el desglose por GEI de un Factor existente afecta inmediatamente los cálculos de inventarios en captura. Los inventarios cerrados y reconocidos preservan los valores con los que fueron calculados, pero los inventarios activos se recalcularán al recargar. Cambiar la Sub-categoría o las Dimensiones asociadas a un Factor puede dejar líneas históricas referenciando una configuración inconsistente.
+> Los Factores de Emisión son la base del cálculo de huella, y por eso un Factor deja de ser modificable en cuanto alguna línea de huella lo usa. Mientras nadie lo use puede corregirse libremente, incluso en la Metodología activa: un Factor recién agregado es corregible hasta que una huella lo tome.
+>
+> La consecuencia a tener presente es la contraria a la habitual: un Factor cargado con un valor equivocado que ya esté en uso no se puede arreglar desde esta pantalla. Conviene revisar el valor, la fuente y el desglose antes de guardar.
 
 > ℹ️ **Cuándo modificar**
 > Lo habitual es agregar Factores nuevos cuando el regulador del país publica actualizaciones de los factores oficiales, cuando se incorpora una nueva fuente bibliográfica o cuando una nueva versión de Metodología requiere ampliar la cobertura.
 
-> 🚫 **Cuándo NO modificar**
-> No se recomienda alterar el valor, fuente o GEI de Factores que ya hayan sido utilizados en inventarios reportados o reconocidos: en ese caso conviene crear una nueva versión de la Metodología (vía duplicación) y aplicar allí los nuevos valores, dejando intacta la versión histórica.
+> 🚫 **Sobre duplicar la Metodología**
+> Duplicar la Metodología y publicar una versión nueva no alcanza a las huellas que ya existen: cada huella queda ligada a la versión que estaba activa cuando se creó, y esa ligadura no cambia. La versión nueva sólo la usarán las huellas creadas después.
+>
+> Por eso, para que una huella en curso disponga de un Factor que le falta, ese Factor tiene que entrar en la versión que esa huella ya referencia —normalmente la activa—. Agregar Factores a la Metodología activa es una operación normal y prevista; duplicar sirve para cambiar la estructura de la Metodología, no para llegar a huellas existentes.

@@ -8,6 +8,7 @@ import {
   type GetAllEmissionFactorsResponse,
 } from "@repo/types";
 import { parseGasDetails } from "../mappers.js";
+import { activeLineReferenceWhere } from "../helpers.js";
 
 export const getAllEmissionFactorsService = async (
   prismaClient: PrismaClient,
@@ -73,6 +74,16 @@ export const getAllEmissionFactorsService = async (
       rateMeasurementUnit: {
         select: { id: true, name: true },
       },
+      // How many live lines depend on each factor, so the maintainer can leave
+      // a factor in use inert instead of offering an edit the API will refuse.
+      // The predicate is shared with the guard rather than restated, because
+      // the grid and the API have to agree on it — see
+      // `activeLineReferenceWhere`. It stays one round trip — a filtered
+      // relation count, not a query per row — and it is what the index on
+      // `carbon_inventory_line_factor(emission_factor_id)` exists for.
+      _count: {
+        select: { lineFactors: { where: activeLineReferenceWhere } },
+      },
     },
     where: whereClause,
     // `id` closes all three ties the position keys leave open: a DELETED
@@ -107,5 +118,6 @@ export const getAllEmissionFactorsService = async (
     rateMeasurementUnitId: ef.rateMeasurementUnit.id.toString(),
     rateMeasurementUnitName: ef.rateMeasurementUnit.name,
     gasDetails: parseGasDetails(ef.gasDetails, ef.id),
+    referencedLineCount: ef._count.lineFactors,
   }));
 };

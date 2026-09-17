@@ -88,6 +88,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   EMISSION_FACTOR_GAS_DETAILS_MISMATCH:
     "La suma del desglose GEI debe coincidir con el valor declarado.",
+  // The grid already leaves a factor in use inert, with the number of lines in
+  // its tooltip. This covers the case where that count was stale: a line
+  // started using the factor after the last read.
+  EMISSION_FACTOR_IN_USE:
+    "Este factor de emisión está siendo usado por líneas de huella y no se puede modificar ni eliminar.",
 
   // Emission factor dimensions
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",

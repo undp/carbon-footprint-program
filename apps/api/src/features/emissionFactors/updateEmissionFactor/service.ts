@@ -8,6 +8,7 @@ import {
 import {
   EmissionFactorNotFoundError,
   EmissionFactorDuplicateError,
+  EmissionFactorInUseError,
   RateMeasurementUnitNotFoundError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
@@ -15,6 +16,7 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
+  countActiveLineReferences,
   validateSourceConsistency,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
@@ -53,6 +55,25 @@ export const updateEmissionFactorService = async (
 
       if (!existing) {
         throw new EmissionFactorNotFoundError(id);
+      }
+
+      // Before any validation and any write: a factor a footprint depends on is
+      // immutable, whatever the field. The gas breakdown is not an exception —
+      // the maintainer's breakdown modal reaches this same service with only
+      // `gasDetails` in the payload.
+      //
+      // TODO: the check and the write are not atomic. `syncCarbonInventoryLines`
+      // can attach a line between them, both at READ COMMITTED, so an edit can
+      // land on a factor that became referenced a moment ago — which is what
+      // happens today on every path, unguarded. Closing it means a
+      // `SELECT … FOR UPDATE` on the factor row taken by both paths: one
+      // statement, and it costs the same later.
+      const referencedLineCount = await countActiveLineReferences(
+        tx,
+        emissionFactorId
+      );
+      if (referencedLineCount > 0) {
+        throw new EmissionFactorInUseError(referencedLineCount.toString());
       }
 
       const effectiveYear = data.year ?? existing.year;

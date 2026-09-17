@@ -35,5 +35,16 @@ export const GetAllEmissionFactorsResponseSchema = z.array(
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
     rateMeasurementUnitName: RateMeasurementUnitBaseSchema.shape.name,
     gasDetails: GasDetailsSchema,
+    // How many active lines depend on this factor. A factor is immutable while
+    // any of them does, and the API enforces that; this is what lets the
+    // maintainer stop offering an edit that would be refused, and say by how
+    // many lines. It is as fresh as the last read — the 409 is the authority.
+    referencedLineCount: z
+      .number()
+      .int()
+      .min(0)
+      .describe(
+        "How many active carbon inventory lines reference this emission factor"
+      ),
   })
 );
