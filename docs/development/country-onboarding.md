@@ -208,7 +208,7 @@ Standard GHG Protocol categories:
         "dimensionCode": "Combustiones estacionarias_Tipo",
         "valueName": "Caldera"
       },
-      "rateMeasurementUnitAbbreviation": "kg CO2e/m3",
+      "rateMeasurementUnitAbbreviation": "kg/m3",
       "source": "MMA Chile 2020",
       "value": 2.31
     }
@@ -390,6 +390,7 @@ Check:
 - All sectors and subsectors are loading correctly
 - Methodology categories and subcategories are complete
 - Emission factors have valid unit abbreviations (must match `MeasurementUnit.abbreviation` in the seed)
+- Rate abbreviations do **not** spell out the gas — write `kg/m3`, not `kg CO2e/m3`. The abbreviation is a lookup key resolved by matching the numerator and denominator units, so a numerator of `kg CO2e` matches nothing in the seed; the UI adds the `CO₂e` when it renders the unit.
 - Subcategory recommendations reference valid subcategory names
 
 ---

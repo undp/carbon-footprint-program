@@ -6,7 +6,7 @@ import {
   sanitizeExcelSheetName,
   sanitizeFilenamePart,
 } from "@/services/excel";
-import { formatter } from "./formatting";
+import { formatRateUnit, formatter } from "./formatting";
 import { METHODOLOGY_STATUS_CONFIG } from "@/labels/chips/methodology";
 
 type Methodology = GetMethodologyExportResponse;
@@ -151,7 +151,9 @@ function fillEmissionFactorsSheet(
           dimension1: display(factor.dimensionValue1?.value ?? null),
           dimension2: display(factor.dimensionValue2?.value ?? null),
           value: Number.isFinite(numericValue) ? numericValue : factor.value,
-          rateMeasurementUnit: display(factor.rateMeasurementUnit.abbreviation),
+          rateMeasurementUnit: display(
+            formatRateUnit(factor.rateMeasurementUnit.abbreviation)
+          ),
           source: display(factor.source),
           co2Fossil: factor.gasDetails.CO2_FOSSIL,
           ch4: factor.gasDetails.CH4,
@@ -225,7 +227,7 @@ export async function buildMethodologyWorkbook(
     { header: "Dimensión 1", key: "dimension1", width: 25 },
     { header: "Dimensión 2", key: "dimension2", width: 25 },
     { header: "Valor", key: "value", width: 18 },
-    { header: "Unidad", key: "rateMeasurementUnit", width: 18 },
+    { header: "Unidad", key: "rateMeasurementUnit", width: 22 },
     { header: "Fuente", key: "source", width: 30 },
     { header: "CO₂ fósil", key: "co2Fossil", width: 12 },
     { header: "CH₄", key: "ch4", width: 12 },

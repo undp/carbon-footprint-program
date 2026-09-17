@@ -299,7 +299,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(4).value).toBe("Norte");
     expect(row.getCell(5).value).toBe(2.5);
     expect(row.getCell(5).numFmt).toBe(NUMBER_FORMAT);
-    expect(row.getCell(6).value).toBe("kg/kWh");
+    expect(row.getCell(6).value).toBe("kgCO₂e/kWh");
     expect(row.getCell(7).value).toBe("IPCC 2006");
   });
 
@@ -328,7 +328,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(4).value).toBe("-"); // dimensionValue2 null
     expect(row.getCell(5).value).toBe("N/A"); // non-numeric value kept verbatim
     expect(row.getCell(5).numFmt).not.toBe(NUMBER_FORMAT);
-    expect(row.getCell(6).value).toBe("kg/MWh");
+    expect(row.getCell(6).value).toBe("kgCO₂e/MWh");
     expect(row.getCell(7).value).toBe("-"); // empty source
     // Only the two factors of the populated subcategory produce rows.
     expect(sheet.rowCount).toBe(3);

@@ -4,7 +4,7 @@ import {
   DEFAULT_EMPTY_VALUE,
   INPUT_DECIMAL_SCALE,
 } from "@/config/constants";
-import { Formatter, formatter } from "./formatting";
+import { formatRateUnit, Formatter, formatter } from "./formatting";
 
 // The app locale is es-ES: group separator "." and decimal separator ",".
 // Intl emits a non-breaking space (U+00A0) before "%" and a subscript-2 in the
@@ -508,5 +508,48 @@ describe("Formatter — dateForFileName", () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(MARCH_5));
     expect(fmt.dateForFileName()).toBe("05-03-2024");
+  });
+});
+
+describe("formatRateUnit", () => {
+  it("adds the CO₂e the numerator of a factor rate always carries", () => {
+    expect(formatRateUnit("kg/kWh")).toBe("kgCO₂e/kWh");
+    // The case that motivated it: bare "kg/kg" gives no way to tell the
+    // emissions from the thing being measured.
+    expect(formatRateUnit("kg/kg")).toBe("kgCO₂e/kg");
+  });
+
+  it("splits on the first slash so a compound denominator survives", () => {
+    expect(formatRateUnit("kg/km-ton")).toBe("kgCO₂e/km-ton");
+    expect(formatRateUnit("kg/cant anim")).toBe("kgCO₂e/cant anim");
+    // Defensive: a denominator that carried its own slash keeps it whole.
+    expect(formatRateUnit("kg/m3/h")).toBe("kgCO₂e/m3/h");
+  });
+
+  it("returns a value that is not a rate untouched", () => {
+    expect(formatRateUnit("kg")).toBe("kg");
+  });
+
+  it("leaves a numerator that already names the gas alone", () => {
+    // The base seed never spells the gas into the abbreviation, but a country
+    // loading its own methodology can — the onboarding guide's own example was
+    // exactly this — and doubling it would read "kg CO2eCO₂e/m3".
+    expect(formatRateUnit("kg CO2e/m3")).toBe("kg CO2e/m3");
+    expect(formatRateUnit("kg CO₂e/kWh")).toBe("kg CO₂e/kWh");
+    expect(formatRateUnit("kg CO2-e/ton")).toBe("kg CO2-e/ton");
+    expect(formatRateUnit("t co2e/km")).toBe("t co2e/km");
+  });
+
+  it("only inspects the numerator for the gas", () => {
+    // A denominator mentioning the gas is not the numerator's business: this
+    // rate is emissions per unit of reported emissions, and the numerator still
+    // needs its label.
+    expect(formatRateUnit("kg/ton CO2e")).toBe("kgCO₂e/ton CO2e");
+  });
+
+  it("renders nothing when there is no unit", () => {
+    expect(formatRateUnit(null)).toBe("");
+    expect(formatRateUnit(undefined)).toBe("");
+    expect(formatRateUnit("")).toBe("");
   });
 });
