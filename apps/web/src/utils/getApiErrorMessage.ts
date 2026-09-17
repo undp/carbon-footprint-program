@@ -85,7 +85,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   RATE_MEASUREMENT_UNIT_NOT_FOUND:
     "La unidad de tasa seleccionada no fue encontrada.",
   EMISSION_FACTOR_SOURCE_CONFLICT:
-    "Todos los factores de emisión activos de esta sub-categoría deben usar la misma fuente.",
+    "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   EMISSION_FACTOR_GAS_DETAILS_MISMATCH:
     "La suma del desglose GEI debe coincidir con el valor declarado.",
 
