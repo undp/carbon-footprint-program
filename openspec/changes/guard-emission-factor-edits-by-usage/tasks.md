@@ -28,7 +28,8 @@ These land in their own places and are not part of this change's diff. They are 
 ## 5. API — the usage rule
 
 - [x] 5.1 In `apps/api/src/features/emissionFactors/errors.ts`, add `EmissionFactorInUseError` as `EMISSION_FACTOR_IN_USE`, 409, with the line count in the message.
-- [x] 5.2 In `apps/api/src/features/emissionFactors/helpers.ts`, add `countActiveLineReferences(tx, emissionFactorId)`: rows of `carbonInventoryLineFactor` whose `emissionFactorId` matches and whose `lineInput.isActive` is true. Do not filter on the line's `ACTIVE`/`OUTDATED` state — a parked line keeps its snapshot and is reactivated without passing through `sync`, so excluding it would let an edited factor return through the back door.
+- [x] 5.2 In `apps/api/src/features/emissionFactors/helpers.ts`, add `countActiveLineReferences(tx, emissionFactorId)` over a shared `activeLineReferenceWhere`: rows of `carbonInventoryLineFactor` whose `emissionFactorId` matches, whose `lineInput.isActive` is true, whose line is `ACTIVE` or `OUTDATED`, and whose footprint is `ACTIVE`. Keep `OUTDATED` — a parked line keeps its snapshot and is reactivated without passing through `sync`, so excluding it would let an edited factor return through the back door. Exclude `DELETED` lines and deleted footprints — both deletions are soft and leave the input and its snapshot in place, and neither is reversible, so counting them would lock the factor against a line nobody can reach.
+- [x] 5.2b Export that predicate rather than restating it at each site. The grid decides whether to offer an edit and the API decides whether to refuse one; if the two drift, the maintainer locks rows the API would accept or offers edits that come back a 409.
 - [x] 5.3 Document on that helper why superseded inputs are excluded: every reader in the application filters `isActive: true`, so those snapshots are audit trail nothing consults, and counting them under a hard 409 would freeze a factor permanently on the strength of a row nothing reads.
 - [x] 5.4 Add a TODO on the same helper recording the deferred softer rule: the same count, surfaced as a warning that informs without blocking, is what `add-emission-factor-year` Decision 9 deferred. Lifting the block to a warning is a UI change plus deleting the guard — no contract change, since the count already ships.
 - [x] 5.5 In `updateEmissionFactor/service.ts`, call the helper inside the existing transaction, before any validation or write, and throw `EmissionFactorInUseError` when the count is non-zero. An early return, not a conditional around the update.
@@ -38,9 +39,9 @@ These land in their own places and are not part of this change's diff. They are 
 
 ## 6. API — the listing
 
-- [x] 6.1 In `getAllEmissionFactors/service.ts`, add a filtered relation count for `lineFactors` where `lineInput.isActive` is true. Prisma 7.9.1 supports filtered relation counts with no preview flag, so this stays one query.
+- [x] 6.1 In `getAllEmissionFactors/service.ts`, add a filtered relation count for `lineFactors` using the shared `activeLineReferenceWhere`. Prisma 7.9.1 supports filtered relation counts with no preview flag, so this stays one query.
 - [x] 6.2 Map it to `referencedLineCount` in the response.
-- [ ] 6.3 **Not measured** — the integration test asserts the counts are right against a real database, but the claim that the listing is still a single round trip was not verified by inspecting the emitted SQL. Do that before the PR.
+- [x] 6.3 **Measured, and the original claim was imprecise.** The emitted SQL shows Prisma compiling the filtered count into the main `SELECT` as one uncorrelated `LEFT JOIN (SELECT emission_factor_id, COUNT(*) … GROUP BY emission_factor_id)`, so the count costs **zero additional queries**. The listing was never a _single_ round trip, though: the `include` of subcategory, rate unit and both dimension values loads each with its own `SELECT … WHERE id IN (…)`, five statements in total, exactly as before this change. Two consequences recorded: the count adds no round trip, and the index from section 3 is not what makes the listing cheap — the derived table has no predicate on `emission_factor_id`, so it passes over the table whatever indexes exist. The index earns its keep on the guard's point lookup. The comment on `@@index([emissionFactorId])` was corrected to say so.
 
 ## 7. Web — opening the screen
 
@@ -69,7 +70,9 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 9.5 **Update a factor whose only reference lives in a superseded input → 200.** This is the test that anchors Decision 2; without it, `isActive` is the first thing a refactor drops.
 - [x] 9.6 Update a factor referenced by an `OUTDATED` line whose input is active → 409.
 - [x] 9.7 Create a factor for a subcategory of the published methodology version → 201. The guard must not have leaked into the create path.
-- [x] 9.8 The listing returns `referencedLineCount` matching the active references, including zero for an untouched factor.
+- [x] 9.8 The listing returns `referencedLineCount` matching the live references, including zero for an untouched factor, and ignoring the same dead references the guard ignores.
+- [x] 9.9 **Update a factor whose only reference is on a `DELETED` line → 200.** Deleting a line is soft and no path returns one to `ACTIVE`, so counting it would lock the factor forever.
+- [x] 9.10 **Update a factor whose only reference is under a `DELETED` footprint → 200.** Same reasoning one level up; deleting a footprint touches only its own status.
 
 ## 10. Tests — web
 

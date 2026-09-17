@@ -30,11 +30,13 @@ The rule SHALL apply to every field of the factor, the gas breakdown included, a
 - **WHEN** an administrator deletes it
 - **THEN** the request SHALL be rejected with `EMISSION_FACTOR_IN_USE`, AND the factor SHALL remain `ACTIVE`
 
-### Requirement: "In use" means an active line input references the factor
+### Requirement: "In use" means a live line references the factor
 
-A factor SHALL be considered in use when a line factor snapshot points at it from a line input whose `isActive` is true. Lines in state `ACTIVE` and in state `OUTDATED` SHALL both count, because a parked line keeps its snapshot and can be reactivated without passing through line synchronization.
+A factor SHALL be considered in use when a line factor snapshot points at it from a line input whose `isActive` is true, on a line in state `ACTIVE` or `OUTDATED`, under a footprint in state `ACTIVE`. All three conditions SHALL hold. Lines in state `OUTDATED` count because a parked line keeps its snapshot and can be reactivated without passing through line synchronization.
 
 References held only by superseded line inputs SHALL NOT count. Those versions are audit trail that no reader of the application consults, and treating them as dependencies would freeze a factor permanently on the strength of a row nothing reads.
+
+References held by a deleted line, or by a line under a deleted footprint, SHALL NOT count. Both deletions are soft and leave the active input and its snapshot in place, and neither is reversible through any code path, so treating them as dependencies would lock a factor forever against a line nobody can see, restore or point at.
 
 #### Scenario: A reference in a superseded input does not freeze the factor
 
@@ -47,6 +49,18 @@ References held only by superseded line inputs SHALL NOT count. Those versions a
 - **GIVEN** a line in state `OUTDATED` whose active input references a factor
 - **WHEN** an administrator updates that factor
 - **THEN** the request SHALL be rejected with `EMISSION_FACTOR_IN_USE`
+
+#### Scenario: A deleted line releases the factor
+
+- **GIVEN** a factor referenced only by a line in state `DELETED`
+- **WHEN** an administrator updates that factor
+- **THEN** the update SHALL succeed
+
+#### Scenario: A deleted footprint releases the factor
+
+- **GIVEN** a factor referenced only by a live line under a footprint in state `DELETED`
+- **WHEN** an administrator updates that factor
+- **THEN** the update SHALL succeed
 
 ### Requirement: The rule does not depend on the methodology version's status
 
@@ -84,7 +98,7 @@ A newly added factor SHALL become available to capture immediately, for footprin
 
 ### Requirement: The maintainer states the dependency instead of offering what will fail
 
-The emission-factor listing SHALL expose, per factor, how many active lines reference it. The maintainer SHALL use it to leave a factor in use non-editable and non-deletable in the grid, and SHALL say why, naming the number of lines.
+The emission-factor listing SHALL expose, per factor, how many live lines reference it, counted by exactly the predicate the guard applies, so the grid never locks a row the API would accept nor offers an edit the API will refuse. The maintainer SHALL use it to leave a factor in use non-editable and non-deletable in the grid, and SHALL say why, naming the number of lines.
 
 The count SHALL be understood as of the last read: it explains the rule, while the API is what enforces it.
 
