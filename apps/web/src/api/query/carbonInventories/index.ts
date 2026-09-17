@@ -12,6 +12,7 @@ export * from "./useMainActivityEquivalence";
 export * from "./useSuggestedReductionPlan";
 export * from "./useEmissionsDetailedSummary";
 export * from "./useEmissionFactors";
+export * from "./useEmissionFactorYears";
 export * from "./useCarbonInventoryMetadata";
 export * from "./useCarbonInventoryAccessQuery";
 export * from "./useRequestCalculation";
