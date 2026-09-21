@@ -71,9 +71,22 @@ export const MaintainerScreenLayout = ({
     isLoadingMethodologies,
     targetMethodology,
     methodologySelector,
+    isEditingMethodology,
   } = scope;
 
   const canEdit = canEditOverride ?? !isViewOnly;
+
+  // The toolbar carries the only "Salir de edición" there is, so it follows
+  // edit mode rather than write permission. Over a published version three of
+  // the four methodology screens are read-only by design, and gating on
+  // `canEdit` used to leave them in edit mode with no way out and a disabled
+  // selector — the route back was not reachable from where the user stood.
+  const showEditModeToolbar = isEditingMethodology;
+  const resolvedEditModeNote =
+    editModeNote ??
+    (canEdit
+      ? undefined
+      : "Esta pantalla es de solo lectura en la Metodología activa. Los Factores de emisión sí pueden editarse.");
 
   if (!isLoadingMethodologies && errorMessage) {
     return (
@@ -107,16 +120,20 @@ export const MaintainerScreenLayout = ({
       />
       <Box
         className="rounded-sm bg-white p-3"
-        sx={canEdit ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` } : undefined}
+        sx={
+          showEditModeToolbar
+            ? { pb: `${EDIT_MODE_TOOLBAR_HEIGHT}px` }
+            : undefined
+        }
       >
         <form id={formId} noValidate>
           <Box className="flex w-full">{children}</Box>
         </form>
       </Box>
-      {canEdit && (
+      {showEditModeToolbar && (
         <EditModeToolbar
           methodologyName={targetMethodology?.name ?? ""}
-          note={editModeNote}
+          note={resolvedEditModeNote}
           onExitClick={() => onExitEditModeOpenChange(true)}
         />
       )}

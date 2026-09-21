@@ -48,6 +48,7 @@ const CATEGORIES_MAINTAINER_EXPLANATION_SLUGS = {
 export const CategoriesMaintainerScreen: FC = () => {
   const {
     isViewOnly,
+    isEditingMethodology,
     methodologies,
     effectiveMethodologyId,
     methodologyVersionId,
@@ -515,9 +516,18 @@ export const CategoriesMaintainerScreen: FC = () => {
           </Box>
         </form>
       </Box>
-      {!isViewOnly && (
+      {/* Follows edit mode, not write permission: over the published version
+          this screen is read-only by design, and it still has to offer the way
+          out — the methodology selector is disabled in edit mode, so there is
+          no other route back from here. */}
+      {isEditingMethodology && (
         <EditModeToolbar
           methodologyName={targetMethodology?.name ?? ""}
+          note={
+            isViewOnly
+              ? "Esta pantalla es de solo lectura en la Metodología activa. Los Factores de emisión sí pueden editarse."
+              : undefined
+          }
           onExitClick={() => setExitEditModeOpen(true)}
         />
       )}

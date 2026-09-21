@@ -21,6 +21,13 @@ export type ScopedMethodologyContext = {
    * subcategory cascades to its emission factors whether or not they are used.
    */
   canEditEmissionFactors: boolean;
+  /**
+   * Whether the maintainer entered a methodology to edit it, whatever any one
+   * screen may write. The exit affordance hangs off this rather than off write
+   * permission: a published version puts three of the four screens in edit mode
+   * with nothing writable, and they still have to offer a way out.
+   */
+  isEditingMethodology: boolean;
   selectorDisabled: boolean;
   methodologies: GetAllMethodologiesResponse;
   effectiveMethodologyId?: string;
@@ -82,6 +89,7 @@ export const useMaintainerMethodologyScope = (): ScopedMethodologyContext => {
       !editingMethodology ||
       targetMethodology?.status === MethodologyVersionStatus.PUBLISHED,
     canEditEmissionFactors: !!editingMethodology,
+    isEditingMethodology: !!editingMethodology,
     selectorDisabled: !!editingMethodology,
     methodologies,
     effectiveMethodologyId,
