@@ -17,11 +17,11 @@ Two properties of the deployment shape every decision here. The frontend is a St
 
 **Non-Goals:**
 
-- A user-facing delete affordance. Examined and deliberately not added — see Decision 7.
-- An evaluation suite. Its stated prerequisites do not exist yet — see Decision 9.
+- A user-facing delete affordance. Examined and deliberately not added — see Decision 6.
+- An evaluation suite. Its stated prerequisites do not exist yet — see Decision 8.
 - Corpus ingestion. Requires the real documents, Azure access, and an operator role.
 - A hot kill switch. The environment flag with a one-minute restart is sufficient for an MVP; a database-backed flag adds a table, an admin endpoint, and a cache.
-- Per-deployment configurability of the retention window — see Decision 6.
+- Per-deployment configurability of the retention window — see Decision 5.
 
 ## Decisions
 
@@ -51,15 +51,7 @@ Sizing it on its own merits instead, against the team's own cost model, lands at
 
 The remaining trade is availability, not cost: thirty turns a day across every anonymous caller combined covers an ordinary day of demonstration and not much more, so a busy week could plausibly meet the ceiling. Signing in remains the remedy, and the pool's rejection message says so.
 
-### Decision 4 — Physically deleting expired rows is a separate change
-
-`expires_at` is still written and still respected by every read, and nothing deletes. This change tiers the retention window; it does not enforce it at the data layer.
-
-**Rationale**: the purge is a scheduled background job with its own lifecycle, failure modes and observability question, and it was carrying about as much design as the spend controls it travelled with. Splitting it lets the hardening land without introducing a timer into application startup, and lets the purge be judged on its own. The design — application-scheduled rather than `pg_cron`, no advisory lock, backlog measured before deleting — moved intact to `chatbot-conversation-purge`.
-
-**Consequence, stated plainly**: until that change lands, shortening the anonymous window to 7 days shortens how long a conversation is *visible*, not how long it is *stored*. Decision 8 leans on that mitigation, and now leans on a partial one.
-
-### Decision 5 — Retention is tiered by identity kind: 7 days anonymous, 30 authenticated
+### Decision 4 — Retention is tiered by identity kind: 7 days anonymous, 30 authenticated
 
 **Rationale**: retention should follow the relationship. An authenticated caller has an account, can return from another device, and has history worth keeping. An anonymous caller gains only that a thread survives a page reload — a benefit already lost whenever the browser drops the session cookie — while carrying identical data-at-rest exposure. Holding less of the data belonging to people there is no way to contact is the largest available reduction in exposure and it asks nothing of anyone.
 
@@ -67,23 +59,25 @@ This is the change's principal compliance move. What is not retained cannot be t
 
 **Alternatives considered**: one day for anonymous — rejected because a thread vanishing overnight reads as a defect rather than a policy. Leaving both at thirty — rejected as retaining the maximum from the callers with the least benefit.
 
-### Decision 6 — The retention windows stay compile-time constants
+**Scope boundary**: this sets the window; it does not enforce it. Nothing deletes expired rows in this change, so a shorter window shortens how long a conversation is visible rather than how long it is stored. Physically deleting them is `chatbot-conversation-purge`.
+
+### Decision 5 — The retention windows stay compile-time constants
 
 **Rationale**: an environment variable would let a deployment change the window without rebuilding, which matters most for the air-gapped on-premise topology. It was rejected anyway, for two reasons. Adapting the _mechanism_ — anything beyond the number — requires code regardless, so configurability of the value buys less than it appears. And the widget's retention notice is rendered by a different application: if the API's window becomes an environment variable, the notice can only follow it through a new endpoint, or a build-time variable that reintroduces the rebuild it was meant to avoid, or by dropping the number and becoming vague.
 
-### Decision 7 — `chatbot-rag-mvp` Decision 25 is upheld: no delete affordance
+### Decision 6 — `chatbot-rag-mvp` Decision 25 is upheld: no delete affordance
 
 **Rationale**: this change examined that decision and confirmed it.
 
 The argument that had been raised against it is real and worth recording. Decision 25 holds that the erasure obligation is met by support invoking `DELETE /api/chatbot/conversations/me`. That endpoint acts on the identity of whoever calls it, and an anonymous caller's identity is a signed `HttpOnly` cookie — support can neither read it nor act on its behalf. The repository's own runbook documents the consequence, describing a manual SQL purge for "an ad-hoc retention request that the right-to-be-forgotten endpoint cannot satisfy because the user has no active session". So for anonymous callers the declared channel cannot act at all; that is impossibility, not latency.
 
-It is narrowed without the affordance. The 7-day anonymous window (Decision 5) reduces how long the exposure lasts, for every anonymous caller rather than only the ones who ask. It is a partial mitigation while the physical delete lives in `chatbot-conversation-purge` and has not landed: until then the window shortens visibility rather than storage. Whoever revisits Decision 25 should weigh that honestly.
+It is narrowed without the affordance. The 7-day anonymous window (Decision 4) reduces how long the exposure lasts, for every anonymous caller rather than only the ones who ask. It is a partial mitigation while the physical delete lives in `chatbot-conversation-purge` and has not landed: until then the window shortens visibility rather than storage. Whoever revisits Decision 25 should weigh that honestly.
 
 Two further notes for whoever revisits this. "D11" is a design-decision identifier in `chatbot-foundation`, not a legal article; it reads "A `DELETE /api/chatbot/conversations/me` endpoint lets callers delete their own history at will", and "at will" is what Decision 25 reinterpreted as support-operated. And the repository states in `docs/security/sensitive-data.md` that the team does not certify compliance and that the deploying country declares it — which makes any claim that an obligation "is met" the kind of statement that document says the team should not be making, in either direction.
 
 **Consequence**: the `ChatbotWidget.tsx` comment explaining why `deleteHistory` is unwired remains accurate and stays. The existing widget test asserting the absence of a deletion control stays unchanged. `chatbot-rag-mvp` tasks 9.7 and 10.38 remain correctly deferred, and archiving that change after this one creates no contradiction.
 
-### Decision 8 — Forced `tool_choice`, not a pre-retrieval refactor
+### Decision 7 — Forced `tool_choice`, not a pre-retrieval refactor
 
 **Rationale**: the goal is to remove a decision the model makes badly — recommendation-shaped questions do not read as lookups, so they skip retrieval and reach the fallback while the answer sits unread. Forcing the first round's `tool_choice` achieves that with one provider flag and a prompt amendment, preserving the single-round tool architecture and its existing test surface.
 
@@ -91,17 +85,17 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 
 **Cost accepted**: every turn now pays one embedding and two rounds, including greetings. The prompt must be amended so the non-retrieval modes stay correct when a forced search returns nothing — otherwise a greeting would open with the K=0 literal.
 
-### Decision 9 — The similarity floor is applied in TypeScript and ships provisional
+### Decision 8 — The similarity floor is applied in TypeScript and ships provisional
 
 **Rationale for the placement**: the HNSW index is chosen by the `ORDER BY ... LIMIT` shape. A similarity predicate in `WHERE` risks a different plan for no gain, since the filter runs over at most eight rows.
 
 **Rationale for the value**: 0.45 errs high on purpose. Of the three outcomes an evaluation would measure, answering confidently and wrongly is the one that matters, and a low floor is what produces it. A figure near 0.35 is commonly cited for this embedding model, but that is a reference point, not a measurement of this corpus. The handler logs the top similarity of every retrieval so the value can be replaced by a measurement rather than a second guess.
 
-### Decision 10 — Three rejection messages, not one
+### Decision 9 — Three rejection messages, not one
 
 **Rationale**: the three quota layers have different remedies — wait seconds, wait for the window, or sign in. Only the third has an immediate one, and it is invisible under a generic message. The cost is that the pool's message confirms to an abuser that the pool is exhausted; that is accepted, since silence would not deter them and does confuse everyone else.
 
-### Decision 11 — Budget default of 30 USD per month
+### Decision 10 — Budget default of 30 USD per month
 
 **Rationale**: taken from the team's own cost modelling — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000. Thirty is the value at which ordinary operation is silent (the 300-user case never reaches the 50% threshold), growth is audible (the 500-user case trips 50% and 80%), and an anomaly is unmistakable (the 1000-user case exceeds all three). A default calibrated so that the first threshold fires during normal use would train everyone to ignore it.
 
@@ -121,11 +115,11 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 ## Migration Plan
 
 1. `chatbot-rag-mvp` archives first. This change's `chatbot-corpus-retrieval` delta and its `chatbot-message-streaming` tool-round modification assume that capability exists in the main specs.
-2. API changes deploy together: constants, quota checks, purge task, forced tool choice, similarity floor, tiered retention. No database migration accompanies them.
-4. Infrastructure deploys independently. The budget amount is a parameter; the module is inert while `enableChatbot` is false.
-5. Web deploys independently — the two notices are static text with no API dependency.
+2. API changes deploy together: constants, quota checks, forced tool choice, similarity floor, tiered retention. No database migration accompanies them.
+3. Infrastructure deploys independently. The budget amount is a parameter; the module is inert while `enableChatbot` is false.
+4. Web deploys independently — the two notices are static text with no API dependency.
 
-**Rollback**: every element is independently revertible. Raising the constants disables the quotas without a deploy of behaviour; not scheduling the purge leaves the data model untouched, since nothing here changes the schema. The retention tiering affects only rows created after it ships, so reverting it does not resurrect or destroy anything.
+**Rollback**: every element is independently revertible, and nothing here changes the schema. Raising the constants disables the quotas without a deploy of behaviour. The retention tiering affects only rows created after it ships, so reverting it neither resurrects nor destroys anything.
 
 ## Open Questions
 

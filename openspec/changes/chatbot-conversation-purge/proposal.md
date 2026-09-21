@@ -8,7 +8,7 @@ This was designed and implemented inside `chatbot-mvp-hardening` and then pulled
 
 - **A purge that deletes expired conversations**, run once when the API becomes ready and every 24 hours thereafter, gated on `CHATBOT_ENABLED` so a deployment with the chatbot off schedules nothing.
 - **A backlog measurement taken before each delete**, logged with the deleted count and raised to a warning when the oldest still-present expired row is materially older than the sweep interval.
-- **No `pg_cron`.** On Azure the extension must join `azure.extensions`, a server parameter that *replaces* its list rather than appending, so an error there drops `VECTOR` and breaks the chatbot migration. On-premise it must be installed on the server, which is the same fight already fought for pgvector. Two infrastructure battles, in two topologies, to execute one `DELETE`.
+- **No `pg_cron`.** On Azure the extension must join `azure.extensions`, a server parameter that _replaces_ its list rather than appending, so an error there drops `VECTOR` and breaks the chatbot migration. On-premise it must be installed on the server, which is the same fight already fought for pgvector. Two infrastructure battles, in two topologies, to execute one `DELETE`.
 - **No advisory lock.** PostgreSQL serializes competing deletes against the same rows, so concurrent sweeps cost duplicated work rather than incorrect data.
 
 Explicitly **not** in scope:

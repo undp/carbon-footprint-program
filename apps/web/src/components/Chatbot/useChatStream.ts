@@ -50,9 +50,9 @@ const DEGRADED_MESSAGE =
 
 /**
  * Read the `message` an API error response carries, or null when it carries
- * none. Both the 503 and 413 branches need it: the server writes a specific,
- * user-facing Spanish string for each and the widget should show it rather
- * than a fixed one.
+ * none. The 503, 413 and quota-429 branches all need it: the server writes a
+ * specific, user-facing Spanish string for each and the widget should show
+ * that rather than a fixed one.
  */
 const readServerMessage = async (
   response: Response
@@ -76,12 +76,23 @@ const readServerMessage = async (
  */
 const describeClientError = async (response: Response): Promise<string> => {
   if (response.status === 429) {
-    // The limiter sends the window in seconds; naming it turns "something
-    // broke" into "wait this long", which is the whole difference here.
+    // Two different refusals share this status and must not share copy.
+    //
+    // The burst limiter answers in onRequest and sets `x-ratelimit-reset` with
+    // the remaining window; its own body is English text from the plugin, so it
+    // is deliberately NOT read. Naming the seconds turns "something broke" into
+    // "wait this long", which is the whole difference there.
+    //
+    // The token budgets answer from the handler with Spanish copy specific to
+    // the layer that refused — a personal daily limit, or a shared pool whose
+    // remedy is signing in — and set no limiter headers. Showing the burst
+    // message for those would tell someone to slow down when slowing down
+    // changes nothing.
     const reset = Number(response.headers.get("x-ratelimit-reset"));
-    return Number.isFinite(reset) && reset > 0
-      ? `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`
-      : RATE_LIMITED_MESSAGE;
+    if (Number.isFinite(reset) && reset > 0) {
+      return `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`;
+    }
+    return (await readServerMessage(response)) ?? RATE_LIMITED_MESSAGE;
   }
   if (response.status === 413) {
     return (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE;

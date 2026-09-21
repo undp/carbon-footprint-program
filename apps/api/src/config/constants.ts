@@ -62,6 +62,68 @@ export const CHATBOT_MAX_USER_INPUT_TOKENS = 4000;
 export const CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15;
 
 /**
+ * Tokens one caller identity may consume in a rolling 24 hours.
+ *
+ * The layer that catches an accident: a stuck tab, a client retry loop, a
+ * single person exploring far past what a demo needs. It is explicitly NOT the
+ * cost ceiling, because the identity it keys on costs nothing to replace — an
+ * anonymous caller discards the session cookie and starts fresh, and
+ * third-party cookie restrictions produce the same effect with no attacker at
+ * all. `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` is the layer that cannot be
+ * evaded; this one keeps one accident from draining it for everybody.
+ *
+ * At roughly 13% of the anonymous pool, it takes about seven identities at
+ * their limit to exhaust the shared budget — enough headroom that one runaway
+ * client is contained rather than fatal.
+ */
+export const CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000;
+
+/**
+ * Tokens ALL anonymous callers may consume between them in a rolling 24 hours.
+ *
+ * Keyed on the absence of `user_id`, which is the one thing about an anonymous
+ * caller that nothing they control can change. Discarding the cookie mints a
+ * new identity and draws on the same pool, so this is the only layer with no
+ * cheap evasion, and therefore the only one that actually bounds spend.
+ *
+ * Sized as the daily equivalent of the most conservative scenario the team
+ * modelled — about 10 USD/month at 300 users — so thirty consecutive days at
+ * the cap cost roughly a third of the configured monthly budget. In turns it is
+ * near thirty a day across every anonymous caller combined: an ordinary day of
+ * demonstration, and not much beyond it.
+ *
+ * The pool covers anonymous traffic only, so sizing it against a whole modelled
+ * scenario assumes every caller is anonymous — conservative by construction,
+ * and accurate early on.
+ *
+ * It converts an unbounded cost risk into a bounded availability risk: one
+ * actor can exhaust it and deny the anonymous chatbot to everyone until the
+ * window rolls. That is accepted. Authenticated callers do not draw on this
+ * pool and keep service throughout, which is why the pool's rejection message
+ * names signing in — it is a real remedy, not a consolation.
+ */
+export const CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000;
+
+/**
+ * Window both token budgets are measured over.
+ *
+ * A rolling 24 hours from the moment of evaluation, not a calendar day: a
+ * calendar reset hands every caller a fresh allowance at the same instant,
+ * which is precisely when a burst is least welcome.
+ *
+ * Both budgets are read BEFORE a turn and credited AFTER it, so simultaneous
+ * turns all pass against the same stale total. The overshoot is bounded by
+ * concurrency times per-turn cost, and bounding concurrency is what
+ * CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT is for.
+ *
+ * What they measure is an undercount. `tokens_used` records only the terminal
+ * round, and forcing `tool_choice` makes every turn a tool turn, so the first
+ * round is never counted. Both layers inherit that undercount uniformly, which
+ * makes them consistent with each other and conservative about nothing.
+ */
+export const CHATBOT_TOKEN_BUDGET_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
  * Token budget for a single request to the provider: system prompt, the
  * incoming user message, and as much prior history as still fits.
  *
@@ -121,7 +183,6 @@ export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
  */
 export const CHATBOT_CONVERSATION_TTL_DAYS = 30;
 export const CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS = 7;
-
 
 /**
  * Overall wall-clock budget (ms) for a single LLM streaming completion. Bounds

@@ -3,11 +3,19 @@ import { ChatMessageRole } from "@repo/database/enums";
 import {
   CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS,
   CHATBOT_CONVERSATION_TTL_DAYS,
+  CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY,
+  CHATBOT_TOKEN_BUDGET_WINDOW_MS,
   CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
   CHATBOT_MAX_USER_INPUT_TOKENS,
 } from "@/config/constants.js";
+import { QuotaExceededError } from "@/errors/QuotaExceededError.js";
 import { RequestTooLargeError } from "@/errors/RequestTooLargeError.js";
+import {
+  CHATBOT_IDENTITY_BUDGET_MESSAGE,
+  CHATBOT_SHARED_BUDGET_MESSAGE,
+} from "@/features/chatbot/constants.js";
 import { estimateTokens } from "@/features/chatbot/llmProvider/estimateTokens.js";
 import type { ChatbotIdentity } from "@/features/chatbot/helpers/identity.js";
 
@@ -239,4 +247,89 @@ export const trimHistoryToBudget = <T extends { content: string }>(
     kept.push(history[i]);
   }
   return kept.reverse();
+};
+
+/**
+ * Tokens this identity has consumed since `since`.
+ *
+ * `chatbot_chat_message` carries no identity of its own — identity lives on the
+ * conversation — so the sum has to join. The filter reuses
+ * `conversationIdentityFilter`, which is what keeps this query and the
+ * conversation lookup from drifting into disagreeing about what "this caller"
+ * means.
+ *
+ * `tokensUsed` is nullable (a turn that failed before the provider reported
+ * usage writes null), and Prisma's `_sum` returns null for an empty set; both
+ * collapse to zero, which is the honest reading — unknown consumption is not
+ * evidence of consumption.
+ */
+export const sumIdentityTokensSince = async (
+  prisma: PrismaClient,
+  identity: ChatbotIdentity,
+  since: Date
+): Promise<number> => {
+  const result = await prisma.chatbotChatMessage.aggregate({
+    _sum: { tokensUsed: true },
+    where: {
+      createdAt: { gte: since },
+      conversation: conversationIdentityFilter(identity),
+    },
+  });
+  return result._sum.tokensUsed ?? 0;
+};
+
+/**
+ * Tokens ALL anonymous callers have consumed between them since `since`.
+ *
+ * Keyed on `userId: null` rather than on any per-caller value, which is the
+ * whole point: an anonymous caller who discards their session cookie is minted
+ * a new identity and still draws on this same total. It is the one measure
+ * about anonymous traffic that the traffic cannot move.
+ */
+export const sumAnonymousTokensSince = async (
+  prisma: PrismaClient,
+  since: Date
+): Promise<number> => {
+  const result = await prisma.chatbotChatMessage.aggregate({
+    _sum: { tokensUsed: true },
+    where: {
+      createdAt: { gte: since },
+      conversation: { userId: null },
+    },
+  });
+  return result._sum.tokensUsed ?? 0;
+};
+
+/**
+ * Refuse the turn when either token budget is exhausted.
+ *
+ * Called after the identity preHandler and BEFORE the provider, which is the
+ * only ordering that controls anything: a refusal issued after the completion
+ * has already been paid for is a log line, not a limit.
+ *
+ * The personal budget is checked first so a caller who has exhausted their own
+ * allowance is told that, rather than being told the shared pool is empty when
+ * it is their own doing. Authenticated callers skip the pool entirely — that
+ * asymmetry is what makes signing in a genuine remedy rather than advice.
+ *
+ * Both reads are taken before the turn and credited after it, so concurrent
+ * turns pass against the same total. See CHATBOT_TOKEN_BUDGET_WINDOW_MS.
+ */
+export const enforceTokenBudgets = async (
+  prisma: PrismaClient,
+  identity: ChatbotIdentity
+): Promise<void> => {
+  const since = new Date(Date.now() - CHATBOT_TOKEN_BUDGET_WINDOW_MS);
+
+  const identityTokens = await sumIdentityTokensSince(prisma, identity, since);
+  if (identityTokens >= CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY) {
+    throw new QuotaExceededError(CHATBOT_IDENTITY_BUDGET_MESSAGE);
+  }
+
+  if (identity.kind === "user") return;
+
+  const anonymousTokens = await sumAnonymousTokensSince(prisma, since);
+  if (anonymousTokens >= CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY) {
+    throw new QuotaExceededError(CHATBOT_SHARED_BUDGET_MESSAGE);
+  }
 };

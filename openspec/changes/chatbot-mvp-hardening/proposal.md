@@ -41,7 +41,7 @@ Deliberately **not** in this change:
 
 - **API**: `sendMessage` gains a pre-model quota check and a forced tool choice; `searchKnowledge` filters and logs similarity; retention branches on identity kind.
 - **Web**: the chat panel's footer renders two notices instead of one. No other surface changes; no delete control is added.
-- **Database**: no schema change. The existing `expires_at` index serves the purge, and the existing identity indexes serve the budget query.
+- **Database**: no schema change. The existing identity indexes serve the budget query.
 - **Infrastructure**: a new Bicep module for alerting, gated by `enableChatbot`, with the monthly budget amount as a parameter.
-- **Docs**: `docs/operations/runbook.md` gains the shutdown procedure; `docs/security/sensitive-data.md` retention section is corrected to describe tiered retention and a purge that runs.
+- **Docs**: `docs/operations/runbook.md` gains the shutdown procedure and a summary of the cost controls; `docs/security/sensitive-data.md` retention section is corrected to describe tiered retention.
 - **Cost**: bounded for the first time. The anonymous pool caps the worst month at the configured budget; before this change nothing did.

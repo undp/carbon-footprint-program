@@ -112,8 +112,8 @@ describe("ChatbotWidget", () => {
       // The absence of any deletion control is deliberate, not an oversight:
       // chatbot-rag-mvp design decision 25 defers the delete-history affordance,
       // and chatbot-mvp-hardening re-examined and upheld it — the erasure gap it
-      // would have closed is covered instead by the conversation purge and the
-      // 7-day anonymous retention window. Do not "fix" this by adding a button.
+      // would have closed is narrowed instead by the 7-day anonymous retention
+      // window. Do not "fix" this by adding a button.
       expect(
         screen.queryByRole("button", { name: /Limpiar conversación/ })
       ).toBeNull();

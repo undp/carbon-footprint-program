@@ -46,14 +46,14 @@
 
 ## 6. Token quotas
 
-- [ ] 6.1 Add `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
-- [ ] 6.2 Add the three rejection message constants in neutral Spanish, beside the existing `CHATBOT_GENERIC_ERROR_MESSAGE`.
-- [ ] 6.3 Implement the per-identity 24-hour token sum, joining messages to conversations on the identity columns; confirm the query uses the existing indexes and add any new one in raw SQL in a migration, never as a Prisma `@@index`.
-- [ ] 6.4 Implement the global anonymous 24-hour token sum over conversations with no `user_id`.
-- [ ] 6.5 Enforce both in `sendMessage` after the identity preHandler and before the provider call, responding 429 with the layer's own message and persisting nothing for a refused turn.
-- [ ] 6.6 Ensure the refusal is an ordinary JSON 429 rather than an SSE stream carrying a terminal error, and that it is not conflated with the existing 413 for oversized input.
-- [ ] 6.7 Confirm the widget renders the server's 429 body rather than substituting the generic provider-failure copy, and add a web test for it.
-- [ ] 6.8 Add integration tests: identity over budget is refused; anonymous caller refused when the pool is exhausted; authenticated caller unaffected by an exhausted pool; refused turns leave no message rows.
+- [x] 6.1 Add `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
+- [x] 6.2 Add the three rejection message constants in neutral Spanish, beside the existing `CHATBOT_GENERIC_ERROR_MESSAGE`.
+- [x] 6.3 Implement the per-identity 24-hour token sum, joining messages to conversations on the identity columns. **No new index needed**: the aggregate filters on `created_at` plus the conversation's identity columns, both of which the foundation migration already indexes (`chatbot_chat_message_conversation_id_created_at_idx`, `chatbot_chat_conversation_user_id_expires_at_idx`, `chatbot_chat_conversation_session_id_created_at_idx`).
+- [x] 6.4 Implement the global anonymous 24-hour token sum over conversations with no `user_id`.
+- [x] 6.5 Enforce both in `sendMessage` after the identity preHandler and before the provider call, responding 429 with the layer's own message and persisting nothing for a refused turn.
+- [x] 6.6 Ensure the refusal is an ordinary JSON 429 rather than an SSE stream carrying a terminal error, and that it is not conflated with the existing 413 for oversized input.
+- [x] 6.7 Confirm the widget renders the server's 429 body rather than substituting the generic provider-failure copy, and add a web test for it. **Found a real bug**: the 429 branch assumed every 429 came from the burst limiter and told the caller to wait, which is wrong advice for a spent daily allowance. Now the reset header selects the burst copy and its absence reads the server's message.
+- [x] 6.8 Add integration tests: identity over budget is refused; anonymous caller refused when the pool is exhausted; authenticated caller unaffected by an exhausted pool; refused turns leave no message rows.
 
 ## 7. Always retrieve, and floor the results
 
@@ -68,8 +68,8 @@
 
 ## 8. Documentation sync and verification
 
-- [ ] 8.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention and a purge that runs, replacing the text stating the purge is deferred and rows accumulate.
-- [ ] 8.2 Update the "Chatbot Conversation Purge" section of `docs/operations/runbook.md`, which currently documents the manual sweep as the interim measure.
+- [ ] 8.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention, leaving its statement that expired rows still accumulate intact — that remains true until `chatbot-conversation-purge` lands.
+- [ ] 8.2 Leave the "Chatbot Conversation Purge" section of `docs/operations/runbook.md` alone — the manual sweep it documents is still the only thing that deletes.
 - [ ] 8.3 Record in the runbook that the anonymous token pool can be exhausted by one actor and how an operator recognizes that state, so it is not diagnosed as an outage.
 - [ ] 8.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API and web suites; confirm all pass.
 - [ ] 8.5 Re-read the specs against the implementation and reconcile any drift in the specs rather than in silence.

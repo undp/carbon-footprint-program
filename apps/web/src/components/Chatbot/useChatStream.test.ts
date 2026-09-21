@@ -759,6 +759,68 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(content).not.toContain("segundos.");
   });
 
+  // A 429 from the token budgets carries Spanish copy naming the layer that
+  // refused, and sets no limiter headers. Showing the burst message for these
+  // would tell someone to slow down when slowing down changes nothing: their
+  // daily allowance is spent, or the shared pool is.
+  it("shows the server's message on a 429 that carries no reset header", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(429, {
+          message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+        })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(result.current.state).toBe("error");
+    expect(lastMessage(result.current.messages).content).toBe(
+      "Alcanzaste tu límite de uso diario. Vuelve mañana."
+    );
+  });
+
+  it("surfaces the shared-pool remedy rather than a wait instruction", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(429, {
+          message:
+            "El asistente alcanzó su límite de uso diario. Inicia sesión para continuar.",
+        })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("Inicia sesión");
+    // The burst copy would be actively misleading here — waiting does nothing.
+    expect(content).not.toContain("muy seguido");
+  });
+
+  // The reset header is what tells the two apart, so it has to win even when a
+  // body is present: the limiter's own body is English text from the plugin.
+  it("prefers the reset header over any body the limiter sends", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          { message: "Rate limit exceeded, retry in 1 minute" },
+          { "x-ratelimit-reset": "17" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("17 segundos");
+    expect(content).not.toContain("Rate limit exceeded");
+  });
+
   it("maps 400 to the too-large message (the Zod character cap)", async () => {
     const { result } = renderHook(() => useChatStream());
 
