@@ -64,6 +64,16 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 8.7 Add the `EMISSION_FACTOR_IN_USE` message to `ERROR_MESSAGES` in `apps/web/src/utils/getApiErrorMessage.ts`, in Spanish, so a 409 lost to a stale count reads as an explanation rather than a generic failure.
 - [x] 8.8 Condition the `handleStopEditRow` check on `hasRealChanges`. A row can become locked while it is open — saving the GEI breakdown invalidates the listing without closing the row — and an unconditional refusal then refuses to close a row nobody edited. Because `handleStartEditRow` bails when stop-edit returns false, that also blocks every other row, leaving Cancelar (which discards the edit) as the only way out.
 
+## 8bis. Review follow-ups
+
+- [x] 8b.1 Exclude unclaimed anonymous footprints from the blocking predicate and report their lines as `unclaimedReferencedLineCount`. The calculator is public and anonymous, and no actor can delete such a footprint, so counting them let a visitor freeze the live catalogue permanently — with no replacement possible either, since duplicate and source-consistency checks reject a second factor for the same `(subcategory, year)`.
+- [x] 8b.2 Name that count in the delete confirmation instead of blocking on it. `ActionButtons` already renders the dialog, so this is `deleteConfirmMessage` per row.
+- [x] 8b.3 Move the listing's counts to a `groupBy` scoped by `emissionFactorId`. As a filtered relation count Prisma compiled them into an uncorrelated `GROUP BY` over the whole junction table, which no index can restrict.
+- [x] 8b.4 Scope the `conceptual-guide.md` paragraph to `PATCH`/`DELETE` on a factor. `softDeleteSubcategoryDependents` and the two dimension services delete or rewrite factors with no usage check, and their screens are editable over any superseded version.
+- [x] 8b.5 Gate the edit-mode toolbar on a methodology being edited rather than on write permission, through a flag the scope exposes. It holds the only "Salir de edición", and over the published version three screens are read-only by design.
+- [x] 8b.6 Put the lock reason on every cell that stops responding, not only the subcategory one. The maintainer reaches for the value they want to fix.
+- [ ] 8b.7 **Not taken** — `GET /api/emission-factors` is `private` with no `systemRoles`, so the counts are visible to any authenticated account. Consistent with every other maintainer route today; narrowing them is a separate decision about the whole maintainer surface, not about this field.
+
 ## 9. Tests — API
 
 - [x] 9.1 Update an unreferenced factor → 200, and the row changes.

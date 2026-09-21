@@ -36,6 +36,8 @@ A factor SHALL be considered in use when a line factor snapshot points at it fro
 
 References held only by superseded line inputs SHALL NOT count. Those versions are audit trail that no reader of the application consults, and treating them as dependencies would freeze a factor permanently on the strength of a row nothing reads.
 
+References held by a line under a footprint that has neither an owner nor an organization SHALL NOT count. Such a footprint is created by the open calculator and no actor can delete it — the delete endpoint is private, its authorization grants an org-less footprint only to its creator, and no write route lets an administrator bypass that. Counting them would let anonymous traffic freeze the live catalogue permanently.
+
 References held by a deleted line, or by a line under a deleted footprint, SHALL NOT count. Both deletions are soft and leave the active input and its snapshot in place, and neither is reversible through any code path, so treating them as dependencies would lock a factor forever against a line nobody can see, restore or point at.
 
 #### Scenario: A reference in a superseded input does not freeze the factor
@@ -47,6 +49,18 @@ References held by a deleted line, or by a line under a deleted footprint, SHALL
 #### Scenario: A parked line still counts
 
 - **GIVEN** a line in state `OUTDATED` whose active input references a factor
+- **WHEN** an administrator updates that factor
+- **THEN** the request SHALL be rejected with `EMISSION_FACTOR_IN_USE`
+
+#### Scenario: An unclaimed anonymous footprint does not lock the factor
+
+- **GIVEN** a factor referenced only by a live line under a footprint with no owner and no organization
+- **WHEN** an administrator updates or deletes that factor
+- **THEN** the request SHALL succeed
+
+#### Scenario: A claimed footprint still locks it
+
+- **GIVEN** a factor referenced by one unclaimed anonymous footprint and one claimed footprint
 - **WHEN** an administrator updates that factor
 - **THEN** the request SHALL be rejected with `EMISSION_FACTOR_IN_USE`
 
@@ -98,7 +112,7 @@ A newly added factor SHALL become available to capture immediately, for footprin
 
 ### Requirement: The maintainer states the dependency instead of offering what will fail
 
-The emission-factor listing SHALL expose, per factor, how many live lines reference it, counted by exactly the predicate the guard applies, so the grid never locks a row the API would accept nor offers an edit the API will refuse. The maintainer SHALL use it to leave a factor in use non-editable and non-deletable in the grid, and SHALL say why, naming the number of lines.
+The emission-factor listing SHALL expose, per factor, how many live lines reference it, counted by exactly the predicate the guard applies, so the grid never locks a row the API would accept nor offers an edit the API will refuse. It SHALL report the lines held by unclaimed anonymous footprints as a separate count. The maintainer SHALL name that second count in the delete confirmation, and SHALL NOT use it to lock the row. The maintainer SHALL use it to leave a factor in use non-editable and non-deletable in the grid, and SHALL say why, naming the number of lines.
 
 The count SHALL be understood as of the last read: it explains the rule, while the API is what enforces it.
 
