@@ -25,7 +25,7 @@ import {
   APP_LOCALE,
   CHATBOT_AI_DISCLAIMER,
   CHATBOT_INTRODUCED_KEY,
-  CHATBOT_RETENTION_NOTICE,
+  CHATBOT_PRIVACY_NOTICE,
 } from "@/config/constants";
 import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
@@ -398,7 +398,7 @@ export function ChatbotWidget() {
           {CHATBOT_AI_DISCLAIMER}
         </Typography>
         <Typography variant="caption" color="text.secondary" textAlign="center">
-          {CHATBOT_RETENTION_NOTICE}
+          {CHATBOT_PRIVACY_NOTICE}
         </Typography>
       </Box>
     </Paper>

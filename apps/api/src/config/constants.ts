@@ -168,20 +168,17 @@ export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
  * nothing of anyone: what is not retained cannot be the subject of an erasure
  * request, under every framework at once, with nobody interpreting any of them.
  *
- * Compile-time constants rather than environment variables, deliberately.
- * Adapting the mechanism — anything beyond the number — needs code anyway, and
- * the widget's retention notice is rendered by a different application: making
- * these configurable would force that notice through a new endpoint, a
- * build-time variable that reinstates the rebuild it was meant to avoid, or a
- * vaguer sentence. See CHATBOT_RETENTION_NOTICE in apps/web, which states the
- * 30-day ceiling because overstating retention is harmless and understating it
- * is not.
+ * Compile-time constants rather than environment variables, deliberately:
+ * adapting the mechanism — anything beyond the number — needs code anyway, so
+ * configurability of the value alone buys less than it appears.
  *
  * Nothing deletes expired rows yet: `expires_at` is written and every read
  * filters on it, so an expired conversation is invisible to the user and still
  * present in a database dump. Physically deleting them is the
- * `chatbot-conversation-purge` change. Until it lands, a shorter window
- * shortens visibility rather than storage.
+ * `chatbot-conversation-purge` change. Until it lands, these windows bound
+ * VISIBILITY, not storage, and neither number may be quoted to a user as a
+ * retention figure — which is why CHATBOT_PRIVACY_NOTICE in apps/web names no
+ * duration at all. Restore one there when the purge makes it true.
  */
 export const CHATBOT_CONVERSATION_TTL_DAYS = 30;
 export const CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS = 7;

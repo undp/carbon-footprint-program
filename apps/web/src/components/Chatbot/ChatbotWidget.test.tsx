@@ -9,8 +9,7 @@ import type { ChatbotMessage, ChatbotState } from "./types";
 // deliberately so a copy change has to be made in two places on purpose.
 const DISCLAIMER =
   "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
-const RETENTION_NOTICE =
-  "Las conversaciones se guardan hasta 30 días. No compartas datos personales.";
+const PRIVACY_NOTICE = "No compartas datos personales.";
 const NEW_CONVERSATION_LABEL = "Nueva conversación";
 
 // Per-test inputs for the useChatStream stub, plus a spy for the reset call.
@@ -177,12 +176,12 @@ describe("ChatbotWidget", () => {
       render(<ChatbotWidget />);
 
       expect(screen.getByText(DISCLAIMER)).toBeInTheDocument();
-      expect(screen.getByText(RETENTION_NOTICE)).toBeInTheDocument();
+      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
     });
 
     it.each([
       ["AI disclaimer", DISCLAIMER],
-      ["retention notice", RETENTION_NOTICE],
+      ["privacy notice", PRIVACY_NOTICE],
     ])(
       "the %s is static text with no interactive affordance",
       (_label, text) => {
@@ -196,14 +195,17 @@ describe("ChatbotWidget", () => {
       }
     );
 
-    // The retention line states the ceiling, not the 7-day anonymous window.
-    // Understating retention would be a privacy assurance the system does not
-    // keep, so the "hasta" and the 30 are both load-bearing.
-    it("states the retention ceiling rather than the anonymous tier", () => {
+    // Nothing deletes expired conversations yet: `expires_at` bounds how long
+    // one stays reachable, not how long the row survives. Any duration in this
+    // notice would therefore read as a deletion promise the system does not
+    // keep, which is the error that errs against the reader. This guards
+    // against one creeping back in — put it back only with the purge.
+    it("claims no retention window at all", () => {
       render(<ChatbotWidget />);
 
-      expect(screen.getByText(RETENTION_NOTICE)).toBeInTheDocument();
-      expect(screen.queryByText(/7 días/)).toBeNull();
+      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
+      expect(screen.queryByText(/días/)).toBeNull();
+      expect(screen.queryByText(/se guardan/)).toBeNull();
     });
   });
 });

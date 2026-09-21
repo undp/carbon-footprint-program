@@ -24,5 +24,6 @@
 
 - [ ] 3.1 Rewrite the "Chatbot Conversation Purge" section of `docs/operations/runbook.md`, which currently documents the manual SQL sweep as the interim measure and `pg_cron` as the eventual one.
 - [ ] 3.2 Correct the retention section of `docs/security/sensitive-data.md`, which states that the purge is deferred and that expired rows accumulate.
-- [ ] 3.3 Record that the first production sweep reports a large backlog by design, so it is not read as a fault.
-- [ ] 3.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API suite; confirm all pass.
+- [ ] 3.3 Restore a retention duration to `CHATBOT_PRIVACY_NOTICE` in `apps/web/src/config/constants.ts`, which states none today because nothing deleted; update its mirror and the "claims no retention window" assertion in `ChatbotWidget.test.tsx`, and the `chatbot-widget` spec that forbids a duration.
+- [ ] 3.4 Record that the first production sweep reports a large backlog by design, so it is not read as a fault.
+- [ ] 3.5 Run `pnpm format && pnpm lint && pnpm type-check` and the API suite; confirm all pass.

@@ -23,22 +23,27 @@ This is a thin, persistent reminder that the chatbot is AI-generated and that ci
 
 ## ADDED Requirements
 
-### Requirement: Widget renders a persistent retention notice beside the disclaimer
+### Requirement: Widget renders a persistent privacy notice beside the disclaimer
 
-The widget SHALL render a second notice in the same foot-of-chat area, with the exact text `"Las conversaciones se guardan hasta 30 días. No compartas datos personales."` held as a named constant in `apps/web/src/config/constants.ts`. It SHALL share the disclaimer's typography and non-interactive, undismissable nature, and SHALL be visible in every widget state.
+The widget SHALL render a second notice in the same foot-of-chat area, with the exact text `"No compartas datos personales."` held as a named constant in `apps/web/src/config/constants.ts`. It SHALL share the disclaimer's typography and non-interactive, undismissable nature, and SHALL be visible in every widget state.
 
-The notice states the maximum retention rather than the tier that applies to the reading caller. Retention is 7 days for anonymous callers and 30 for authenticated ones, and the two possible errors are not symmetric: telling an anonymous caller their data is kept longer than it is costs nothing, while telling an authenticated caller it is kept a week is a privacy assurance the system does not honour. Stating the ceiling is true for everyone. Deriving the number per caller would additionally make a static line depend on asynchronously resolved session state.
+The notice SHALL NOT state a retention window while nothing deletes expired conversations. `expires_at` is written at row creation and every read filters on it, so an expired conversation stops being reachable, but the row survives in the database and in any dump of it. A sentence such as "las conversaciones se guardan hasta 30 días" therefore reads as a deletion promise the system does not keep — and of the two possible errors, the one that errs against the reader is the one worth avoiding. Physical deletion is the `chatbot-conversation-purge` change; a duration may be restored to this line once that change has landed, and not before.
 
-The second sentence is the load-bearing half. Retention length is a disclosure; "do not share personal data" is the control, because the cheapest personal data to delete is the kind that was never typed.
+What remains is the load-bearing half regardless. A retention figure is a disclosure; "no compartas datos personales" is the control, because the cheapest personal data to delete is the kind that was never typed.
 
-#### Scenario: Retention notice present in every widget state
+#### Scenario: Privacy notice present in every widget state
 
 - **WHEN** the chatbot widget is open in any of its canonical states
-- **THEN** the rendered DOM SHALL contain an element with the exact text `"Las conversaciones se guardan hasta 30 días. No compartas datos personales."`
+- **THEN** the rendered DOM SHALL contain an element with the exact text `"No compartas datos personales."`
 
-#### Scenario: Retention notice is non-interactive
+#### Scenario: Notice claims no retention window
 
-- **WHEN** the retention notice is inspected
+- **WHEN** the foot-of-chat area is inspected
+- **THEN** it SHALL contain no retention duration in any form, so that no deletion is promised while none occurs
+
+#### Scenario: Privacy notice is non-interactive
+
+- **WHEN** the privacy notice is inspected
 - **THEN** it SHALL NOT carry any `onClick` handler, `role="button"` attribute, or visible dismiss control
 
 #### Scenario: Notice does not depend on session state

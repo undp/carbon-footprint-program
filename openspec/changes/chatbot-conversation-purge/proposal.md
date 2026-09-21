@@ -1,6 +1,6 @@
 ## Why
 
-`chatbot_chat_conversation.expires_at` is written at row creation and respected by every read, and nothing ever deletes a row. The retention promise therefore holds at the product layer and not at the data layer: an expired conversation is invisible to the user and still present in a database dump, indefinitely. The widget now tells the user their conversations are kept up to 30 days, which makes the gap a written claim rather than an unstated one.
+`chatbot_chat_conversation.expires_at` is written at row creation and respected by every read, and nothing ever deletes a row. The retention promise therefore holds at the product layer and not at the data layer: an expired conversation is invisible to the user and still present in a database dump, indefinitely. The widget states no retention window at all, precisely because a duration there would promise a deletion that does not happen — so the platform currently cannot tell a user how long their conversations are kept. This change is what would make that sentence sayable.
 
 This was designed and implemented inside `chatbot-mvp-hardening` and then pulled back out, so that change could ship its spend controls without also carrying a scheduled background job. The design survives here intact; what is missing is only the decision to run it.
 

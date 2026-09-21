@@ -7,7 +7,7 @@ The chatbot ships to production with no ceiling on what it can spend and no proc
 - **Three-layer spend control.** A per-route burst limit keyed by IP; a per-identity daily token budget; and a global daily token pool shared by all anonymous callers. The layers exist because each one alone is evadable: an anonymous identity is a cookie the caller can discard for free, and third-party cookie restrictions already make identity churn routine rather than exceptional, which silently neuters any per-identity counter. The global pool is the only layer with no cheap evasion.
 - **Three distinct 429 bodies** — burst, personal budget, and shared pool — because only the third has an immediate remedy (sign in; authenticated callers do not draw on the pool), and one generic message hides it.
 - **Tiered retention** — anonymous conversations expire in 7 days, authenticated in 30. **BREAKING** for anonymous callers: a thread abandoned for more than a week no longer rehydrates. The asymmetry follows the relationship: an authenticated user has an account to return to, while an anonymous one gains only surviving a page reload and carries the same data-at-rest exposure without the benefit.
-- **Two standing notices at the foot of the chat panel**, unconditional and undismissable: that answers are model-generated and must be checked against the cited sources, and that conversations are kept up to 30 days and personal data should not be shared. The retention notice states the maximum rather than the tier, because overstating retention is harmless while understating it is a privacy assurance the system does not keep.
+- **Two standing notices at the foot of the chat panel**, unconditional and undismissable: that answers are model-generated and must be checked against the cited sources, and that personal data should not be shared. The second notice states no retention window, because nothing deletes expired conversations yet — `expires_at` bounds how long one stays reachable, not how long the row survives — and naming a ceiling the system does not enforce would be a deletion promise it cannot keep.
 - **Cost alerting in Bicep**, gated by `enableChatbot` like the rest: an action group, a monthly consumption budget with warnings at 50/80/100%, and an Azure Monitor alert on tokens processed per hour. Two alarms rather than one because Azure billing lags roughly eight hours — the budget sees real money late, the metric sees abuse in minutes, and neither of them stops anything. The TPM quota remains the only hard ceiling.
 - **An emergency shutdown runbook** for the existing kill switch, including that `VITE_CHATBOT_ENABLED` is build-time, so disabling the backend leaves the widget visible but unserviced until the frontend is rebuilt.
 
@@ -27,7 +27,7 @@ Deliberately **not** in this change:
 ### Modified Capabilities
 
 - `chatbot-conversation-persistence`: retention becomes tiered by identity kind rather than a flat 30 days.
-- `chatbot-widget`: the foot-of-chat area carries a retention notice alongside the existing generated-content disclaimer, and the disclaimer's wording changes.
+- `chatbot-widget`: the foot-of-chat area carries a privacy notice alongside the existing generated-content disclaimer, and the disclaimer's wording changes.
 - `chatbot-message-streaming`: a turn can now be refused before reaching the model when a quota is exhausted.
 
 ## Impact

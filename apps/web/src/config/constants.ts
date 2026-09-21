@@ -83,24 +83,25 @@ export const CHATBOT_REHYDRATE_TIMEOUT_MS = 10_000;
  * an official inventory figure: the assistant cites its corpus, but the
  * sentence wrapped around the citation is model output.
  *
- * `CHATBOT_RETENTION_NOTICE` states the CEILING, not the window that applies
- * to whoever is reading. Retention is tiered — 7 days for anonymous visitors,
- * 30 for signed-in ones (see CHATBOT_CONVERSATION_TTL_DAYS and
- * CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS in apps/api/src/config/constants.ts)
- * — and the two possible errors are not symmetric. Telling an anonymous
- * visitor their data is kept longer than it is costs nothing. Telling a
- * signed-in one it is kept a week would be a privacy assurance the system does
- * not honour. Stating the maximum is true for everyone, and keeps this a
- * static line instead of one that has to await session state before painting.
+ * `CHATBOT_PRIVACY_NOTICE` names no retention window, deliberately. An earlier
+ * draft read "Las conversaciones se guardan hasta 30 días", which reads as a
+ * promise to delete — and nothing deletes. `expires_at` is written and every
+ * read filters on it (see CHATBOT_CONVERSATION_TTL_DAYS and
+ * CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS in apps/api/src/config/constants.ts),
+ * so an expired conversation stops being reachable while the row survives in
+ * the database and in any dump of it. The window bounds visibility, not
+ * storage, and a ceiling the system does not enforce is the error that matters,
+ * because it is the one that errs against the reader. Physical deletion is the
+ * `chatbot-conversation-purge` change; a duration belongs in this line once
+ * that has landed and not before.
  *
- * The second sentence is the load-bearing half: retention length is a
+ * What is left was the load-bearing half regardless: a retention figure is a
  * disclosure, "no compartas datos personales" is a control — the cheapest
  * personal data to delete is the kind that was never typed.
  */
 export const CHATBOT_AI_DISCLAIMER =
   "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
-export const CHATBOT_RETENTION_NOTICE =
-  "Las conversaciones se guardan hasta 30 días. No compartas datos personales.";
+export const CHATBOT_PRIVACY_NOTICE = "No compartas datos personales.";
 
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;

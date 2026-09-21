@@ -62,7 +62,7 @@ This is the change's principal compliance move. What is not retained cannot be t
 
 ### Decision 5 — The retention windows stay compile-time constants
 
-**Rationale**: an environment variable would let a deployment change the window without rebuilding, which matters most for the air-gapped on-premise topology. It was rejected anyway, for two reasons. Adapting the _mechanism_ — anything beyond the number — requires code regardless, so configurability of the value buys less than it appears. And the widget's retention notice is rendered by a different application: if the API's window becomes an environment variable, the notice can only follow it through a new endpoint, or a build-time variable that reintroduces the rebuild it was meant to avoid, or by dropping the number and becoming vague.
+**Rationale**: an environment variable would let a deployment change the window without rebuilding, which matters most for the air-gapped on-premise topology. It was rejected anyway, for two reasons. Adapting the _mechanism_ — anything beyond the number — requires code regardless, so configurability of the value buys less than it appears. The second reason has since dissolved: it rested on the widget's notice quoting the number, and that notice no longer states any duration, because nothing deletes expired rows and a stated ceiling would promise a deletion that does not happen. The argument from mechanism stands on its own.
 
 ### Decision 6 — `chatbot-rag-mvp` Decision 25 is upheld: no delete affordance
 

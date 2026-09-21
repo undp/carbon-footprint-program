@@ -2,7 +2,7 @@
 
 `expires_at` is set once at conversation creation and filtered on by every read. Nothing deletes. Rows accumulate for as long as the tables have existed, so an expired conversation is invisible in the product and fully present in a backup.
 
-`chatbot-mvp-hardening` shortened the anonymous retention window to 7 days and told the user, at the foot of the chat panel, that conversations are kept up to 30. Both make the absence of an actual delete more visible rather than less: the shorter window marks more rows as expired without removing any, and the notice turns an unstated gap into a written claim.
+`chatbot-mvp-hardening` shortened the anonymous retention window to 7 days and, at the foot of the chat panel, deliberately declined to state any retention duration — nothing deletes expired rows, so a stated ceiling would be a deletion promise the system does not keep. Both make the absence of an actual delete more visible rather than less: the shorter window marks more rows as expired without removing any, and the missing sentence is a disclosure the platform cannot yet make.
 
 This design was built and implemented inside that change and then lifted out of it, so the hardening work could ship its spend controls without also introducing a scheduled background job. Nothing below was invalidated by that; it is the same design, waiting on the decision to run it.
 
