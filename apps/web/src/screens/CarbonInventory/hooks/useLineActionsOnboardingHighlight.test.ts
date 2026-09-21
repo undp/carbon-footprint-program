@@ -33,13 +33,18 @@ const setup = (opts: {
     isCompleted: (key: string) => completed.has(key),
     complete: completeMock,
   });
-  return renderHook(() =>
+  const rendered = renderHook(() =>
     useLineActionsOnboardingHighlight(
       opts.hasCapturedLines ?? true,
       opts.isExpertModeAvailable ?? false
     )
   );
+  rerenderLatest = rendered.rerender;
+  return rendered;
 };
+
+/** Re-render of the hook most recently mounted by `setup`. */
+let rerenderLatest: () => void;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -114,6 +119,28 @@ describe("useLineActionsOnboardingHighlight", () => {
       2,
       OnboardingKeys.EMISSION_CAPTURE_LINE_ACTIONS
     );
+  });
+
+  it("survives /me resolving while the popover is open", () => {
+    // The reason `isCompleted`/`complete` are read through refs and kept out
+    // of the effect's dep array. Their identities change when the completion
+    // list refetches or `isAuthenticated` flips — which happens routinely
+    // right after this hint appears. With them in the deps, that re-render
+    // would run the effect's cleanup and tear down a live popover WITHOUT
+    // persisting completion, so the hint would come back next visit.
+    setup({});
+    expect(runHighlightMock).toHaveBeenCalledTimes(1);
+
+    // A fresh `useOnboardingCompletion` result: same values, new identities.
+    useOnboardingCompletionMock.mockReturnValue({
+      ready: true,
+      isCompleted: () => false,
+      complete: vi.fn(),
+    });
+    rerenderLatest();
+
+    expect(cleanupMock).not.toHaveBeenCalled();
+    expect(runHighlightMock).toHaveBeenCalledTimes(1);
   });
 
   it("tears the highlight down on unmount", () => {
