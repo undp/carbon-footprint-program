@@ -76,6 +76,7 @@ export function ChatbotWidget() {
   const {
     state,
     messages,
+    cooldownSeconds,
     sendMessage,
     stop,
     seedMessages,
@@ -151,6 +152,9 @@ export function ChatbotWidget() {
   }
 
   const isBusy = state === "loading" || state === "streaming";
+  // A burst limit is running out: the send path is closed until it clears, so
+  // the user cannot spend the next window's slots retrying into a refusal.
+  const isCoolingDown = cooldownSeconds > 0;
 
   const draftLength = draft.length;
   const draftRatio = draftLength / CHATBOT_MAX_USER_INPUT_CHARS;
@@ -167,7 +171,7 @@ export function ChatbotWidget() {
     // button: the IconButton is disabled while busy, but the keyboard
     // path can still re-enter handleSend before React applies the
     // disabled prop on the next render.
-    if (isBusy) return;
+    if (isBusy || isCoolingDown) return;
     const content = draft.trim();
     if (!content) return;
     markIntroduced();
@@ -328,7 +332,11 @@ export function ChatbotWidget() {
             maxRows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escribe tu pregunta…"
+            placeholder={
+              isCoolingDown
+                ? `Puedes volver a preguntar en ${cooldownSeconds} s`
+                : "Escribe tu pregunta…"
+            }
             // Never disabled — kept enabled in every state (including
             // "degraded") so the user can always retry in place without the
             // destructive "Nueva conversación", and so streaming never blurs
@@ -356,7 +364,7 @@ export function ChatbotWidget() {
           <IconButton
             color="primary"
             onClick={() => void handleSend()}
-            disabled={!draft.trim() || isBusy}
+            disabled={!draft.trim() || isBusy || isCoolingDown}
             aria-label="Enviar mensaje"
           >
             <SendIcon />

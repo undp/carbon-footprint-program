@@ -76,7 +76,20 @@ const readServerMessage = async (response: Response): Promise<string | null> =>
  * only the first is fixed by shortening the message, so a fixed "acórtalo"
  * was actively wrong advice for the other two.
  */
-const describeClientError = async (response: Response): Promise<string> => {
+type ClientErrorOutcome = {
+  message: string;
+  /**
+   * Seconds the caller must wait before a retry can succeed. Present ONLY for
+   * the burst limiter, the one refusal where waiting is the remedy and the
+   * server says exactly how long. A token budget clears in twenty-four hours,
+   * so a countdown there would be theatre; its message names the real remedy.
+   */
+  retryAfterSeconds?: number;
+};
+
+const describeClientError = async (
+  response: Response
+): Promise<ClientErrorOutcome> => {
   if (response.status === 429) {
     // Two different refusals share this status and must not share copy, and the
     // headers cannot tell them apart. @fastify/rate-limit writes `x-ratelimit-*`
@@ -95,21 +108,28 @@ const describeClientError = async (response: Response): Promise<string> => {
     // instead, which is the whole difference between "something broke" and
     // "wait this long".
     const error = await readServerError(response);
-    if (error?.code === "QUOTA_EXCEEDED" && error.message) return error.message;
+    if (error?.code === "QUOTA_EXCEEDED" && error.message) {
+      return { message: error.message };
+    }
 
     const reset = Number(response.headers.get("x-ratelimit-reset"));
     if (Number.isFinite(reset) && reset > 0) {
-      return `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`;
+      return {
+        message: `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`,
+        retryAfterSeconds: reset,
+      };
     }
-    return error?.message ?? RATE_LIMITED_MESSAGE;
+    return { message: error?.message ?? RATE_LIMITED_MESSAGE };
   }
   if (response.status === 413) {
-    return (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE;
+    return {
+      message: (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE,
+    };
   }
   // The Zod body schema rejects content over the character cap before the
   // handler runs, so an oversized message arrives here and not as a 413.
-  if (response.status === 400) return TOO_LARGE_MESSAGE;
-  return GENERIC_ERROR_MESSAGE;
+  if (response.status === 400) return { message: TOO_LARGE_MESSAGE };
+  return { message: GENERIC_ERROR_MESSAGE };
 };
 
 type SsePayload = {
@@ -173,6 +193,43 @@ export const useChatStream = () => {
   const abortRef = useRef<AbortController | null>(null);
   // Guards against setState after unmount once the aborted fetch/read settles.
   const mountedRef = useRef(true);
+
+  // Burst-limit cooldown. Without it the composer re-opened the instant a 429
+  // landed, and every impatient retry spent another slot of the very window
+  // the user was waiting out — which is how a one-minute wait becomes an
+  // unending one, since the limiter counts refused requests too.
+  //
+  // Kept in a ref as well as state because `sendMessage` has to read it
+  // without taking it as a dependency: the callback's identity is part of the
+  // widget's memoization, and a value that ticks every second would churn it.
+  // `cooldownUntil` changes only when a cooldown starts, so the interval below
+  // is created once per cooldown rather than once per tick.
+  const cooldownUntilRef = useRef<number | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  const startCooldown = useCallback((seconds: number): void => {
+    cooldownUntilRef.current = Date.now() + seconds * 1000;
+    setCooldownUntil(cooldownUntilRef.current);
+    setCooldownSeconds(seconds);
+  }, []);
+
+  useEffect(() => {
+    if (cooldownUntil === null) return;
+    const tick = (): void => {
+      const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        cooldownUntilRef.current = null;
+        setCooldownUntil(null);
+        setCooldownSeconds(0);
+        return;
+      }
+      setCooldownSeconds(remaining);
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownUntil]);
 
   // Abort any in-flight turn on unmount so a stalled request cannot outlive
   // the widget and fire state updates after it is gone. Re-set `mountedRef`
@@ -355,6 +412,13 @@ export const useChatStream = () => {
   const sendMessage = useCallback(
     async (content: string): Promise<void> => {
       if (!content.trim()) return;
+      // Refuse locally rather than spend a slot the server would refuse anyway.
+      if (
+        cooldownUntilRef.current !== null &&
+        Date.now() < cooldownUntilRef.current
+      ) {
+        return;
+      }
       // Reset per-turn scoped state — Last-Event-ID must only carry IDs
       // observed during the CURRENT turn's stream, never a stale one from
       // an earlier turn that completed or errored.
@@ -525,11 +589,14 @@ export const useChatStream = () => {
             return;
           }
           consecutiveFailuresRef.current = 0;
-          const clientErrorMessage = await describeClientError(response);
+          const clientError = await describeClientError(response);
+          if (clientError.retryAfterSeconds !== undefined) {
+            startCooldown(clientError.retryAfterSeconds);
+          }
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
-            content: clientErrorMessage,
+            content: clientError.message,
             error: true,
           }));
           return;
@@ -574,7 +641,7 @@ export const useChatStream = () => {
         }
       }
     },
-    [consumeStream, nextMessageId, updateLastAssistant]
+    [consumeStream, nextMessageId, startCooldown, updateLastAssistant]
   );
 
   const deleteHistory = useCallback(async (): Promise<void> => {
@@ -675,6 +742,9 @@ export const useChatStream = () => {
   return {
     state,
     messages,
+    // Seconds left before a retry can succeed, or 0. Only ever set by the
+    // burst limiter — see ClientErrorOutcome.retryAfterSeconds.
+    cooldownSeconds,
     sendMessage,
     deleteHistory,
     stop,

@@ -108,6 +108,27 @@ A single generic message is insufficient because the three cases have different 
 - **WHEN** the anonymous pool refuses a turn
 - **THEN** the response SHALL carry a message equivalent to `"El asistente alcanzó su límite de uso diario. Inicia sesión para continuar."`, naming the remedy that actually restores service
 
+### Requirement: The widget holds the send path closed for the burst wait
+
+After a burst rejection, the widget SHALL refuse to send for the number of seconds the limiter reported, SHALL disable the send control, and SHALL show the remaining time. It SHALL NOT open a cooldown for a token-budget rejection.
+
+The limiter counts refused requests as well as admitted ones, so retrying inside a live window spends slots of the very window the caller is waiting out. Left open, an impatient caller turns a one-minute wait into an unending one — which is what the field report showed. A token budget clears in twenty-four hours instead, so a countdown there would be theatre; its message names the remedy that works.
+
+#### Scenario: Retrying inside the burst window reaches no network
+
+- **WHEN** the caller sends again before the reported wait has elapsed
+- **THEN** the widget SHALL issue no request, and the send control SHALL be disabled
+
+#### Scenario: The wait is visible and counts down
+
+- **WHEN** a burst cooldown is running
+- **THEN** the remaining seconds SHALL be shown to the caller and SHALL decrease each second until the send path reopens
+
+#### Scenario: A quota refusal opens no cooldown
+
+- **WHEN** a token budget refuses a turn
+- **THEN** the widget SHALL leave the send path open, because waiting is not the remedy and the caller may sign in or return the next day
+
 ### Requirement: Quota rejections are 429 and are distinguishable from payload rejections
 
 Quota rejections SHALL use HTTP 429 and SHALL NOT reuse HTTP 413, which the endpoint already returns for oversized user input. The widget SHALL render the server's message for a 429 rather than substituting the generic provider-failure copy.

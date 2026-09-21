@@ -20,11 +20,13 @@ const h = vi.hoisted(() => {
   const holder: {
     initialState: ChatbotState;
     initialMessages: ChatbotMessage[];
+    cooldownSeconds: number;
     resetSpy: Mock;
     sendSpy: Mock;
   } = {
     initialState: "empty",
     initialMessages: [],
+    cooldownSeconds: 0,
     resetSpy: vi.fn(),
     sendSpy: vi.fn(),
   };
@@ -44,6 +46,7 @@ vi.mock("./useChatStream", () => ({
     return {
       state,
       messages,
+      cooldownSeconds: h.cooldownSeconds,
       sendMessage: h.sendSpy,
       stop: vi.fn(),
       deleteHistory: vi.fn(),
@@ -75,6 +78,7 @@ let fetchMock: Mock;
 beforeEach(() => {
   h.initialState = "empty";
   h.initialMessages = [];
+  h.cooldownSeconds = 0;
   h.resetSpy.mockClear();
   h.sendSpy.mockClear();
   fetchMock = vi.fn();
@@ -154,6 +158,43 @@ describe("ChatbotWidget", () => {
       expect(
         screen.getByRole("button", { name: NEW_CONVERSATION_LABEL })
       ).toBeDisabled();
+    });
+  });
+
+  // The burst limiter counts refused requests too, so an open composer lets an
+  // impatient user spend the next window's slots before it even opens.
+  describe("burst cooldown", () => {
+    it("closes the send path and names the remaining wait", () => {
+      h.cooldownSeconds = 7;
+      render(<ChatbotWidget />);
+
+      expect(
+        screen.getByPlaceholderText("Puedes volver a preguntar en 7 s")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Enviar mensaje" })
+      ).toBeDisabled();
+    });
+
+    it("sends nothing on Enter while the wait is running", () => {
+      h.cooldownSeconds = 7;
+      render(<ChatbotWidget />);
+
+      const input = screen.getByPlaceholderText(
+        "Puedes volver a preguntar en 7 s"
+      );
+      fireEvent.change(input, { target: { value: "otra pregunta" } });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(h.sendSpy).not.toHaveBeenCalled();
+    });
+
+    it("restores the ordinary placeholder once the wait clears", () => {
+      render(<ChatbotWidget />);
+
+      expect(
+        screen.getByPlaceholderText("Escribe tu pregunta…")
+      ).toBeInTheDocument();
     });
   });
 
