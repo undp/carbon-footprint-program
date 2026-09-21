@@ -43,6 +43,14 @@ const SHARED_TEST_ENV = {
   // suite so its routes register and the chatbot integration tests run
   // (LLM_PROVIDER defaults to "mock").
   CHATBOT_ENABLED: "true",
+  // The chatbot's per-route burst limit defaults to 15 turns/minute, keyed by
+  // IP. Every request in the suite comes from loopback, so one file's worth of
+  // turns shares a single bucket and the limiter — whose store is per app
+  // instance, and the chatbot suites build one app in beforeAll — would start
+  // answering 429 partway through. Raised here so the limit is exercised only
+  // by the test that means to exercise it, which builds its own app with a low
+  // cap rather than relying on this one.
+  CHATBOT_MAX_TURNS_PER_MINUTE: "1000",
   // Deterministic SHA-256-seeded embeddings for the corpus/retrieval suites.
   // Never "azure-openai" here: the tests must not reach a live endpoint.
   EMBEDDING_PROVIDER: "mock",

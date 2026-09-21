@@ -5,6 +5,7 @@ import {
 import { z } from "zod";
 import { ApiErrorResponseSchema } from "@/commonSchemas/errors.js";
 import type { FastifyZodInstance } from "@/types/fastify.js";
+import { CHATBOT_MAX_TURNS_PER_MINUTE } from "@/config/environment.js";
 import { chatbotIdentityPreHandler } from "@/features/chatbot/helpers/identity.js";
 import { sendMessageHandler } from "./handler.js";
 
@@ -21,7 +22,22 @@ export const sendMessageRoute = (fastify: FastifyZodInstance): void => {
   fastify.post<{ Body: SendMessageRequestBody }>(
     "/message",
     {
-      config: { allowPublicAccess: true },
+      config: {
+        allowPublicAccess: true,
+        // Tighter than the global 100 req/min because the unit of cost differs:
+        // a chatbot turn invokes a model, the rest of the API does not.
+        //
+        // Keyed by IP, inheriting the global plugin's `toRateLimitKey`
+        // normalization. Not a preference — @fastify/rate-limit runs in
+        // `onRequest`, and the chatbot identity is resolved in `preHandler`
+        // below, so `request.chatbotIdentity` does not exist yet when the
+        // bucket key is computed. Identity-scoped limits live in the handler,
+        // after the preHandler has run.
+        rateLimit: {
+          max: CHATBOT_MAX_TURNS_PER_MINUTE,
+          timeWindow: "1 minute",
+        },
+      },
       schema: {
         tags: ["chatbot"],
         summary: "Send a chat message and stream the assistant response",
@@ -32,6 +48,7 @@ export const sendMessageRoute = (fastify: FastifyZodInstance): void => {
           200: SendMessageStreamSchema,
           400: ApiErrorResponseSchema,
           413: ApiErrorResponseSchema,
+          429: ApiErrorResponseSchema,
           500: ApiErrorResponseSchema,
         },
       },

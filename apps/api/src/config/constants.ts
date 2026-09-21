@@ -30,6 +30,38 @@ export const MEASURING_ORGANIZATIONS_YEAR_RANGE = 2;
 export const CHATBOT_MAX_USER_INPUT_TOKENS = 4000;
 
 /**
+ * Chatbot turns accepted per minute from one client IP, on top of the global
+ * 100 req/min limiter.
+ *
+ * The global limit counts requests, and a chatbot request is not like the
+ * others: it can cost several thousand tokens where the rest of the API costs
+ * none. 100 model invocations per minute per IP is a hole in the cost floor.
+ *
+ * Keyed by IP rather than by caller identity, and not by choice.
+ * `@fastify/rate-limit` runs in `onRequest`; `chatbotIdentityPreHandler`
+ * resolves the caller in `preHandler`, which is strictly later. A keyGenerator
+ * cannot read `request.chatbotIdentity` because it does not exist yet. The
+ * identity-scoped controls live where the identity does — see the token budget
+ * and the anonymous pool below.
+ *
+ * This layer is what bounds overshoot the token budgets structurally cannot
+ * see: those are read before a turn and credited after it, so simultaneous
+ * turns all pass the same stale total. Capping turns per minute caps how far
+ * past the budget a burst can carry.
+ *
+ * Sized so a room of people demoing behind one NAT does not notice — they share
+ * a bucket, which is the accepted cost of a limit that must run before identity
+ * is known.
+ *
+ * This is the DEFAULT. The effective value is `CHATBOT_MAX_TURNS_PER_MINUTE` in
+ * config/environment.ts, which a deployment may raise — a country whose users
+ * all egress through one address may legitimately need more, and the
+ * integration suite drives more turns per file than any caller would in a
+ * minute.
+ */
+export const CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15;
+
+/**
  * Token budget for a single request to the provider: system prompt, the
  * incoming user message, and as much prior history as still fits.
  *

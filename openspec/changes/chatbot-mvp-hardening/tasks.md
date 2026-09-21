@@ -31,10 +31,10 @@
 
 ## 4. Burst limit on the send route
 
-- [ ] 4.1 Add `CHATBOT_MAX_TURNS_PER_MINUTE = 15` to `apps/api/src/config/constants.ts`, documenting that it bounds the overshoot the token budgets cannot see because they read before a turn and credit after it.
-- [ ] 4.2 Add the route-level `rateLimit` config to `apps/api/src/features/chatbot/sendMessage/route.ts` alongside the existing `allowPublicAccess`.
-- [ ] 4.3 Document at the call site that this layer keys on IP because `@fastify/rate-limit` runs in `onRequest`, before `chatbotIdentityPreHandler` resolves the caller — an ordering constraint, not a preference.
-- [ ] 4.4 Add an integration test asserting that turns beyond the cap receive 429 and never reach the LLM provider.
+- [x] 4.1 Add the cap, documenting that it bounds the overshoot the token budgets cannot see because they read before a turn and credit after it. **Shipped as `CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15` in `config/constants.ts` plus a `CHATBOT_MAX_TURNS_PER_MINUTE` env override in `config/environment.ts`**, not a bare constant: the limiter's store is per app instance and the chatbot suites build one app per file, so a fixed 15 made `toolRound` (19 turns) start 429-ing partway through. The suite raises it in `vitest.config.ts`; the burst test builds its own app with a cap of 2.
+- [x] 4.2 Add the route-level `rateLimit` config to `apps/api/src/features/chatbot/sendMessage/route.ts` alongside the existing `allowPublicAccess`.
+- [x] 4.3 Document at the call site that this layer keys on IP because `@fastify/rate-limit` runs in `onRequest`, before `chatbotIdentityPreHandler` resolves the caller — an ordering constraint, not a preference.
+- [x] 4.4 Add an integration test asserting that turns beyond the cap receive 429 and never reach the LLM provider.
 
 ## 5. Tiered retention and conversation purge
 
