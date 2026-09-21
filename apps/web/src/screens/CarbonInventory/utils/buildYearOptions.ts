@@ -1,6 +1,27 @@
+import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
+
+/**
+ * The years a footprint may reasonably be declared for, counting back from the
+ * current one.
+ *
+ * Only the expert mode is offered these: a year outside the catalogue leaves
+ * the capture step with nothing to capture with, which is a trade-off an expert
+ * can weigh (a catalogue may still be loading for the year they are reporting)
+ * and a first-time user cannot.
+ */
+export const buildDeclarableYears = (
+  currentYear: number = new Date().getFullYear()
+): number[] =>
+  Array.from(
+    { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
+    (_, index) => currentYear - index
+  );
+
 /**
  * The options of the footprint year selector: the years the methodology's
- * catalogue covers, plus whatever year the footprint already carries.
+ * catalogue covers, plus whatever year the footprint already carries, plus the
+ * years the caller offers beyond the catalogue (the expert mode's declarable
+ * window; empty for everyone else).
  *
  * The persisted year is merged in rather than assumed to be present. A MUI
  * `Select` paints a value that is not among its options as empty, so a footprint
@@ -12,9 +33,10 @@
  */
 export const buildYearOptions = (
   catalogueYears: number[],
-  selectedYear: number | null
+  selectedYear: number | null,
+  extraYears: number[] = []
 ): string[] => {
-  const years = new Set(catalogueYears);
+  const years = new Set([...catalogueYears, ...extraYears]);
 
   if (selectedYear !== null) {
     years.add(selectedYear);

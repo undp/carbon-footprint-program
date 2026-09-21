@@ -19,11 +19,16 @@ import {
   CarbonInventoryNavigationButton,
 } from "./components";
 import { useCarbonInventory, useEmissionFactorYears } from "@/api/query";
+import { UsageMode } from "@repo/types";
+import { useWatch } from "react-hook-form";
 import { EXIT_DIALOG_CONTENT, YEAR_CHANGE_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
-import { buildYearOptions } from "./utils/buildYearOptions";
+import {
+  buildDeclarableYears,
+  buildYearOptions,
+} from "./utils/buildYearOptions";
 import {
   IS_DEVELOPMENT,
   LOCAL_BYPASS_REQUIRED_FIELDS,
@@ -41,6 +46,12 @@ import { toSafeString } from "@/utils/string";
 
 const NO_CATALOGUE_YEARS_MESSAGE =
   "La metodología aún no tiene factores de emisión cargados para ningún año. Escribe al equipo de metodología antes de continuar.";
+
+// Only the expert mode can reach a year outside the catalogue, so only it needs
+// to be told what that year costs: the selector no longer decides for the user,
+// but the consequence still has to be visible before the capture step.
+const YEAR_WITHOUT_FACTORS_MESSAGE =
+  "La metodología no tiene factores de emisión cargados para este año: las subcategorías llegarán sin factores al paso de captura.";
 
 const INVENTORY_ERROR_MESSAGE = {
   title: "No se encontró la huella",
@@ -96,9 +107,20 @@ export const BusinessProfilingScreen: FC = () => {
     isError: hasCatalogueYearsError,
   } = useEmissionFactorYears(inventoryId);
 
+  // The catalogue bounds the selector in the simplified mode only. An expert
+  // reporting a year the catalogue has not caught up with is making a call the
+  // guided user has no way to weigh, so the declarable window is offered to them
+  // on top of the catalogue.
+  const isExpertMode = existingInventory?.usageMode === UsageMode.EXPERT;
+
   const yearOptions = useMemo(
-    () => buildYearOptions(catalogueYears, existingInventory?.year ?? null),
-    [catalogueYears, existingInventory?.year]
+    () =>
+      buildYearOptions(
+        catalogueYears,
+        existingInventory?.year ?? null,
+        isExpertMode ? buildDeclarableYears() : []
+      ),
+    [catalogueYears, existingInventory?.year, isExpertMode]
   );
 
   const { isReady, mustNavigateAway } =
@@ -125,6 +147,18 @@ export const BusinessProfilingScreen: FC = () => {
       defaultValue: toSafeString(existingInventory.year),
     });
   }, [existingInventory, resetField]);
+
+  const selectedYear = useWatch({ control, name: "year" });
+
+  const yearHelperText = useMemo(() => {
+    if (yearOptions.length === 0) return NO_CATALOGUE_YEARS_MESSAGE;
+
+    if (!selectedYear || catalogueYears.includes(Number(selectedYear))) {
+      return undefined;
+    }
+
+    return YEAR_WITHOUT_FACTORS_MESSAGE;
+  }, [yearOptions.length, selectedYear, catalogueYears]);
 
   const {
     selectedSector,
@@ -314,11 +348,7 @@ export const BusinessProfilingScreen: FC = () => {
                       label: year,
                       value: year,
                     }))}
-                    helperText={
-                      yearOptions.length === 0
-                        ? NO_CATALOGUE_YEARS_MESSAGE
-                        : undefined
-                    }
+                    helperText={yearHelperText}
                     required
                   />
                   <FormTextField
