@@ -55,21 +55,10 @@
 - [x] 6.7 Confirm the widget renders the server's 429 body rather than substituting the generic provider-failure copy, and add a web test for it. **Found a real bug**: the 429 branch assumed every 429 came from the burst limiter and told the caller to wait, which is wrong advice for a spent daily allowance. Now the reset header selects the burst copy and its absence reads the server's message.
 - [x] 6.8 Add integration tests: identity over budget is refused; anonymous caller refused when the pool is exhausted; authenticated caller unaffected by an exhausted pool; refused turns leave no message rows.
 
-## 7. Always retrieve, and floor the results
+## 7. Documentation sync and verification
 
-- [ ] 7.1 Add `CHATBOT_MIN_SIMILARITY = 0.45`, documented as provisional, explaining why it errs high and that it awaits measurement.
-- [ ] 7.2 Thread a tool-choice option through the LLM provider so the first round can force `searchKnowledge` while the second round stays unforced.
-- [ ] 7.3 Force the call on the first round in `sendMessage/handler.ts`, preserving the existing single-round invariant and its guard against a second consecutive tool call.
-- [ ] 7.4 Amend `prompts/es/system.md` so the decision of whether to search is gone, and so the greeting and off-domain modes still return their canned responses when a forced retrieval yields nothing relevant.
-- [ ] 7.5 Filter rows below `CHATBOT_MIN_SIMILARITY` in TypeScript after the query; leave the SQL `WHERE` untouched so the HNSW plan stays driven by `ORDER BY ... LIMIT`.
-- [ ] 7.6 Log the top row's similarity on every retrieval, and log when no row survives the floor, so the value can later be calibrated from data.
-- [ ] 7.7 Document at the `embedding_model` filter that changing the embedding model makes the whole existing corpus silently invisible and obliges a full re-ingestion.
-- [ ] 7.8 Add tests: the first round forces the tool call, the second does not, weak rows are dropped, an all-weak result takes the existing K=0 path, and a greeting is not answered with the K=0 opener.
-
-## 8. Documentation sync and verification
-
-- [ ] 8.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention, leaving its statement that expired rows still accumulate intact — that remains true until `chatbot-conversation-purge` lands.
-- [ ] 8.2 Leave the "Chatbot Conversation Purge" section of `docs/operations/runbook.md` alone — the manual sweep it documents is still the only thing that deletes.
-- [ ] 8.3 Record in the runbook that the anonymous token pool can be exhausted by one actor and how an operator recognizes that state, so it is not diagnosed as an outage.
-- [ ] 8.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API and web suites; confirm all pass.
-- [ ] 8.5 Re-read the specs against the implementation and reconcile any drift in the specs rather than in silence.
+- [ ] 7.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention, leaving its statement that expired rows still accumulate intact — that remains true until `chatbot-conversation-purge` lands.
+- [ ] 7.2 Leave the "Chatbot Conversation Purge" section of `docs/operations/runbook.md` alone — the manual sweep it documents is still the only thing that deletes.
+- [ ] 7.3 Record in the runbook that the anonymous token pool can be exhausted by one actor and how an operator recognizes that state, so it is not diagnosed as an outage.
+- [ ] 7.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API and web suites; confirm all pass.
+- [ ] 7.5 Re-read the specs against the implementation and reconcile any drift in the specs rather than in silence.

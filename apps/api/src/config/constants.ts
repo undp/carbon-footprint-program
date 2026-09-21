@@ -117,9 +117,11 @@ export const CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000;
  * CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT is for.
  *
  * What they measure is an undercount. `tokens_used` records only the terminal
- * round, and forcing `tool_choice` makes every turn a tool turn, so the first
- * round is never counted. Both layers inherit that undercount uniformly, which
- * makes them consistent with each other and conservative about nothing.
+ * round, so on any turn where the model calls `searchKnowledge` the first
+ * round's tokens are never counted — and those are the expensive turns, since
+ * they are the ones that also pay for an embedding. Both layers inherit the
+ * same undercount, which keeps them consistent with each other while leaving
+ * the true spend above what either one reads.
  */
 export const CHATBOT_TOKEN_BUDGET_WINDOW_MS = 24 * 60 * 60 * 1000;
 

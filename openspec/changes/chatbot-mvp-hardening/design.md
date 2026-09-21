@@ -2,23 +2,22 @@
 
 The chatbot works and is unprotected. Spend has no ceiling below the Azure TPM quota, which is a physical throughput cap rather than a budget. The request-per-minute limiter counts requests, and a chatbot request can cost four thousand tokens where every other API request costs none. Retention is written and read but never enforced: `expires_at` is set at creation, every query filters on it, and nothing deletes, so the rows accumulate indefinitely and a database dump still carries conversations the product has told the user are gone.
 
-Two properties of the deployment shape every decision here. The frontend is a Static Web App and the API is an App Service on a different registrable domain, so the anonymous session cookie is a third-party cookie — `SameSite=None; Secure` — and the repository already documents that browsers discarding it is "a routine event, not an edge case". And the corpus is currently one five-page chapter, which masks retrieval-quality problems that will surface the moment it grows.
+Two properties of the deployment shape every decision here. The frontend is a Static Web App and the API is an App Service on a different registrable domain, so the anonymous session cookie is a third-party cookie — `SameSite=None; Secure` — and the repository already documents that browsers discarding it is "a routine event, not an edge case".
 
-`chatbot-rag-mvp` is not archived. Its deltas introduce the retrieval capability and the tool round that this change modifies, so this change's specs assume it lands first.
+This change deliberately does not touch how the assistant retrieves or answers. It bounds what the chatbot may spend, shortens what it keeps, tells the user both, and writes down how to switch it off — the retrieval and prompt behaviour it inherits from `chatbot-rag-mvp` is left exactly as that change shipped it.
 
 ## Goals / Non-Goals
 
 **Goals:**
 
 - Put a ceiling on chatbot spend that cannot be removed by discarding a cookie.
-- Stop the model from deciding whether to search, and stop weak fragments from reaching it.
 - Give an operator a written procedure for shutting the chatbot off under pressure.
 - Make cost visible early enough to act, while being explicit that nothing added here throttles.
 
 **Non-Goals:**
 
 - A user-facing delete affordance. Examined and deliberately not added — see Decision 6.
-- An evaluation suite. Its stated prerequisites do not exist yet — see Decision 8.
+- An evaluation suite. Its prerequisites — an operator-supplied corpus and golden questions from a domain expert — do not exist yet.
 - Corpus ingestion. Requires the real documents, Azure access, and an operator role.
 - A hot kill switch. The environment flag with a one-minute restart is sufficient for an MVP; a database-backed flag adds a table, an admin endpoint, and a cache.
 - Per-deployment configurability of the retention window — see Decision 5.
@@ -77,47 +76,30 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 
 **Consequence**: the `ChatbotWidget.tsx` comment explaining why `deleteHistory` is unwired remains accurate and stays. The existing widget test asserting the absence of a deletion control stays unchanged. `chatbot-rag-mvp` tasks 9.7 and 10.38 remain correctly deferred, and archiving that change after this one creates no contradiction.
 
-### Decision 7 — Forced `tool_choice`, not a pre-retrieval refactor
-
-**Rationale**: the goal is to remove a decision the model makes badly — recommendation-shaped questions do not read as lookups, so they skip retrieval and reach the fallback while the answer sits unread. Forcing the first round's `tool_choice` achieves that with one provider flag and a prompt amendment, preserving the single-round tool architecture and its existing test surface.
-
-**Alternative considered**: retrieving server-side before the first completion and dropping the tool entirely. It is architecturally cleaner and _cheaper_ — one round per turn instead of two — but it removes the tool round the handler is built around and rewrites the bulk of its integration coverage. Right-sizing won; the cheaper design is worth revisiting if turn cost becomes a problem.
-
-**Cost accepted**: every turn now pays one embedding and two rounds, including greetings. The prompt must be amended so the non-retrieval modes stay correct when a forced search returns nothing — otherwise a greeting would open with the K=0 literal.
-
-### Decision 8 — The similarity floor is applied in TypeScript and ships provisional
-
-**Rationale for the placement**: the HNSW index is chosen by the `ORDER BY ... LIMIT` shape. A similarity predicate in `WHERE` risks a different plan for no gain, since the filter runs over at most eight rows.
-
-**Rationale for the value**: 0.45 errs high on purpose. Of the three outcomes an evaluation would measure, answering confidently and wrongly is the one that matters, and a low floor is what produces it. A figure near 0.35 is commonly cited for this embedding model, but that is a reference point, not a measurement of this corpus. The handler logs the top similarity of every retrieval so the value can be replaced by a measurement rather than a second guess.
-
-### Decision 9 — Three rejection messages, not one
+### Decision 7 — Three rejection messages, not one
 
 **Rationale**: the three quota layers have different remedies — wait seconds, wait for the window, or sign in. Only the third has an immediate one, and it is invisible under a generic message. The cost is that the pool's message confirms to an abuser that the pool is exhausted; that is accepted, since silence would not deter them and does confuse everyone else.
 
-### Decision 10 — Budget default of 30 USD per month
+### Decision 8 — Budget default of 30 USD per month
 
 **Rationale**: taken from the team's own cost modelling — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000. Thirty is the value at which ordinary operation is silent (the 300-user case never reaches the 50% threshold), growth is audible (the 500-user case trips 50% and 80%), and an anomaly is unmistakable (the 1000-user case exceeds all three). A default calibrated so that the first threshold fires during normal use would train everyone to ignore it.
 
 ## Risks / Trade-offs
 
 - **One actor can deny the anonymous chatbot for a day** → accepted per Decision 2; authenticated callers keep service and the rejection message tells anonymous callers so.
-- **The per-identity budget measures an undercount** → `tokens_used` records only the terminal round, and forcing `tool_choice` makes every turn a tool turn, so the first round is never counted. Documented on the constant; the pool is the layer that actually bounds spend, and it inherits the same undercount uniformly.
+- **Both budgets measure an undercount** → `tokens_used` records only the terminal round, so on a turn where the model calls the retrieval tool the first round is never counted, and those are the turns that also pay for an embedding. Documented on the constants; both layers inherit the same undercount, so they stay consistent with each other while true spend sits above what either reads.
 - **Quota checks read before the turn and credit after it** → concurrent turns all pass against the same stale total. Overshoot is bounded by concurrency times per-turn cost, which is what the burst limit exists to cap.
 - **Thirty days at the pool cap exceeds the monthly budget** → the direct consequence of Decision 3; the consumption budget alert is the compensating control and is therefore load-bearing.
 - **Callers behind one NAT share a burst bucket** → an institutional demo consumes one bucket for the room. Accepted: the limit must run before identity is known, and 15/minute is sized so a room of demo users does not notice.
 - **Anonymous threads now vanish after a week** → a behavioural change for anonymous callers, mitigated by the fact that the same outcome already occurs whenever the browser drops the session cookie.
-- **Forcing retrieval costs an embedding and a round on every turn, including greetings** → accepted per Decision 9; the TPM quota bounds the worst case and the new token budgets bound the expected one.
-- **The similarity floor is a guess** → it is instrumented from day one and documented as provisional; the eval suite that would calibrate it is deferred with its prerequisites named.
 - **Cost alerting exists only on Azure** → the on-premise deployment has no budget and no metric alert, so its only cost controls are the application-level quotas. Stated in the module and the runbook so it is not assumed to be present everywhere.
 - **The metric alert's exact Azure metric name is unverified** → to be confirmed against the deployed account during implementation; if hourly aggregation does not behave as assumed, that is reported rather than worked around silently.
 
 ## Migration Plan
 
-1. `chatbot-rag-mvp` archives first. This change's `chatbot-corpus-retrieval` delta and its `chatbot-message-streaming` tool-round modification assume that capability exists in the main specs.
-2. API changes deploy together: constants, quota checks, forced tool choice, similarity floor, tiered retention. No database migration accompanies them.
-3. Infrastructure deploys independently. The budget amount is a parameter; the module is inert while `enableChatbot` is false.
-4. Web deploys independently — the two notices are static text with no API dependency.
+1. API changes deploy together: constants, quota checks, tiered retention. No database migration accompanies them.
+2. Infrastructure deploys independently. The budget amount is a parameter; the module is inert while `enableChatbot` is false.
+3. Web deploys independently — the two notices are static text with no API dependency.
 
 **Rollback**: every element is independently revertible, and nothing here changes the schema. Raising the constants disables the quotas without a deploy of behaviour. The retention tiering affects only rows created after it ships, so reverting it neither resurrects nor destroys anything.
 
