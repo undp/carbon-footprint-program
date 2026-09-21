@@ -88,19 +88,41 @@ export async function findReferencedEmissionFactors(
  * in the state a year change already produces, which the existing completeness
  * rules read as unfinished.
  *
- * A line with no `baseFactorId` is either manual or has no factor yet; both are
- * left to `createLineFactor`'s own guards. A referenced factor that is not in
- * the map cannot be of the footprint's year either, and a footprint with no
- * year is offered no factors at all, so both are reconciled the same way.
+ * A referenced factor that is not in the map cannot be of the footprint's year
+ * either, and a footprint with no year is offered no factors at all, so both
+ * are reconciled the same way.
+ *
+ * A null `baseFactorId` is not enough to call a line manual. Three shapes
+ * arrive with one:
+ *  - nothing frozen yet — a line still being filled in, or a direct-total line
+ *    whose emissions were typed rather than computed. `appliedFactorValue` is
+ *    null, there is nothing to reconcile, and `createLineFactor`'s own guard
+ *    handles it.
+ *  - a manual factor, whose source is one of `CUSTOM_FACTOR_SOURCES`. Its value
+ *    and source were typed by the user and no catalogue can restore them.
+ *  - a value with a *catalogue* source and no id: either a snapshot damaged
+ *    before PR 647 preserved the factor identity, or a forged payload. Both are
+ *    reconciled like a factor of another year. Treating them as manual is what
+ *    would make them permanent — `mapLineToResponse` derives `baseFactorId`
+ *    from `emissionFactorId`, so the line round-trips with a null id and no
+ *    later save would ever look at it again, while the source keeps
+ *    `fieldValidationService` from reading the line as unfinished.
+ *
+ * The same three-way split is what `clearCatalogueFactorsOfLines` and the
+ * migration's `DELETE` predicate encode; the three must agree or a line slips
+ * through every one of them.
  */
-export function isFactorOfFootprintYear(
-  item: Pick<ItemData, "baseFactorId">,
+export function isFactorKeptOnLine(
+  item: Pick<ItemData, "baseFactorId" | "factorSource" | "appliedFactorValue">,
   factorsById: Map<string, { year: number }>,
   footprintYear: number | null
 ): boolean {
-  if (item.baseFactorId === null) return true;
+  if (item.baseFactorId !== null)
+    return factorsById.get(item.baseFactorId)?.year === footprintYear;
 
-  return factorsById.get(item.baseFactorId)?.year === footprintYear;
+  if (item.appliedFactorValue === null) return true;
+
+  return CUSTOM_FACTOR_SOURCES.includes(item.factorSource ?? "");
 }
 
 /**
@@ -182,20 +204,29 @@ export async function createLineFactor(
 }
 
 /**
- * Creates a carbon inventory line result with null-safe total emissions calculation
+ * Creates a carbon inventory line result with null-safe total emissions
+ * calculation.
+ *
+ * `keepsFactor` gates the computed branch only: a result derived from a factor
+ * goes with the snapshot it was computed from, so a line whose factor was
+ * reconciled away gets no result either.
  */
 export async function createLineResult(
   tx: Prisma.TransactionClient,
   lineInputId: bigint,
   item: ItemData,
   inputType: InputType,
-  userId: bigint | null
+  userId: bigint | null,
+  keepsFactor: boolean
 ) {
   let totalEmissions: Prisma.Decimal | null = null;
 
   if (inputType === InputType.DIRECT && item.manualTotalEmissions !== null) {
+    // A direct total was typed, not computed, so a reconciled factor cannot
+    // invalidate it — this branch ignores `keepsFactor` on purpose.
     totalEmissions = mapDecimalField(tonToKg(item.manualTotalEmissions));
   } else if (
+    keepsFactor &&
     (inputType === InputType.SIMPLIFIED || inputType === InputType.EXPERT) &&
     item.quantity !== null &&
     item.appliedFactorValue !== null

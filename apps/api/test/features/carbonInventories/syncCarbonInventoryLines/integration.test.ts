@@ -1531,6 +1531,84 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.quantity?.toString()).toBe("1500");
     });
 
+    it("reconciles a snapshot that lost its factor id but kept a catalogue source", async () => {
+      // The shape a line damaged before PR 647 round-trips with: the payload
+      // echoes `baseFactorId: null` while the source is a real catalogue one.
+      // Reading it as manual would persist it forever — no later save sees a
+      // factor id to check, and the non-null source keeps the completeness
+      // rules from flagging the line.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2026,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 1500,
+              factorSource: "DEFRA 2025",
+              baseFactorId: null,
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.quantity).toBe(1500);
+      expect(created.factorSource).toBeNull();
+
+      const input = await readSnapshot(created.id);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+    });
+
+    it("keeps a direct-total line, whose emissions were typed rather than computed", async () => {
+      // A direct total carries no factor id either, and must not be swept up
+      // with the damaged snapshots: the number is the user's own.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2026,
+        2025
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: null,
+              manualTotalEmissions: 500000,
+              inputType: "DIRECT",
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.manualTotalEmissions).toBe(500000);
+
+      const input = await readSnapshot(created.id);
+      expect(input.result).not.toBeNull();
+    });
+
     it("persists the rest of the payload normally", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2024);

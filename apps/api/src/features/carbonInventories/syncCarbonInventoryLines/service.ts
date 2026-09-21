@@ -12,7 +12,7 @@ import {
   createLineFactor,
   createLineResult,
   findReferencedEmissionFactors,
-  isFactorOfFootprintYear,
+  isFactorKeptOnLine,
   linkFilesToCarbonInventoryLine,
   unlinkFilesFromCarbonInventoryLine,
 } from "./helper.js";
@@ -153,16 +153,21 @@ export const syncCarbonInventoryLinesService = async (
       // A factor of another year is left off the line entirely: no snapshot and
       // no result, so the cell comes back empty and the line reads as
       // unfinished. Everything else the payload carries is persisted.
-      if (
-        isFactorOfFootprintYear(
-          createItem,
-          referencedFactors,
-          carbonInventory.year
-        )
-      ) {
+      const keepsFactor = isFactorKeptOnLine(
+        createItem,
+        referencedFactors,
+        carbonInventory.year
+      );
+      if (keepsFactor)
         await createLineFactor(tx, newInput.id, createItem, userId);
-        await createLineResult(tx, newInput.id, createItem, inputType, userId);
-      }
+      await createLineResult(
+        tx,
+        newInput.id,
+        createItem,
+        inputType,
+        userId,
+        keepsFactor
+      );
 
       if (createItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(
@@ -194,16 +199,21 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      if (
-        isFactorOfFootprintYear(
-          updateItem,
-          referencedFactors,
-          carbonInventory.year
-        )
-      ) {
+      const keepsFactor = isFactorKeptOnLine(
+        updateItem,
+        referencedFactors,
+        carbonInventory.year
+      );
+      if (keepsFactor)
         await createLineFactor(tx, newInput.id, updateItem, userId);
-        await createLineResult(tx, newInput.id, updateItem, inputType, userId);
-      }
+      await createLineResult(
+        tx,
+        newInput.id,
+        updateItem,
+        inputType,
+        userId,
+        keepsFactor
+      );
 
       if (updateItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(

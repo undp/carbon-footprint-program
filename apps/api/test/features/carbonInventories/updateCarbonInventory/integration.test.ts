@@ -421,7 +421,11 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
      *  - a parked (`OUTDATED`) catalogue-backed line, the shape
      *    `toggleManualTotalEmissions` leaves behind;
      *  - a line edited since it was captured, which still references its
-     *    factor and so must be treated as catalogue-backed.
+     *    factor and so must be treated as catalogue-backed;
+     *  - a snapshot damaged before PR 647 preserved the factor identity: no
+     *    `emissionFactorId`, but a real catalogue source. The migration only
+     *    clears these on footprints of another year, so the ones on 2025
+     *    footprints arrive here intact and must not be mistaken for manual.
      */
     async function buildFootprintWithFrozenFactors() {
       const methodologyVersionId = await getTestMethodologyVersionId(prisma);
@@ -487,6 +491,10 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         emissionFactorId: factor.id,
         appliedFactorSource: "DEFRA 2025",
       });
+      const damaged = await seedLine({
+        emissionFactorId: null,
+        appliedFactorSource: "DEFRA 2025",
+      });
 
       return {
         carbonInventory,
@@ -496,6 +504,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         manual,
         parked,
         edited,
+        damaged,
       };
     }
 
@@ -506,7 +515,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       });
 
     it("clears every catalogue factor and its result, keeping the rest of the line", async () => {
-      const { carbonInventory, catalogue, manual, parked, edited } =
+      const { carbonInventory, catalogue, manual, parked, edited, damaged } =
         await buildFootprintWithFrozenFactors();
 
       const response = await app.inject({
@@ -544,6 +553,14 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(editedInput.factor).toBeNull();
       expect(editedInput.result).toBeNull();
 
+      // A snapshot that lost its factor id but kept a catalogue source is
+      // cleared like any other catalogue-backed line. Keying on the id alone
+      // would read it as manual and leave it here permanently: it round-trips
+      // as `baseFactorId: null`, so no later save would reconcile it either.
+      const damagedInput = await readInput(damaged.line.id);
+      expect(damagedInput.factor).toBeNull();
+      expect(damagedInput.result).toBeNull();
+
       // The manual factor survives untouched, value and source included.
       const manualInput = await readInput(manual.line.id);
       expect(manualInput.factor?.appliedFactorSource).toBe("Otro");
@@ -570,9 +587,9 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           select: { emissionFactorId: true, appliedFactorSource: true },
         });
 
-      // The copy inherits every snapshot verbatim — three of the four lines,
+      // The copy inherits every snapshot verbatim — four of the five lines,
       // since duplication copies ACTIVE lines only and one of them is parked.
-      expect(await snapshotsOf(copyId)).toHaveLength(3);
+      expect(await snapshotsOf(copyId)).toHaveLength(4);
 
       const response = await app.inject({
         method: "PATCH",
@@ -594,7 +611,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       });
       expect(remainingResults).toBe(1);
 
-      expect(await snapshotsOf(carbonInventory.id)).toHaveLength(4);
+      expect(await snapshotsOf(carbonInventory.id)).toHaveLength(5);
     });
 
     it("leaves the frozen factors alone when the year does not change", async () => {
