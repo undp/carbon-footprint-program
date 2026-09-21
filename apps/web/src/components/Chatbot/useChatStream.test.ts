@@ -759,26 +759,34 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(content).not.toContain("segundos.");
   });
 
-  // A 429 from the token budgets carries Spanish copy naming the layer that
-  // refused, and sets no limiter headers. Showing the burst message for these
-  // would tell someone to slow down when slowing down changes nothing: their
-  // daily allowance is spent, or the shared pool is.
-  it("shows the server's message on a 429 that carries no reset header", async () => {
+  // A quota 429 arrives WITH limiter headers, which is the whole trap. The
+  // plugin writes `x-ratelimit-*` on every request it admits, and a token
+  // budget refuses later, in the handler — so the response carries a reset
+  // value belonging to a limit that did not refuse anything. This fixture
+  // mirrors a real one captured against the deployed API: remaining 1, reset
+  // 31, body QUOTA_EXCEEDED. Reading the header here told people to wait
+  // 31 seconds for an allowance that clears the next day.
+  it("shows the server's message on a quota 429 despite limiter headers", async () => {
     const { result } = renderHook(() => useChatStream());
 
     fetchMock.mockImplementationOnce(() =>
       Promise.resolve(
-        makeHttpResponse(429, {
-          message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
-        })
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+          },
+          { "x-ratelimit-remaining": "1", "x-ratelimit-reset": "31" }
+        )
       )
     );
     await sendTurn(result, "hola");
 
     expect(result.current.state).toBe("error");
-    expect(lastMessage(result.current.messages).content).toBe(
-      "Alcanzaste tu límite de uso diario. Vuelve mañana."
-    );
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toBe("Alcanzaste tu límite de uso diario. Vuelve mañana.");
+    expect(content).not.toContain("31 segundos");
   });
 
   it("surfaces the shared-pool remedy rather than a wait instruction", async () => {
@@ -786,10 +794,15 @@ describe("useChatStream — degraded escalation & reset", () => {
 
     fetchMock.mockImplementationOnce(() =>
       Promise.resolve(
-        makeHttpResponse(429, {
-          message:
-            "El asistente alcanzó su límite de uso diario. Inicia sesión para continuar.",
-        })
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message:
+              "El asistente alcanzó su límite de uso diario. Inicia sesión para continuar.",
+          },
+          { "x-ratelimit-reset": "44" }
+        )
       )
     );
     await sendTurn(result, "hola");
@@ -798,18 +811,22 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(content).toContain("Inicia sesión");
     // The burst copy would be actively misleading here — waiting does nothing.
     expect(content).not.toContain("muy seguido");
+    expect(content).not.toContain("44 segundos");
   });
 
-  // The reset header is what tells the two apart, so it has to win even when a
-  // body is present: the limiter's own body is English text from the plugin.
-  it("prefers the reset header over any body the limiter sends", async () => {
+  // The burst limiter's own body is English text from the plugin, so it is
+  // never shown; its reset value becomes the Spanish countdown instead.
+  it("names the wait for a burst 429 rather than echoing the plugin's English", async () => {
     const { result } = renderHook(() => useChatStream());
 
     fetchMock.mockImplementationOnce(() =>
       Promise.resolve(
         makeHttpResponse(
           429,
-          { message: "Rate limit exceeded, retry in 1 minute" },
+          {
+            code: "TOO_MANY_REQUESTS",
+            message: "Rate limit exceeded, retry in 1 minute",
+          },
           { "x-ratelimit-reset": "17" }
         )
       )

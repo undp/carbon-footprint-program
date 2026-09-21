@@ -54,16 +54,18 @@ const DEGRADED_MESSAGE =
  * specific, user-facing Spanish string for each and the widget should show
  * that rather than a fixed one.
  */
-const readServerMessage = async (
+const readServerError = async (
   response: Response
-): Promise<string | null> => {
+): Promise<{ code?: string; message?: string } | null> => {
   try {
-    const json = (await response.json()) as { message?: string };
-    return json.message ?? null;
+    return (await response.json()) as { code?: string; message?: string };
   } catch {
     return null;
   }
 };
+
+const readServerMessage = async (response: Response): Promise<string | null> =>
+  (await readServerError(response))?.message ?? null;
 
 /**
  * Turn a 4xx into something the user can act on.
@@ -76,23 +78,30 @@ const readServerMessage = async (
  */
 const describeClientError = async (response: Response): Promise<string> => {
   if (response.status === 429) {
-    // Two different refusals share this status and must not share copy.
+    // Two different refusals share this status and must not share copy, and the
+    // headers cannot tell them apart. @fastify/rate-limit writes `x-ratelimit-*`
+    // on every request it ADMITS, so a token-budget refusal raised later, in the
+    // handler, carries a reset value of its own. Verified against the deployed
+    // API: a `QUOTA_EXCEEDED` body arrived with `x-ratelimit-remaining: 1` and
+    // `x-ratelimit-reset: 31`. Keying on the header therefore told people to
+    // wait half a minute for an allowance that clears in twenty-four hours —
+    // worse than saying nothing, because they believed it and kept retrying.
     //
-    // The burst limiter answers in onRequest and sets `x-ratelimit-reset` with
-    // the remaining window; its own body is English text from the plugin, so it
-    // is deliberately NOT read. Naming the seconds turns "something broke" into
-    // "wait this long", which is the whole difference there.
-    //
-    // The token budgets answer from the handler with Spanish copy specific to
-    // the layer that refused — a personal daily limit, or a shared pool whose
-    // remedy is signing in — and set no limiter headers. Showing the burst
-    // message for those would tell someone to slow down when slowing down
-    // changes nothing.
+    // The body's `code` is the thing that actually differs. `QUOTA_EXCEEDED`
+    // carries Spanish copy naming the layer that refused — a personal daily
+    // budget, or a shared pool whose remedy is signing in — so it is shown
+    // verbatim. The burst limiter's own body is English text from the plugin
+    // and is never shown; its reset value becomes the Spanish countdown
+    // instead, which is the whole difference between "something broke" and
+    // "wait this long".
+    const error = await readServerError(response);
+    if (error?.code === "QUOTA_EXCEEDED" && error.message) return error.message;
+
     const reset = Number(response.headers.get("x-ratelimit-reset"));
     if (Number.isFinite(reset) && reset > 0) {
       return `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`;
     }
-    return (await readServerMessage(response)) ?? RATE_LIMITED_MESSAGE;
+    return error?.message ?? RATE_LIMITED_MESSAGE;
   }
   if (response.status === 413) {
     return (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE;

@@ -112,6 +112,13 @@ A single generic message is insufficient because the three cases have different 
 
 Quota rejections SHALL use HTTP 429 and SHALL NOT reuse HTTP 413, which the endpoint already returns for oversized user input. The widget SHALL render the server's message for a 429 rather than substituting the generic provider-failure copy.
 
+The widget SHALL tell the two refusals apart by the response body's `code` — `QUOTA_EXCEEDED` for a token budget, `TOO_MANY_REQUESTS` for the burst limiter — and SHALL NOT infer it from the presence of `x-ratelimit-*` headers. `@fastify/rate-limit` writes those headers on every request it admits, so a token-budget refusal raised later in the handler carries a reset value belonging to a limit that did not refuse anything. Reading it names a wait of seconds for an allowance that clears in twenty-four hours.
+
+#### Scenario: A quota rejection carrying limiter headers is not shown as a burst
+
+- **WHEN** a token budget refuses a turn and the response also carries `x-ratelimit-reset`
+- **THEN** the widget SHALL render the `QUOTA_EXCEEDED` message and SHALL NOT render a countdown derived from that header
+
 #### Scenario: Oversized input and exhausted quota are different statuses
 
 - **WHEN** a turn is refused for exceeding the input size cap
