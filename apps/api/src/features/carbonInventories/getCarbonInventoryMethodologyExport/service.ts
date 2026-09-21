@@ -10,18 +10,26 @@ export const getCarbonInventoryMethodologyExportService = async (
 ): Promise<GetCarbonInventoryMethodologyExportResponse> => {
   const inventory = await prismaClient.carbonInventory.findUniqueOrThrow({
     where: { id: BigInt(carbonInventoryId) },
-    select: { methodologyVersionId: true },
+    select: { methodologyVersionId: true, year: true },
   });
 
-  const methodology = await findMethodologyExportByVersionId(prismaClient, {
-    id: inventory.methodologyVersionId,
-    status: {
-      in: [
-        MethodologyVersionStatus.PUBLISHED,
-        MethodologyVersionStatus.UNPUBLISHED,
-      ],
+  // Scoped to the footprint's year, like the capture selector: a workbook
+  // listing factors the footprint can never select contradicts the screen it
+  // is meant to document. A footprint with no year yet keeps the whole
+  // catalogue — see `buildMethodologyExportSelect`.
+  const methodology = await findMethodologyExportByVersionId(
+    prismaClient,
+    {
+      id: inventory.methodologyVersionId,
+      status: {
+        in: [
+          MethodologyVersionStatus.PUBLISHED,
+          MethodologyVersionStatus.UNPUBLISHED,
+        ],
+      },
     },
-  });
+    inventory.year
+  );
 
   if (!methodology) {
     throw new MethodologyNotFoundError();

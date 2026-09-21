@@ -15,15 +15,21 @@ export const getMethodologyExportService = async (
   prismaClient: PrismaClient,
   id: string
 ): Promise<GetMethodologyExportResponse> => {
-  const methodology = await findMethodologyExportByVersionId(prismaClient, {
-    id: BigInt(id),
-    status: {
-      in: [
-        MethodologyVersionStatus.PUBLISHED,
-        MethodologyVersionStatus.UNPUBLISHED,
-      ],
+  const methodology = await findMethodologyExportByVersionId(
+    prismaClient,
+    {
+      id: BigInt(id),
+      status: {
+        in: [
+          MethodologyVersionStatus.PUBLISHED,
+          MethodologyVersionStatus.UNPUBLISHED,
+        ],
+      },
     },
-  });
+    // The administrator's export documents the catalogue itself, so it carries
+    // every year. The `Año` column is what tells the rows apart.
+    null
+  );
 
   if (!methodology) {
     throw new MethodologyNotFoundError();
