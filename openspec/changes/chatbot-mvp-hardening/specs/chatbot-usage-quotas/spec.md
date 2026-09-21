@@ -18,7 +18,9 @@ The layering is load-bearing rather than defensive redundancy. The burst limit r
 
 ### Requirement: Burst limit caps chatbot turns per minute per IP
 
-`POST /api/chatbot/message` SHALL carry a route-level `@fastify/rate-limit` configuration of `CHATBOT_MAX_TURNS_PER_MINUTE` requests per one-minute window, keyed by normalized client IP. The constant SHALL live in `apps/api/src/config/constants.ts` with a value of 15.
+`POST /api/chatbot/message` SHALL carry a route-level `@fastify/rate-limit` configuration of `CHATBOT_MAX_TURNS_PER_MINUTE` requests per one-minute window, keyed by normalized client IP.
+
+The effective value SHALL be read from the environment in `config/environment.ts`, defaulting to `CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15` in `config/constants.ts`, and SHALL be rejected at boot if it is not an integer of at least 1. Unlike the retention windows, this one is per-deployment: a country whose users all egress through one address shares a single bucket and may legitimately need a higher ceiling, and the integration suite drives more turns per file than any real caller would in a minute — the limiter's store lives on the app instance, and the chatbot suites build one app per file.
 
 This layer exists because the token budgets are consulted before a turn and credited after it, so concurrent turns all pass the check against the same stale total. The burst limit is what bounds that overshoot.
 
@@ -26,6 +28,11 @@ This layer exists because the token budgets are consulted before a turn and cred
 
 - **WHEN** a single IP issues more than `CHATBOT_MAX_TURNS_PER_MINUTE` requests to `POST /api/chatbot/message` within one minute
 - **THEN** the excess requests SHALL receive HTTP 429 and SHALL NOT reach the LLM provider
+
+#### Scenario: A nonsensical cap is refused at boot
+
+- **WHEN** `CHATBOT_MAX_TURNS_PER_MINUTE` is set to a non-integer, or to a value below 1
+- **THEN** the API SHALL fail to start with a message naming the variable, rather than silently rate-limiting the chatbot to zero — disabling it is what `CHATBOT_ENABLED=false` is for
 
 #### Scenario: Callers behind one NAT share a bucket
 

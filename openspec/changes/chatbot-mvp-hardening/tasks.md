@@ -57,8 +57,8 @@
 
 ## 7. Documentation sync and verification
 
-- [ ] 7.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention, leaving its statement that expired rows still accumulate intact — that remains true until `chatbot-conversation-purge` lands.
-- [ ] 7.2 Leave the "Chatbot Conversation Purge" section of `docs/operations/runbook.md` alone — the manual sweep it documents is still the only thing that deletes.
-- [ ] 7.3 Record in the runbook that the anonymous token pool can be exhausted by one actor and how an operator recognizes that state, so it is not diagnosed as an outage.
-- [ ] 7.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API and web suites; confirm all pass.
-- [ ] 7.5 Re-read the specs against the implementation and reconcile any drift in the specs rather than in silence.
+- [x] 7.1 Update the chatbot retention section of `docs/security/sensitive-data.md` to describe tiered retention, leaving its statement that expired rows still accumulate intact — that remains true until `chatbot-conversation-purge` lands.
+- [x] 7.2 Leave the "Chatbot Conversation Purge" section of `docs/operations/runbook.md` alone — the manual sweep it documents is still the only thing that deletes.
+- [x] 7.3 Record in the runbook that the anonymous token pool can be exhausted by one actor and how an operator recognizes that state, so it is not diagnosed as an outage.
+- [x] 7.4 Run `pnpm format && pnpm lint && pnpm type-check` and the API and web suites; confirm all pass. **Full API suite, not just the chatbot domain** — scoping to `/chatbot` had hidden a broken exhaustive-defaults assertion in `test/config/environment.test.ts` since the burst-limit commit. Final state: 239 API files / 2411 tests, 44 web files / 882 tests, both builds green.
+- [x] 7.5 Re-read the specs against the implementation and reconcile any drift in the specs rather than in silence. **One drift found**: the burst-limit requirement described a fixed constant, while the implementation reads the cap from the environment with that constant as its default. Spec corrected, and a boot-validation scenario added with a test behind it.

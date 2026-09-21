@@ -376,6 +376,27 @@ Four layers, only one of which actually stops anything.
 | Burst limit, token budget, anonymous pool | `apps/api`                            | Yes — refuses turns before the model |
 | Budget + metric alerts                    | `infra/modules/chatbotAlerting.bicep` | **No** — they only notify            |
 
+**A quota rejection is not an outage.** Three different refusals answer 429 and
+each carries its own Spanish message, so the body identifies which layer
+refused:
+
+| Message names                        | Layer                 | What it means                                                       |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------- |
+| "Espera unos segundos"               | Burst limit           | One IP exceeded 15 turns/minute. Clears within the minute.          |
+| "Alcanzaste tu límite de uso diario" | Per-identity budget   | That caller spent 40,000 tokens in 24h. Clears as the window rolls. |
+| "El asistente alcanzó su límite"     | Shared anonymous pool | All anonymous callers together spent 300,000 tokens in 24h.         |
+
+The third is the one that looks like an incident and is not. **One actor can
+exhaust the shared pool and deny the chatbot to every anonymous visitor** until
+the window rolls — that is the accepted trade for having a cost ceiling that
+cannot be evaded by discarding a cookie. Authenticated callers keep service
+throughout, which is why that message tells the user to sign in.
+
+To confirm it rather than guess: the API logs the refusing layer, and the token
+metric alert will have fired well before the pool emptied. Raising
+`CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` requires a deploy; `CHATBOT_ENABLED=false`
+is the only immediate lever, and it turns the assistant off for everyone.
+
 **The alerting is Azure-only.** It provisions a consumption budget and an Azure
 Monitor metric alert, neither of which exists in the on-premise topology: there
 is no Azure OpenAI account to watch and no consumption data to bill against. An

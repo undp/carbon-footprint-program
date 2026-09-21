@@ -176,8 +176,14 @@ The Huella Latam chatbot persists conversations to power per-user history and ri
 
 **Retention:**
 
-- Each conversation row carries `expires_at = created_at + 30 days` (`CHATBOT_CONVERSATION_TTL_DAYS`). The value is set once at creation and is **not** refreshed on subsequent messages.
-- The pg_cron job that purges expired rows is **deferred** to a separate infra change. Until it lands, expired rows accumulate and are removed manually or via the right-to-be-forgotten endpoint.
+- Retention is **tiered by identity kind**. An authenticated caller's conversation carries `expires_at = created_at + 30 days` (`CHATBOT_CONVERSATION_TTL_DAYS`); an anonymous caller's carries `created_at + 7 days` (`CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS`). The value is set once at creation and is **not** refreshed on subsequent messages.
+- The asymmetry follows the relationship. An account holder can resume from another device and has history worth keeping. An anonymous visitor gains only a thread that survives a page reload — which the browser can revoke on its own by discarding the session cookie — while carrying the same data-at-rest exposure. Holding less of the data belonging to people the platform has no way to contact is the cheapest available reduction in exposure.
+- **Nothing deletes expired rows yet.** `expires_at` is written and every read filters on it, so an expired conversation is invisible to the user and still present in the database and in any backup. A shorter window therefore shortens how long a conversation is _visible_, not how long it is _stored_. Expired rows accumulate and are removed manually (see the runbook) or via the right-to-be-forgotten endpoint; the automated purge is the `chatbot-conversation-purge` change.
+
+**Usage quotas:**
+
+- Chatbot turns are bounded by three layers: a per-IP burst limit, a per-identity daily token budget, and a daily token pool shared by all anonymous callers. Authenticated callers do not draw on the shared pool.
+- The shared pool is what actually bounds spend. The per-identity budget keys on a value an anonymous caller can replace for free by discarding the session cookie, so it guards against accidents rather than against abuse.
 
 **Cookie security:**
 
