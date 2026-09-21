@@ -11,10 +11,10 @@
 
 ## 2. Emergency shutdown runbook
 
-- [ ] 2.1 Add a "Chatbot emergency shutdown" section to `docs/operations/runbook.md` with the exact `az webapp config appsettings set` invocation that sets `CHATBOT_ENABLED=false` on the production App Service.
-- [ ] 2.2 Document the expected effect: roughly one minute of restart, chatbot routes answering 404, and no code path reaching Azure OpenAI.
-- [ ] 2.3 Document the reversal, and state that `VITE_CHATBOT_ENABLED` is build-time — disabling the backend leaves the widget visible but unserviced until the frontend is rebuilt, which is acceptable in an emergency but alarming if discovered unannounced.
-- [ ] 2.4 Note that the kill switch is the only control that stops spend instantly, and that the quotas and alerts added by this change do not replace it.
+- [x] 2.1 Add a "Chatbot emergency shutdown" section to `docs/operations/runbook.md` with the exact `az webapp config appsettings set` invocation that sets `CHATBOT_ENABLED=false` on the production App Service.
+- [x] 2.2 Document the expected effect: roughly one minute of restart, chatbot routes answering 404, and no code path reaching Azure OpenAI.
+- [x] 2.3 Document the reversal, and state that `VITE_CHATBOT_ENABLED` is build-time — disabling the backend leaves the widget visible but unserviced until the frontend is rebuilt, which is acceptable in an emergency but alarming if discovered unannounced.
+- [x] 2.4 Note that the kill switch is the only control that stops spend instantly, and that the quotas and alerts added by this change do not replace it.
 
 ## 3. Cost alerting in Bicep
 

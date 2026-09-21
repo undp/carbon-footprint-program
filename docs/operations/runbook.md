@@ -365,6 +365,67 @@ Guide](../infrastructure/Deployment.md).
 
 ---
 
+## Chatbot Emergency Shutdown
+
+Turns the assistant off completely. Use it when the chatbot is burning budget,
+answering badly enough to be a liability, or implicated in an incident.
+
+`CHATBOT_ENABLED` is read once at boot. When it is false the chatbot routes are
+never registered, so every chatbot endpoint answers 404 and no code path can
+reach Azure OpenAI. This is the only control that stops spend immediately — the
+rate limits, token budgets and cost alerts shipped with `chatbot-mvp-hardening`
+narrow or report spend, they do not stop it.
+
+**Disable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=false
+```
+
+Changing an app setting restarts the App Service on its own; no separate
+`az webapp restart` is needed.
+
+**What to expect:**
+
+|                   |                                                  |
+| ----------------- | ------------------------------------------------ |
+| Restart           | ~1 minute                                        |
+| Chatbot endpoints | 404                                              |
+| Azure OpenAI      | no request reaches it                            |
+| Rest of the API   | unaffected — only the chatbot routes are skipped |
+| Widget            | **still visible**, and every turn fails          |
+
+**The widget stays visible, and that is expected.** `VITE_CHATBOT_ENABLED` is a
+build-time variable baked into the frontend bundle, so it cannot be flipped from
+the Azure CLI. Turning the backend off leaves the launcher on screen until the
+frontend is rebuilt and redeployed with `VITE_CHATBOT_ENABLED=false`. For an
+emergency this is the right trade — the spend stops in a minute either way — but
+it is written here so nobody interprets the visible widget as a failed shutdown
+and starts hunting for a second switch.
+
+**Re-enable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=true
+```
+
+Verify with a request to any chatbot endpoint: 404 means still disabled, any
+other status means the routes are registered again.
+
+> Boot-time validation applies when re-enabling in production: with
+> `CHATBOT_ENABLED=true`, the API refuses to start if `LLM_PROVIDER` or
+> `EMBEDDING_PROVIDER` is still `mock`, or if `COOKIE_SECRET` is too short. A
+> failure to come back up after re-enabling is usually one of these, and the
+> startup log names which.
+
+---
+
 ## Chatbot Conversation Purge
 
 The chatbot stores conversations in `chatbot_chat_conversation` with a 30-day `expires_at` column populated at row creation. **Foundation does not include the daily purge job** — the pg_cron extension and the scheduled purge are a separate infra change that must enable `azure.extensions = pg_cron` on the Postgres server parameter and schedule the daily job.
