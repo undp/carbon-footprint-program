@@ -20,6 +20,7 @@ import {
 } from "./components";
 import { useCarbonInventory, useEmissionFactorYears } from "@/api/query";
 import { UsageMode } from "@repo/types";
+import { SUPPORT_EMAIL } from "@/config/constants";
 import { useWatch } from "react-hook-form";
 import { EXIT_DIALOG_CONTENT, YEAR_CHANGE_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
@@ -44,8 +45,18 @@ import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
 import { toSafeString } from "@/utils/string";
 
-const NO_CATALOGUE_YEARS_MESSAGE =
-  "La metodología aún no tiene factores de emisión cargados para ningún año. Escribe al equipo de metodología antes de continuar.";
+// An empty catalogue is not something the user can work around: the year is
+// required, no year can be captured against, and no amount of retrying by the
+// user loads a factor. It is stated where the step's other dead ends are
+// stated -- the layout's error slot -- rather than as helper text under the
+// field, which `FormSelectField` replaces with "Este campo es obligatorio" the
+// moment the user submits, exactly when the explanation is needed. Step 1 runs
+// before sign-in, so the way out is the address any visitor can write to.
+const NO_CATALOGUE_YEARS_MESSAGE = {
+  title: "La metodología aún no tiene factores de emisión",
+  description: `No hay factores cargados para ningún año, así que todavía no es posible medir una ${VOCAB.carbonInventory.shortNoun.singular}. Escribe a ${SUPPORT_EMAIL} y vuelve a intentarlo más tarde.`,
+  retryButtonText: "Recargar Página",
+} as const;
 
 // A year outside the catalogue is reachable two ways: the expert mode offers
 // the declarable window, and every mode keeps the year the footprint already
@@ -70,6 +81,23 @@ const CATALOGUE_YEARS_ERROR_MESSAGE = {
     "El año de la huella se elige entre los años que cubre la metodología. Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
   retryButtonText: "Recargar Página",
 } as const;
+
+/**
+ * Which of the step's three dead ends the layout is showing. They are told
+ * apart rather than merged because they ask for different things: reload the
+ * footprint, retry the catalogue read, or write to support and come back.
+ */
+const buildErrorMessage = ({
+  hasInventoryError,
+  hasCatalogueYearsError,
+}: {
+  hasInventoryError: boolean;
+  hasCatalogueYearsError: boolean;
+}) => {
+  if (hasInventoryError) return INVENTORY_ERROR_MESSAGE;
+  if (hasCatalogueYearsError) return CATALOGUE_YEARS_ERROR_MESSAGE;
+  return NO_CATALOGUE_YEARS_MESSAGE;
+};
 
 const BUSINESS_PROFILING_EXPLANATION_SLUGS = {
   MAIN: "business-profiling",
@@ -152,14 +180,12 @@ export const BusinessProfilingScreen: FC = () => {
   const selectedYear = useWatch({ control, name: "year" });
 
   const yearHelperText = useMemo(() => {
-    if (yearOptions.length === 0) return NO_CATALOGUE_YEARS_MESSAGE;
-
     if (!selectedYear || catalogueYears.includes(Number(selectedYear))) {
       return undefined;
     }
 
     return YEAR_WITHOUT_FACTORS_MESSAGE;
-  }, [yearOptions.length, selectedYear, catalogueYears]);
+  }, [selectedYear, catalogueYears]);
 
   const {
     selectedSector,
@@ -264,13 +290,20 @@ export const BusinessProfilingScreen: FC = () => {
 
   const globalSubmitting = isSubmitting || isSubmittingAndExiting;
 
+  const isLoading = isInventoryLoading || areCatalogueYearsLoading || !isReady;
+
+  // The year is required and the catalogue offers nothing to satisfy it, so the
+  // step has no exit forward. The footer sits outside the layout's error slot,
+  // so the button has to be disabled explicitly or it would submit a form the
+  // user is not being shown.
+  const hasNoYearOptions = !isLoading && yearOptions.length === 0;
+
   const isFormDisabled =
     globalSubmitting ||
     isInventoryLoading ||
     hasInventoryError ||
-    hasCatalogueYearsError;
-
-  const isLoading = isInventoryLoading || areCatalogueYearsLoading || !isReady;
+    hasCatalogueYearsError ||
+    hasNoYearOptions;
 
   if (!isLoading && mustNavigateAway) return null;
 
@@ -324,12 +357,13 @@ export const BusinessProfilingScreen: FC = () => {
             buttons: [nextButton],
           }}
           isLoading={isLoading}
-          hasError={hasInventoryError || hasCatalogueYearsError}
-          errorMessage={
-            hasInventoryError
-              ? INVENTORY_ERROR_MESSAGE
-              : CATALOGUE_YEARS_ERROR_MESSAGE
+          hasError={
+            hasInventoryError || hasCatalogueYearsError || hasNoYearOptions
           }
+          errorMessage={buildErrorMessage({
+            hasInventoryError,
+            hasCatalogueYearsError,
+          })}
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">

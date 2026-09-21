@@ -7,6 +7,13 @@ import { API_BASE_URL } from "./environment";
 export const STALE_TIME_MS = 1000 * 60 * 5; // 5 minutes
 
 /**
+ * The address a user writes to when the platform cannot resolve their problem
+ * by itself. Per deployment: each country runs its own instance under its own
+ * domain.
+ */
+export const SUPPORT_EMAIL = "contacto@huellalatam.com";
+
+/**
  * Number of past years (counting back from the current year) a footprint may
  * reasonably be declared for. It is the lower bound of the maintainer's
  * emission-factor year window, so the maintainer can date a factor for every

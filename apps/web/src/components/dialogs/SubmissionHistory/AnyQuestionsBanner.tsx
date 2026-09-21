@@ -1,5 +1,6 @@
 import { FC } from "react";
 import { alpha, Box, Typography, useTheme } from "@mui/material";
+import { SUPPORT_EMAIL } from "@/config/constants";
 
 export const AnyQuestionsBanner: FC = () => {
   const theme = useTheme();
@@ -18,8 +19,8 @@ export const AnyQuestionsBanner: FC = () => {
         <Box component="span" fontWeight={500}>
           Consultas:{" "}
         </Box>
-        Para consultas sobre esta postulación, contacte a{" "}
-        contacto@huellalatam.com indicando el número de expediente.
+        Para consultas sobre esta postulación, contacte a {SUPPORT_EMAIL}{" "}
+        indicando el número de expediente.
       </Typography>
     </Box>
   );
