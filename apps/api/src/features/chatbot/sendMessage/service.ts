@@ -1,6 +1,7 @@
 import type { Prisma, PrismaClient } from "@repo/database";
 import { ChatMessageRole } from "@repo/database/enums";
 import {
+  CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS,
   CHATBOT_CONVERSATION_TTL_DAYS,
   CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
@@ -55,8 +56,21 @@ export const findConversationForIdentity = async (
   });
 };
 
-const computeExpiresAt = (now: Date): Date =>
-  new Date(now.getTime() + CHATBOT_CONVERSATION_TTL_DAYS * 24 * 60 * 60 * 1000);
+/**
+ * Retention window for a new conversation, chosen by identity kind.
+ *
+ * Anonymous callers keep less: they gain only a thread that survives a reload,
+ * which the browser can revoke on its own by dropping the session cookie, while
+ * carrying the same data-at-rest exposure as an account holder. See the
+ * constants for the full reasoning.
+ */
+const computeExpiresAt = (now: Date, identity: ChatbotIdentity): Date => {
+  const days =
+    identity.kind === "user"
+      ? CHATBOT_CONVERSATION_TTL_DAYS
+      : CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS;
+  return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+};
 
 export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
   const now = new Date();
@@ -67,7 +81,7 @@ export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
     data: {
       userId: identity.kind === "user" ? identity.userId : null,
       sessionId: identity.kind === "session" ? identity.sessionId : null,
-      expiresAt: computeExpiresAt(now),
+      expiresAt: computeExpiresAt(now, identity),
       createdAt: now,
       lastMessageAt: now,
     },

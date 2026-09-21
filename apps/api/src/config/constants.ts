@@ -89,8 +89,39 @@ export const CHATBOT_MAX_OUTPUT_TOKENS = 1500;
  */
 export const CHATBOT_MAX_HISTORY_MESSAGES = 50;
 
-/** Days a chatbot conversation persists before it expires (pg_cron purge deferred). */
+/**
+ * Days a chatbot conversation persists before it expires, by identity kind.
+ *
+ * Retention follows the relationship. An authenticated caller has an account to
+ * come back to, can resume from another device, and has history worth keeping.
+ * An anonymous caller gets one thing from a long window — a thread that survives
+ * a page reload — and loses even that whenever the browser discards the session
+ * cookie, which third-party cookie restrictions already make routine. They carry
+ * identical data-at-rest exposure without the benefit, so they keep less.
+ *
+ * Holding less of the data belonging to people there is no way to contact is the
+ * largest reduction in exposure available here, and the only one that asks
+ * nothing of anyone: what is not retained cannot be the subject of an erasure
+ * request, under every framework at once, with nobody interpreting any of them.
+ *
+ * Compile-time constants rather than environment variables, deliberately.
+ * Adapting the mechanism — anything beyond the number — needs code anyway, and
+ * the widget's retention notice is rendered by a different application: making
+ * these configurable would force that notice through a new endpoint, a
+ * build-time variable that reinstates the rebuild it was meant to avoid, or a
+ * vaguer sentence. See CHATBOT_RETENTION_NOTICE in apps/web, which states the
+ * 30-day ceiling because overstating retention is harmless and understating it
+ * is not.
+ *
+ * Nothing deletes expired rows yet: `expires_at` is written and every read
+ * filters on it, so an expired conversation is invisible to the user and still
+ * present in a database dump. Physically deleting them is the
+ * `chatbot-conversation-purge` change. Until it lands, a shorter window
+ * shortens visibility rather than storage.
+ */
 export const CHATBOT_CONVERSATION_TTL_DAYS = 30;
+export const CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS = 7;
+
 
 /**
  * Overall wall-clock budget (ms) for a single LLM streaming completion. Bounds
