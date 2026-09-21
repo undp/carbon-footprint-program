@@ -9,6 +9,7 @@ import {
   FACTOR_DISPLAY_MIN_DECIMALS,
   MAX_DISPLAY_DECIMALS,
 } from "@/config/constants";
+import { formatRateUnit } from "./formatting";
 
 /**
  * Quantity and line-emission columns. Two fixed decimals for ordinary values,
@@ -52,13 +53,14 @@ const NUM_FMT_FACTOR = `#,##0.${"0".repeat(FACTOR_DISPLAY_MIN_DECIMALS)}${"#".re
  * keeps a plain number as its value — a spreadsheet formula can still
  * multiply it — while showing which unit that number is expressed in. It is
  * per cell and not in the column header because each factor row carries its
- * own rate unit (`kg CO₂e/L`, `kg CO₂e/kWh`, …).
+ * own rate unit (`kgCO₂e/L`, `kgCO₂e/kWh`, …).
  */
 function factorNumFmtWithUnit(rateUnit: string | null | undefined): string {
   if (!rateUnit) return NUM_FMT_FACTOR;
   // Double quotes delimit literal text in a number format, so they cannot
   // appear inside one.
-  const withUnit = `${NUM_FMT_FACTOR}" ${rateUnit.replaceAll('"', "")}"`;
+  const label = formatRateUnit(rateUnit).replaceAll('"', "");
+  const withUnit = `${NUM_FMT_FACTOR}" ${label}"`;
   // Over the limit, drop the unit rather than the sheet — the plain numeric
   // format is always well under 255 characters.
   return withUnit.length <= EXCEL_NUM_FMT_MAX_LENGTH
@@ -248,7 +250,7 @@ function buildFactorsSheet(
       { name: "Categoría / Alcance", filterButton: true },
       { name: "Sub-categoría", filterButton: true },
       { name: "Parámetros de actividad", filterButton: true },
-      { name: "Factor (Kg CO₂e/unidad)", filterButton: true },
+      { name: "Factor (kgCO₂e/unidad)", filterButton: true },
       { name: "Fuente", filterButton: true },
     ],
     rows,

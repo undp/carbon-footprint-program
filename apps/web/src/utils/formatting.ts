@@ -440,4 +440,42 @@ export class Formatter {
   }
 }
 
+/**
+ * Rate unit of an emission factor, with the CO₂e its numerator always carries.
+ *
+ * The catalog stores `kg/kWh`, and the bare `kg` reads as a mass of the thing
+ * being measured rather than of the emissions: `kg/kg` in particular gives a
+ * newcomer nothing to tell numerator from denominator. Every rate unit in the
+ * catalog is a factor rate — `RateMeasurementUnit` is only ever reached from an
+ * emission factor, a manual factor or an applied factor — so the numerator is
+ * CO₂e by construction of the model, not by assumption about the row.
+ *
+ * Presentation only: `abbreviation` is unique and is the key the methodology
+ * seed references its units by (`rateMeasurementUnitAbbreviation: "kg/kWh"`),
+ * so the stored value stays as it is and the maintainer keeps showing it raw —
+ * there it is the key someone is editing, not a label.
+ *
+ * Splits on the first slash: the numerator is one unit and denominators can
+ * carry their own (`kg/km-ton`). A value without a slash is not a rate and is
+ * returned untouched.
+ *
+ * A numerator that already names the gas is left alone. The base seed never
+ * does this, but a country loading its own methodology can: the onboarding
+ * guide's own example wrote `"kg CO2e/m3"`, which would otherwise render as
+ * `kg CO2eCO₂e/m3`. The spelling is matched loosely because that data is
+ * hand-written — `CO2e`, `CO₂e` and `CO2-e` all count.
+ */
+const NUMERATOR_NAMES_THE_GAS = /co\s*[2₂]\s*-?\s*e/i;
+
+export const formatRateUnit = (
+  abbreviation: string | null | undefined
+): string => {
+  if (!abbreviation) return "";
+  const slash = abbreviation.indexOf("/");
+  if (slash === -1) return abbreviation;
+  const numerator = abbreviation.slice(0, slash);
+  if (NUMERATOR_NAMES_THE_GAS.test(numerator)) return abbreviation;
+  return `${numerator}CO₂e${abbreviation.slice(slash)}`;
+};
+
 export const formatter = new Formatter(APP_LOCALE, INPUT_DECIMAL_SCALE);
