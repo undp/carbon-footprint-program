@@ -40,7 +40,7 @@ const buildEmissionFactorWhere = (
 ): Prisma.EmissionFactorWhereInput => {
   if (footprintYear === null) return { id: { in: [] } };
 
-  return { ...offerableEmissionFactorWhere, year: footprintYear };
+  return { ...offerableEmissionFactorWhere(), year: footprintYear };
 };
 
 export const getCarbonInventoryMethodologyService = async (
