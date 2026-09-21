@@ -1,5 +1,5 @@
 import { FC, useMemo, useCallback, useEffect, useState } from "react";
-import { Box, Button } from "@mui/material";
+import { Alert, AlertTitle, Box, Button } from "@mui/material";
 import { AddRounded, SaveOutlined } from "@mui/icons-material";
 import { useParams } from "@tanstack/react-router";
 import { FormProvider, useWatch } from "react-hook-form";
@@ -26,6 +26,7 @@ import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { EmissionCaptureFormValues } from "./types/EmissionCaptureTypes";
 import {
   areAllSubcategoriesFilled,
+  hasNoCatalogueFactors,
   shouldShowSubcategory,
 } from "./utils/emissionCaptureValidation";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -291,6 +292,21 @@ export const EmissionCaptureScreen: FC = () => {
   );
   useExpertModeOnboardingHighlight(isExpertModeAvailable);
 
+  /**
+   * The footprint's year has no catalogue behind it. Factors are offered by
+   * year, so a year whose set has not been loaded yet leaves every «Fuente»
+   * dropdown empty — which reads as a broken screen unless it is named. The
+   * manual factor stays available, and is what the methodology asks for when
+   * no published factor applies.
+   */
+  const hasEmptyCatalogue = useMemo(
+    () =>
+      data?.year != null &&
+      data.categories.length > 0 &&
+      hasNoCatalogueFactors(data.categories),
+    [data]
+  );
+
   const isLoading = isEmissionCaptureLoading || !isReady;
 
   const { handleExitClick, dialogProps } = useExitDialog({
@@ -391,6 +407,20 @@ export const EmissionCaptureScreen: FC = () => {
                     </>
                   }
                 />
+                {hasEmptyCatalogue && (
+                  <Alert severity="warning">
+                    <AlertTitle>
+                      Todavía no hay factores de emisión para el año{" "}
+                      {data?.year}
+                    </AlertTitle>
+                    El catálogo de factores de este año aún no está cargado, por
+                    lo que el selector «Fuente» se verá vacío en todas las
+                    fuentes de emisión. Mientras tanto puedes ingresar tus
+                    consumos y elegir «Otro» como fuente para registrar un
+                    factor propio, documentando de dónde lo obtuviste. También
+                    puedes volver al Paso 1 y cambiar el año de la huella.
+                  </Alert>
+                )}
                 <CategoryCarousel
                   categories={data?.categories ?? []}
                   selectedCategoryId={selectedCategory}

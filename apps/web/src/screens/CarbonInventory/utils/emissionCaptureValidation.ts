@@ -5,6 +5,29 @@ import type {
   EmissionCaptureFormLine,
 } from "../types/EmissionCaptureTypes";
 
+/**
+ * Whether the methodology came back with no emission factor at all.
+ *
+ * The factors offered to a footprint are filtered by its year, so a year the
+ * catalogue does not cover yet — the current one, until its set is loaded —
+ * produces a methodology whose every subcategory has an empty factor list.
+ * Without saying so, capture shows an empty «Fuente» dropdown on every line
+ * and reads as broken rather than as not-yet-available.
+ *
+ * It is one answer for the whole footprint, not a per-line collection: a
+ * subcategory that legitimately has no factor for a dimension combination is
+ * ordinary, the catalogue being absent is not.
+ */
+export function hasNoCatalogueFactors(
+  categories: CategoryWithSubcategoriesAndLines[]
+): boolean {
+  return categories.every((category) =>
+    category.subcategories.every(
+      (subcategory) => subcategory.emissionFactors.length === 0
+    )
+  );
+}
+
 export function shouldShowSubcategory(
   subcategory: SubcategoryWithLines,
   formSubcategory:
