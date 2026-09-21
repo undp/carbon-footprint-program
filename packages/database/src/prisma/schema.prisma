@@ -872,11 +872,11 @@ model CarbonInventoryLineFactor {
   // change). The table gains a row on every line save, because line inputs are
   // versioned, so that lookup degrades with use rather than staying small.
   //
-  // It is not what makes the maintainer listing cheap: Prisma compiles that
-  // filtered relation count into a single uncorrelated `GROUP BY
-  // emission_factor_id` derived table joined once, so it passes over the whole
-  // table regardless. The listing is one query either way; this index is for
-  // the guard.
+  // The maintainer listing reads it too, through a `groupBy` scoped to the
+  // factors on screen. That scoping is the point: expressed instead as a
+  // filtered relation count inside the listing query, Prisma compiles it into
+  // an uncorrelated `GROUP BY emission_factor_id` derived table with no
+  // predicate on the column, which no index can restrict.
   @@index([emissionFactorId])
   @@map("carbon_inventory_line_factor")
 }

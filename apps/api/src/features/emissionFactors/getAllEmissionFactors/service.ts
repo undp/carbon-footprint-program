@@ -74,16 +74,6 @@ export const getAllEmissionFactorsService = async (
       rateMeasurementUnit: {
         select: { id: true, name: true },
       },
-      // How many live lines depend on each factor, so the maintainer can leave
-      // a factor in use inert instead of offering an edit the API will refuse.
-      // The predicate is shared with the guard rather than restated, because
-      // the grid and the API have to agree on it — see
-      // `activeLineReferenceWhere`. It stays one round trip — a filtered
-      // relation count, not a query per row — and it is what the index on
-      // `carbon_inventory_line_factor(emission_factor_id)` exists for.
-      _count: {
-        select: { lineFactors: { where: activeLineReferenceWhere } },
-      },
     },
     where: whereClause,
     // `id` closes all three ties the position keys leave open: a DELETED
@@ -104,6 +94,36 @@ export const getAllEmissionFactorsService = async (
     ],
   });
 
+  // How many live lines depend on each factor, so the maintainer can leave a
+  // factor in use inert instead of offering an edit the API will refuse. The
+  // predicate is shared with the guard rather than restated, because the grid
+  // and the API have to agree on it — see `activeLineReferenceWhere`.
+  //
+  // A separate `groupBy` scoped to the factors on screen, not a filtered
+  // relation count folded into the query above. Prisma compiles that form into
+  // an uncorrelated `GROUP BY emission_factor_id` derived table with no
+  // predicate on that column, so it aggregates the whole junction table however
+  // few factors the version has — and that table is the one thing here whose
+  // size follows end-user traffic rather than catalogue size, because line
+  // inputs are versioned and nothing prunes it. Scoping it by id costs one
+  // round trip on a listing that already takes five, and it is the query the
+  // index on `carbon_inventory_line_factor(emission_factor_id)` serves.
+  const referenceCounts = await prismaClient.carbonInventoryLineFactor.groupBy({
+    by: ["emissionFactorId"],
+    where: {
+      emissionFactorId: { in: emissionFactors.map(({ id }) => id) },
+      ...activeLineReferenceWhere,
+    },
+    _count: { _all: true },
+  });
+
+  const referencedLineCountById = new Map(
+    referenceCounts.map(({ emissionFactorId, _count }) => [
+      emissionFactorId?.toString(),
+      _count._all,
+    ])
+  );
+
   return emissionFactors.map((ef) => ({
     id: ef.id.toString(),
     value: ef.value.toString(),
@@ -118,6 +138,6 @@ export const getAllEmissionFactorsService = async (
     rateMeasurementUnitId: ef.rateMeasurementUnit.id.toString(),
     rateMeasurementUnitName: ef.rateMeasurementUnit.name,
     gasDetails: parseGasDetails(ef.gasDetails, ef.id),
-    referencedLineCount: ef._count.lineFactors,
+    referencedLineCount: referencedLineCountById.get(ef.id.toString()) ?? 0,
   }));
 };
