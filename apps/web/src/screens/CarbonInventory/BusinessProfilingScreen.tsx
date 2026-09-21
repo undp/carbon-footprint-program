@@ -42,10 +42,20 @@ import { toSafeString } from "@/utils/string";
 const NO_CATALOGUE_YEARS_MESSAGE =
   "La metodología aún no tiene factores de emisión cargados para ningún año. Escribe al equipo de metodología antes de continuar.";
 
-const ERROR_MESSAGE = {
+const INVENTORY_ERROR_MESSAGE = {
   title: "No se encontró la huella",
   description:
     "Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
+  retryButtonText: "Recargar Página",
+} as const;
+
+// A failed catalogue read is not an empty catalogue: with no years to offer,
+// `NO_CATALOGUE_YEARS_MESSAGE` would send the user to the methodology team over
+// a request that simply has to be retried, on a field they cannot leave blank.
+const CATALOGUE_YEARS_ERROR_MESSAGE = {
+  title: "No se pudieron cargar los años disponibles",
+  description:
+    "El año de la huella se elige entre los años que cubre la metodología. Por favor, pruebe a recargar la página nuevamente o intente más tarde.",
   retryButtonText: "Recargar Página",
 } as const;
 
@@ -80,8 +90,11 @@ export const BusinessProfilingScreen: FC = () => {
   // The year selector offers what the catalogue covers, not a window around
   // today: a factor serves the footprints of its own year, so a year with no
   // factors leaves every subcategory of the capture step empty.
-  const { data: catalogueYears = [], isLoading: areCatalogueYearsLoading } =
-    useEmissionFactorYears(inventoryId);
+  const {
+    data: catalogueYears = [],
+    isLoading: areCatalogueYearsLoading,
+    isError: hasCatalogueYearsError,
+  } = useEmissionFactorYears(inventoryId);
 
   const yearOptions = useMemo(
     () => buildYearOptions(catalogueYears, existingInventory?.year ?? null),
@@ -217,7 +230,10 @@ export const BusinessProfilingScreen: FC = () => {
   const globalSubmitting = isSubmitting || isSubmittingAndExiting;
 
   const isFormDisabled =
-    globalSubmitting || isInventoryLoading || hasInventoryError;
+    globalSubmitting ||
+    isInventoryLoading ||
+    hasInventoryError ||
+    hasCatalogueYearsError;
 
   const isLoading = isInventoryLoading || areCatalogueYearsLoading || !isReady;
 
@@ -273,8 +289,12 @@ export const BusinessProfilingScreen: FC = () => {
             buttons: [nextButton],
           }}
           isLoading={isLoading}
-          hasError={hasInventoryError}
-          errorMessage={ERROR_MESSAGE}
+          hasError={hasInventoryError || hasCatalogueYearsError}
+          errorMessage={
+            hasInventoryError
+              ? INVENTORY_ERROR_MESSAGE
+              : CATALOGUE_YEARS_ERROR_MESSAGE
+          }
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
