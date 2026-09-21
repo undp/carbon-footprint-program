@@ -43,6 +43,8 @@ Dating the catalogue SHALL NOT be assumed to fix the footprints that already use
 
 The clearing SHALL act on the active input of each affected line, covering `ACTIVE` and `OUTDATED` lines alike, and SHALL leave superseded input versions untouched.
 
+The clearing on a year change SHALL use this same definition of catalogue-backed, so that a snapshot the migration left behind — one damaged before this change existed, on a footprint of the catalogue's own year — is cleared when that footprint later moves to another year.
+
 It SHALL also remove the snapshots that lost their factor reference before this change existed — those with no `emissionFactorId` whose frozen source is not one of the custom sources — since those are catalogue-backed lines damaged by an edit, not manual ones. No attempt SHALL be made to recover the lost reference.
 
 Lines whose factor was entered manually SHALL be left untouched.
@@ -169,7 +171,9 @@ When a line references a catalogue factor, the server SHALL read that factor fro
 
 The line SHALL land in the same state as one that never had a factor, so that the existing completeness rules show it as unfinished. Nothing else SHALL report what was cleared.
 
-Lines whose factor was entered manually SHALL be untouched by this rule.
+Lines whose factor was entered manually SHALL be untouched by this rule. A line counts as manual when its frozen source is one of the custom sources, not merely when it carries no factor reference: a snapshot with no reference but a catalogue source is a damaged or forged one and SHALL be reconciled like a factor of another year. A line with nothing frozen yet — no applied factor value — SHALL be persisted as it always was, a direct-total line included, whose typed emissions SHALL never be dropped with a reconciled factor.
+
+The server SHALL also check that the referenced factor belongs to the line's subcategory, and SHALL reconcile the line the same way when it does not. Filtering the capture selector is not enforcing: nothing else ties the reference to the line.
 
 The rule SHALL apply identically on creation and on update.
 
@@ -191,6 +195,24 @@ The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a
 
 - **GIVEN** a footprint for year 2026 with an existing line
 - **WHEN** a sync request updates that line to reference a factor with `year = 2024`
+- **THEN** the line SHALL be persisted with no factor snapshot and no result
+
+#### Scenario: A snapshot with no reference but a catalogue source is reconciled
+
+- **GIVEN** a footprint and a sync request whose line carries an applied factor value, a catalogue source and no factor reference — the shape a snapshot damaged before the factor identity was preserved round-trips with
+- **WHEN** the request is processed
+- **THEN** the line SHALL be persisted with no factor snapshot and no result, rather than treated as a manual factor
+
+#### Scenario: A direct-total line keeps the emissions the user typed
+
+- **GIVEN** a direct-total line, which carries no factor reference either
+- **WHEN** a sync request creates it
+- **THEN** its result SHALL be persisted, because the number was typed rather than computed from a factor
+
+#### Scenario: A factor of another subcategory is not frozen onto the line
+
+- **GIVEN** a sync request whose line references a factor of the footprint's year belonging to a different subcategory
+- **WHEN** the request is processed
 - **THEN** the line SHALL be persisted with no factor snapshot and no result
 
 #### Scenario: A line of the footprint's year is accepted

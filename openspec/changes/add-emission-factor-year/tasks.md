@@ -49,8 +49,10 @@
 - [x] 6.2 Introduce the emission-factor lookup this service has never had: one `findMany` over every `baseFactorId` referenced by the create and update items, keyed into a map. Those ids are always the numeric id of a real `emission_factor` row: `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`, so the composite id of a converted factor (`123-1`) never reaches the payload. `createLineFactor` currently persists everything straight from the payload, with no query against the factor table anywhere in the service.
 - [x] 6.3 Select `year`, `rateMeasurementUnitId` and the rate unit's `denominatorMeasurementUnit` in that lookup. Only the year is used here; the denominator is selected so the postponed `activity-unit-factor-mismatch` fix can add its check to the same query. Leave a TODO naming that fix.
 - [x] 6.4 When a referenced factor's year differs from the footprint's, persist the line **without** calling `createLineFactor` or `createLineResult` for it, on create and on update alike. The line keeps its subcategory, dimension selections, measurement unit, quantity, comment and files. Do not reject the request and do not touch the other lines. There is no new error class and no report of what was cleared: this is reconciliation, not validation — see design Decision 7.
-- [x] 6.5 Leave manual-factor lines out of the rule entirely: their `baseFactorId` is null, so they never enter the lookup.
+- [x] 6.5 Split the three shapes that arrive with a null `baseFactorId` instead of reading all of them as manual: nothing frozen yet (no applied factor value — a line being filled in, or a direct-total line) is persisted as before; a custom source is a manual factor and is left alone; a _catalogue_ source with no reference is a snapshot damaged before PR 647, or a forged payload, and is reconciled like a factor of another year. Reading the third as manual is what would make it permanent — it round-trips as `baseFactorId: null`, so no later save looks at it again, while the non-null source keeps `fieldValidationService` from flagging the line. `createLineResult` takes the verdict so a direct total, typed rather than computed, is never dropped with a reconciled factor.
+- [x] 6.7 Check the referenced factor belongs to the line's subcategory, reconciling the line the same way when it does not. Nothing else ties `baseFactorId` to the line, so a crafted payload could otherwise freeze a factor of an unrelated subcategory onto it — the same gap the year check closes, and the lookup is already paying for the round trip. An update reads its line's subcategory from the validation query rather than a second one. A subcategory belongs to one category of one methodology version, so the version is covered by the same comparison.
 - [x] 6.6 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
+- [x] 6.8 Give `clearCatalogueFactorsOfLines` the migration's definition of catalogue-backed, not the `emissionFactorId` half of it. The migration only clears the damaged snapshots on footprints of another year, so the ones on the catalogue's own year reach the year change intact; missing them there is permanent, and the footprint reports a total from the previous year's factors while `carbon_inventory_subtotals_view` counts the line as completed.
 
 ## 7. API — duplication and exports
 
@@ -92,6 +94,9 @@
 - [x] 11.3 Verify the cleared lines render through the existing "line without a factor" state, the same one a newly added line uses, and that `useLineValidation` and `fieldValidationService` already flag them as incomplete. This is what carries the whole notice: nothing tells the user a factor was removed, so the line has to look unfinished on its own.
 - [x] 11.4 Check what capture shows when a footprint's year has no catalogue at all. The subcategory should still be usable through the manual factor, without a confusing empty dropdown.
 
+- [x] 11.5 Say in capture when the footprint's year has no catalogue at all: one notice for the whole footprint, naming the year and the two ways out (the manual factor, and changing the year in step 1). Until the 2026 set lands, every footprint of the current year meets an empty «Fuente» dropdown on every line, which reads as a broken screen rather than as something not yet available. Derived from the methodology already in memory — no new endpoint, and not the per-line collection declined in Decision 7.
+- [x] 11.6 Announce the source a row adopts when its year changes. The lock groups by `(subcategoría, año)` and the year is editable, so the write-back effect can replace a source the user typed. The server would answer the alternative with a 409, so the end state is right, but a silent replacement is indistinguishable from the field not having saved. Only a non-empty value that differs is announced.
+
 ## 12. Seed
 
 - [x] 12.1 Add the year to the emission-factor entry of the seed schema in `tools/seed/src/scripts/shared.ts` (~line 62), as a required field.
@@ -114,6 +119,7 @@
 - [x] 13.9 Factor identity: PR 647 covers the round trip in the sync integration suite. What is left for this change is that a line edited without touching its factor is still treated as catalogue-backed when the year changes — assert it in the year-change test rather than duplicating 647's.
 
 - [x] 13.10 `getCarbonInventoryMethodologyExport`: a dated footprint gets only the factors of its year; an undated one gets every year, which is also what keeps the parity test against the administrator's export meaningful.
+- [x] 13.11 The damaged shape — no `emissionFactorId`, a catalogue source — in `buildFootprintWithFrozenFactors` and in the sync suite, plus a direct-total line that must keep its result and a factor of another subcategory that must not be frozen. Both new suites were checked against the previous predicates and fail there.
 
 ## 14. Verification
 
