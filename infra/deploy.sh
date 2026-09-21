@@ -2,6 +2,13 @@
 set -euo pipefail
 
 # Dry run mode (set DRY_RUN=true to simulate without executing)
+#
+# Captured BEFORE the default below, because step 1 sources .env/.envrc with
+# `set -o allexport` and those files routinely set DRY_RUN for their own
+# environment. Without this, `DRY_RUN=true ./deploy.sh` prints the "no changes
+# will be made" banner and then runs a real deployment anyway — the one failure
+# mode a dry run exists to prevent. The caller's word wins; see step 1b.
+DRY_RUN_FROM_CALLER="${DRY_RUN:-}"
 DRY_RUN=${DRY_RUN:-false}
 
 # Function to log with timestamp
@@ -60,6 +67,13 @@ if [ -f "$SCRIPT_DIR/.envrc" ]; then
   # shellcheck disable=SC1091
   source "$SCRIPT_DIR/.envrc"
   set +o allexport
+fi
+
+# 1b) Restore the caller's DRY_RUN over anything the files just set.
+if [ -n "$DRY_RUN_FROM_CALLER" ] && [ "$DRY_RUN_FROM_CALLER" != "$DRY_RUN" ]; then
+  log "DRY_RUN=$DRY_RUN comes from the environment file; the caller passed"
+  log "DRY_RUN=$DRY_RUN_FROM_CALLER. Honouring the caller."
+  DRY_RUN="$DRY_RUN_FROM_CALLER"
 fi
 
 # 2) Check required non-sensitive variables
