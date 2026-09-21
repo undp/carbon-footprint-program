@@ -47,9 +47,10 @@ import { toSafeString } from "@/utils/string";
 const NO_CATALOGUE_YEARS_MESSAGE =
   "La metodología aún no tiene factores de emisión cargados para ningún año. Escribe al equipo de metodología antes de continuar.";
 
-// Only the expert mode can reach a year outside the catalogue, so only it needs
-// to be told what that year costs: the selector no longer decides for the user,
-// but the consequence still has to be visible before the capture step.
+// A year outside the catalogue is reachable two ways: the expert mode offers
+// the declarable window, and every mode keeps the year the footprint already
+// carries. Neither is decided by the selector any more, so the field states
+// what that year costs before the capture step does.
 const YEAR_WITHOUT_FACTORS_MESSAGE =
   "La metodología no tiene factores de emisión cargados para este año: las subcategorías llegarán sin factores al paso de captura.";
 
