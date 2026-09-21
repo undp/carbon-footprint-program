@@ -1,6 +1,7 @@
-import { FC, useMemo, useCallback } from "react";
+import { FC, PropsWithChildren, useMemo, useCallback } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import {
+  Box,
   Button,
   MenuItem,
   TextField,
@@ -103,6 +104,27 @@ const YEAR_OPTIONS = Array.from(
     EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT -
     index
 );
+
+/**
+ * Explains why a cell does not respond. Every cell of a locked row loses its
+ * click handler, its pointer cursor and its hover, so each has to be able to
+ * say why — the maintainer reaches for the value they want to fix, not for the
+ * one column that happened to carry the tooltip.
+ *
+ * Renders nothing of its own when the row is writable, so an unlocked grid
+ * keeps exactly the markup it had.
+ */
+const LockedCellTooltip: FC<PropsWithChildren<{ reason?: string }>> = ({
+  reason,
+  children,
+}) =>
+  reason ? (
+    <Tooltip title={reason} arrow placement="top">
+      <Box className="flex h-full w-full items-center">{children}</Box>
+    </Tooltip>
+  ) : (
+    <>{children}</>
+  );
 
 const YearEditSelect: FC<{
   rowIndex: number;
@@ -323,7 +345,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim1;
           const isDimEnabled = !!dimInfo?.required;
@@ -334,7 +358,7 @@ export const useEmissionFactorColumns = ({
 
           if (editing) {
             return (
-              <Tooltip title={disabledTooltip} arrow>
+              <Tooltip title={lockReason ?? disabledTooltip} arrow>
                 <span style={{ width: "100%" }}>
                   <DimensionValueEditSelect
                     rowIndex={rowIndex}
@@ -352,7 +376,7 @@ export const useEmissionFactorColumns = ({
           }
 
           return (
-            <Tooltip title={disabledTooltip} arrow>
+            <Tooltip title={lockReason ?? disabledTooltip} arrow>
               <Typography
                 variant="body2"
                 onClick={
@@ -385,7 +409,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
           const dimInfo =
             dimensionOptionsMap[formRow?.subcategoryId ?? ""]?.dim2;
           const isDimEnabled = !!dimInfo?.required;
@@ -395,7 +421,7 @@ export const useEmissionFactorColumns = ({
 
           if (editing) {
             return (
-              <Tooltip title={disabledTooltip} arrow>
+              <Tooltip title={lockReason ?? disabledTooltip} arrow>
                 <span style={{ width: "100%" }}>
                   <DimensionValueEditSelect
                     rowIndex={rowIndex}
@@ -413,7 +439,7 @@ export const useEmissionFactorColumns = ({
           }
 
           return (
-            <Tooltip title={disabledTooltip} arrow>
+            <Tooltip title={lockReason ?? disabledTooltip} arrow>
               <Typography
                 variant="body2"
                 onClick={
@@ -445,20 +471,24 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
           return (
-            <EditableNumberCell
-              formArrayName="emissionFactors"
-              rowIndex={rowIndex}
-              fieldName="value"
-              isEditing={editing}
-              onChange={(value) => onCellChange(rowIndex, "value", value)}
-              onClick={
-                rowEditable && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
-              }
-            />
+            <LockedCellTooltip reason={lockReason}>
+              <EditableNumberCell
+                formArrayName="emissionFactors"
+                rowIndex={rowIndex}
+                fieldName="value"
+                isEditing={editing}
+                onChange={(value) => onCellChange(rowIndex, "value", value)}
+                onClick={
+                  rowEditable && !editing
+                    ? () => onStartEditRow(params.row.id)
+                    : undefined
+                }
+              />
+            </LockedCellTooltip>
           );
         },
       },
@@ -470,7 +500,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
 
           const selectedSubcategory = subcategories.find(
             (sc) => sc.id === formRow?.subcategoryId
@@ -500,21 +532,23 @@ export const useEmissionFactorColumns = ({
             (u) => u.id === formRow?.rateMeasurementUnitId
           );
           return (
-            <Typography
-              variant="body2"
-              onClick={
-                rowEditable ? () => onStartEditRow(params.row.id) : undefined
-              }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: rowEditable ? "pointer" : "default",
-                "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {unit?.abbreviation ?? params.row.rateMeasurementUnitName}
-            </Typography>
+            <LockedCellTooltip reason={lockReason}>
+              <Typography
+                variant="body2"
+                onClick={
+                  rowEditable ? () => onStartEditRow(params.row.id) : undefined
+                }
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: rowEditable ? "pointer" : "default",
+                  "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
+                }}
+              >
+                {unit?.abbreviation ?? params.row.rateMeasurementUnitName}
+              </Typography>
+            </LockedCellTooltip>
           );
         },
       },
@@ -528,7 +562,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
           const gd = formRow?.gasDetails;
           const hasBreakdown =
             gd &&
@@ -542,32 +578,34 @@ export const useEmissionFactorColumns = ({
           const blockedByOtherEditing = editingRowId !== null && !editing;
 
           return (
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<FlameIcon />}
-              onClick={() => onOpenGEIBreakdown(rowIndex)}
-              disabled={
-                (!rowEditable && !hasBreakdown) || blockedByOtherEditing
-              }
-              sx={{
-                textTransform: "none",
-                borderColor: hasBreakdown ? "success.main" : "grey.400",
-                color: hasBreakdown ? "success.main" : "grey.600",
-                "&:hover": {
-                  borderColor: hasBreakdown ? "success.dark" : "grey.500",
-                  backgroundColor: hasBreakdown ? undefined : "grey.50",
-                },
-              }}
-            >
-              {!rowEditable
-                ? hasBreakdown
-                  ? "Ver"
-                  : "—"
-                : hasBreakdown
-                  ? "Editar"
-                  : "Agregar"}
-            </Button>
+            <LockedCellTooltip reason={lockReason}>
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<FlameIcon />}
+                onClick={() => onOpenGEIBreakdown(rowIndex)}
+                disabled={
+                  (!rowEditable && !hasBreakdown) || blockedByOtherEditing
+                }
+                sx={{
+                  textTransform: "none",
+                  borderColor: hasBreakdown ? "success.main" : "grey.400",
+                  color: hasBreakdown ? "success.main" : "grey.600",
+                  "&:hover": {
+                    borderColor: hasBreakdown ? "success.dark" : "grey.500",
+                    backgroundColor: hasBreakdown ? undefined : "grey.50",
+                  },
+                }}
+              >
+                {!rowEditable
+                  ? hasBreakdown
+                    ? "Ver"
+                    : "—"
+                  : hasBreakdown
+                    ? "Editar"
+                    : "Agregar"}
+              </Button>
+            </LockedCellTooltip>
           );
         },
       },
@@ -579,24 +617,28 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
 
           const lockedSource = resolveLockedSource(getPersistedRows(), formRow);
           const isSourceLocked = lockedSource !== undefined;
 
           return (
-            <EmissionFactorSourceCell
-              rowIndex={rowIndex}
-              isEditing={editing}
-              onChange={(value) => onCellChange(rowIndex, "source", value)}
-              onClick={
-                rowEditable && !editing
-                  ? () => onStartEditRow(params.row.id)
-                  : undefined
-              }
-              isSourceLocked={isSourceLocked}
-              lockedSource={lockedSource}
-            />
+            <LockedCellTooltip reason={lockReason}>
+              <EmissionFactorSourceCell
+                rowIndex={rowIndex}
+                isEditing={editing}
+                onChange={(value) => onCellChange(rowIndex, "source", value)}
+                onClick={
+                  rowEditable && !editing
+                    ? () => onStartEditRow(params.row.id)
+                    : undefined
+                }
+                isSourceLocked={isSourceLocked}
+                lockedSource={lockedSource}
+              />
+            </LockedCellTooltip>
           );
         },
       },
@@ -607,7 +649,9 @@ export const useEmissionFactorColumns = ({
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
-          const { canEdit: rowEditable } = getRowLock(params.row.id);
+          const { canEdit: rowEditable, reason: lockReason } = getRowLock(
+            params.row.id
+          );
 
           if (editing) {
             return (
@@ -620,21 +664,23 @@ export const useEmissionFactorColumns = ({
           }
 
           return (
-            <Typography
-              variant="body2"
-              onClick={
-                rowEditable ? () => onStartEditRow(params.row.id) : undefined
-              }
-              sx={{
-                px: 1,
-                py: 0.5,
-                borderRadius: 1,
-                cursor: rowEditable ? "pointer" : "default",
-                "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
-              }}
-            >
-              {formRow?.year ?? params.row.year}
-            </Typography>
+            <LockedCellTooltip reason={lockReason}>
+              <Typography
+                variant="body2"
+                onClick={
+                  rowEditable ? () => onStartEditRow(params.row.id) : undefined
+                }
+                sx={{
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1,
+                  cursor: rowEditable ? "pointer" : "default",
+                  "&:hover": rowEditable ? { backgroundColor: "grey.100" } : {},
+                }}
+              >
+                {formRow?.year ?? params.row.year}
+              </Typography>
+            </LockedCellTooltip>
           );
         },
       },
