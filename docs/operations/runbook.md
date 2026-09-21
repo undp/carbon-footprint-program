@@ -411,6 +411,14 @@ time as an authorization error naming that resource type. The module is also
 skipped entirely unless `chatbotAlertEmailAddress` is supplied — an action group
 with no receiver looks like coverage and is not.
 
+**Turning the alerting on.** `deploy.sh` reads `CHATBOT_ALERT_EMAIL` from the
+environment (`infra/.envrc`) and forwards it as `chatbotAlertEmailAddress`.
+Leaving it unset deploys the chatbot with no alerting at all, and the deploy log
+says so. `CHATBOT_MONTHLY_BUDGET_AMOUNT` and `CHATBOT_HOURLY_TOKEN_THRESHOLD`
+override the thresholds; both are validated as positive integers before the
+deployment starts. The address becomes an action group receiver, so prefer a
+shared inbox over a personal one — it outlives whoever ran the deploy.
+
 ---
 
 ## Chatbot Emergency Shutdown

@@ -556,6 +556,25 @@ if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   DEPLOY_PARAMS+=(--parameters azureAuthApiAppId="$AUTH_API_CLIENT_ID")
 fi
 
+# Appends an optional override to DEPLOY_PARAMS, refusing a value Bicep would
+# reject minutes into a deploy. Empty means "leave the Bicep default alone".
+add_positive_int_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  case "$value" in
+    *[!0-9]*)
+      log "ERROR: $var_name must be a positive integer; received '$value'."
+      exit 1
+      ;;
+  esac
+  if [ "$value" -lt 1 ]; then
+    log "ERROR: $var_name must be at least 1; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
 # Add chatbot parameters if enabled
 if [ "$ENABLE_CHATBOT" = "true" ]; then
   log "Adding chatbot parameters to deployment..."
@@ -569,6 +588,40 @@ if [ "$ENABLE_CHATBOT" = "true" ]; then
   if [ -n "$CHATBOT_COOKIE_SECRET" ]; then
     DEPLOY_PARAMS+=(--parameters chatbotCookieSecret="$CHATBOT_COOKIE_SECRET")
   fi
+
+  # Cost alarms (modules/chatbotAlerting.bicep). main.bicep skips the module
+  # outright when the address is empty, because an action group with no
+  # receiver looks like coverage and is not. So an unset CHATBOT_ALERT_EMAIL
+  # deploys a chatbot with no budget alert and no token alert whatsoever —
+  # permitted, never intended, and therefore said out loud rather than left to
+  # be discovered from a bill.
+  if [ -n "${CHATBOT_ALERT_EMAIL:-}" ]; then
+    case "$CHATBOT_ALERT_EMAIL" in
+      *@*.*) ;;
+      *)
+        log "ERROR: CHATBOT_ALERT_EMAIL is not an email address: '$CHATBOT_ALERT_EMAIL'"
+        log "       Azure rejects a malformed action-group receiver late, once the rest"
+        log "       of the stack has already deployed. Failing here instead."
+        exit 1
+        ;;
+    esac
+    DEPLOY_PARAMS+=(--parameters chatbotAlertEmailAddress="$CHATBOT_ALERT_EMAIL")
+    add_positive_int_param CHATBOT_MONTHLY_BUDGET_AMOUNT chatbotMonthlyBudgetAmount \
+      "${CHATBOT_MONTHLY_BUDGET_AMOUNT:-}"
+    add_positive_int_param CHATBOT_HOURLY_TOKEN_THRESHOLD chatbotHourlyTokenThreshold \
+      "${CHATBOT_HOURLY_TOKEN_THRESHOLD:-}"
+    log "  Cost alarms will notify: $CHATBOT_ALERT_EMAIL"
+    log "  NOTE: Microsoft.Consumption/budgets needs Cost Management write access, which"
+    log "        Contributor on the resource group alone does not grant. If the deployment"
+    log "        fails naming that resource type, that permission is why."
+  else
+    log "  WARNING: CHATBOT_ALERT_EMAIL is unset, so NO cost alerting is deployed."
+    log "           No monthly budget alert, no hourly token alert — the only thing"
+    log "           bounding spend is the application's own quotas. Set it to an"
+    log "           address someone reads. See docs/operations/runbook.md,"
+    log "           \"Chatbot Cost Controls\"."
+  fi
+
   if [ "$ENABLE_ROLE_ASSIGNMENTS" != "true" ]; then
     log "  WARNING: role assignments are disabled for this deployment, so the App Service"
     log "           will NOT be granted 'Cognitive Services OpenAI User'. The resources"
