@@ -14,6 +14,7 @@ import {
   getCompatibleRateUnitId,
   getAvailableFactors,
   getAvailableSources,
+  isSelectedFactorAvailable,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
@@ -244,8 +245,16 @@ export const useEmissionEditorForm = ({
         console.warn(
           "There are multiple available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
-        // Ambiguous: no selection can be made, so none is kept.
-        resetFactorValueFields(subcategoryId, lineId);
+        // Ambiguous: nothing can be auto-filled. The factor the line already
+        // holds is kept when it is still one of the candidates — this runs on
+        // every cell edit through `tryToLoadDetermineFactorPlatform`, so
+        // dropping it because a sibling factor happens to share its source
+        // would lose a valid selection while editing an unrelated field. Only
+        // a selection that is no longer among them is cleared.
+        if (
+          !isSelectedFactorAvailable(sourceFilteredFactors, line.baseFactorId)
+        )
+          resetFactorValueFields(subcategoryId, lineId);
         return;
       }
 

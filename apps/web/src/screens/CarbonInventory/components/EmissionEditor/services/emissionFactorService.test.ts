@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { sortDimensionValuesWithOtherLast } from "./emissionFactorService";
+import {
+  isSelectedFactorAvailable,
+  sortDimensionValuesWithOtherLast,
+} from "./emissionFactorService";
 
 type DimensionValue = { id: string; value: string };
 
@@ -83,5 +86,34 @@ describe("sortDimensionValuesWithOtherLast", () => {
     expect(
       sortDimensionValuesWithOtherLast(values).map((v) => v.value)
     ).toEqual(["Camión", "Otros", "Otro"]);
+  });
+});
+
+describe("isSelectedFactorAvailable", () => {
+  const factor = (id: string, originalEmissionFactorId: string | null) => ({
+    id,
+    originalEmissionFactorId,
+  });
+
+  it("keeps a selection that is still among the candidates", () => {
+    // Two factors of the same source: one carries an optional dimension value
+    // the other leaves null, which the maintainer's uniqueness rule allows.
+    // Editing an unrelated cell must not cost the line the factor it holds.
+    expect(
+      isSelectedFactorAvailable([factor("10", null), factor("11", null)], "11")
+    ).toBe(true);
+  });
+
+  it("matches a converted factor by its original id", () => {
+    // The capture payload sends the original id, never the composite one.
+    expect(isSelectedFactorAvailable([factor("10-1", "10")], "10")).toBe(true);
+  });
+
+  it("drops a selection that is no longer among them", () => {
+    expect(isSelectedFactorAvailable([factor("10", null)], "11")).toBe(false);
+  });
+
+  it("treats a line with no factor as nothing to keep", () => {
+    expect(isSelectedFactorAvailable([factor("10", null)], null)).toBe(false);
   });
 });
