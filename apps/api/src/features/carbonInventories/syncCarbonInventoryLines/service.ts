@@ -83,13 +83,15 @@ export const syncCarbonInventoryLinesService = async (
     ...request.delete.map((item) => BigInt(item.id)),
   ];
 
+  const subcategoryIdByLineId = new Map<string, string>();
+
   if (lineIdsToValidate.length > 0) {
     const existingLines = await prismaClient.carbonInventoryLine.findMany({
       where: {
         id: { in: lineIdsToValidate },
         status: CarbonInventoryLineStatus.ACTIVE, // Only consider active lines
       },
-      select: { id: true, carbonInventoryId: true },
+      select: { id: true, carbonInventoryId: true, subcategoryId: true },
     });
 
     const existingLineMap = new Map(
@@ -105,6 +107,7 @@ export const syncCarbonInventoryLinesService = async (
           carbonInventoryId.toString(),
           line.carbonInventoryId.toString()
         );
+      subcategoryIdByLineId.set(item.id, line.subcategoryId.toString());
     }
   }
 
@@ -156,7 +159,8 @@ export const syncCarbonInventoryLinesService = async (
       const keepsFactor = isFactorKeptOnLine(
         createItem,
         referencedFactors,
-        carbonInventory.year
+        carbonInventory.year,
+        createItem.subcategoryId
       );
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, createItem, userId);
@@ -202,7 +206,10 @@ export const syncCarbonInventoryLinesService = async (
       const keepsFactor = isFactorKeptOnLine(
         updateItem,
         referencedFactors,
-        carbonInventory.year
+        carbonInventory.year,
+        // Present for every id in `request.update`: the validation above throws
+        // `LineNotFoundError` before reaching here otherwise.
+        subcategoryIdByLineId.get(updateItem.id) ?? ""
       );
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, updateItem, userId);

@@ -1574,6 +1574,124 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result).toBeNull();
     });
 
+    it("drops a factor that belongs to another subcategory", async () => {
+      // Only a crafted payload reaches this: the selector never offers a
+      // factor of a subcategory other than the line's. Nothing else ties
+      // `baseFactorId` to the line, so without the check the value and source
+      // of an unrelated factor would be frozen onto it verbatim.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const foreignFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[1],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9" }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: foreignFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.quantity).toBe(100);
+      expect(created.baseFactorId).toBeNull();
+
+      const input = await readSnapshot(created.id);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+    });
+
+    it("applies the subcategory check to an update as well", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const foreignFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[1],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9" }
+      );
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: foreignFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const input = await readSnapshot(lineId);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+    });
+
     it("keeps a direct-total line, whose emissions were typed rather than computed", async () => {
       // A direct total carries no factor id either, and must not be swept up
       // with the damaged snapshots: the number is the user's own.

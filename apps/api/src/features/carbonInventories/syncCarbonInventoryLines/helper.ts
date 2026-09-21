@@ -42,16 +42,16 @@ export type ItemData = {
  *
  * TODO(fix/mati/activity-unit-factor-mismatch): `rateMeasurementUnitId` and the
  * rate unit's `denominatorMeasurementUnit` are selected here although only the
- * year is read, so the postponed unit-mismatch fix — the line's
- * `measurementUnitId` is never cross-checked against the denominator of the
- * applied factor's rate unit, so a `kg/kg` factor over a quantity in tonnes
+ * year and the subcategory are read, so the postponed unit-mismatch fix — the
+ * line's `measurementUnitId` is never cross-checked against the denominator of
+ * the applied factor's rate unit, so a `kg/kg` factor over a quantity in tonnes
  * yields a result a thousand times too large — becomes a check added to this
  * query rather than a second round trip.
  */
 export async function findReferencedEmissionFactors(
   prisma: Prisma.TransactionClient,
   items: Pick<ItemData, "baseFactorId">[]
-): Promise<Map<string, { year: number }>> {
+): Promise<Map<string, { year: number; subcategoryId: bigint }>> {
   const referencedIds = [
     ...new Set(
       items
@@ -67,6 +67,7 @@ export async function findReferencedEmissionFactors(
     select: {
       id: true,
       year: true,
+      subcategoryId: true,
       rateMeasurementUnitId: true,
       rateMeasurementUnit: {
         select: { denominatorMeasurementUnit: { select: { id: true } } },
@@ -111,14 +112,28 @@ export async function findReferencedEmissionFactors(
  * The same three-way split is what `clearCatalogueFactorsOfLines` and the
  * migration's `DELETE` predicate encode; the three must agree or a line slips
  * through every one of them.
+ *
+ * `lineSubcategoryId` is checked for the same reason the year is: filtering the
+ * capture selector is not enforcing. Nothing else ties `baseFactorId` to the
+ * line, so a crafted payload could otherwise freeze a factor from an unrelated
+ * subcategory — value and source taken verbatim from the request — onto a line
+ * the selector would never have offered it for. A subcategory belongs to one
+ * category of one methodology version, and the line's subcategory is already
+ * checked against the footprint's methodology, so this covers the version too.
  */
 export function isFactorKeptOnLine(
   item: Pick<ItemData, "baseFactorId" | "factorSource" | "appliedFactorValue">,
-  factorsById: Map<string, { year: number }>,
-  footprintYear: number | null
+  factorsById: Map<string, { year: number; subcategoryId: bigint }>,
+  footprintYear: number | null,
+  lineSubcategoryId: string
 ): boolean {
-  if (item.baseFactorId !== null)
-    return factorsById.get(item.baseFactorId)?.year === footprintYear;
+  if (item.baseFactorId !== null) {
+    const factor = factorsById.get(item.baseFactorId);
+    return (
+      factor?.year === footprintYear &&
+      factor.subcategoryId.toString() === lineSubcategoryId
+    );
+  }
 
   if (item.appliedFactorValue === null) return true;
 
