@@ -56,7 +56,7 @@
 
 ## 6. Token quotas
 
-- [ ] 6.1 Add `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 1_000_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
+- [ ] 6.1 Add `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
 - [ ] 6.2 Add the three rejection message constants in neutral Spanish, beside the existing `CHATBOT_GENERIC_ERROR_MESSAGE`.
 - [ ] 6.3 Implement the per-identity 24-hour token sum, joining messages to conversations on the identity columns; confirm the query uses the existing indexes and add any new one in raw SQL in a migration, never as a Prisma `@@index`.
 - [ ] 6.4 Implement the global anonymous 24-hour token sum over conversations with no `user_id`.

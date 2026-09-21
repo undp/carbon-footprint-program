@@ -46,7 +46,11 @@ A single actor can exhaust the shared pool and deny the anonymous chatbot to eve
 
 The pool resets every 24 hours and its size is chosen on its own merits rather than as the monthly budget divided by thirty.
 
-**Rationale**: a monthly window does not self-heal — exhausted on the third day, the anonymous chatbot is out of service for the rest of the month. A daily window sized at budget/30 would carry a hard monthly guarantee, and that guarantee was traded away for day-to-day headroom. The consequence is explicit: thirty consecutive days at the cap can exceed the monthly budget, so the consumption budget alert is load-bearing rather than informational.
+**Rationale**: a monthly window does not self-heal — exhausted on the third day, the anonymous chatbot is out of service for the rest of the month. A daily window sized as budget-over-thirty would carry a hard monthly guarantee by construction, and that coupling was deliberately not adopted: tying the daily figure to an accounting period says nothing about what a day of legitimate use looks like.
+
+Sizing it on its own merits instead, against the team's own cost model, lands at the daily equivalent of the most conservative modelled scenario — roughly 30 USD per month divided by three. Thirty consecutive days at the cap therefore cost about a third of the configured budget, so the monthly guarantee returns as a consequence of the number rather than as a constraint on it. Had the figure been chosen higher, the consumption budget alert would have been the only thing standing between a sustained cap and an overrun; at this size it has room to spare.
+
+The remaining trade is availability, not cost: thirty turns a day across every anonymous caller combined covers an ordinary day of demonstration and not much more, so a busy week could plausibly meet the ceiling. Signing in remains the remedy, and the pool's rejection message says so.
 
 ### Decision 4 — Application purge, not `pg_cron`
 

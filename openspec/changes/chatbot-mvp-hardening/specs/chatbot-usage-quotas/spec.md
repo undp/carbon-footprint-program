@@ -57,7 +57,9 @@ This layer's purpose is to stop an accidental runaway — a stuck tab, a client 
 
 ### Requirement: Anonymous callers draw on a shared global daily token pool
 
-Before invoking the LLM provider for a caller whose identity kind is `session`, the system SHALL sum `chatbot_chat_message.tokens_used` across all conversations with no `user_id` over the preceding 24 hours, and SHALL refuse the turn when that sum is greater than or equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`. The constant SHALL live in `apps/api/src/config/constants.ts` with a value of 1000000.
+Before invoking the LLM provider for a caller whose identity kind is `session`, the system SHALL sum `chatbot_chat_message.tokens_used` across all conversations with no `user_id` over the preceding 24 hours, and SHALL refuse the turn when that sum is greater than or equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`. The constant SHALL live in `apps/api/src/config/constants.ts` with a value of 300000.
+
+The figure is the daily equivalent of the most conservative scenario the team modelled — roughly 10 USD per month at 300 users — so thirty consecutive days at the cap cost about what that scenario costs in full, well under the configured monthly budget. In turns it is roughly thirty per day across every anonymous caller combined, which covers an ordinary day of demonstration and little beyond it. The pool covers anonymous traffic only, so sizing it against a whole modelled scenario assumes every caller is anonymous — conservative by construction, and accurate early on.
 
 Authenticated callers SHALL NOT draw on this pool and SHALL NOT be refused by it. This asymmetry is deliberate: it makes signing in a genuine remedy when the pool is exhausted, and it matches the cost of minting each identity kind — an anonymous identity is free to mint, an account is not.
 
