@@ -279,7 +279,18 @@ export const MethodologiesMaintainerScreen: FC = () => {
         name: row.name,
         regulation: row.regulation,
       });
-      void navigate({ to: Routes.ADMIN_CATEGORIES });
+      // A published version can be entered, but only its emission factors are
+      // editable — Categorías, Sub-categorías and Dimensiones stay read-only
+      // over the live catalogue, and none of them has a rule behind it that
+      // would make an edit safe. Landing on Categorías would put the
+      // maintainer in edit mode on the one family of screens where nothing can
+      // be done, with no sign of where the editable screen is.
+      void navigate({
+        to:
+          row.status === MethodologyVersionStatus.PUBLISHED
+            ? Routes.ADMIN_EMISSION_FACTORS
+            : Routes.ADMIN_CATEGORIES,
+      });
     },
     [isNewRow, enqueueSnackbar, startEditing, navigate]
   );
