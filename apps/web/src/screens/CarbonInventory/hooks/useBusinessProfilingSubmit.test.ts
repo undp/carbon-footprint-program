@@ -29,12 +29,29 @@ vi.mock("notistack", () => ({
 
 type Inventory = GetCarbonInventoryByIdResponse;
 
-// Only `year` and `subcategories` are read; the rest of the response is never
-// touched, so it is left out rather than faked.
-const inventory = (year: number | null, lineCount: number): Inventory =>
+// Only `year` and the factor fields of each line are read; the rest of the
+// response is never touched, so it is left out rather than faked. The lines
+// have to be real shapes rather than empty slots: the hook asks each one
+// whether it is catalogue-backed, which is what decides if a year change is
+// worth warning about at all.
+const catalogueLine = {
+  baseFactorId: "1",
+  factorValue: 2.5,
+  factorSource: "DEFRA 2025",
+};
+const manualLine = {
+  baseFactorId: null,
+  factorValue: 9.9,
+  factorSource: "Otro",
+};
+
+const inventory = (
+  year: number | null,
+  lines: object[] = [catalogueLine]
+): Inventory =>
   ({
     year,
-    subcategories: [{ lines: Array.from({ length: lineCount }) }],
+    subcategories: [{ lines }],
   }) as unknown as Inventory;
 
 const formValues = (year: string): BusinessProfilingFormValues => ({
@@ -64,18 +81,33 @@ beforeEach(() => {
   inventoryQueryMock.mockReset();
   mutateAsyncMock.mockReset();
   enqueueSnackbarMock.mockReset();
-  inventoryQueryMock.mockReturnValue({ data: inventory(2025, 1) });
+  inventoryQueryMock.mockReturnValue({ data: inventory(2025) });
   mutateAsyncMock.mockResolvedValue(undefined);
 });
 
 describe("useBusinessProfilingSubmit", () => {
-  it("holds the save back when the year changes on a footprint with lines", async () => {
+  it("holds the save back when the year changes on a catalogue-backed footprint", async () => {
     const { result } = setUp();
 
     await act(() => result.current.submit(formValues("2026"), true));
 
     expect(result.current.yearChangeConfirmation.isOpen).toBe(true);
     expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("saves straight away when every line carries a hand-typed factor", async () => {
+    inventoryQueryMock.mockReturnValue({ data: inventory(2025, [manualLine]) });
+    const { result } = setUp();
+
+    await act(() => result.current.submit(formValues("2026"), true));
+
+    // A year change clears the catalogue factors and nothing else, so a
+    // footprint captured by hand loses nothing to it. Warning anyway would ask
+    // the user to weigh a cost that is not there.
+    expect(result.current.yearChangeConfirmation.isOpen).toBe(false);
+    expect(mutateAsyncMock).toHaveBeenCalledWith(
+      expect.objectContaining({ year: 2026 })
+    );
   });
 
   it("saves without the year when only the other fields changed", async () => {

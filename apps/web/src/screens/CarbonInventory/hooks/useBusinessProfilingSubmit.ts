@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useSnackbar } from "notistack";
 import { UpdateCarbonInventoryRequest } from "@repo/types";
+import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
 import { useCarbonInventory, useUpdateCarbonInventory } from "@/api/query";
 import { BusinessProfilingFormValues } from "./useBusinessProfilingForm";
 import { mapFormValuesToRequest } from "../utils/businessProfilingTransformers";
@@ -117,11 +118,22 @@ export const useBusinessProfilingSubmit = ({
 
       const yearChanged =
         requestData.year !== undefined && requestData.year !== inventory.year;
-      const hasDeclaredLines = inventory.subcategories.some(
-        (subcategory) => subcategory.lines.length > 0
+      // Only the catalogue-backed lines are cleared, so only they are worth
+      // warning about: a footprint captured entirely with hand-typed factors
+      // loses nothing to a year change, and telling it otherwise asks the user
+      // to weigh a cost that is not there. Catalogue-backed is read here as the
+      // API reads it — a frozen factor whose source is not a custom one.
+      const hasCatalogueBackedLines = inventory.subcategories.some(
+        (subcategory) =>
+          subcategory.lines.some(
+            (line) =>
+              line.baseFactorId !== null ||
+              (line.factorValue !== null &&
+                !CUSTOM_FACTOR_SOURCES.includes(line.factorSource ?? ""))
+          )
       );
 
-      if (yearChanged && hasDeclaredLines) {
+      if (yearChanged && hasCatalogueBackedLines) {
         setPendingRequest(requestData);
         return;
       }
