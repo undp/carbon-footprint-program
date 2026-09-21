@@ -302,7 +302,11 @@ export const EmissionCaptureScreen: FC = () => {
         return (
           shouldShowSubcategory(subcategory, formSubcategory) &&
           Object.values(formSubcategory?.lines ?? {}).some(
-            (line) => !line.isDeleted
+            // Only real lines count, same filter as `areAllSubcategoriesFilled`:
+            // RHF reconciliation can leave id-less partial objects behind, and
+            // one of those has no `isDeleted`, so it would pass as a captured
+            // source and send the hint chasing a row that never renders.
+            (line) => line && line.lineId && !line.isDeleted
           )
         );
       }),
