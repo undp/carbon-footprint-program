@@ -365,6 +365,33 @@ Guide](../infrastructure/Deployment.md).
 
 ---
 
+## Chatbot Cost Controls
+
+Four layers, only one of which actually stops anything.
+
+| Layer                                     | Where                                 | Stops spend?                         |
+| ----------------------------------------- | ------------------------------------- | ------------------------------------ |
+| TPM quota on the OpenAI deployments       | `infra/modules/openai.bicep`          | Yes — caps throughput per minute     |
+| Kill switch (`CHATBOT_ENABLED=false`)     | App setting                           | Yes — immediately, see below         |
+| Burst limit, token budget, anonymous pool | `apps/api`                            | Yes — refuses turns before the model |
+| Budget + metric alerts                    | `infra/modules/chatbotAlerting.bicep` | **No** — they only notify            |
+
+**The alerting is Azure-only.** It provisions a consumption budget and an Azure
+Monitor metric alert, neither of which exists in the on-premise topology: there
+is no Azure OpenAI account to watch and no consumption data to bill against. An
+on-premise deployment therefore has no cost alerting whatsoever and depends
+entirely on the application-level quotas above. Operators of that topology
+should watch the API logs for quota rejections instead.
+
+**Deploying the alerting needs an extra permission.** `Microsoft.Consumption/budgets`
+requires Cost Management write access, which a principal scoped only to
+Contributor on the resource group may not have. The failure appears at deploy
+time as an authorization error naming that resource type. The module is also
+skipped entirely unless `chatbotAlertEmailAddress` is supplied — an action group
+with no receiver looks like coverage and is not.
+
+---
+
 ## Chatbot Emergency Shutdown
 
 Turns the assistant off completely. Use it when the chatbot is burning budget,

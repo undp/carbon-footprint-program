@@ -18,16 +18,16 @@
 
 ## 3. Cost alerting in Bicep
 
-- [ ] 3.1 Create `infra/modules/chatbotAlerting.bicep` with parameters for the monthly budget amount (default 30) and the notification email address.
-- [ ] 3.2 Add an action group with the supplied email as receiver.
-- [ ] 3.3 Add a `Microsoft.Consumption/budgets` resource scoped to the resource group, with notifications at 50%, 80%, and 100%.
-- [ ] 3.4 Add an Azure Monitor metric alert on the Azure OpenAI account firing above 50000 processed tokens in a one-hour window; verify the metric's real name and aggregation against the deployed resource and report any mismatch rather than silently substituting.
-- [ ] 3.5 Wire the module into `infra/main.bicep` gated by `enableChatbot`, matching how the other chatbot resources are gated.
-- [ ] 3.6 Add module comments stating that neither alarm throttles anything and that the TPM capacity on the OpenAI deployments is the only enforcing ceiling.
-- [ ] 3.7 Add a resource-id output to `infra/modules/openai.bicep` — it currently exposes only the endpoint and deployment names, and the metric alert needs the account's id to scope to it.
-- [ ] 3.8 Verify before deploying that the deployment principal can create `Microsoft.Consumption/budgets`; that resource type needs Cost Management rights a Contributor-scoped principal may lack, and the failure only appears at deploy time.
-- [ ] 3.9 State in the module and in the runbook that this alerting is Azure-only, so the on-premise deployment has no cost alerting at all and relies entirely on the application-level quotas from groups 4 and 6.
-- [ ] 3.10 Record the cost model the default came from — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000 — so the number is traceable rather than arbitrary.
+- [x] 3.1 Create `infra/modules/chatbotAlerting.bicep` with parameters for the monthly budget amount (default 30) and the notification email address.
+- [x] 3.2 Add an action group with the supplied email as receiver.
+- [x] 3.3 Add a `Microsoft.Consumption/budgets` resource scoped to the resource group, with notifications at 50%, 80%, and 100%.
+- [x] 3.4 Add an Azure Monitor metric alert on the Azure OpenAI account firing above 50000 processed tokens in a one-hour window; verify the metric's real name and aggregation against the deployed resource and report any mismatch rather than silently substituting.
+- [x] 3.5 Wire the module into `infra/main.bicep` gated by `enableChatbot`, matching how the other chatbot resources are gated.
+- [x] 3.6 Add module comments stating that neither alarm throttles anything and that the TPM capacity on the OpenAI deployments is the only enforcing ceiling.
+- [x] 3.7 ~~Add a resource-id output to `infra/modules/openai.bicep`~~ — **not needed**: the module already exposes `output id string = account.id`. The earlier claim that it exposed only the endpoint and deployment names was wrong; verified at `infra/modules/openai.bicep:139` and consumed directly.
+- [x] 3.8 Verify before deploying that the deployment principal can create `Microsoft.Consumption/budgets`; that resource type needs Cost Management rights a Contributor-scoped principal may lack, and the failure only appears at deploy time.
+- [x] 3.9 State in the module and in the runbook that this alerting is Azure-only, so the on-premise deployment has no cost alerting at all and relies entirely on the application-level quotas from groups 4 and 6.
+- [x] 3.10 Record the cost model the default came from — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000 — so the number is traceable rather than arbitrary.
 
 ## 4. Burst limit on the send route
 
