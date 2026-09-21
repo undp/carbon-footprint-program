@@ -303,17 +303,6 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       return true;
     }
 
-    // The server refuses an update to a factor an active line depends on. Say so
-    // here rather than sending a request that is already known to fail — and as
-    // an early return, so the rule does not rest on a disabled button.
-    if (!getRowLock(row.id).canEdit) {
-      void enqueueSnackbar({
-        message: "Este factor de emisión está en uso y no se puede modificar",
-        variant: "error",
-      });
-      return false;
-    }
-
     const serverRow = emissionFactors?.find(({ id }) => id === editingRowId);
     const original = serverRow ? toFormEmissionFactor(serverRow) : null;
     const hasRealChanges =
@@ -328,6 +317,25 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.year !== original.year ||
       row.value !== original.value ||
       !gasDetailsEqual(row.gasDetails, original.gasDetails);
+
+    // The server refuses an update to a factor a live line depends on. Say so
+    // here rather than sending a request that is already known to fail, and not
+    // from a disabled button — the rule is asserted on the write path itself.
+    //
+    // Conditioned on there being something to write. A row can become locked
+    // while it is open: saving the GEI breakdown invalidates the listing
+    // without closing the row, so the refetch can bring back a count the row
+    // did not have when it was opened. Refusing unconditionally would then
+    // refuse to close a row nobody edited, and because `handleStartEditRow`
+    // bails when this returns false, no other row could be opened either — the
+    // grid would be stuck until the maintainer hit Cancelar and lost the edit.
+    if (hasRealChanges && !getRowLock(row.id).canEdit) {
+      void enqueueSnackbar({
+        message: "Este factor de emisión está en uso y no se puede modificar",
+        variant: "error",
+      });
+      return false;
+    }
 
     try {
       if (hasRealChanges) {
