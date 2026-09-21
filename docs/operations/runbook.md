@@ -397,6 +397,36 @@ metric alert will have fired well before the pool emptied. Raising
 `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` requires a deploy; `CHATBOT_ENABLED=false`
 is the only immediate lever, and it turns the assistant off for everyone.
 
+**What the alarms actually are, and when each can speak.** Four notifications on
+two clocks, none of which refuses anything:
+
+| Alarm                        | Clock                                | Resets                             |
+| ---------------------------- | ------------------------------------ | ---------------------------------- |
+| Token rate ×1 (Sev 2)        | rolling hour, evaluated every 15 min | when the hour falls below the rung |
+| Token rate ×4 (Sev 1)        | same                                 | same                               |
+| Token rate ×10 (Sev 0)       | same                                 | same                               |
+| Budget 50 / 80 / 100% actual | billed spend, evaluated ~daily       | the 1st of each month              |
+| Budget 100% forecast         | projected month-end spend            | the 1st of each month              |
+
+Three token rules rather than one because **a metric alert notifies on the
+transition into `Fired` and then goes quiet**, however much worse the burn gets,
+for as long as the condition holds. With a one-hour window, continued use keeps
+it holding, so the whole episode produces one mail. This has been seen here: a
+3,445-token hour raised the alarm, and a 20,766-token hour twenty minutes later
+sent nothing, because the rule was already firing. The rungs are separate rules,
+so a climb crosses new ones and each sends its own first mail — and the severity
+that arrives tells you how far it climbed.
+
+To force a reset, disable and re-enable the rule; closing the alert in the portal
+changes `alertState`, which is human workflow, not `monitorCondition`, which is
+what governs notification.
+
+The budget's actual thresholds are late by construction, since Azure bills before
+it reports. The forecast threshold is the only one that can arrive while there is
+still a month left to act in; it is noisier, because a projection swings on one
+busy afternoon, which is why it accompanies the actual ones rather than replacing
+them.
+
 **The alerting is Azure-only.** It provisions a consumption budget and an Azure
 Monitor metric alert, neither of which exists in the on-premise topology: there
 is no Azure OpenAI account to watch and no consumption data to bill against. An

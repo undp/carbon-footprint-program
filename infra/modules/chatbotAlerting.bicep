@@ -48,14 +48,14 @@ param budgetEndDate string = '2035-01-01'
 // consumption of more than one identity's entire daily budget within a single
 // hour is already anomalous. The asymmetry favours a low threshold: a false
 // alarm costs an email, a missed one costs money nothing else is stopping.
-@description('Processed tokens in one hour above which the metric alert fires.')
+@description('Base for the escalation ladder: processed tokens in one hour above which the first alert fires. The higher rules sit at four and ten times this value.')
 param hourlyTokenThreshold int = 50000
 
-// Parameterised because the exact metric name is the one thing in this module
-// that could not be verified against a live account at authoring time. Azure
-// OpenAI exposes token counters under the Microsoft.CognitiveServices/accounts
-// namespace; if the deployed account names this differently, override here
-// rather than editing the module. Verify with:
+// Confirmed against a live account: `TokenTransaction` under the
+// Microsoft.CognitiveServices/accounts namespace is what a deployed Azure
+// OpenAI resource reports, and the alarm has fired on it. Left parameterised
+// anyway, because a differently provisioned account may name it otherwise, and
+// overriding beats editing the module. Verify with:
 //   az monitor metrics list-definitions --resource <openAiAccountId> \
 //     --query "[].{name:name.value, unit:unit}" -o table
 @description('Metric name for processed tokens on the Azure OpenAI account. Override if the deployed account exposes a different name.')
@@ -79,8 +79,10 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
       {
         name: 'chatbotCostOwner'
         emailAddress: alertEmailAddress
-        // Azure's own "you have been added to an action group" confirmation
-        // adds noise without adding signal; the alarms themselves still send.
+        // Payload shape, not notification policy: the common schema gives every
+        // alarm here the same field names, so a reader does not have to learn
+        // two formats. It does NOT suppress Azure's own "you have been added to
+        // an action group" confirmation — nothing in the ARM surface does.
         useCommonAlertSchema: true
       }
     ]
@@ -107,8 +109,17 @@ resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
       endDate: budgetEndDate
     }
     notifications: {
-      // Thresholds are on ACTUAL spend, not forecast. A forecast alarm on a
-      // service this small would swing wildly on a single busy afternoon.
+      // Three thresholds on ACTUAL spend, plus one on the FORECAST. The actual
+      // ones are the ledger: accurate, and late by construction, because Azure
+      // bills before it reports. The forecast one is the only notification in
+      // this module that can arrive while there is still a month left to act
+      // in, which is the whole complaint against a budget alarm otherwise —
+      // being told what you already owe.
+      //
+      // It is noisier by nature: a projection swings on a single busy
+      // afternoon. That is why it sits ALONGSIDE the actual thresholds instead
+      // of replacing them. The forecast warns and may be wrong; the actual
+      // ones record and are not.
       warning50: {
         enabled: true
         operator: 'GreaterThanOrEqualTo'
@@ -130,44 +141,81 @@ resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
         thresholdType: 'Actual'
         contactGroups: [actionGroup.id]
       }
+      forecasted100: {
+        enabled: true
+        operator: 'GreaterThanOrEqualTo'
+        threshold: 100
+        thresholdType: 'Forecasted'
+        contactGroups: [actionGroup.id]
+      }
     }
   }
 }
 
 // Fires within minutes of abnormal token burn, which the budget cannot do
 // because billing data arrives hours late. It still only notifies.
-resource tokenRateAlert 'Microsoft.Insights/metricAlerts@2018-03-01' = {
-  name: metricAlertName
-  location: 'global'
-  tags: tags
-  properties: {
-    description: 'Chatbot token consumption exceeded the hourly threshold. This alert does not throttle anything — see the TPM quota on the OpenAI deployments for the enforcing ceiling, and CHATBOT_ENABLED for the kill switch.'
-    severity: 2
-    enabled: true
-    scopes: [openAiAccountId]
-    evaluationFrequency: 'PT15M'
-    windowSize: 'PT1H'
-    criteria: {
-      'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
-      allOf: [
+//
+// THREE rules rather than one, because a single rule can only ever send one
+// mail per episode. Azure Monitor notifies on the transition INTO "Fired" and
+// then stays silent for as long as the condition holds, however much worse it
+// gets — and with a one-hour window, continuing use keeps the condition true,
+// so the episode never ends while the burn continues.
+//
+// That is not theoretical. In this deployment a 3445-token hour raised the
+// alarm; twenty minutes later a 20766-token hour — six times the threshold —
+// produced no mail at all, because the rule was already Fired. The loudest
+// hour of the day was the silent one.
+//
+// Separate rules are separate state machines, so a climb crosses new ones and
+// each sends its own first mail. The level that fires is also the severity
+// that arrives, which turns "something is burning" into "this much".
+//
+// Expressed as multiples of the base threshold so a deployment overriding
+// `hourlyTokenThreshold` moves the whole ladder with it, rather than having to
+// keep three numbers consistent by hand.
+var tokenAlertLevels = [
+  { suffix: '', multiplier: 1, severity: 2, label: 'exceeded its hourly threshold' }
+  { suffix: '-high', multiplier: 4, severity: 1, label: 'reached four times its hourly threshold' }
+  { suffix: '-critical', multiplier: 10, severity: 0, label: 'reached ten times its hourly threshold' }
+]
+
+// The base level keeps the original resource name. Renaming it would leave the
+// previously deployed rule behind as an unmanaged resource under
+// `--action-on-unmanage detachAll`, still firing, owned by nobody.
+resource tokenRateAlerts 'Microsoft.Insights/metricAlerts@2018-03-01' = [
+  for level in tokenAlertLevels: {
+    name: '${metricAlertName}${level.suffix}'
+    location: 'global'
+    tags: tags
+    properties: {
+      description: 'Chatbot token consumption ${level.label}. This alert does not throttle anything — see the TPM quota on the OpenAI deployments for the enforcing ceiling, and CHATBOT_ENABLED for the kill switch.'
+      severity: level.severity
+      enabled: true
+      scopes: [openAiAccountId]
+      evaluationFrequency: 'PT15M'
+      windowSize: 'PT1H'
+      criteria: {
+        'odata.type': 'Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria'
+        allOf: [
+          {
+            name: 'HourlyTokenBurn'
+            metricNamespace: 'Microsoft.CognitiveServices/accounts'
+            metricName: tokenMetricName
+            operator: 'GreaterThan'
+            threshold: hourlyTokenThreshold * level.multiplier
+            timeAggregation: 'Total'
+            criterionType: 'StaticThresholdCriterion'
+          }
+        ]
+      }
+      actions: [
         {
-          name: 'HourlyTokenBurn'
-          metricNamespace: 'Microsoft.CognitiveServices/accounts'
-          metricName: tokenMetricName
-          operator: 'GreaterThan'
-          threshold: hourlyTokenThreshold
-          timeAggregation: 'Total'
-          criterionType: 'StaticThresholdCriterion'
+          actionGroupId: actionGroup.id
         }
       ]
     }
-    actions: [
-      {
-        actionGroupId: actionGroup.id
-      }
-    ]
   }
-}
+]
 
 @description('Action group id, exposed so future alarms can reuse the same receiver rather than creating a second one.')
 output actionGroupId string = actionGroup.id
