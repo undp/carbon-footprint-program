@@ -46,13 +46,19 @@ export const getEmissionFactorYearsService = async (
   }
 
   // `groupBy` rather than `findMany` + `distinct`: Prisma applies `distinct` on
-  // the client, so the year list would be folded out of one row per active
-  // factor of the methodology -- a few hundred today, and one more set per
-  // catalogue edition. The grouping is what the answer is (one entry per
-  // edition), so it belongs in the database.
+  // the client, so the year list would be folded out of one row per matching
+  // factor after they all crossed the wire. The grouping is what the answer is
+  // (one entry per catalogue edition), so it belongs in the database.
+  //
+  // It is not an index-only answer either way: no index leads with `year` -- the
+  // only one carrying it is the partial unique index where it trails four other
+  // columns -- and the `where` joins to subcategory and category and evaluates
+  // two dimension-value branches first. Postgres scans, filters, sorts and
+  // groups. That is fine at this size: one methodology's catalogue, a few
+  // hundred rows, read once per visit to step 1.
   const factorYears = await prismaClient.emissionFactor.groupBy({
     where: {
-      ...offerableEmissionFactorWhere,
+      ...offerableEmissionFactorWhere(),
       subcategory: {
         status: SubcategoryStatus.ACTIVE,
         category: {
