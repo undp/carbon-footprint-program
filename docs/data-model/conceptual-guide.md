@@ -93,9 +93,11 @@ Calculations are anchored at subcategory level.
 
 Factors are uniquely defined per subcategory and dimension combination, versioned via status.
 
-**Mutability is decided by usage, not by the methodology's status.** A factor may be changed or removed while no active line input references it, and becomes immutable once one does — the same rule on the active version and on a superseded one. The API enforces it (`EMISSION_FACTOR_IN_USE`, 409); the maintainer only stops offering what would be refused, showing how many lines depend on the factor.
+**Editing or deleting a factor directly is decided by usage, not by the methodology's status.** A factor may be changed or removed while no live line references it, and becomes immutable once one does — the same rule on the active version and on a superseded one. The API enforces it (`EMISSION_FACTOR_IN_USE`, 409); the maintainer only stops offering what would be refused, showing how many lines depend on the factor.
 
-References held only by superseded line inputs do not count: inputs are versioned, one active per line, and every reader filters on that, so those are audit trail. Adding a factor is never blocked, since nothing can reference one that does not exist yet.
+Three kinds of reference do not count. Superseded line inputs: inputs are versioned, one active per line, and every reader filters on that, so those are audit trail. Deleted lines and deleted footprints: both deletions are soft and leave the snapshot in place, and neither is reversible, so counting them would lock a factor against something nobody can reach. Unclaimed anonymous footprints: the calculator is open and nobody — not the visitor, not an administrator — can delete a footprint that has neither an owner nor an organization, so counting those would let anonymous traffic freeze the catalogue permanently. Adding a factor is never blocked, since nothing can reference one that does not exist yet.
+
+**The rule governs the factor's own endpoints, not the cascades above it.** Deleting a subcategory, a category or a methodology version soft-deletes the factors underneath it, and adding, removing or changing a dimension deletes or rewrites the factors of its subcategory. None of those paths checks usage today, and the screens they belong to are editable over any superseded version. Treat the guarantee as covering `PATCH` and `DELETE` on an emission factor, and nothing wider.
 
 ---
 
