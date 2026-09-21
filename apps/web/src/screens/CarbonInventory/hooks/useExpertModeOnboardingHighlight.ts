@@ -1,10 +1,27 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { OnboardingKeys } from "@repo/types";
 import { useOnboardingCompletion } from "@/hooks/useOnboardingCompletion";
 import {
   findOnboardingTarget,
   runOnboardingHighlight,
 } from "@/utils/onboardingHighlight";
+
+interface ExpertModeOnboardingHighlight {
+  /**
+   * True while this hint may still take over the screen: before the completion
+   * state settles, and while its popover is up. Flips to false as soon as the
+   * hint is resolved one way or another — dismissed, followed, already seen,
+   * not available here, or its target never rendered.
+   *
+   * It exists so a second hint on the same screen can queue behind this one
+   * REACTIVELY (see useLineActionsOnboardingHighlight). Reading the expert-mode
+   * completion through a ref instead would leave that hint stuck: dismissing
+   * this one persists completion and changes `isCompleted`'s identity, but it
+   * changes none of the waiting effect's deps, so the effect never re-runs and
+   * the queued hint is silently pushed to the next visit.
+   */
+  isPending: boolean;
+}
 
 /**
  * First-visit-only spotlight for the "Sólo quiero ingresar el total de
@@ -38,9 +55,12 @@ import {
  */
 export const useExpertModeOnboardingHighlight = (
   isExpertModeAvailable: boolean
-) => {
+): ExpertModeOnboardingHighlight => {
   const { isCompleted, complete, ready } = useOnboardingCompletion();
   const hasRunRef = useRef(false);
+  // Starts pending: until `ready`, whether this hint will show is unknown, and
+  // a hint queued behind it must not jump ahead of that answer.
+  const [isPending, setIsPending] = useState(true);
 
   // Latest-value refs so the highlight effect can call the current
   // `isCompleted`/`complete` without listing them as deps (see the block comment
@@ -56,13 +76,15 @@ export const useExpertModeOnboardingHighlight = (
   useEffect(() => {
     // Never fire before `ready`: while OIDC rehydrates or /me loads the effective
     // completion state is unknown, and firing then would re-show the hint for a
-    // returning user who already dismissed it.
+    // returning user who already dismissed it. `hasRunRef` means the highlight is
+    // already live or finished, and `onDismiss` owns `isPending` from then on.
+    if (hasRunRef.current || !ready) return undefined;
     if (
-      hasRunRef.current ||
-      !ready ||
       isCompletedRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE) ||
       !isExpertModeAvailable
     ) {
+      // Ruled out for this visit — release anything queued behind it.
+      setIsPending(false);
       return undefined;
     }
     hasRunRef.current = true;
@@ -73,10 +95,16 @@ export const useExpertModeOnboardingHighlight = (
         "Marca esta casilla para registrar un único total de emisiones (tCO₂e) sin cargar fuente por fuente. No es obligatoria: si tienes el detalle, déjala desmarcada y agrega cada fuente de emisión.",
       debugLabel: "emission-capture-expert-mode",
       confirmLabel: "Entendido",
+      // Runs on every ending — user close, following the hint, teardown, and the
+      // poll giving up on a target that never rendered — so a queued hint is
+      // released even on the paths that persist nothing.
+      onDismiss: () => setIsPending(false),
       onUserClose: () =>
         completeRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
       onFollow: () =>
         completeRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE),
     });
   }, [ready, isExpertModeAvailable]);
+
+  return { isPending };
 };

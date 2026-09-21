@@ -17,10 +17,17 @@ import {
  * expert-mode checkbox already gets, which is what this reuses.
  *
  * Fires once there is at least one visible line in the selected category, since
- * the actions only exist on a line. It also stands down while the expert-mode
- * hint is still pending (`isExpertModeAvailable` and not yet completed): an
- * inventory reopened with lines already captured would otherwise show two
- * popovers at once, and that hint owns the first visit.
+ * the actions only exist on a line. It also queues behind the expert-mode hint
+ * (`isExpertModeHintPending`): an inventory reopened with lines already
+ * captured would otherwise show two popovers at once, and that hint owns the
+ * first visit.
+ *
+ * That wait is a DEP, not a ref read, and deliberately so. The expert-mode
+ * completion is the same fact, but reading it through `isCompletedRef` would
+ * never re-run this effect: dismissing that hint persists completion (a `/me`
+ * invalidation when authenticated, a localStorage write when anonymous) without
+ * touching `ready`, `hasCapturedLines` or the gate itself, so this hint would
+ * sit out the whole mount and only appear on a later visit.
  *
  * Completion, the `hasRunRef` guard and the latest-value refs follow
  * `useExpertModeOnboardingHighlight` exactly — including keeping
@@ -31,7 +38,7 @@ import {
  */
 export const useLineActionsOnboardingHighlight = (
   hasCapturedLines: boolean,
-  isExpertModeAvailable: boolean
+  isExpertModeHintPending: boolean
 ) => {
   const { isCompleted, complete, ready } = useOnboardingCompletion();
   const hasRunRef = useRef(false);
@@ -51,9 +58,8 @@ export const useLineActionsOnboardingHighlight = (
       hasRunRef.current ||
       !ready ||
       !hasCapturedLines ||
-      isCompletedRef.current(OnboardingKeys.EMISSION_CAPTURE_LINE_ACTIONS) ||
-      (isExpertModeAvailable &&
-        !isCompletedRef.current(OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE))
+      isExpertModeHintPending ||
+      isCompletedRef.current(OnboardingKeys.EMISSION_CAPTURE_LINE_ACTIONS)
     ) {
       return undefined;
     }
@@ -70,5 +76,5 @@ export const useLineActionsOnboardingHighlight = (
       onFollow: () =>
         completeRef.current(OnboardingKeys.EMISSION_CAPTURE_LINE_ACTIONS),
     });
-  }, [ready, hasCapturedLines, isExpertModeAvailable]);
+  }, [ready, hasCapturedLines, isExpertModeHintPending]);
 };

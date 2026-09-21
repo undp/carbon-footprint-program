@@ -21,11 +21,16 @@ vi.mock("@/utils/onboardingHighlight", () => ({
 
 const completeMock = vi.fn();
 
+interface HookProps {
+  hasCapturedLines: boolean;
+  isExpertModeHintPending: boolean;
+}
+
 const setup = (opts: {
   ready?: boolean;
   completed?: string[];
   hasCapturedLines?: boolean;
-  isExpertModeAvailable?: boolean;
+  isExpertModeHintPending?: boolean;
 }) => {
   const completed = new Set(opts.completed ?? []);
   useOnboardingCompletionMock.mockReturnValue({
@@ -33,18 +38,29 @@ const setup = (opts: {
     isCompleted: (key: string) => completed.has(key),
     complete: completeMock,
   });
-  const rendered = renderHook(() =>
-    useLineActionsOnboardingHighlight(
-      opts.hasCapturedLines ?? true,
-      opts.isExpertModeAvailable ?? false
-    )
+  let props: HookProps = {
+    hasCapturedLines: opts.hasCapturedLines ?? true,
+    isExpertModeHintPending: opts.isExpertModeHintPending ?? false,
+  };
+  const rendered = renderHook(
+    (current: HookProps) =>
+      useLineActionsOnboardingHighlight(
+        current.hasCapturedLines,
+        current.isExpertModeHintPending
+      ),
+    { initialProps: props }
   );
-  rerenderLatest = rendered.rerender;
-  return rendered;
+  // `rerender()` with no argument would hand the hook `undefined` props, so
+  // every re-render goes through here and carries the previous ones forward.
+  rerenderLatest = (next: Partial<HookProps> = {}) => {
+    props = { ...props, ...next };
+    rendered.rerender(props);
+  };
+  return { rerender: rerenderLatest, unmount: rendered.unmount };
 };
 
 /** Re-render of the hook most recently mounted by `setup`. */
-let rerenderLatest: () => void;
+let rerenderLatest: (next?: Partial<HookProps>) => void;
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -81,15 +97,26 @@ describe("useLineActionsOnboardingHighlight", () => {
   it("stands down while the expert-mode hint is still pending", () => {
     // An inventory reopened with lines already captured would otherwise stack
     // two popovers on the same render.
-    setup({ isExpertModeAvailable: true });
+    setup({ isExpertModeHintPending: true });
     expect(runHighlightMock).not.toHaveBeenCalled();
   });
 
-  it("fires once the expert-mode hint has been dismissed", () => {
-    setup({
-      isExpertModeAvailable: true,
-      completed: [OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE],
-    });
+  it("fires as soon as the expert-mode hint stops being pending", () => {
+    // The reason the wait is a dep and not a ref read. Reopening an inventory
+    // that already has lines settles `ready`/`hasCapturedLines` before the
+    // expert-mode hint is dismissed, so its resolution is the ONLY thing left
+    // to re-run this effect. Read the expert-mode completion through a ref
+    // instead and nothing re-runs it: the hint sits out the whole mount.
+    const { rerender } = setup({ isExpertModeHintPending: true });
+    expect(runHighlightMock).not.toHaveBeenCalled();
+
+    rerender({ isExpertModeHintPending: false });
+
+    expect(runHighlightMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not queue behind a hint that was never pending", () => {
+    setup({ isExpertModeHintPending: false });
     expect(runHighlightMock).toHaveBeenCalledTimes(1);
   });
 
