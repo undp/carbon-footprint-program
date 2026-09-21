@@ -8,7 +8,6 @@ Both gaps close before the corpus grows, not after. The similarity floor in part
 
 - **Three-layer spend control.** A per-route burst limit keyed by IP; a per-identity daily token budget; and a global daily token pool shared by all anonymous callers. The layers exist because each one alone is evadable: an anonymous identity is a cookie the caller can discard for free, and third-party cookie restrictions already make identity churn routine rather than exceptional, which silently neuters any per-identity counter. The global pool is the only layer with no cheap evasion.
 - **Three distinct 429 bodies** — burst, personal budget, and shared pool — because only the third has an immediate remedy (sign in; authenticated callers do not draw on the pool), and one generic message hides it.
-- **Physical purge of expired conversations**, run at API start and every 24 hours. Each sweep measures its own backlog — the age of the oldest still-present expired row — _before_ deleting, and warns when that age outgrows the interval, so a purge that stops running says so instead of silently reinstating the defect it was built to fix. Concurrent sweeps are tolerated rather than locked: PostgreSQL serializes them and the loser finds fewer rows. **Not** `pg_cron`: on Azure that extension must join `azure.extensions`, an allowlist that _replaces_ rather than appends, so a mistake there drops `VECTOR` and breaks the chatbot migration; on-premise it is the same fight already fought for pgvector. Two infrastructure battles to run one `DELETE`.
 - **Tiered retention** — anonymous conversations expire in 7 days, authenticated in 30. **BREAKING** for anonymous callers: a thread abandoned for more than a week no longer rehydrates. The asymmetry follows the relationship: an authenticated user has an account to return to, while an anonymous one gains only surviving a page reload and carries the same data-at-rest exposure without the benefit.
 - **Two standing notices at the foot of the chat panel**, unconditional and undismissable: that answers are model-generated and must be checked against the cited sources, and that conversations are kept up to 30 days and personal data should not be shared. The retention notice states the maximum rather than the tier, because overstating retention is harmless while understating it is a privacy assurance the system does not keep.
 - **Retrieval always runs.** The decision to search leaves the system prompt and becomes a forced tool call, so the model no longer arbitrates something it evaluates poorly — recommendation-shaped questions currently skip retrieval and reach the fallback with the answer sitting in the corpus.
@@ -18,7 +17,7 @@ Both gaps close before the corpus grows, not after. The similarity floor in part
 
 Deliberately **not** in this change:
 
-- **No user-facing delete affordance.** `chatbot-rag-mvp` design decision 25 defers it, and the gap that argued against that deferral — support cannot invoke a delete that acts on the caller's own identity, so an anonymous request has no operator path — is closed instead by the purge and the 7-day anonymous tier. The decision stands; the widget comment explaining why `deleteHistory` is unwired stays true.
+- **No user-facing delete affordance.** `chatbot-rag-mvp` design decision 25 defers it. The gap that argued against that deferral is real — support cannot invoke a delete that acts on the caller's own identity, so an anonymous erasure request has no operator path — and this change narrows it by shortening the anonymous window to 7 days rather than closing it. **Physically deleting expired rows moved to `chatbot-conversation-purge`**, so until that lands, a shorter window shortens visibility rather than storage. The decision stands for this change; whoever revisits it should weigh that the mitigation is now partial.
 - **No evaluation suite.** `chatbot-rag-mvp` states its prerequisites: the operator-supplied corpus and golden questions written by a domain expert. Neither exists, and building against an unmet precondition produces a test that asserts noise. It waits on the corpus being defined.
 - **No corpus ingestion.** Requires the real documents, Azure access, and the `Cognitive Services OpenAI User` role.
 
@@ -31,7 +30,7 @@ Deliberately **not** in this change:
 
 ### Modified Capabilities
 
-- `chatbot-conversation-persistence`: retention becomes tiered by identity kind rather than a flat 30 days, and expired rows acquire a process that actually deletes them.
+- `chatbot-conversation-persistence`: retention becomes tiered by identity kind rather than a flat 30 days.
 - `chatbot-widget`: the foot-of-chat area carries a retention notice alongside the existing generated-content disclaimer, and the disclaimer's wording changes.
 - `chatbot-message-streaming`: retrieval is no longer the model's decision, and a turn can now be refused before reaching the model when a quota is exhausted.
 - `chatbot-corpus-retrieval`: retrieved rows below a similarity floor are discarded before they reach the model.
@@ -40,7 +39,7 @@ Deliberately **not** in this change:
 
 ## Impact
 
-- **API**: `sendMessage` gains a pre-model quota check and a forced tool choice; a purge task joins application startup; `searchKnowledge` filters and logs similarity; retention branches on identity kind.
+- **API**: `sendMessage` gains a pre-model quota check and a forced tool choice; `searchKnowledge` filters and logs similarity; retention branches on identity kind.
 - **Web**: the chat panel's footer renders two notices instead of one. No other surface changes; no delete control is added.
 - **Database**: no schema change. The existing `expires_at` index serves the purge, and the existing identity indexes serve the budget query.
 - **Infrastructure**: a new Bicep module for alerting, gated by `enableChatbot`, with the monthly budget amount as a parameter.

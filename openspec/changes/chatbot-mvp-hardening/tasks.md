@@ -36,23 +36,13 @@
 - [x] 4.3 Document at the call site that this layer keys on IP because `@fastify/rate-limit` runs in `onRequest`, before `chatbotIdentityPreHandler` resolves the caller — an ordering constraint, not a preference.
 - [x] 4.4 Add an integration test asserting that turns beyond the cap receive 429 and never reach the LLM provider.
 
-## 5. Tiered retention and conversation purge
+## 5. Tiered retention
 
-- [ ] 5.1 Add `CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS = 7` beside the existing 30-day constant, documenting the relationship-based rationale and that both stay compile-time values per Decision 7.
-- [ ] 5.2 Branch `computeExpiresAt` in `sendMessage/service.ts` on identity kind so anonymous conversations expire in 7 days and authenticated ones in 30.
-- [ ] 5.3 Update the stale comment on `CHATBOT_CONVERSATION_TTL_DAYS` that still reads "pg_cron purge deferred".
-- [ ] 5.4 Create `apps/api/src/plugins/app/chatbotPurge.ts` as an autoloaded Fastify plugin that returns immediately when `CHATBOT_ENABLED` is false, registering nothing.
-- [ ] 5.5 Implement the sweep in three ordered steps: read the oldest `expires_at` still in the past, then `DELETE` the expired rows, then log the deleted count together with the measured backlog age.
-- [ ] 5.6 Keep the measurement strictly before the delete, and comment why — measuring after always reports zero, so a purge dead for a month would look healthy.
-- [ ] 5.7 Log at warning level when the backlog age materially exceeds the sweep interval, since that means earlier sweeps did not complete regardless of the cause.
-- [ ] 5.8 Take no advisory lock, and comment that concurrent sweeps are tolerated because PostgreSQL serializes them and a collision costs duplicated work rather than wrong data.
-- [ ] 5.9 Run the first sweep from an `onReady` hook so `fastify.prisma` is decorated, and guard the `createApp(withPrisma: false)` path used by tests.
-- [ ] 5.10 Schedule the 24-hour interval with `.unref()` so it never holds the process open, and clear it in an `onClose` hook so a restart cannot leave two timers running.
-- [ ] 5.11 Catch and log sweep failures without rethrowing — a failed purge is not a reason to take the chatbot down — and let the next interval retry.
-- [ ] 5.12 Note in the code that sustained large deleted counts are the trigger for batched deletion, and that a transaction-scoped advisory lock is the next step if many instances and large deletes ever coincide.
-- [ ] 5.13 Add integration tests: expired rows are deleted, unexpired rows survive, cascaded messages disappear with their conversation, and two concurrent sweeps both complete leaving no expired row.
-- [ ] 5.14 Add an integration test that the backlog is measured before deletion — seed a long-expired row and assert the logged backlog reflects its true age rather than zero.
-- [ ] 5.15 Add integration tests for the tiered TTL: an anonymous conversation expires in 7 days, an authenticated one in 30.
+- [x] 5.1 Add `CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS = 7` beside the existing 30-day constant, documenting the relationship-based rationale and that both stay compile-time values per Decision 7.
+- [x] 5.2 Branch `computeExpiresAt` in `sendMessage/service.ts` on identity kind so anonymous conversations expire in 7 days and authenticated ones in 30.
+- [x] 5.3 Update the stale comment on `CHATBOT_CONVERSATION_TTL_DAYS` that still reads "pg_cron purge deferred".
+- [x] 5.4 Physically deleting expired rows moved to the `chatbot-conversation-purge` change — this group now tiers the window without enforcing it at the data layer.
+- [x] 5.5 Add integration tests for the tiered TTL: an anonymous conversation expires in 7 days, an authenticated one in 30.
 
 ## 6. Token quotas
 

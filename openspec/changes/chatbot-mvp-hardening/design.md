@@ -11,18 +11,17 @@ Two properties of the deployment shape every decision here. The frontend is a St
 **Goals:**
 
 - Put a ceiling on chatbot spend that cannot be removed by discarding a cookie.
-- Make the retention promise true at the data layer, not only at the read layer.
 - Stop the model from deciding whether to search, and stop weak fragments from reaching it.
 - Give an operator a written procedure for shutting the chatbot off under pressure.
 - Make cost visible early enough to act, while being explicit that nothing added here throttles.
 
 **Non-Goals:**
 
-- A user-facing delete affordance. Examined and deliberately not added — see Decision 8.
-- An evaluation suite. Its stated prerequisites do not exist yet — see Decision 10.
+- A user-facing delete affordance. Examined and deliberately not added — see Decision 7.
+- An evaluation suite. Its stated prerequisites do not exist yet — see Decision 9.
 - Corpus ingestion. Requires the real documents, Azure access, and an operator role.
 - A hot kill switch. The environment flag with a one-minute restart is sufficient for an MVP; a database-backed flag adds a table, an admin endpoint, and a cache.
-- Per-deployment configurability of the retention window — see Decision 7.
+- Per-deployment configurability of the retention window — see Decision 6.
 
 ## Decisions
 
@@ -52,27 +51,15 @@ Sizing it on its own merits instead, against the team's own cost model, lands at
 
 The remaining trade is availability, not cost: thirty turns a day across every anonymous caller combined covers an ordinary day of demonstration and not much more, so a busy week could plausibly meet the ceiling. Signing in remains the remedy, and the pool's rejection message says so.
 
-### Decision 4 — Application purge, not `pg_cron`
+### Decision 4 — Physically deleting expired rows is a separate change
 
-A function at API start and every 24 hours thereafter.
+`expires_at` is still written and still respected by every read, and nothing deletes. This change tiers the retention window; it does not enforce it at the data layer.
 
-**Rationale**: `pg_cron` is a PostgreSQL extension. On Azure Flexible Server it must be added to `azure.extensions`, a server parameter that **replaces** its list rather than appending to it — an error there drops `VECTOR` and breaks the chatbot migration outright. On-premise it must be installed on the server, which is the same fight already fought for pgvector. Two infrastructure battles, in two deployment topologies, to execute one `DELETE`.
+**Rationale**: the purge is a scheduled background job with its own lifecycle, failure modes and observability question, and it was carrying about as much design as the spend controls it travelled with. Splitting it lets the hardening land without introducing a timer into application startup, and lets the purge be judged on its own. The design — application-scheduled rather than `pg_cron`, no advisory lock, backlog measured before deleting — moved intact to `chatbot-conversation-purge`.
 
-### Decision 5 — No cross-instance lock; measure the backlog instead
+**Consequence, stated plainly**: until that change lands, shortening the anonymous window to 7 days shortens how long a conversation is *visible*, not how long it is *stored*. Decision 8 leans on that mitigation, and now leans on a partial one.
 
-The purge takes no advisory lock. Each sweep instead reads the age of the oldest still-present expired row before deleting, and warns when that age outgrows the sweep interval.
-
-**Rationale**: an earlier draft of this design made a transaction-scoped advisory lock its centrepiece. It does not earn the space. PostgreSQL already serializes competing `DELETE` statements against the same rows, so two instances sweeping at once produce duplicated work and the same end state — never incorrect data. At the deployment sizes in view, commonly a single instance, the lock protects against nothing at all, while adding semantics that are subtle to get right: `pg_try_advisory_lock` is session-scoped and is taken on whichever pooled connection served the call, so its unlock can be issued on a different connection, return false, and be ignored — leaving the lock held until that connection dies and the purge permanently disabled. Choosing the transactional variant avoids that, but the cheapest way to avoid it entirely is to need no lock.
-
-What does earn the space is the measurement, and it addresses a sharper problem. The defect this change fixes is a retention promise that nothing enforced and nothing reported. A scheduled purge that quietly stops running reproduces that defect exactly, one level up, and would be equally invisible — which is how the current state arose in the first place. The measurement removes the question "did the job run?", which nothing inside the job can answer honestly, and replaces it with "how long has the oldest expired row been waiting?", which the data answers by itself and answers correctly whatever the cause: a dead timer, a container that never started, an exception nobody read.
-
-The ordering is load-bearing rather than incidental. The `DELETE` removes precisely the rows the measurement reads, so measuring afterwards always reports zero and a month-dead purge looks healthy.
-
-**Alternatives considered**: `pg_cron` — rejected per Decision 4. An Azure-native scheduler (Logic App, timer-triggered Function) — rejected because it does not exist on-premise and would split the implementation per deployment topology. An internal endpoint driven by each deployment's own scheduler — rejected as adding an authenticated surface and a second thing to configure per country. Opportunistic purging on write — rejected for putting deletion latency inside a user request. Table partitioning with partition drops — genuinely the most robust mechanism available and the only one rejected on implementation cost rather than portability; it is the right answer if volume ever demands it.
-
-**If many instances and large deletes ever coincide**, a transaction-scoped advisory lock is the documented next step. The session-scoped variant is not, for the reason above.
-
-### Decision 6 — Retention is tiered by identity kind: 7 days anonymous, 30 authenticated
+### Decision 5 — Retention is tiered by identity kind: 7 days anonymous, 30 authenticated
 
 **Rationale**: retention should follow the relationship. An authenticated caller has an account, can return from another device, and has history worth keeping. An anonymous caller gains only that a thread survives a page reload — a benefit already lost whenever the browser drops the session cookie — while carrying identical data-at-rest exposure. Holding less of the data belonging to people there is no way to contact is the largest available reduction in exposure and it asks nothing of anyone.
 
@@ -80,23 +67,23 @@ This is the change's principal compliance move. What is not retained cannot be t
 
 **Alternatives considered**: one day for anonymous — rejected because a thread vanishing overnight reads as a defect rather than a policy. Leaving both at thirty — rejected as retaining the maximum from the callers with the least benefit.
 
-### Decision 7 — The retention windows stay compile-time constants
+### Decision 6 — The retention windows stay compile-time constants
 
 **Rationale**: an environment variable would let a deployment change the window without rebuilding, which matters most for the air-gapped on-premise topology. It was rejected anyway, for two reasons. Adapting the _mechanism_ — anything beyond the number — requires code regardless, so configurability of the value buys less than it appears. And the widget's retention notice is rendered by a different application: if the API's window becomes an environment variable, the notice can only follow it through a new endpoint, or a build-time variable that reintroduces the rebuild it was meant to avoid, or by dropping the number and becoming vague.
 
-### Decision 8 — `chatbot-rag-mvp` Decision 25 is upheld: no delete affordance
+### Decision 7 — `chatbot-rag-mvp` Decision 25 is upheld: no delete affordance
 
 **Rationale**: this change examined that decision and confirmed it.
 
 The argument that had been raised against it is real and worth recording. Decision 25 holds that the erasure obligation is met by support invoking `DELETE /api/chatbot/conversations/me`. That endpoint acts on the identity of whoever calls it, and an anonymous caller's identity is a signed `HttpOnly` cookie — support can neither read it nor act on its behalf. The repository's own runbook documents the consequence, describing a manual SQL purge for "an ad-hoc retention request that the right-to-be-forgotten endpoint cannot satisfy because the user has no active session". So for anonymous callers the declared channel cannot act at all; that is impossibility, not latency.
 
-It is addressed without the affordance. The purge (Decision 4) and the 7-day anonymous window (Decision 6) reduce the exposure the request would have targeted, and do so for every anonymous caller rather than only the ones who ask. Most of what the button would have accomplished happens anyway, on a schedule, with no one in the loop.
+It is narrowed without the affordance. The 7-day anonymous window (Decision 5) reduces how long the exposure lasts, for every anonymous caller rather than only the ones who ask. It is a partial mitigation while the physical delete lives in `chatbot-conversation-purge` and has not landed: until then the window shortens visibility rather than storage. Whoever revisits Decision 25 should weigh that honestly.
 
 Two further notes for whoever revisits this. "D11" is a design-decision identifier in `chatbot-foundation`, not a legal article; it reads "A `DELETE /api/chatbot/conversations/me` endpoint lets callers delete their own history at will", and "at will" is what Decision 25 reinterpreted as support-operated. And the repository states in `docs/security/sensitive-data.md` that the team does not certify compliance and that the deploying country declares it — which makes any claim that an obligation "is met" the kind of statement that document says the team should not be making, in either direction.
 
 **Consequence**: the `ChatbotWidget.tsx` comment explaining why `deleteHistory` is unwired remains accurate and stays. The existing widget test asserting the absence of a deletion control stays unchanged. `chatbot-rag-mvp` tasks 9.7 and 10.38 remain correctly deferred, and archiving that change after this one creates no contradiction.
 
-### Decision 9 — Forced `tool_choice`, not a pre-retrieval refactor
+### Decision 8 — Forced `tool_choice`, not a pre-retrieval refactor
 
 **Rationale**: the goal is to remove a decision the model makes badly — recommendation-shaped questions do not read as lookups, so they skip retrieval and reach the fallback while the answer sits unread. Forcing the first round's `tool_choice` achieves that with one provider flag and a prompt amendment, preserving the single-round tool architecture and its existing test surface.
 
@@ -104,17 +91,17 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 
 **Cost accepted**: every turn now pays one embedding and two rounds, including greetings. The prompt must be amended so the non-retrieval modes stay correct when a forced search returns nothing — otherwise a greeting would open with the K=0 literal.
 
-### Decision 10 — The similarity floor is applied in TypeScript and ships provisional
+### Decision 9 — The similarity floor is applied in TypeScript and ships provisional
 
 **Rationale for the placement**: the HNSW index is chosen by the `ORDER BY ... LIMIT` shape. A similarity predicate in `WHERE` risks a different plan for no gain, since the filter runs over at most eight rows.
 
 **Rationale for the value**: 0.45 errs high on purpose. Of the three outcomes an evaluation would measure, answering confidently and wrongly is the one that matters, and a low floor is what produces it. A figure near 0.35 is commonly cited for this embedding model, but that is a reference point, not a measurement of this corpus. The handler logs the top similarity of every retrieval so the value can be replaced by a measurement rather than a second guess.
 
-### Decision 11 — Three rejection messages, not one
+### Decision 10 — Three rejection messages, not one
 
 **Rationale**: the three quota layers have different remedies — wait seconds, wait for the window, or sign in. Only the third has an immediate one, and it is invisible under a generic message. The cost is that the pool's message confirms to an abuser that the pool is exhausted; that is accepted, since silence would not deter them and does confuse everyone else.
 
-### Decision 12 — Budget default of 30 USD per month
+### Decision 11 — Budget default of 30 USD per month
 
 **Rationale**: taken from the team's own cost modelling — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000. Thirty is the value at which ordinary operation is silent (the 300-user case never reaches the 50% threshold), growth is audible (the 500-user case trips 50% and 80%), and an anomaly is unmistakable (the 1000-user case exceeds all three). A default calibrated so that the first threshold fires during normal use would train everyone to ignore it.
 
@@ -129,14 +116,12 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 - **Forcing retrieval costs an embedding and a round on every turn, including greetings** → accepted per Decision 9; the TPM quota bounds the worst case and the new token budgets bound the expected one.
 - **The similarity floor is a guess** → it is instrumented from day one and documented as provisional; the eval suite that would calibrate it is deferred with its prerequisites named.
 - **Cost alerting exists only on Azure** → the on-premise deployment has no budget and no metric alert, so its only cost controls are the application-level quotas. Stated in the module and the runbook so it is not assumed to be present everywhere.
-- **A purge that stops running would be invisible** → this is the defect being fixed, reproduced one level up. Addressed by measuring the backlog age before each delete and warning when it outgrows the interval, rather than by trusting that the job ran.
 - **The metric alert's exact Azure metric name is unverified** → to be confirmed against the deployed account during implementation; if hourly aggregation does not behave as assumed, that is reported rather than worked around silently.
 
 ## Migration Plan
 
 1. `chatbot-rag-mvp` archives first. This change's `chatbot-corpus-retrieval` delta and its `chatbot-message-streaming` tool-round modification assume that capability exists in the main specs.
 2. API changes deploy together: constants, quota checks, purge task, forced tool choice, similarity floor, tiered retention. No database migration accompanies them.
-3. The purge runs on the first boot after deployment and deletes every already-expired row at once. Its first backlog reading will be large — correctly so, since it measures everything accumulated since the tables existed — and should not be read as a fault. The backlog is bounded by current volume and does not require batching; both the deleted count and the backlog age are logged, so the assumption is checkable rather than assumed.
 4. Infrastructure deploys independently. The budget amount is a parameter; the module is inert while `enableChatbot` is false.
 5. Web deploys independently — the two notices are static text with no API dependency.
 
