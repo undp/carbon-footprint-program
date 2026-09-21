@@ -74,6 +74,34 @@ export const CHATBOT_STREAM_OVERALL_TIMEOUT_MS = 120_000;
  */
 export const CHATBOT_REHYDRATE_TIMEOUT_MS = 10_000;
 
+/**
+ * Standing notices at the foot of the chat panel, rendered in every widget
+ * state rather than behind a dismiss — a disclaimer the user can close is one
+ * they will not be reading on the turn that matters.
+ *
+ * `CHATBOT_AI_DISCLAIMER` exists so a generated answer is never mistaken for
+ * an official inventory figure: the assistant cites its corpus, but the
+ * sentence wrapped around the citation is model output.
+ *
+ * `CHATBOT_RETENTION_NOTICE` states the CEILING, not the window that applies
+ * to whoever is reading. Retention is tiered — 7 days for anonymous visitors,
+ * 30 for signed-in ones (see CHATBOT_CONVERSATION_TTL_DAYS and
+ * CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS in apps/api/src/config/constants.ts)
+ * — and the two possible errors are not symmetric. Telling an anonymous
+ * visitor their data is kept longer than it is costs nothing. Telling a
+ * signed-in one it is kept a week would be a privacy assurance the system does
+ * not honour. Stating the maximum is true for everyone, and keeps this a
+ * static line instead of one that has to await session state before painting.
+ *
+ * The second sentence is the load-bearing half: retention length is a
+ * disclosure, "no compartas datos personales" is a control — the cheapest
+ * personal data to delete is the kind that was never typed.
+ */
+export const CHATBOT_AI_DISCLAIMER =
+  "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
+export const CHATBOT_RETENTION_NOTICE =
+  "Las conversaciones se guardan hasta 30 días. No compartas datos personales.";
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 

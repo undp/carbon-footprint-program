@@ -5,10 +5,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { ChatbotWidget } from "./ChatbotWidget";
 import type { ChatbotMessage, ChatbotState } from "./types";
 
-// Byte-for-byte mirror of the widget's disclaimer (Task 10.34). Duplicated here
+// Byte-for-byte mirrors of the widget's standing notices. Duplicated here
 // deliberately so a copy change has to be made in two places on purpose.
 const DISCLAIMER =
-  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
+  "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
+const RETENTION_NOTICE =
+  "Las conversaciones se guardan hasta 30 días. No compartas datos personales.";
 const NEW_CONVERSATION_LABEL = "Nueva conversación";
 
 // Per-test inputs for the useChatStream stub, plus a spy for the reset call.
@@ -106,6 +108,12 @@ describe("ChatbotWidget", () => {
       });
       expect(button).toBeInTheDocument();
       // Guards against regressing to the destructive wording of earlier drafts.
+      //
+      // The absence of any deletion control is deliberate, not an oversight:
+      // chatbot-rag-mvp design decision 25 defers the delete-history affordance,
+      // and chatbot-mvp-hardening re-examined and upheld it — the erasure gap it
+      // would have closed is covered instead by the conversation purge and the
+      // 7-day anonymous retention window. Do not "fix" this by adding a button.
       expect(
         screen.queryByRole("button", { name: /Limpiar conversación/ })
       ).toBeNull();
@@ -150,9 +158,9 @@ describe("ChatbotWidget", () => {
     });
   });
 
-  // Task 10.34 — the disclaimer is unconditional, so it must survive every
-  // state the widget can be in, not just the happy path.
-  describe("foot-of-chat disclaimer", () => {
+  // Both notices are unconditional, so they must survive every state the widget
+  // can be in, not just the happy path.
+  describe("standing foot-of-chat notices", () => {
     const states: ChatbotState[] = [
       "empty",
       "loading",
@@ -162,23 +170,40 @@ describe("ChatbotWidget", () => {
       "degraded",
     ];
 
-    it.each(states)("is rendered in the %s state", (state) => {
+    it.each(states)("are both rendered in the %s state", (state) => {
       h.initialState = state;
       h.initialMessages =
         state === "empty" ? [] : [assistantMessage("contenido")];
       render(<ChatbotWidget />);
 
       expect(screen.getByText(DISCLAIMER)).toBeInTheDocument();
+      expect(screen.getByText(RETENTION_NOTICE)).toBeInTheDocument();
     });
 
-    it("is static text with no interactive affordance", () => {
+    it.each([
+      ["AI disclaimer", DISCLAIMER],
+      ["retention notice", RETENTION_NOTICE],
+    ])(
+      "the %s is static text with no interactive affordance",
+      (_label, text) => {
+        render(<ChatbotWidget />);
+
+        const notice = screen.getByText(text);
+        expect(notice).not.toHaveAttribute("role", "button");
+        expect(notice.closest("button")).toBeNull();
+        // No dismiss control anywhere in the notices' own container.
+        expect(notice.parentElement?.querySelector("button")).toBeNull();
+      }
+    );
+
+    // The retention line states the ceiling, not the 7-day anonymous window.
+    // Understating retention would be a privacy assurance the system does not
+    // keep, so the "hasta" and the 30 are both load-bearing.
+    it("states the retention ceiling rather than the anonymous tier", () => {
       render(<ChatbotWidget />);
 
-      const disclaimer = screen.getByText(DISCLAIMER);
-      expect(disclaimer).not.toHaveAttribute("role", "button");
-      expect(disclaimer.closest("button")).toBeNull();
-      // No dismiss control anywhere in the disclaimer's own container.
-      expect(disclaimer.parentElement?.querySelector("button")).toBeNull();
+      expect(screen.getByText(RETENTION_NOTICE)).toBeInTheDocument();
+      expect(screen.queryByText(/7 días/)).toBeNull();
     });
   });
 });

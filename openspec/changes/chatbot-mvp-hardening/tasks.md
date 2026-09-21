@@ -1,13 +1,13 @@
 ## 1. Widget notices
 
-- [ ] 1.1 Add `CHATBOT_AI_DISCLAIMER` and `CHATBOT_RETENTION_NOTICE` to `apps/web/src/config/constants.ts`, documenting that the retention notice states the 30-day ceiling rather than the 7-day anonymous tier, and why understating retention is the error that matters.
-- [ ] 1.2 Replace the module-local `FOOT_DISCLAIMER` in `ChatbotWidget.tsx` with the imported constant, changing the wording to `"Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas."`.
-- [ ] 1.3 Render `CHATBOT_RETENTION_NOTICE` as a second line in the same foot-of-chat container, sharing the disclaimer's typography and non-interactive nature.
-- [ ] 1.4 Leave the comment explaining why `deleteHistory` is unwired exactly as it is — it remains accurate under Decision 8 and is now covered by a spec requirement.
-- [ ] 1.5 Update the byte-for-byte disclaimer mirror in `ChatbotWidget.test.tsx` to the new literal and add a matching mirror for the retention notice.
-- [ ] 1.6 Extend the foot-of-chat test block to assert both notices render in all six canonical states and that neither carries an interactive affordance.
-- [ ] 1.7 Keep the existing assertion that no control named for deletion exists, and add a comment tying it to Decision 8 so a future reader does not mistake it for an oversight.
-- [ ] 1.8 Run `pnpm test:web` and confirm the suite passes with the coverage floor intact.
+- [x] 1.1 Add `CHATBOT_AI_DISCLAIMER` and `CHATBOT_RETENTION_NOTICE` to `apps/web/src/config/constants.ts`, documenting that the retention notice states the 30-day ceiling rather than the 7-day anonymous tier, and why understating retention is the error that matters.
+- [x] 1.2 Replace the module-local `FOOT_DISCLAIMER` in `ChatbotWidget.tsx` with the imported constant, changing the wording to `"Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas."`.
+- [x] 1.3 Render `CHATBOT_RETENTION_NOTICE` as a second line in the same foot-of-chat container, sharing the disclaimer's typography and non-interactive nature.
+- [x] 1.4 Leave the comment explaining why `deleteHistory` is unwired exactly as it is — it remains accurate under Decision 8 and is now covered by a spec requirement.
+- [x] 1.5 Update the byte-for-byte disclaimer mirror in `ChatbotWidget.test.tsx` to the new literal and add a matching mirror for the retention notice.
+- [x] 1.6 Extend the foot-of-chat test block to assert both notices render in all six canonical states and that neither carries an interactive affordance.
+- [x] 1.7 Keep the existing assertion that no control named for deletion exists, and add a comment tying it to Decision 8 so a future reader does not mistake it for an oversight.
+- [x] 1.8 Run `pnpm test:web` and confirm the suite passes with the coverage floor intact.
 
 ## 2. Emergency shutdown runbook
 

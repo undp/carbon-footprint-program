@@ -21,7 +21,12 @@ import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
-import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
+import {
+  APP_LOCALE,
+  CHATBOT_AI_DISCLAIMER,
+  CHATBOT_INTRODUCED_KEY,
+  CHATBOT_RETENTION_NOTICE,
+} from "@/config/constants";
 import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
@@ -33,11 +38,6 @@ import { useConversationRehydrate } from "./useConversationRehydrate";
 // the cap so the user is not surprised by a hard stop.
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
-
-// Shown in every widget state: the assistant is generative and can be wrong,
-// so attribution and verification are the user's job.
-const FOOT_DISCLAIMER =
-  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
 
 const hasBeenIntroduced = (): boolean => {
   if (typeof window === "undefined") return true;
@@ -379,9 +379,26 @@ export function ChatbotWidget() {
           </Typography>
         ) : null}
       </Box>
-      <Box sx={{ px: 1, pb: 0.5, display: "flex", justifyContent: "center" }}>
+      {/* Both notices are unconditional and undismissable: a disclaimer the
+          user can close is one they will not be reading on the turn that
+          matters. The retention line states the 30-day ceiling rather than the
+          7-day anonymous window — overstating retention is harmless, while
+          understating it would be a privacy assurance the system does not
+          keep. See the constants for the full reasoning. */}
+      <Box
+        sx={{
+          px: 1,
+          pb: 0.5,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="caption" color="text.secondary" textAlign="center">
-          {FOOT_DISCLAIMER}
+          {CHATBOT_AI_DISCLAIMER}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {CHATBOT_RETENTION_NOTICE}
         </Typography>
       </Box>
     </Paper>
