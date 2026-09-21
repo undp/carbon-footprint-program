@@ -8,7 +8,10 @@ import {
   type GetAllEmissionFactorsResponse,
 } from "@repo/types";
 import { parseGasDetails } from "../mappers.js";
-import { activeLineReferenceWhere } from "../helpers.js";
+import {
+  activeLineReferenceWhere,
+  unclaimedLineReferenceWhere,
+} from "../helpers.js";
 
 export const getAllEmissionFactorsService = async (
   prismaClient: PrismaClient,
@@ -108,21 +111,31 @@ export const getAllEmissionFactorsService = async (
   // inputs are versioned and nothing prunes it. Scoping it by id costs one
   // round trip on a listing that already takes five, and it is the query the
   // index on `carbon_inventory_line_factor(emission_factor_id)` serves.
-  const referenceCounts = await prismaClient.carbonInventoryLineFactor.groupBy({
-    by: ["emissionFactorId"],
-    where: {
-      emissionFactorId: { in: emissionFactors.map(({ id }) => id) },
-      ...activeLineReferenceWhere,
-    },
-    _count: { _all: true },
-  });
+  const factorIds = emissionFactors.map(({ id }) => id);
+  const countBy = async (
+    where: Prisma.CarbonInventoryLineFactorWhereInput
+  ): Promise<Map<string | undefined, number>> => {
+    const rows = await prismaClient.carbonInventoryLineFactor.groupBy({
+      by: ["emissionFactorId"],
+      where: { emissionFactorId: { in: factorIds }, ...where },
+      _count: { _all: true },
+    });
+    return new Map(
+      rows.map(({ emissionFactorId, _count }) => [
+        emissionFactorId?.toString(),
+        _count._all,
+      ])
+    );
+  };
 
-  const referencedLineCountById = new Map(
-    referenceCounts.map(({ emissionFactorId, _count }) => [
-      emissionFactorId?.toString(),
-      _count._all,
-    ])
-  );
+  // Two counts, because they mean different things to the maintainer: the first
+  // is what makes the factor immutable, the second is what an edit or a delete
+  // will step on without being stopped by it.
+  const [referencedLineCountById, unclaimedReferencedLineCountById] =
+    await Promise.all([
+      countBy(activeLineReferenceWhere),
+      countBy(unclaimedLineReferenceWhere),
+    ]);
 
   return emissionFactors.map((ef) => ({
     id: ef.id.toString(),
@@ -139,5 +152,7 @@ export const getAllEmissionFactorsService = async (
     rateMeasurementUnitName: ef.rateMeasurementUnit.name,
     gasDetails: parseGasDetails(ef.gasDetails, ef.id),
     referencedLineCount: referencedLineCountById.get(ef.id.toString()) ?? 0,
+    unclaimedReferencedLineCount:
+      unclaimedReferencedLineCountById.get(ef.id.toString()) ?? 0,
   }));
 };

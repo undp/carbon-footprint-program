@@ -16,7 +16,7 @@ import {
  */
 type ServerEmissionFactor = Omit<
   GetAllEmissionFactorsResponse[number],
-  "referencedLineCount"
+  "referencedLineCount" | "unclaimedReferencedLineCount"
 >;
 
 export interface DimensionRequirements {

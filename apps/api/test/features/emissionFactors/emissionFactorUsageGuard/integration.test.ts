@@ -105,6 +105,12 @@ describe("Emission factor usage guard - Integration Tests", () => {
       inputIsActive?: boolean;
       lineStatus?: CarbonInventoryLineStatus;
       inventoryStatus?: InventoryStatus;
+      /**
+       * False leaves the footprint as the open calculator does: no owner and no
+       * organization, the pair `claimCarbonInventory` matches on. The factory
+       * always stamps a creator, so it is cleared afterwards.
+       */
+      claimed?: boolean;
     }
   ) {
     const inventory = await createCarbonInventory(prisma, {
@@ -113,6 +119,12 @@ describe("Emission factor usage guard - Integration Tests", () => {
       year: 2025,
       status: options?.inventoryStatus ?? InventoryStatus.ACTIVE,
     });
+    if (options?.claimed === false) {
+      await prisma.carbonInventory.update({
+        where: { id: inventory.id },
+        data: { createdById: null, organizationId: null },
+      });
+    }
     const line = await createCarbonInventoryLine(
       prisma,
       inventory.id,
@@ -268,6 +280,41 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect((await readFactor(context.factor)).value.toString()).toBe("7.25");
     });
 
+    // The calculator is public and its footprints are anonymous, so any visitor
+    // can attach a line to a catalogue factor. Nobody can delete that footprint
+    // afterwards — the delete route is private, its domain hook grants an
+    // org-less footprint only to `createdById`, which is null here, and no
+    // write route sets `canAdminsBypass`. Counting these would let anonymous
+    // traffic freeze the live catalogue for good.
+    it("ignores a line under an unclaimed anonymous footprint", async () => {
+      const context = await createUnusedFactor("Unclaimed");
+      await referenceFactor(context, { claimed: false });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { value: 8.5 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).value.toString()).toBe("8.5");
+    });
+
+    it("still refuses when a claimed footprint uses it as well", async () => {
+      const context = await createUnusedFactor("Unclaimed And Claimed");
+      await referenceFactor(context, { claimed: false });
+      await referenceFactor(context);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { value: 9.5 },
+      });
+
+      expect(response.statusCode).toBe(409);
+      expectInUse(response.body);
+    });
+
     it("applies the same rule on a published methodology version", async () => {
       const unused = await createUnusedFactor(
         "Published Unused",
@@ -310,6 +357,21 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expectInUse(response.body);
       expect((await readFactor(context.factor)).status).toBe(
         EmissionFactorStatus.ACTIVE
+      );
+    });
+
+    it("deletes a factor only unclaimed footprints reference", async () => {
+      const context = await createUnusedFactor("Delete Unclaimed");
+      await referenceFactor(context, { claimed: false });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).status).toBe(
+        EmissionFactorStatus.DELETED
       );
     });
 
@@ -391,6 +453,7 @@ describe("Emission factor usage guard - Integration Tests", () => {
       await referenceFactor(context, {
         inventoryStatus: InventoryStatus.DELETED,
       });
+      await referenceFactor(context, { claimed: false });
 
       const response = await app.inject({
         method: "GET",
@@ -409,6 +472,10 @@ describe("Emission factor usage guard - Integration Tests", () => {
 
       expect(referencedRow?.referencedLineCount).toBe(2);
       expect(unreferencedRow?.referencedLineCount).toBe(0);
+      // Reported apart, because they mean different things to the maintainer:
+      // the first locks the row, the second only warns before a delete.
+      expect(referencedRow?.unclaimedReferencedLineCount).toBe(1);
+      expect(unreferencedRow?.unclaimedReferencedLineCount).toBe(0);
     });
   });
 });

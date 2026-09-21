@@ -14,7 +14,7 @@ export const EmissionFactorDuplicateError = createError(
 
 export const EmissionFactorInUseError = createError(
   "EMISSION_FACTOR_IN_USE",
-  "This emission factor is referenced by %s active line(s) and cannot be modified or deleted",
+  "This emission factor is referenced by %s active line(s) of claimed footprints and cannot be modified or deleted",
   409
 );
 

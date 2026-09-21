@@ -46,5 +46,18 @@ export const GetAllEmissionFactorsResponseSchema = z.array(
       .describe(
         "How many active carbon inventory lines reference this emission factor"
       ),
+    // How many of the lines depending on this factor sit under a footprint
+    // nobody has claimed — created through the open calculator and never
+    // attached to a user or an organization. These never block: no actor can
+    // delete such a footprint, so counting them would let anonymous traffic
+    // freeze the live catalogue. They are reported so the maintainer can be
+    // warned about what a delete will step on.
+    unclaimedReferencedLineCount: z
+      .number()
+      .int()
+      .min(0)
+      .describe(
+        "How many lines referencing this factor belong to unclaimed anonymous footprints"
+      ),
   })
 );

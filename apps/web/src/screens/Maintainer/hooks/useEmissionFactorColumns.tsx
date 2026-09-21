@@ -27,7 +27,10 @@ import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
 import type { EmissionFactorFormRow } from "./useEmissionFactorsForm";
-import type { EmissionFactorRowLock } from "../utils/emissionFactorRowLock";
+import {
+  resolveEmissionFactorDeleteMessage,
+  type EmissionFactorRowLock,
+} from "../utils/emissionFactorRowLock";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
@@ -649,9 +652,11 @@ export const useEmissionFactorColumns = ({
               renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
                 const anyEditing = editingRowId !== null;
                 const { row: formRow } = getFormRow(params.row.id);
-                const { canEdit: rowEditable, reason: lockReason } = getRowLock(
-                  params.row.id
-                );
+                const {
+                  canEdit: rowEditable,
+                  reason: lockReason,
+                  unclaimedReferencedLineCount,
+                } = getRowLock(params.row.id);
 
                 return (
                   <ActionButtons
@@ -662,7 +667,9 @@ export const useEmissionFactorColumns = ({
                     onDelete={formRow ? () => onDelete(formRow) : undefined}
                     deleteDisabled={!rowEditable}
                     deleteTooltipTitle={lockReason}
-                    deleteConfirmMessage="¿Estás seguro de que deseas eliminar este factor de emisión?"
+                    deleteConfirmMessage={resolveEmissionFactorDeleteMessage(
+                      unclaimedReferencedLineCount
+                    )}
                   />
                 );
               },

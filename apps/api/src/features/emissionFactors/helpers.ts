@@ -148,7 +148,7 @@ export async function validateSourceConsistency(
 }
 
 /**
- * The line references that make an emission factor immutable.
+ * A line reference that is still live, whoever the footprint belongs to.
  *
  * The predicate is the dependency itself rather than the status of the
  * methodology version the factor hangs off: `PUBLISHED` is a poor proxy for it
@@ -172,36 +172,82 @@ export async function validateSourceConsistency(
  * `ACTIVE` on the footprint, for the same reason one level up: deleting a
  * footprint only sets its own status, leaving every line, input and snapshot
  * below it untouched.
+ */
+const liveLineWhere = {
+  status: {
+    in: [CarbonInventoryLineStatus.ACTIVE, CarbonInventoryLineStatus.OUTDATED],
+  },
+} satisfies Prisma.CarbonInventoryLineWhereInput;
+
+/**
+ * The references that actually make a factor immutable: live lines under a
+ * footprint that somebody can reach.
  *
- * Shared with the maintainer listing's `_count`, deliberately: the grid decides
- * whether to offer an edit from the count, and the API decides whether to
- * refuse one. If the two predicates drift, the grid either locks rows the API
- * would accept or offers edits the API will answer with a 409.
+ * `NOT { organizationId: null, createdById: null }` is the complement of the
+ * pair `claimCarbonInventory` matches on, so a footprint starts blocking the
+ * moment it has an owner and stops being throwaway traffic.
+ *
+ * The exclusion exists because the calculator is open: `createCarbonInventory`
+ * is a public route that binds the new footprint to the *published* version,
+ * and `syncCarbonInventoryLines` is anonymous, so any visitor who picks a
+ * subcategory and types a quantity references a catalogue factor. Nobody can
+ * then remove that reference — `deleteCarbonInventory` is private, its domain
+ * hook grants an org-less footprint only to `createdById`, which is null here,
+ * and no write route sets `canAdminsBypass`. Counting those would let anonymous
+ * traffic freeze the live catalogue for good, which is the opposite of what
+ * this rule is for.
+ *
+ * Shared with the maintainer listing, deliberately: the grid decides whether to
+ * offer an edit from this count and the API decides whether to refuse one. If
+ * the two predicates drift, the grid either locks rows the API would accept or
+ * offers edits the API will answer with a 409.
  */
 export const activeLineReferenceWhere = {
   lineInput: {
     isActive: true,
     line: {
-      status: {
-        in: [
-          CarbonInventoryLineStatus.ACTIVE,
-          CarbonInventoryLineStatus.OUTDATED,
-        ],
+      ...liveLineWhere,
+      carbonInventory: {
+        status: InventoryStatus.ACTIVE,
+        NOT: { organizationId: null, createdById: null },
       },
-      carbonInventory: { status: InventoryStatus.ACTIVE },
     },
   },
 } satisfies Prisma.CarbonInventoryLineFactorWhereInput;
 
 /**
- * How many live lines depend on this factor. A factor is immutable while any of
- * them does. See `activeLineReferenceWhere` for what counts as one.
+ * Live references held by footprints nobody has claimed: created through the
+ * open calculator and never attached to a user or an organization.
  *
- * TODO: the softer rule was deferred. The same count, surfaced as a warning
- * that informs without blocking, is what `add-emission-factor-year` Decision 9
- * had in mind. Lifting the block to a warning means deleting the guards that
- * call this and rendering the count the maintainer already receives — a UI
- * change with no contract change.
+ * These do not block anything. They are counted so the maintainer can be told
+ * what an edit or a delete will step on before it happens, rather than being
+ * refused by a rule no actor could ever satisfy.
+ */
+export const unclaimedLineReferenceWhere = {
+  lineInput: {
+    isActive: true,
+    line: {
+      ...liveLineWhere,
+      carbonInventory: {
+        status: InventoryStatus.ACTIVE,
+        organizationId: null,
+        createdById: null,
+      },
+    },
+  },
+} satisfies Prisma.CarbonInventoryLineFactorWhereInput;
+
+/**
+ * How many blocking lines depend on this factor. A factor is immutable while
+ * any of them does. See `activeLineReferenceWhere` for what counts as one, and
+ * `unclaimedLineReferenceWhere` for what deliberately does not.
+ *
+ * TODO: the softer rule was deferred for claimed footprints. The same count,
+ * surfaced as a warning that informs without blocking, is what
+ * `add-emission-factor-year` Decision 9 had in mind, and is what unclaimed
+ * footprints already get. Extending it means deleting the guards that call this
+ * and rendering the count the maintainer already receives — a UI change with no
+ * contract change.
  */
 export async function countActiveLineReferences(
   tx: Prisma.TransactionClient,

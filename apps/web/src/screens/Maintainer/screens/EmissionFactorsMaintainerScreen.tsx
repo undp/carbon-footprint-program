@@ -223,26 +223,32 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   // --- Who may be written ---
 
-  // The count comes off the server listing rather than the form: it is a fact
-  // about the catalogue, not a field of the row being edited.
-  const referencedLineCountById = useMemo(
+  // Both counts come off the server listing rather than the form: they are
+  // facts about the catalogue, not fields of the row being edited. The first
+  // locks the row; the second only warns before a delete.
+  const referenceCountsById = useMemo(
     () =>
       new Map(
-        emissionFactors?.map(({ id, referencedLineCount }) => [
-          id,
-          referencedLineCount,
-        ]) ?? []
+        emissionFactors?.map(
+          ({ id, referencedLineCount, unclaimedReferencedLineCount }) => [
+            id,
+            { referencedLineCount, unclaimedReferencedLineCount },
+          ]
+        ) ?? []
       ),
     [emissionFactors]
   );
 
   const getRowLock = useCallback(
-    (rowId: string): EmissionFactorRowLock =>
-      resolveEmissionFactorRowLock(
+    (rowId: string): EmissionFactorRowLock => {
+      const counts = referenceCountsById.get(rowId);
+      return resolveEmissionFactorRowLock(
         scope.canEditEmissionFactors,
-        referencedLineCountById.get(rowId)
-      ),
-    [scope.canEditEmissionFactors, referencedLineCountById]
+        counts?.referencedLineCount,
+        counts?.unclaimedReferencedLineCount
+      );
+    },
+    [scope.canEditEmissionFactors, referenceCountsById]
   );
 
   // --- Row editing callbacks ---
