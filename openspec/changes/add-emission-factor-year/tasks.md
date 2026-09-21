@@ -58,6 +58,7 @@
 - [x] 7.2 Add the year to `methodologyExportSelect` in `apps/api/src/features/methodologies/helpers.ts` and to the emission-factor mapper in `apps/api/src/features/methodologies/mappers.ts`. This covers both export endpoints at once.
 - [x] 7.3 Leave `duplicateCarbonInventory` alone. It copies snapshots verbatim, which is correct once the migration has cleared every footprint of another year: the copy inherits something already consistent. Leave `reviewSubmission` alone for the same reason — a footprint returned with observations comes back editable holding factors that are already of its own year. Both were candidates for a clearing helper; neither has a source of mismatched data left. See design Decision 2.
 - [x] 7.4 Leave `getEmissionFactors` alone as well, beyond not adding a year to its rows. It still reads the factor's source and gas breakdown live, so an administrator editing a factor changes what an already-verified footprint reports. Out of scope by decision — see design Decision 12 — and nothing about the year makes it worse: a new year's factors are new rows, not edits to existing ones.
+- [x] 7.5 Scope `getCarbonInventoryMethodologyExport` to the footprint's year. It shared the unfiltered select with the administrator's export, so the workbook bundled in the footprint's ZIP listed factors of every year — rows capture never offers. `findMethodologyExportByVersionId` now takes the year and both call sites state their intent. A footprint with no year yet keeps the whole catalogue, unlike the capture selector which offers it nothing: a selector offering an unusable factor is a defect, a document listing one is context.
 
 ## 8. API and Web — clearing the stale factors on a year change
 
@@ -98,6 +99,7 @@
 - [x] 12.3 Set `year: 2025` on every factor in `tools/seed/src/data/base/methodologies.json`, leaving all `source` strings untouched. Mirror the change in the testing dataset.
 - [x] 12.4 The 2026 set is tracked as issue 651, not part of this one. With the catalogue dated 2025, footprints of the current year are cleared by the migration and find nothing to choose from until it lands; the manual factor is the documented path in between. Loading it as seed data plus a script sidesteps the deferred bulk import instead of typing 284 rows into the grid.
 - [x] 12.5 Add a TODO alongside `getMethodologyExport` recording the deferred bulk/atomic import, and noting that with no undated factors the whole catalogue must be restated annually.
+- [x] 12.6 Carry the reworked `emission-factors-maintainer` help panel to already-seeded databases with a migration. `seedStandaloneExplanations` upserts, but `seed.ts` aborts on the country-count gate before reaching it, so an installed deployment would keep the pre-year text behind the (i) of the very screen this change reworks. Same shape as `20260915140000_rename_reduction_help_to_initiatives`: guarded on the previous seeded value, so a deployment that rewrote the panel keeps its own text and a re-run touches zero rows.
 
 ## 13. Tests
 
@@ -105,11 +107,13 @@
 - [x] 13.2 Review the four existing suites under `apps/api/test/features/emissionFactors/` — several assert on duplicate and source-conflict behaviour and will shift once the year enters both keys.
 - [x] 13.3 `createEmissionFactor` / `updateEmissionFactor`: same key different years succeeds; same key same year is rejected; different sources in the same subcategory and year is rejected; different sources across years succeeds; a missing year is rejected; a factor older than the UI window stays editable when its year is not being changed.
 - [x] 13.4 `getCarbonInventoryMethodology`: only the footprint's year is offered; a year with no catalogue offers nothing; a footprint with a null year offers nothing.
-- [x] 13.5 `syncCarbonInventoryLines`: a create referencing a factor of another year persists the line with no snapshot and no result and reports it in the response; the rest of the payload is persisted normally; an update to such a factor behaves the same; a line of the footprint's year is persisted with its snapshot and result; a manual line is untouched.
+- [x] 13.5 `syncCarbonInventoryLines`: a create referencing a factor of another year persists the line with no snapshot and no result, with nothing announcing it — the empty factor cell is the message; the rest of the payload is persisted normally; an update to such a factor behaves the same; a line of the footprint's year is persisted with its snapshot and result; a manual line is untouched.
 - [x] 13.6 `duplicateCarbonInventory` plus a year change: the copy keeps every snapshot verbatim; changing its year clears the catalogue-factor snapshots and their results while keeping subcategory, dimensions, unit and quantity; manual lines survive untouched; parked (`OUTDATED`) lines are cleared too; no replacement factor is chosen; and the whole thing is atomic with the year update. These tests are what keep design Decision 9 honest — the reported year is only derivable while this behaviour holds.
 - [x] 13.7 `duplicateMethodology`: cloned factors keep their year.
 - [x] 13.8 Migration: against a database seeded with the undated catalogue plus footprints of several years and states, every factor ends dated, no `source` string changed, the column is `NOT NULL`, every footprint of another year is cleared whatever its state, footprints of 2025 are untouched, superseded input versions keep their snapshots, manual lines survive, and a damaged snapshot — null factor id with a catalogue source — is cleared too.
 - [x] 13.9 Factor identity: PR 647 covers the round trip in the sync integration suite. What is left for this change is that a line edited without touching its factor is still treated as catalogue-backed when the year changes — assert it in the year-change test rather than duplicating 647's.
+
+- [x] 13.10 `getCarbonInventoryMethodologyExport`: a dated footprint gets only the factors of its year; an undated one gets every year, which is also what keeps the parity test against the administrator's export meaningful.
 
 ## 14. Verification
 
