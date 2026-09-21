@@ -36,6 +36,7 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 5.6 In `deleteEmissionFactor/service.ts`, the same guard, before the soft delete.
 - [x] 5.7 Add a TODO at the guard in `updateEmissionFactor` recording the accepted race: a `sync` can attach a line between the check and the write, both at `READ COMMITTED`, and closing it means a `SELECT … FOR UPDATE` on the factor row taken by both paths — one statement, costs the same later.
 - [x] 5.8 Leave `createEmissionFactor` untouched. Nothing can reference a factor that does not exist; this is what makes adding to the live catalogue fall out of the rule instead of needing an exception.
+- [x] 5.9 Declare `409` on `deleteEmissionFactor`'s route, as `updateEmissionFactor` already does. Fastify serializes an undeclared status without a schema, so the guard works and the integration test passes either way — what is wrong without it is the generated contract, which describes one of the two endpoints enforcing the rule as never refusing.
 
 ## 6. API — the listing
 
@@ -50,6 +51,7 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 7.3 In `useMaintainerMethodologyScope.tsx`, add a derived permission for the emission-factor screen and leave `isViewOnly` exactly as it is, `|| PUBLISHED` included. Categories, Subcategories and Dimensions read the same hook and must keep behaving as today — they have no dependency rule behind them, and a subcategory delete cascades to its factors.
 - [x] 7.4 In `MaintainerScreenLayout.tsx`, take that permission as a prop and use it at all five sites that read `isViewOnly` today: `onAddRow` (line 89), the subtitle (88), the `EditModeToolbar` render (103) and its bottom padding (97). Wire it from the emission-factor screen only, so the other three screens keep the current behaviour without a flag.
 - [x] 7.5 Adjust the `EditModeToolbar` label and the exit dialog copy for the published version. The toolbar says "Editando: {nombre}" and the dialog in `MethodologiesMaintainerScreen` promises "Podrás volver a ajustarla desde esta pantalla cuando quieras" — check both read correctly when the methodology being edited is the live one.
+- [x] 7.6 Send `handleEdit` to `ADMIN_EMISSION_FACTORS` when the version being entered is `PUBLISHED`. Entering is now possible but Categorías, Sub-categorías and Dimensiones stay read-only over the live version, so the old target puts the maintainer in edit mode on the screens where nothing can be done. `handleView` keeps Categorías: browsing a version should start there.
 
 ## 8. Web — the per-row rule
 
@@ -60,6 +62,7 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 8.5 Add the tooltip for a row in use, naming the count: _"Usado por N líneas"_. It is the whole reason the count is exposed.
 - [x] 8.6 Close the three write paths with early returns rather than UI-only gating: the `updateMutation` branch of `handleStopEditRow` (`:284`), `handleSaveGEIBreakdown`'s `updateMutation` for existing rows (`:468`), and `handleDelete` (`:405`). The server backstops them, so these assert the screen's own rule.
 - [x] 8.7 Add the `EMISSION_FACTOR_IN_USE` message to `ERROR_MESSAGES` in `apps/web/src/utils/getApiErrorMessage.ts`, in Spanish, so a 409 lost to a stale count reads as an explanation rather than a generic failure.
+- [x] 8.8 Condition the `handleStopEditRow` check on `hasRealChanges`. A row can become locked while it is open — saving the GEI breakdown invalidates the listing without closing the row — and an unconditional refusal then refuses to close a row nobody edited. Because `handleStartEditRow` bails when stop-edit returns false, that also blocks every other row, leaving Cancelar (which discards the edit) as the only way out.
 
 ## 9. Tests — API
 
