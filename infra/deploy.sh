@@ -622,8 +622,8 @@ if [ "$ENABLE_CHATBOT" = "true" ]; then
     DEPLOY_PARAMS+=(--parameters chatbotAlertEmailAddress="$CHATBOT_ALERT_EMAIL")
     add_positive_int_param CHATBOT_MONTHLY_BUDGET_AMOUNT chatbotMonthlyBudgetAmount \
       "${CHATBOT_MONTHLY_BUDGET_AMOUNT:-}"
-    add_positive_int_param CHATBOT_HOURLY_TOKEN_THRESHOLD chatbotHourlyTokenThreshold \
-      "${CHATBOT_HOURLY_TOKEN_THRESHOLD:-}"
+    add_positive_int_param CHATBOT_DAILY_TOKEN_ALLOWANCE chatbotDailyTokenAllowance \
+      "${CHATBOT_DAILY_TOKEN_ALLOWANCE:-}"
     log "  Cost alarms will notify: $CHATBOT_ALERT_EMAIL"
     log "  NOTE: Microsoft.Consumption/budgets needs Cost Management write access, which"
     log "        Contributor on the resource group alone does not grant. If the deployment"

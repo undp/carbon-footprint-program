@@ -43,13 +43,34 @@ param budgetStartDate string = utcNow('yyyy-MM-01')
 @description('Budget end date (yyyy-MM-dd). Azure requires one; it is deliberately far out so the budget does not silently stop evaluating.')
 param budgetEndDate string = '2035-01-01'
 
-// Tokens processed in one hour that should never be reached by ordinary use.
-// Expected demo usage is a handful of messages per user per month, so sustained
-// consumption of more than one identity's entire daily budget within a single
-// hour is already anomalous. The asymmetry favours a low threshold: a false
-// alarm costs an email, a missed one costs money nothing else is stopping.
-@description('Base for the escalation ladder: processed tokens in one hour above which the first alert fires. The higher rules sit at four and ten times this value.')
-param hourlyTokenThreshold int = 50000
+// The ceiling every rung is measured against: the application's global daily
+// token pool for anonymous callers. The alarms are fractions of THIS rather
+// than absolute token counts, so there is one number to choose and the rungs
+// follow it, and so the mail can say "half the day's allowance" instead of a
+// figure the reader has to divide in their head.
+//
+// MUST BE KEPT EQUAL TO `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` in
+// apps/api/src/config/constants.ts. Bicep cannot read a TypeScript constant, so
+// this is a hand-maintained coupling — the kind that drifts silently. If the two
+// disagree, the alarms describe a quota the application is not enforcing.
+@description('Daily anonymous token pool the alert rungs are percentages of. Keep equal to CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY in apps/api.')
+param anonymousDailyTokenAllowance int = 300000
+
+// Two honest caveats about comparing an hourly metric to a daily allowance.
+//
+// First, the window is an hour and the allowance is a day, so a rung is not
+// "you have used half your quota" — it is "one hour consumed the equivalent of
+// half a day's quota", which is the stronger statement and the one worth an
+// alarm. At the 50% rung the day's pool dies in two hours at that rate.
+//
+// Second, the two count different things. Azure's TokenTransaction counts every
+// token the account processes; the application's pool sums `tokens_used`, which
+// records only the terminal round of a turn. Measured here, one turn was 3445
+// by Azure and 2174 by the application — the app sees roughly 63%. So a rung
+// set at a percentage of the pool trips somewhat before the pool itself empties,
+// and it also counts authenticated traffic, which never draws on the pool at
+// all. Both errors point the same way: the alarm speaks early. For an alarm
+// that stops nothing, early is the right direction to be wrong in.
 
 // Confirmed against a live account: `TokenTransaction` under the
 // Microsoft.CognitiveServices/accounts namespace is what a deployed Azure
@@ -170,13 +191,16 @@ resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
 // each sends its own first mail. The level that fires is also the severity
 // that arrives, which turns "something is burning" into "this much".
 //
-// Expressed as multiples of the base threshold so a deployment overriding
-// `hourlyTokenThreshold` moves the whole ladder with it, rather than having to
-// keep three numbers consistent by hand.
+// Expressed as percentages of the daily allowance so a deployment overriding
+// `anonymousDailyTokenAllowance` moves the whole ladder with it, rather than
+// having to keep three numbers consistent by hand.
+//
+// The rungs deliberately reuse the budget's own 50 / 80 / 100 vocabulary, so a
+// reader who has seen one alarm already knows how to read the other.
 var tokenAlertLevels = [
-  { suffix: '', multiplier: 1, severity: 2, label: 'exceeded its hourly threshold' }
-  { suffix: '-high', multiplier: 4, severity: 1, label: 'reached four times its hourly threshold' }
-  { suffix: '-critical', multiplier: 10, severity: 0, label: 'reached ten times its hourly threshold' }
+  { suffix: '', percent: 50, severity: 2 }
+  { suffix: '-high', percent: 80, severity: 1 }
+  { suffix: '-critical', percent: 100, severity: 0 }
 ]
 
 // The base level keeps the original resource name. Renaming it would leave the
@@ -188,7 +212,7 @@ resource tokenRateAlerts 'Microsoft.Insights/metricAlerts@2018-03-01' = [
     location: 'global'
     tags: tags
     properties: {
-      description: 'Chatbot token consumption ${level.label}. This alert does not throttle anything — see the TPM quota on the OpenAI deployments for the enforcing ceiling, and CHATBOT_ENABLED for the kill switch.'
+      description: 'La última hora consumió el ${level.percent}% de la cuota diaria anónima del asistente (${anonymousDailyTokenAllowance * level.percent / 100} de ${anonymousDailyTokenAllowance} tokens). A este ritmo la cuota del día se agota en ${100 / level.percent} hora(s). Esta alerta NO frena nada: el techo que sí frena son las cuotas de la aplicación y el interruptor CHATBOT_ENABLED, y la capacidad TPM de los despliegues de OpenAI.'
       severity: level.severity
       enabled: true
       scopes: [openAiAccountId]
@@ -202,7 +226,7 @@ resource tokenRateAlerts 'Microsoft.Insights/metricAlerts@2018-03-01' = [
             metricNamespace: 'Microsoft.CognitiveServices/accounts'
             metricName: tokenMetricName
             operator: 'GreaterThan'
-            threshold: hourlyTokenThreshold * level.multiplier
+            threshold: anonymousDailyTokenAllowance * level.percent / 100
             timeAggregation: 'Total'
             criterionType: 'StaticThresholdCriterion'
           }

@@ -260,8 +260,8 @@ param chatbotAlertEmailAddress string = ''
 @description('Monthly chatbot cost budget in USD, warned on at 50/80/100%. Default sized so ordinary use is silent and growth is audible — see modules/chatbotAlerting.bicep.')
 param chatbotMonthlyBudgetAmount int = 30
 
-@description('Base for the chatbot token-rate escalation ladder: tokens in one hour above which the first of three alerts fires. The others sit at four and ten times this value.')
-param chatbotHourlyTokenThreshold int = 50000
+@description('Daily anonymous token pool the three chatbot alert rungs are percentages of (50/80/100%). Keep equal to CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY in apps/api.')
+param chatbotDailyTokenAllowance int = 300000
 
 @description('Chat model deployment name')
 param openAiChatDeploymentName string = 'chat'
@@ -421,7 +421,7 @@ module chatbotAlerting 'modules/chatbotAlerting.bicep' = if (enableChatbot && ch
     openAiAccountId: enableChatbot ? openAi!.outputs.id : ''
     alertEmailAddress: chatbotAlertEmailAddress
     monthlyBudgetAmount: chatbotMonthlyBudgetAmount
-    hourlyTokenThreshold: chatbotHourlyTokenThreshold
+    anonymousDailyTokenAllowance: chatbotDailyTokenAllowance
     tags: tags
   }
 }

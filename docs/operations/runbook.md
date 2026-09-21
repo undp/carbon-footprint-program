@@ -400,13 +400,25 @@ is the only immediate lever, and it turns the assistant off for everyone.
 **What the alarms actually are, and when each can speak.** Four notifications on
 two clocks, none of which refuses anything:
 
-| Alarm                        | Clock                                | Resets                             |
-| ---------------------------- | ------------------------------------ | ---------------------------------- |
-| Token rate ×1 (Sev 2)        | rolling hour, evaluated every 15 min | when the hour falls below the rung |
-| Token rate ×4 (Sev 1)        | same                                 | same                               |
-| Token rate ×10 (Sev 0)       | same                                 | same                               |
-| Budget 50 / 80 / 100% actual | billed spend, evaluated ~daily       | the 1st of each month              |
-| Budget 100% forecast         | projected month-end spend            | the 1st of each month              |
+| Alarm                           | Clock                                | Resets                             |
+| ------------------------------- | ------------------------------------ | ---------------------------------- |
+| Token rate 50% of pool (Sev 2)  | rolling hour, evaluated every 15 min | when the hour falls below the rung |
+| Token rate 80% of pool (Sev 1)  | same                                 | same                               |
+| Token rate 100% of pool (Sev 0) | same                                 | same                               |
+| Budget 50 / 80 / 100% actual    | billed spend, evaluated ~daily       | the 1st of each month              |
+| Budget 100% forecast            | projected month-end spend            | the 1st of each month              |
+
+The token rungs are percentages of `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`, not
+absolute counts, so one number moves all three and the mail names a fraction
+instead of a figure the reader has to divide. Two things that percentage does
+**not** mean: the window is an hour and the allowance is a day, so the 50% rung
+says "one hour consumed half a day's allowance" — at that rate the pool is gone
+in two hours — and Azure's `TokenTransaction` counts every token the account
+processes while the application's pool sums only the terminal round of each turn
+(measured here: 3,445 against 2,174, so the app sees about 63%). It also counts
+authenticated traffic, which never draws on the pool. Both differences make the
+alarm speak early, which for an alarm that stops nothing is the right direction
+to be wrong in.
 
 Three token rules rather than one because **a metric alert notifies on the
 transition into `Fired` and then goes quiet**, however much worse the burn gets,
@@ -444,9 +456,12 @@ with no receiver looks like coverage and is not.
 **Turning the alerting on.** `deploy.sh` reads `CHATBOT_ALERT_EMAIL` from the
 environment (`infra/.envrc`) and forwards it as `chatbotAlertEmailAddress`.
 Leaving it unset deploys the chatbot with no alerting at all, and the deploy log
-says so. `CHATBOT_MONTHLY_BUDGET_AMOUNT` and `CHATBOT_HOURLY_TOKEN_THRESHOLD`
+says so. `CHATBOT_MONTHLY_BUDGET_AMOUNT` and `CHATBOT_DAILY_TOKEN_ALLOWANCE`
 override the thresholds; both are validated as positive integers before the
-deployment starts. The address becomes an action group receiver, so prefer a
+deployment starts. The second is the assistant's daily anonymous token pool, of
+which the three token alerts are 50, 80 and 100%, so one number moves all of
+them — and it must be kept equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` in
+`apps/api`, since Bicep cannot read a TypeScript constant. The address becomes an action group receiver, so prefer a
 shared inbox over a personal one — it outlives whoever ran the deploy.
 
 ---

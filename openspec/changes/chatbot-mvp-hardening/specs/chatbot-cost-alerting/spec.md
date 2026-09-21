@@ -41,7 +41,11 @@ The default is calibrated so that normal operation is silent and growth is audib
 
 ### Requirement: A metric alert detects token-rate anomalies within minutes
 
-The module SHALL create THREE Azure Monitor metric alerts on the Azure OpenAI account, at one, four, and ten times a base threshold of 50000 processed tokens in a one-hour window, at severities 2, 1 and 0 respectively, all notifying the action group. The higher rules SHALL be expressed as multiples of the base so that overriding it moves the whole ladder.
+The module SHALL create THREE Azure Monitor metric alerts on the Azure OpenAI account, firing when processed tokens in a one-hour window reach 50%, 80% and 100% of the assistant's daily anonymous token allowance, at severities 2, 1 and 0 respectively, all notifying the action group. The rungs SHALL be expressed as percentages of a single allowance parameter so that overriding it moves the whole ladder, and that parameter SHALL be documented as needing to equal `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`, since Bicep cannot read a TypeScript constant.
+
+Each alert's description SHALL state the percentage of the daily allowance reached, the absolute token figures, and how long the allowance lasts at that rate, so the notification is readable without arithmetic.
+
+The percentage is not a claim that the quota is half spent. The window is an hour and the allowance a day, so the first rung means one hour consumed the equivalent of half a day — the stronger statement. The two quantities also count differently: `TokenTransaction` counts every token the account processes, while the pool sums only the terminal round of each turn, and it includes authenticated traffic that never draws on the pool. Both differences make the alarm speak early, which is the correct direction for an alarm that stops nothing.
 
 One rule is not enough, because a metric alert notifies on the transition into `Fired` and stays silent while the condition holds, however much worse it gets. With a one-hour window, continuing consumption keeps the condition true, so the episode never ends while the burn continues. This was observed: a 3445-token hour raised the alarm, and a 20766-token hour twenty minutes later produced no notification at all, because the rule was already firing. Separate rules are separate state machines, so a climb crosses new ones and each sends its own first notification, and the severity that arrives states the magnitude.
 
