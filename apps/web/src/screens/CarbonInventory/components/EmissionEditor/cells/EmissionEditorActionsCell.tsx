@@ -47,59 +47,67 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   };
 
   return (
-    // Tagged on the row of actions rather than on either button: one spotlight
-    // introduces both, and the ids repeat harmlessly across rows because the
-    // resolver takes the first match.
-    <Box
-      className="flex justify-center gap-3"
-      {...onboardingTargetProps("emission-capture-line-actions")}
-    >
-      {uploadFiles && (
-        <Badge
-          badgeContent={totalFilesCount}
-          invisible={totalFilesCount === 0}
-          overlap="circular"
-          sx={{
-            "& .MuiBadge-badge": {
-              top: 2,
-              right: 2,
-              backgroundColor: (theme) => theme.palette.primary.main,
-              color: (theme) => theme.palette.common.white,
-            },
-          }}
+    <Box className="flex justify-center gap-3">
+      {/* Tagged on the attach + extra-info pair rather than on either button
+          (one spotlight introduces both) and NOT on the whole row: the
+          highlight marks itself as followed on any click inside the tagged
+          element, so keeping "Eliminar fuente" out means deleting the
+          spotlighted line can't burn a one-time hint the user never read. The
+          ids repeat harmlessly across rows because the resolver takes the
+          first match. */}
+      {(uploadFiles || updateComment) && (
+        <Box
+          className="flex gap-3"
+          {...onboardingTargetProps("emission-capture-line-actions")}
         >
-          <AppActionButton
-            tooltip="Adjuntar archivos"
-            onClick={() => uploadFiles(rowId)}
-            disabled={disabled}
-            sx={iconSx}
-          >
-            <UploadFileOutlined />
-          </AppActionButton>
-        </Badge>
-      )}
-      {updateComment && (
-        <Badge
-          variant="dot"
-          invisible={!hasComment}
-          overlap="circular"
-          sx={{
-            "& .MuiBadge-badge": {
-              top: 2,
-              right: 2,
-              backgroundColor: (theme) => theme.palette.primary.main,
-            },
-          }}
-        >
-          <AppActionButton
-            tooltip="Agregar información adicional"
-            onClick={() => updateComment(rowId)}
-            disabled={disabled}
-            sx={iconSx}
-          >
-            <CommentOutlined />
-          </AppActionButton>
-        </Badge>
+          {uploadFiles && (
+            <Badge
+              badgeContent={totalFilesCount}
+              invisible={totalFilesCount === 0}
+              overlap="circular"
+              sx={{
+                "& .MuiBadge-badge": {
+                  top: 2,
+                  right: 2,
+                  backgroundColor: (theme) => theme.palette.primary.main,
+                  color: (theme) => theme.palette.common.white,
+                },
+              }}
+            >
+              <AppActionButton
+                tooltip="Adjuntar archivos"
+                onClick={() => uploadFiles(rowId)}
+                disabled={disabled}
+                sx={iconSx}
+              >
+                <UploadFileOutlined />
+              </AppActionButton>
+            </Badge>
+          )}
+          {updateComment && (
+            <Badge
+              variant="dot"
+              invisible={!hasComment}
+              overlap="circular"
+              sx={{
+                "& .MuiBadge-badge": {
+                  top: 2,
+                  right: 2,
+                  backgroundColor: (theme) => theme.palette.primary.main,
+                },
+              }}
+            >
+              <AppActionButton
+                tooltip="Agregar información adicional"
+                onClick={() => updateComment(rowId)}
+                disabled={disabled}
+                sx={iconSx}
+              >
+                <CommentOutlined />
+              </AppActionButton>
+            </Badge>
+          )}
+        </Box>
       )}
       {deleteSource && (
         <AppActionButton
