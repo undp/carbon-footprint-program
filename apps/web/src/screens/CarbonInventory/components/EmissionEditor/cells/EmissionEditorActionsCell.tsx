@@ -48,66 +48,60 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
 
   return (
     <Box className="flex justify-center gap-3">
-      {/* Tagged on the attach + extra-info pair rather than on either button
-          (one spotlight introduces both) and NOT on the whole row: the
-          highlight marks itself as followed on any click inside the tagged
-          element, so keeping "Eliminar fuente" out means deleting the
-          spotlighted line can't burn a one-time hint the user never read. The
-          ids repeat harmlessly across rows because the resolver takes the
+      {/* Each action carries its own onboarding id: the two are introduced by
+          separate hints, and the highlight marks itself as followed on any
+          click inside the tagged element — so tagging the buttons rather than
+          the row keeps "Eliminar fuente" from burning a hint the user never
+          read. The ids repeat across rows harmlessly, the resolver takes the
           first match. */}
-      {(uploadFiles || updateComment) && (
-        <Box
-          className="flex gap-3"
-          {...onboardingTargetProps("emission-capture-line-actions")}
+      {uploadFiles && (
+        <Badge
+          {...onboardingTargetProps("emission-capture-line-attachments")}
+          badgeContent={totalFilesCount}
+          invisible={totalFilesCount === 0}
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+              backgroundColor: (theme) => theme.palette.primary.main,
+              color: (theme) => theme.palette.common.white,
+            },
+          }}
         >
-          {uploadFiles && (
-            <Badge
-              badgeContent={totalFilesCount}
-              invisible={totalFilesCount === 0}
-              overlap="circular"
-              sx={{
-                "& .MuiBadge-badge": {
-                  top: 2,
-                  right: 2,
-                  backgroundColor: (theme) => theme.palette.primary.main,
-                  color: (theme) => theme.palette.common.white,
-                },
-              }}
-            >
-              <AppActionButton
-                tooltip="Adjuntar archivos"
-                onClick={() => uploadFiles(rowId)}
-                disabled={disabled}
-                sx={iconSx}
-              >
-                <UploadFileOutlined />
-              </AppActionButton>
-            </Badge>
-          )}
-          {updateComment && (
-            <Badge
-              variant="dot"
-              invisible={!hasComment}
-              overlap="circular"
-              sx={{
-                "& .MuiBadge-badge": {
-                  top: 2,
-                  right: 2,
-                  backgroundColor: (theme) => theme.palette.primary.main,
-                },
-              }}
-            >
-              <AppActionButton
-                tooltip="Agregar información adicional"
-                onClick={() => updateComment(rowId)}
-                disabled={disabled}
-                sx={iconSx}
-              >
-                <CommentOutlined />
-              </AppActionButton>
-            </Badge>
-          )}
-        </Box>
+          <AppActionButton
+            tooltip="Adjuntar archivos"
+            onClick={() => uploadFiles(rowId)}
+            disabled={disabled}
+            sx={iconSx}
+          >
+            <UploadFileOutlined />
+          </AppActionButton>
+        </Badge>
+      )}
+      {updateComment && (
+        <Badge
+          {...onboardingTargetProps("emission-capture-line-extra-info")}
+          variant="dot"
+          invisible={!hasComment}
+          overlap="circular"
+          sx={{
+            "& .MuiBadge-badge": {
+              top: 2,
+              right: 2,
+              backgroundColor: (theme) => theme.palette.primary.main,
+            },
+          }}
+        >
+          <AppActionButton
+            tooltip="Agregar información adicional"
+            onClick={() => updateComment(rowId)}
+            disabled={disabled}
+            sx={iconSx}
+          >
+            <CommentOutlined />
+          </AppActionButton>
+        </Badge>
       )}
       {deleteSource && (
         <AppActionButton

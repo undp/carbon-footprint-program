@@ -14,7 +14,8 @@ export type OnboardingFocus =
   | "associate-org"
   | "self-declare"
   | "emission-capture-expert-mode"
-  | "emission-capture-line-actions";
+  | "emission-capture-line-attachments"
+  | "emission-capture-line-extra-info";
 
 const FOCUS_KEY = "onboarding:focus";
 

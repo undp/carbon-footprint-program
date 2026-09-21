@@ -40,7 +40,8 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import { useExpertModeOnboardingHighlight } from "./hooks/useExpertModeOnboardingHighlight";
-import { useLineActionsOnboardingHighlight } from "./hooks/useLineActionsOnboardingHighlight";
+import { useLineAttachmentsOnboardingHighlight } from "./hooks/useLineAttachmentsOnboardingHighlight";
+import { useLineExtraInfoOnboardingHighlight } from "./hooks/useLineExtraInfoOnboardingHighlight";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
 
@@ -293,8 +294,8 @@ export const EmissionCaptureScreen: FC = () => {
   const { isPending: isExpertModeHintPending } =
     useExpertModeOnboardingHighlight(isExpertModeAvailable);
 
-  // The per-line actions only exist once a source is captured, so the hint that
-  // introduces them waits for a visible line in the selected category.
+  // The per-line actions only exist once a source is captured, so the hints
+  // that introduce them wait for a visible line in the selected category.
   const hasCapturedLines = useMemo(
     () =>
       (selectedCategoryData?.subcategories ?? []).some((subcategory) => {
@@ -312,7 +313,17 @@ export const EmissionCaptureScreen: FC = () => {
       }),
     [selectedCategoryData, watchedSubcategories]
   );
-  useLineActionsOnboardingHighlight(hasCapturedLines, isExpertModeHintPending);
+  // One hint per button, chained so they arrive one at a time: expert mode,
+  // then "Adjuntar archivos", then "Agregar información adicional".
+  const { isPending: isAttachmentsHintPending } =
+    useLineAttachmentsOnboardingHighlight(
+      hasCapturedLines,
+      isExpertModeHintPending
+    );
+  useLineExtraInfoOnboardingHighlight(
+    hasCapturedLines,
+    isAttachmentsHintPending
+  );
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 

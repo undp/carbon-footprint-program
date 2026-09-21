@@ -11,7 +11,8 @@ import { z } from "zod";
 export const OnboardingKeySchema = z.enum([
   "welcome-home",
   "emission-capture-expert-mode",
-  "emission-capture-line-actions",
+  "emission-capture-line-attachments",
+  "emission-capture-line-extra-info",
 ]);
 
 export type OnboardingKey = z.infer<typeof OnboardingKeySchema>;
@@ -20,5 +21,6 @@ export type OnboardingKey = z.infer<typeof OnboardingKeySchema>;
 export const OnboardingKeys = {
   WELCOME_HOME: "welcome-home",
   EMISSION_CAPTURE_EXPERT_MODE: "emission-capture-expert-mode",
-  EMISSION_CAPTURE_LINE_ACTIONS: "emission-capture-line-actions",
+  EMISSION_CAPTURE_LINE_ATTACHMENTS: "emission-capture-line-attachments",
+  EMISSION_CAPTURE_LINE_EXTRA_INFO: "emission-capture-line-extra-info",
 } as const satisfies Record<string, OnboardingKey>;
