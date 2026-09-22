@@ -9,6 +9,12 @@ import { VOCAB } from "@/config/vocab";
 type Params = {
   inventoryId?: string;
   onSuccess?: () => void;
+  /**
+   * Puts the stored year back in the form when the user declines the change.
+   * The dialog offers «Mantener el año actual», and the hook has no reach into
+   * the form, so the screen supplies the restore.
+   */
+  onKeepYear?: () => void;
 };
 
 export interface YearChangeConfirmation {
@@ -34,6 +40,7 @@ interface HookResult {
 export const useBusinessProfilingSubmit = ({
   inventoryId,
   onSuccess,
+  onKeepYear,
 }: Params): HookResult => {
   const { enqueueSnackbar } = useSnackbar();
   const updateCarbonInventoryMutation = useUpdateCarbonInventory(
@@ -142,7 +149,16 @@ export const useBusinessProfilingSubmit = ({
     void persist(pendingRequest).finally(() => setPendingRequest(null));
   }, [pendingRequest, persist]);
 
-  const cancelYearChange = useCallback(() => setPendingRequest(null), []);
+  // Declining is not the same as doing nothing. The save is dropped, so the
+  // year the user picked has to be dropped with it: left in the field it would
+  // contradict the button that was just pressed, reopen this dialog on the next
+  // «Siguiente», and — because the save never reached the API — take every
+  // other edit of the form down with it, silently. Restoring the stored year is
+  // what lets the next attempt save the rest and move on.
+  const cancelYearChange = useCallback(() => {
+    setPendingRequest(null);
+    onKeepYear?.();
+  }, [onKeepYear]);
 
   return {
     submit,

@@ -1,0 +1,125 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, renderHook } from "@testing-library/react";
+import type { GetCarbonInventoryByIdResponse } from "@repo/types";
+import { useBusinessProfilingSubmit } from "./useBusinessProfilingSubmit";
+import type { BusinessProfilingFormValues } from "./useBusinessProfilingForm";
+
+// The hook reaches the API through these two query hooks and notistack; nothing
+// else about them is exercised here. `vi.hoisted` gives the mocks a stable
+// identity the hoisted `vi.mock` factories can close over.
+const { inventoryQueryMock, mutateAsyncMock, enqueueSnackbarMock } = vi.hoisted(
+  () => ({
+    inventoryQueryMock: vi.fn(),
+    mutateAsyncMock: vi.fn(),
+    enqueueSnackbarMock: vi.fn(),
+  })
+);
+
+vi.mock("@/api/query", () => ({
+  useCarbonInventory: inventoryQueryMock,
+  useUpdateCarbonInventory: () => ({
+    mutateAsync: mutateAsyncMock,
+    isPending: false,
+  }),
+}));
+
+vi.mock("notistack", () => ({
+  useSnackbar: () => ({ enqueueSnackbar: enqueueSnackbarMock }),
+}));
+
+type Inventory = GetCarbonInventoryByIdResponse;
+
+// Only `year` and `subcategories` are read; the rest of the response is never
+// touched, so it is left out rather than faked.
+const inventory = (year: number | null, lineCount: number): Inventory =>
+  ({
+    year,
+    subcategories: [{ lines: Array.from({ length: lineCount }) }],
+  }) as unknown as Inventory;
+
+const formValues = (year: string): BusinessProfilingFormValues => ({
+  year,
+  name: "Huella 2025",
+  companyName: "Acme",
+  sector: "1",
+  subSector: "2",
+  companySize: "3",
+  activity: "4",
+  usageMode: "EXPERT",
+  quantity: 10,
+});
+
+const setUp = (onKeepYear = vi.fn(), onSuccess = vi.fn()) => {
+  const { result } = renderHook(() =>
+    useBusinessProfilingSubmit({
+      inventoryId: "inv-1",
+      onSuccess,
+      onKeepYear,
+    })
+  );
+  return { result, onKeepYear, onSuccess };
+};
+
+beforeEach(() => {
+  inventoryQueryMock.mockReset();
+  mutateAsyncMock.mockReset();
+  enqueueSnackbarMock.mockReset();
+  inventoryQueryMock.mockReturnValue({ data: inventory(2025, 1) });
+  mutateAsyncMock.mockResolvedValue(undefined);
+});
+
+describe("useBusinessProfilingSubmit", () => {
+  it("holds the save back when the year changes on a footprint with lines", async () => {
+    const { result } = setUp();
+
+    await act(() => result.current.submit(formValues("2026"), true));
+
+    expect(result.current.yearChangeConfirmation.isOpen).toBe(true);
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+  });
+
+  it("saves without the year when only the other fields changed", async () => {
+    const { result } = setUp();
+
+    await act(() => result.current.submit(formValues("2025"), true));
+
+    expect(result.current.yearChangeConfirmation.isOpen).toBe(false);
+    expect(mutateAsyncMock).toHaveBeenCalledWith(
+      expect.objectContaining({ year: undefined, name: "Huella 2025" })
+    );
+  });
+
+  it("restores the stored year when the change is declined", async () => {
+    const { result, onKeepYear, onSuccess } = setUp();
+
+    await act(() => result.current.submit(formValues("2026"), true));
+    act(() => result.current.yearChangeConfirmation.cancel());
+
+    // Declining closes the dialog, drops the save and hands the year back to
+    // the form — otherwise the field would keep contradicting the button, the
+    // dialog would reopen on the next attempt, and the edits that travelled in
+    // the same request would be lost with it.
+    expect(result.current.yearChangeConfirmation.isOpen).toBe(false);
+    expect(onKeepYear).toHaveBeenCalledTimes(1);
+    expect(mutateAsyncMock).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it("keeps the year the user picked when the change is confirmed", async () => {
+    const { result, onKeepYear, onSuccess } = setUp();
+
+    await act(() => result.current.submit(formValues("2026"), true));
+    // `confirm` fires the mutation without returning it — the dialog stays open
+    // until it settles — so the act callback is what waits for the microtasks.
+    await act(async () => {
+      result.current.yearChangeConfirmation.confirm();
+      await Promise.resolve();
+    });
+
+    expect(onKeepYear).not.toHaveBeenCalled();
+    expect(mutateAsyncMock).toHaveBeenCalledWith(
+      expect.objectContaining({ year: 2026 })
+    );
+    expect(onSuccess).toHaveBeenCalledTimes(1);
+  });
+});

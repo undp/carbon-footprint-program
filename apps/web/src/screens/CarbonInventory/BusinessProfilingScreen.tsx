@@ -37,6 +37,7 @@ import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
+import { toSafeString } from "@/utils/string";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -87,11 +88,24 @@ export const BusinessProfilingScreen: FC = () => {
   const {
     control,
     handleSubmit,
+    resetField,
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,
     formState: { isDirty },
   } = useBusinessProfilingForm({ existingInventory });
+
+  // What «Mantener el año actual» restores. `resetField` puts the stored year
+  // back and clears the dirty mark of that field alone, so the edits the user
+  // made elsewhere survive and the next «Siguiente» saves them without asking
+  // again. A footprint with no stored year has nothing to keep — the field is
+  // required, and blanking it would block the form the user is trying to leave.
+  const keepCurrentYear = useCallback(() => {
+    if (existingInventory?.year == null) return;
+    resetField("year", {
+      defaultValue: toSafeString(existingInventory.year),
+    });
+  }, [existingInventory, resetField]);
 
   const {
     selectedSector,
@@ -146,6 +160,7 @@ export const BusinessProfilingScreen: FC = () => {
   } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
+    onKeepYear: keepCurrentYear,
   });
 
   const goToListOrLanding = user ? goToList : goToLanding;
@@ -157,6 +172,7 @@ export const BusinessProfilingScreen: FC = () => {
   } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goToListOrLanding,
+    onKeepYear: keepCurrentYear,
   });
 
   useInventoryErrorHandler(inventoryError);
