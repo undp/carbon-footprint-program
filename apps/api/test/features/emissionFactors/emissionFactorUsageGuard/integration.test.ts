@@ -353,6 +353,91 @@ describe("Emission factor usage guard - Integration Tests", () => {
       });
       expect(refused.statusCode).toBe(409);
     });
+
+    // An update that moves the factor out of the context its lines were
+    // offered it in strands them exactly as a delete would: holding a snapshot
+    // the capture selector no longer lists, which paints a blank "Fuente
+    // factor" beside a populated "Factor". Only unclaimed footprints reach
+    // this point, since the guard above stops every claimed one.
+    it("detaches the unclaimed lines when the year moves", async () => {
+      const context = await createUnusedFactor("Update Year");
+      const { input } = await referenceFactor(context, { claimed: false });
+
+      expect(await countSnapshots(context.factor.id)).toBe(1);
+      expect(await countResults(input.id)).toBe(1);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).year).toBe(2026);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect(await countResults(input.id)).toBe(0);
+    });
+
+    it("detaches them when the factor moves to another subcategory", async () => {
+      const context = await createUnusedFactor("Update Subcategory");
+      const { input } = await referenceFactor(context, { claimed: false });
+      const sibling = await createTestSubcategory(
+        prisma,
+        context.subcategory.categoryId,
+        { name: `${NAME_PREFIX} Update Subcategory Sibling` }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: {
+          subcategoryId: sibling.id.toString(),
+          dimensionValue1Name: null,
+          dimensionValue2Name: null,
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect(await countResults(input.id)).toBe(0);
+    });
+
+    it("detaches them when the rate unit changes", async () => {
+      const context = await createUnusedFactor("Update Rate Unit");
+      const { input } = await referenceFactor(context, { claimed: false });
+      const otherRateUnit = await prisma.rateMeasurementUnit.findFirstOrThrow({
+        where: { id: { not: context.rateUnitId } },
+        select: { id: true },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { rateMeasurementUnitId: otherRateUnit.id.toString() },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect(await countResults(input.id)).toBe(0);
+    });
+
+    // The snapshot is a frozen copy on purpose: correcting a value must not
+    // rewrite the footprints that already reported the old one, and the factor
+    // keeps its place in the selector, so the line has nothing to re-pick.
+    it("leaves them attached when only the value changes", async () => {
+      const context = await createUnusedFactor("Update Value Only");
+      const { input } = await referenceFactor(context, { claimed: false });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { value: 3.25 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(1);
+      expect(await countResults(input.id)).toBe(1);
+    });
   });
 
   describe("delete", () => {

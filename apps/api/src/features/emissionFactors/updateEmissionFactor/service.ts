@@ -17,6 +17,7 @@ import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
   countActiveLineReferences,
+  detachFactorFromUnclaimedLines,
   validateSourceConsistency,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
@@ -48,6 +49,7 @@ export const updateEmissionFactorService = async (
           year: true,
           dimensionValue1Id: true,
           dimensionValue2Id: true,
+          rateMeasurementUnitId: true,
           gasDetails: true,
           value: true,
         },
@@ -164,18 +166,22 @@ export const updateEmissionFactorService = async (
       const dim2Changed = data.dimensionValue2Name !== undefined;
       const yearChanged = data.year !== undefined;
 
-      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
-        const effectiveSubcategoryId =
-          updateData.subcategoryId != null
-            ? BigInt(updateData.subcategoryId as bigint)
-            : existing.subcategoryId;
-        const effectiveDim1Id = dim1Changed
-          ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
-          : existing.dimensionValue1Id;
-        const effectiveDim2Id = dim2Changed
-          ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
-          : existing.dimensionValue2Id;
+      const effectiveSubcategoryId =
+        updateData.subcategoryId != null
+          ? BigInt(updateData.subcategoryId as bigint)
+          : existing.subcategoryId;
+      const effectiveDim1Id = dim1Changed
+        ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
+        : existing.dimensionValue1Id;
+      const effectiveDim2Id = dim2Changed
+        ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
+        : existing.dimensionValue2Id;
+      const effectiveRateMeasurementUnitId =
+        updateData.rateMeasurementUnitId != null
+          ? BigInt(updateData.rateMeasurementUnitId as bigint)
+          : existing.rateMeasurementUnitId;
 
+      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
         await checkDuplicateEmissionFactor(
           tx,
           effectiveSubcategoryId,
@@ -184,6 +190,42 @@ export const updateEmissionFactorService = async (
           effectiveYear,
           emissionFactorId
         );
+      }
+
+      // The guard above only proves that no *claimed* footprint depends on the
+      // factor -- unclaimed ones are excluded from it by design -- so their
+      // lines can still be holding a snapshot at this point. When the edit
+      // moves the factor out of the context those lines were offered it in,
+      // the capture selector stops listing it: `getCarbonInventoryMethodology`
+      // filters by the footprint's year, and the front matches the line's
+      // subcategory, dimensions and rate unit. The line would then paint a
+      // blank "Fuente factor" beside a populated "Factor", and its next save
+      // would drop the snapshot and the result without saying so. Detaching
+      // lands those lines where the delete path already lands them: quantity
+      // and unit survive, and the line asks for a factor again.
+      //
+      // `value` is deliberately not in the list. A snapshot that keeps the old
+      // value while the catalogue moves on is the whole point of freezing it.
+      //
+      // A dimension value that becomes null widens the factor's reach instead
+      // of narrowing it -- the front reads a null dimension as "applies to
+      // any" -- so it leaves its lines alone. The reverse, null to a value, is
+      // counted as narrowing even though the lines already carrying that value
+      // would have kept it: the detach works per factor, not per line, and
+      // asking a few anonymous lines to re-pick the same factor is the cheap
+      // side of that trade.
+      const narrows = (next: bigint | null, current: bigint | null): boolean =>
+        next !== null && next !== current;
+
+      const leavesItsLinesBehind =
+        effectiveSubcategoryId !== existing.subcategoryId ||
+        effectiveYear !== existing.year ||
+        effectiveRateMeasurementUnitId !== existing.rateMeasurementUnitId ||
+        narrows(effectiveDim1Id, existing.dimensionValue1Id) ||
+        narrows(effectiveDim2Id, existing.dimensionValue2Id);
+
+      if (leavesItsLinesBehind) {
+        await detachFactorFromUnclaimedLines(tx, emissionFactorId);
       }
 
       await tx.emissionFactor.update({
