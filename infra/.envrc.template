@@ -170,7 +170,11 @@ export VITE_CHATBOT_ENABLED="false"
 #
 #   CHATBOT_MONTHLY_BUDGET_AMOUNT    USD/month, warned on at 50/80/100% of
 #                                    actual spend plus 100% of forecast.
-#                                    Default 30.
+#                                    Default 30. Cents are allowed ("0.05"):
+#                                    the budget is filtered to the Azure OpenAI
+#                                    account, whose spend is a fraction of a
+#                                    dollar a month, so a whole-dollar floor
+#                                    could never be crossed.
 #   CHATBOT_DAILY_TOKEN_ALLOWANCE    the assistant's daily anonymous token
 #                                    pool. The three token alerts fire at 50,
 #                                    80 and 100% of it, so this one number
@@ -180,8 +184,9 @@ export VITE_CHATBOT_ENABLED="false"
 #                                    TypeScript constant, so the two are kept
 #                                    equal by hand.
 #
-# Both must be positive integers; deploy.sh refuses anything else up front
-# rather than letting Bicep reject it minutes into a deployment.
+# The allowance must be a positive integer and the amount a positive number;
+# deploy.sh refuses anything else up front rather than letting Bicep reject it
+# minutes into a deployment.
 # export CHATBOT_MONTHLY_BUDGET_AMOUNT="30"
 # export CHATBOT_DAILY_TOKEN_ALLOWANCE="300000"
 

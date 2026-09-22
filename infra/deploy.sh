@@ -589,6 +589,26 @@ add_positive_int_param() {
   log "  $param_name overridden to $value (via $var_name)"
 }
 
+# Same contract for a money amount, which may carry cents. Bicep takes this one
+# as a string and parses it with json(), because ARM numbers are integers and a
+# budget filtered to one small resource has to be expressible below 1 USD.
+add_positive_amount_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  case "$value" in
+    *[!0-9.]* | *.*.* | . | "")
+      log "ERROR: $var_name must be a positive amount like 30 or 0.05; received '$value'."
+      exit 1
+      ;;
+  esac
+  if ! awk -v v="$value" 'BEGIN { exit !(v > 0) }'; then
+    log "ERROR: $var_name must be greater than zero; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
 # Add chatbot parameters if enabled
 if [ "$ENABLE_CHATBOT" = "true" ]; then
   log "Adding chatbot parameters to deployment..."
@@ -620,7 +640,7 @@ if [ "$ENABLE_CHATBOT" = "true" ]; then
         ;;
     esac
     DEPLOY_PARAMS+=(--parameters chatbotAlertEmailAddress="$CHATBOT_ALERT_EMAIL")
-    add_positive_int_param CHATBOT_MONTHLY_BUDGET_AMOUNT chatbotMonthlyBudgetAmount \
+    add_positive_amount_param CHATBOT_MONTHLY_BUDGET_AMOUNT chatbotMonthlyBudgetAmount \
       "${CHATBOT_MONTHLY_BUDGET_AMOUNT:-}"
     add_positive_int_param CHATBOT_DAILY_TOKEN_ALLOWANCE chatbotDailyTokenAllowance \
       "${CHATBOT_DAILY_TOKEN_ALLOWANCE:-}"

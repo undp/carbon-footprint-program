@@ -18,7 +18,7 @@ The module SHALL contain an action group, a monthly consumption budget, and an A
 
 ### Requirement: A monthly consumption budget warns at three thresholds
 
-The module SHALL create a `Microsoft.Consumption/budgets` resource with notification thresholds at 50%, 80%, and 100% of a monthly amount on ACTUAL spend, and a fourth at 100% on FORECAST spend. The amount SHALL be a Bicep parameter with a default of 30 USD.
+The module SHALL create a `Microsoft.Consumption/budgets` resource with notification thresholds at 50%, 80%, and 100% of a monthly amount on ACTUAL spend, and a fourth at 100% on FORECAST spend. The amount SHALL be a Bicep parameter with a default of 30 USD, carried as a string and parsed with `json()` so it can express cents — ARM numbers are integers, and a budget filtered to an account that costs a fraction of a dollar a month cannot be expressed in whole dollars.
 
 The budget SHALL carry a `filter` restricting it to the Azure OpenAI account by resource id. A budget deploys at resource-group scope, and unfiltered it measures every resource in the group while carrying a name that promises it measures the chatbot. That is wrong in both directions: it fires for spend the assistant had no part in, which teaches operators to ignore it, and the default amount is calibrated against the chatbot cost model — a figure that was never a sensible ceiling for a whole environment. Filtering on the resource id rather than the resource type also keeps this alarm measuring exactly what the metric alerts watch, so the two cannot disagree about what "the chatbot" means.
 

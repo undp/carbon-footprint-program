@@ -258,7 +258,7 @@ param openAiLocation string = ''
 param chatbotAlertEmailAddress string = ''
 
 @description('Monthly chatbot cost budget in USD, warned on at 50/80/100%. Default sized so ordinary use is silent and growth is audible — see modules/chatbotAlerting.bicep.')
-param chatbotMonthlyBudgetAmount int = 30
+param chatbotMonthlyBudgetAmount string = '30'
 
 @description('Daily anonymous token pool the three chatbot alert rungs are percentages of (50/80/100%). Keep equal to CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY in apps/api.')
 param chatbotDailyTokenAllowance int = 300000

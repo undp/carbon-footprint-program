@@ -31,7 +31,13 @@ param openAiAccountId string
 param alertEmailAddress string
 
 @description('Monthly cost budget in USD. Default calibrated against the team\'s own modelling: ~10 USD/month at 300 users trips nothing, ~27 at 500 trips the 50% and 80% warnings, ~108 at 1000 exceeds all three. A default low enough to fire during normal use would train everyone to ignore it.')
-param monthlyBudgetAmount int = 30
+// A STRING, not a number, because Bicep has no decimal literal — ARM numbers
+// are integers. `json()` below turns it into the decimal Azure wants, which is
+// the standard workaround and the only way to express a budget in cents. A
+// budget measuring an account that costs fractions of a dollar needs that: with
+// the resource-id filter in place, the assistant's own spend is around 0.02 USD
+// a month, so an integer floor of 1 USD could never be crossed.
+param monthlyBudgetAmount string = '30'
 
 // Consumption budgets require a start date on the first of a month, and Bicep
 // only allows utcNow() in a parameter default. Redeployments keep the original
@@ -123,7 +129,7 @@ resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
   name: budgetName
   properties: {
     category: 'Cost'
-    amount: monthlyBudgetAmount
+    amount: json(monthlyBudgetAmount)
     timeGrain: 'Monthly'
     timePeriod: {
       startDate: budgetStartDate
