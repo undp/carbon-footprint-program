@@ -90,7 +90,12 @@ export const DimensionsMaintainerScreen: FC = () => {
       for (const subcat of dimensionsData) {
         for (const dim of subcat.dimensions) {
           if (dim.id === id)
-            return { ...dim, subcategoryId: subcat.subcategoryId };
+            return {
+              ...dim,
+              subcategoryId: subcat.subcategoryId,
+              subcategoryHasEmissionFactors:
+                subcat.subcategoryHasEmissionFactors,
+            };
         }
       }
       return null;
@@ -258,7 +263,12 @@ export const DimensionsMaintainerScreen: FC = () => {
           name: original.name,
           position: original.position,
           isRequired: original.isRequired,
-          variables: original.values.map((v) => ({ id: v.id, value: v.value })),
+          subcategoryHasEmissionFactors: original.subcategoryHasEmissionFactors,
+          variables: original.values.map((v) => ({
+            id: v.id,
+            value: v.value,
+            inUse: v.inUse,
+          })),
         });
       }
     }
@@ -528,9 +538,6 @@ export const DimensionsMaintainerScreen: FC = () => {
         <DimensionVariablesModal
           open={variablesModal.open}
           readOnly={scope.isViewOnly}
-          subcategoryHasEmissionFactors={
-            !!variablesRow?.subcategoryHasEmissionFactors
-          }
           dimensionName={variablesRow?.name ?? ""}
           variables={variablesRow?.variables ?? []}
           onSave={handleSaveVariables}

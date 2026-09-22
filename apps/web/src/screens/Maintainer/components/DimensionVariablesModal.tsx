@@ -24,7 +24,6 @@ interface DimensionVariable {
 interface DimensionVariablesModalProps {
   open: boolean;
   readOnly?: boolean;
-  subcategoryHasEmissionFactors?: boolean;
   dimensionName: string;
   variables: DimensionVariable[];
   onSave: (variables: DimensionVariable[]) => void;
@@ -33,14 +32,7 @@ interface DimensionVariablesModalProps {
 
 const DimensionVariablesModalContent: FC<
   Omit<DimensionVariablesModalProps, "open">
-> = ({
-  readOnly = false,
-  subcategoryHasEmissionFactors = false,
-  dimensionName,
-  variables,
-  onSave,
-  onClose,
-}) => {
+> = ({ readOnly = false, dimensionName, variables, onSave, onClose }) => {
   const [localVars, setLocalVars] = useState<DimensionVariable[]>(() =>
     variables.length > 0
       ? variables.map((v) => ({ ...v }))
@@ -72,6 +64,14 @@ const DimensionVariablesModalContent: FC<
     [localVars]
   );
 
+  // The API flags each value an active emission factor points at. That is the
+  // real constraint on removal: a factor elsewhere in the subcategory — or on
+  // the other dimension — pins nothing this dimension owns.
+  const hasVariablesInUse = useMemo(
+    () => localVars.some((v) => !v.id.startsWith("new_") && !!v.inUse),
+    [localVars]
+  );
+
   const hasEmptyValues = localVars.some((v) => v.value.trim() === "");
   const hasDuplicates = duplicateIndices.size > 0;
   const canClose = !hasDuplicates && !hasEmptyValues && localVars.length > 0;
@@ -100,10 +100,11 @@ const DimensionVariablesModalContent: FC<
     <>
       <DialogTitle>Configurar Variables — {dimensionName}</DialogTitle>
       <DialogContent>
-        {subcategoryHasEmissionFactors && !readOnly && (
+        {hasVariablesInUse && !readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Esta dimensión tiene factores de emisión activos. Puedes agregar
-            nuevas variables y renombrar las existentes, pero no eliminarlas.
+            Algunas variables están en uso por factores de emisión activos y no
+            se pueden eliminar. Puedes renombrarlas, agregar nuevas y eliminar
+            las que no están en uso.
           </Alert>
         )}
 
@@ -124,8 +125,7 @@ const DimensionVariablesModalContent: FC<
 
         <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
           {localVars.map((v, i) => {
-            const isExisting = !v.id.startsWith("new_");
-            const removeBlocked = subcategoryHasEmissionFactors && isExisting;
+            const removeBlocked = !v.id.startsWith("new_") && !!v.inUse;
             return (
               <Box
                 key={v.id}
@@ -152,7 +152,7 @@ const DimensionVariablesModalContent: FC<
                   <Tooltip
                     title={
                       removeBlocked
-                        ? "No se puede eliminar: existen factores de emisión activos"
+                        ? "No se puede eliminar: hay factores de emisión activos que usan esta variable"
                         : "Eliminar variable"
                     }
                   >
