@@ -65,4 +65,48 @@ describe("resolveLockedSource", () => {
 
     expect(resolveLockedSource([existing, row], row)).toBeUndefined();
   });
+
+  it("does not lock two rows of the same group to each other", () => {
+    // The mutual lock is what made the pair swap sources on every render: each
+    // row read the other as its lock and wrote it into its own field.
+    const first = factor({ id: "1", source: "IPCC" });
+    const second = factor({ id: "2", source: "DEFRA 2025" });
+    const rows = [first, second];
+
+    expect(resolveLockedSource(rows, first)).toBeUndefined();
+    expect(resolveLockedSource(rows, second)).toBe("IPCC");
+  });
+
+  it("anchors on the persisted row, not on a new one", () => {
+    const added = factor({ id: "temp_1758000000000", source: "Propia" });
+    const persisted = factor({ id: "5", source: "IPCC" });
+    // New rows are prepended, so the grid order puts the new one first.
+    const rows = [added, persisted];
+
+    expect(resolveLockedSource(rows, added)).toBe("IPCC");
+    expect(resolveLockedSource(rows, persisted)).toBeUndefined();
+  });
+
+  it("compares ids numerically so 9 anchors over 10", () => {
+    const ninth = factor({ id: "9", source: "IPCC" });
+    const tenth = factor({ id: "10", source: "DEFRA 2025" });
+
+    expect(resolveLockedSource([tenth, ninth], tenth)).toBe("IPCC");
+  });
+
+  it("anchors on the oldest new row when the group has no persisted one", () => {
+    const older = factor({ id: "temp_1758000000000", source: "Propia" });
+    const newer = factor({ id: "temp_1758000009999", source: "" });
+    const rows = [newer, older];
+
+    expect(resolveLockedSource(rows, newer)).toBe("Propia");
+    expect(resolveLockedSource(rows, older)).toBeUndefined();
+  });
+
+  it("locks nothing while the anchor has no source yet", () => {
+    const anchor = factor({ id: "temp_1758000000000", source: "" });
+    const row = factor({ id: "temp_1758000009999", source: "" });
+
+    expect(resolveLockedSource([anchor, row], row)).toBeUndefined();
+  });
 });
