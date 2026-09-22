@@ -21,6 +21,7 @@ import {
   createCarbonInventoryLine,
   createCarbonInventoryLineFactor,
   createCarbonInventoryLineInput,
+  createCarbonInventoryLineResult,
 } from "@test/factories/carbonInventorySeeder.js";
 import type { GetAllEmissionFactorsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -141,7 +142,18 @@ describe("Emission factor usage guard - Integration Tests", () => {
       emissionFactorId: context.factor.id,
       appliedFactorSource: context.factor.source,
     });
+    // The computed emissions travel with the snapshot, so a test that checks
+    // one is detached has to be able to check the other went with it.
+    await createCarbonInventoryLineResult(prisma, input.id, 15);
+
+    return { inventory, line, input };
   }
+
+  const countSnapshots = (emissionFactorId: bigint) =>
+    prisma.carbonInventoryLineFactor.count({ where: { emissionFactorId } });
+
+  const countResults = (lineInputId: bigint) =>
+    prisma.carbonInventoryLineResult.count({ where: { lineInputId } });
 
   const readFactor = (factor: EmissionFactor) =>
     prisma.emissionFactor.findUniqueOrThrow({ where: { id: factor.id } });
@@ -373,6 +385,78 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect((await readFactor(context.factor)).status).toBe(
         EmissionFactorStatus.DELETED
       );
+    });
+
+    // Left holding the snapshot, the line would show a blank "Fuente factor"
+    // next to a populated "Factor": the selector only offers ACTIVE factors, so
+    // the frozen source has nothing to render against. Detaching brings the
+    // line back asking for a factor, which is what the screen already reads as
+    // unfinished.
+    it("detaches the unclaimed lines it leaves behind", async () => {
+      const context = await createUnusedFactor("Detach");
+      const { input } = await referenceFactor(context, { claimed: false });
+
+      expect(await countSnapshots(context.factor.id)).toBe(1);
+      expect(await countResults(input.id)).toBe(1);
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect(await countResults(input.id)).toBe(0);
+    });
+
+    it("keeps what the line kept: subcategory, unit and quantity", async () => {
+      const context = await createUnusedFactor("Detach Keeps");
+      const { line, input } = await referenceFactor(context, {
+        claimed: false,
+      });
+
+      await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+      });
+
+      const survivingLine = await prisma.carbonInventoryLine.findUniqueOrThrow({
+        where: { id: line.id },
+      });
+      const survivingInput =
+        await prisma.carbonInventoryLineInput.findUniqueOrThrow({
+          where: { id: input.id },
+        });
+
+      expect(survivingLine.status).toBe(CarbonInventoryLineStatus.ACTIVE);
+      expect(survivingLine.subcategoryId).toBe(context.subcategory.id);
+      expect(survivingInput.isActive).toBe(true);
+      expect(survivingInput.quantity?.toString()).toBe("10");
+    });
+
+    // Superseded inputs are audit trail nothing reads, and a deleted line is
+    // not reachable from any screen. Rewriting either to tidy a view nobody
+    // opens is the wrong trade.
+    it("leaves superseded and deleted references alone", async () => {
+      const context = await createUnusedFactor("Detach Scope");
+      const superseded = await referenceFactor(context, {
+        claimed: false,
+        inputIsActive: false,
+      });
+      const deletedLine = await referenceFactor(context, {
+        claimed: false,
+        lineStatus: CarbonInventoryLineStatus.DELETED,
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(2);
+      expect(await countResults(superseded.input.id)).toBe(1);
+      expect(await countResults(deletedLine.input.id)).toBe(1);
     });
 
     it("deletes a factor no line references", async () => {

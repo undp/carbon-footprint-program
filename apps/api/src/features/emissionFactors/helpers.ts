@@ -259,6 +259,52 @@ export async function countActiveLineReferences(
 }
 
 /**
+ * Detaches a factor from the unclaimed footprints still using it, so the delete
+ * leaves their lines in a state that reads correctly.
+ *
+ * Without this the line keeps its frozen snapshot while the source selector
+ * stops offering the factor — `getCarbonInventoryMethodology` filters
+ * `status: ACTIVE` — so the capture screen shows a blank "Fuente factor" next
+ * to a populated "Factor" and a computed total. The line looks half-filled when
+ * it is in fact complete and pointing at something that no longer exists.
+ * Clearing the snapshot and the computed result instead brings the line back
+ * asking for a factor, keeping its subcategory, dimensions, unit and quantity,
+ * which is the state the completeness rules already read as unfinished.
+ *
+ * This is the same reconciliation the `add-emission-factor-year` migration
+ * applied when dating the catalogue left footprints holding factors their year
+ * would no longer offer. Same situation, different trigger.
+ *
+ * Scope is exactly `unclaimedLineReferenceWhere`, and it is safe because the
+ * guard has already refused the delete if any claimed footprint depends on the
+ * factor — so nothing anybody owns is touched. Superseded inputs, deleted lines
+ * and deleted footprints keep their snapshots: no reader consults them, and
+ * rewriting audit trail to tidy a screen nobody can open is the wrong trade.
+ */
+export async function detachFactorFromUnclaimedLines(
+  tx: Prisma.TransactionClient,
+  emissionFactorId: bigint
+): Promise<void> {
+  const snapshots = await tx.carbonInventoryLineFactor.findMany({
+    where: { emissionFactorId, ...unclaimedLineReferenceWhere },
+    select: { id: true, lineInputId: true },
+  });
+
+  if (snapshots.length === 0) return;
+
+  const lineInputIds = snapshots.map(({ lineInputId }) => lineInputId);
+
+  // Results first: the emissions they hold were computed from the snapshot, so
+  // leaving them would report a total the line can no longer explain.
+  await tx.carbonInventoryLineResult.deleteMany({
+    where: { lineInputId: { in: lineInputIds } },
+  });
+  await tx.carbonInventoryLineFactor.deleteMany({
+    where: { id: { in: snapshots.map(({ id }) => id) } },
+  });
+}
+
+/**
  * Validates that the gas details breakdown sums to the declared value.
  * Skips validation when the breakdown sums to zero.
  */

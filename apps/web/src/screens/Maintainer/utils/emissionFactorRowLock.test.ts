@@ -83,6 +83,9 @@ describe("resolveEmissionFactorDeleteMessage", () => {
 
     expect(message).toContain("4 líneas");
     expect(message).toContain("anónimas sin reclamar");
+    // The delete detaches them, so the copy has to promise that and not that
+    // they keep what they had.
+    expect(message).toContain("Volverán a pedir un factor");
     expect(message).toContain("¿Eliminarlo igual?");
   });
 

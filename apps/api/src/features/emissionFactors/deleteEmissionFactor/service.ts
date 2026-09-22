@@ -5,7 +5,10 @@ import {
   EmissionFactorNotFoundError,
 } from "../errors.js";
 import { UserNotFoundError } from "../../users/errors.js";
-import { countActiveLineReferences } from "../helpers.js";
+import {
+  countActiveLineReferences,
+  detachFactorFromUnclaimedLines,
+} from "../helpers.js";
 
 export const deleteEmissionFactorService = async (
   prismaClient: PrismaClient,
@@ -41,6 +44,12 @@ export const deleteEmissionFactorService = async (
     if (referencedLineCount > 0) {
       throw new EmissionFactorInUseError(referencedLineCount.toString());
     }
+
+    // Only unclaimed footprints can still be pointing at it here, and their
+    // lines are detached rather than left holding a snapshot of a factor the
+    // selector no longer offers. Same transaction as the delete: a line must
+    // never be readable against a factor that is already gone.
+    await detachFactorFromUnclaimedLines(tx, emissionFactorId);
 
     await tx.emissionFactor.update({
       where: { id: emissionFactorId },

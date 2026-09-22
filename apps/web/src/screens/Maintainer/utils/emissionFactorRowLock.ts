@@ -55,7 +55,12 @@ export const resolveEmissionFactorRowLock = (
 /**
  * The confirmation shown before deleting a factor. When unclaimed footprints
  * depend on it the delete still goes through, so the message says what it will
- * leave behind rather than asking a question the maintainer cannot act on.
+ * do to them rather than asking a question the maintainer cannot act on.
+ *
+ * Those lines are detached by the delete: they keep their subcategory, unit and
+ * quantity and come back asking for a factor. Leaving them holding a snapshot
+ * of a factor the selector no longer offers is what produced a blank source
+ * next to a populated value on the capture screen.
  */
 export const resolveEmissionFactorDeleteMessage = (
   unclaimedReferencedLineCount: number
@@ -63,5 +68,5 @@ export const resolveEmissionFactorDeleteMessage = (
   if (unclaimedReferencedLineCount === 0)
     return "¿Estás seguro de que deseas eliminar este factor de emisión?";
 
-  return `${lines(unclaimedReferencedLineCount)} de huellas anónimas sin reclamar usan este factor. Conservan el valor que ya tienen guardado, pero el factor dejará de ofrecerse. ¿Eliminarlo igual?`;
+  return `${lines(unclaimedReferencedLineCount)} de huellas anónimas sin reclamar usan este factor. Volverán a pedir un factor, conservando su cantidad y su unidad. ¿Eliminarlo igual?`;
 };
