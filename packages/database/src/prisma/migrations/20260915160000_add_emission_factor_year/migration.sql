@@ -86,6 +86,12 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 -- Manual lines are left untouched, `manual_factor`, `manual_factor_source` and
 -- `manual_factor_rate_unit_id` on the input included: their value and source
 -- were typed by the user and no catalogue can restore them.
+--
+-- A DIRECT input keeps its result. Its total was typed, not computed, so a
+-- snapshot it happens to carry says nothing about it, and deleting the result
+-- would leave the number on `direct_total_emissions` and out of every total —
+-- the editor would keep showing it while `carbon_inventory_subtotals_view`
+-- counted the line as zero and unfinished. Its snapshot still goes, in step 2.
 
 -- Clearing, step 1: the computed results of the lines whose snapshot is going
 DELETE FROM "carbon_inventory_line_result"
@@ -96,6 +102,7 @@ WHERE "line_input_id" IN (
     JOIN "carbon_inventory" "ci" ON "ci"."id" = "l"."carbon_inventory_id"
     JOIN "carbon_inventory_line_factor" "f" ON "f"."line_input_id" = "i"."id"
   WHERE "i"."is_active" = TRUE
+    AND "i"."input_type" <> 'DIRECT'
     AND "ci"."year" IS DISTINCT FROM 2025
     AND (
       "f"."emission_factor_id" IS NOT NULL
