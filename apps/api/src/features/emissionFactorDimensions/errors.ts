@@ -48,12 +48,6 @@ export const DimensionValueNotFoundForRemovalError = createError(
   404
 );
 
-export const DimensionValuesCannotBeRemovedError = createError(
-  "DIMENSION_VALUES_CANNOT_BE_REMOVED",
-  "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos",
-  409
-);
-
 export const DimensionIsRequiredChangeBlockedError = createError(
   "DIMENSION_IS_REQUIRED_CHANGE_BLOCKED",
   "No se puede cambiar el campo 'requerido' porque existen factores de emisión activos para esta subcategoría",

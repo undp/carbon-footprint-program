@@ -195,10 +195,6 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "La variable de la dimensión no fue encontrada.",
   ],
   [
-    "DIMENSION_VALUES_CANNOT_BE_REMOVED",
-    "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos.",
-  ],
-  [
     "DIMENSION_IS_REQUIRED_CHANGE_BLOCKED",
     "No se puede cambiar el campo 'requerido' porque existen factores de emisión activos para esta subcategoría.",
   ],
