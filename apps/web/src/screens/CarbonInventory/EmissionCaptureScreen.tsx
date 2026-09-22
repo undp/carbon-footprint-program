@@ -26,7 +26,7 @@ import { useEmissionCaptureState } from "./hooks/useEmissionCaptureState";
 import { EmissionCaptureFormValues } from "./types/EmissionCaptureTypes";
 import {
   areAllSubcategoriesFilled,
-  hasNoCatalogueFactors,
+  resolveEmptyCatalogueNotice,
   shouldShowSubcategory,
 } from "./utils/emissionCaptureValidation";
 import { IS_DEVELOPMENT } from "@/config/environment";
@@ -293,17 +293,13 @@ export const EmissionCaptureScreen: FC = () => {
   useExpertModeOnboardingHighlight(isExpertModeAvailable);
 
   /**
-   * The footprint's year has no catalogue behind it. Factors are offered by
-   * year, so a year whose set has not been loaded yet leaves every «Fuente»
-   * dropdown empty — which reads as a broken screen unless it is named. The
-   * manual factor stays available, and is what the methodology asks for when
-   * no published factor applies.
+   * Nothing behind the «Fuente» dropdowns. Factors are offered by year, so
+   * either the footprint's year has no catalogue loaded yet or the footprint
+   * has no year at all — both leave every dropdown empty, which reads as a
+   * broken screen unless it is named, and each has its own way out.
    */
-  const hasEmptyCatalogue = useMemo(
-    () =>
-      data?.year != null &&
-      data.categories.length > 0 &&
-      hasNoCatalogueFactors(data.categories),
+  const emptyCatalogueNotice = useMemo(
+    () => resolveEmptyCatalogueNotice(data?.year, data?.categories),
     [data]
   );
 
@@ -407,18 +403,34 @@ export const EmissionCaptureScreen: FC = () => {
                     </>
                   }
                 />
-                {hasEmptyCatalogue && (
+                {emptyCatalogueNotice !== null && (
                   <Alert severity="warning">
-                    <AlertTitle>
-                      Todavía no hay factores de emisión para el año{" "}
-                      {data?.year}
-                    </AlertTitle>
-                    El catálogo de factores de este año aún no está cargado, por
-                    lo que el selector «Fuente» se verá vacío en todas las
-                    fuentes de emisión. Mientras tanto puedes ingresar tus
-                    consumos y elegir «Otro» como fuente para registrar un
-                    factor propio, documentando de dónde lo obtuviste. También
-                    puedes volver al Paso 1 y cambiar el año de la huella.
+                    {emptyCatalogueNotice === "YEAR_NOT_LOADED" ? (
+                      <>
+                        <AlertTitle>
+                          Todavía no hay factores de emisión para el año{" "}
+                          {data?.year}
+                        </AlertTitle>
+                        El catálogo de factores de este año aún no está cargado,
+                        por lo que el selector «Fuente» se verá vacío en todas
+                        las fuentes de emisión. Mientras tanto puedes ingresar
+                        tus consumos y elegir «Otro» como fuente para registrar
+                        un factor propio, documentando de dónde lo obtuviste.
+                        También puedes volver al Paso 1 y cambiar el año de la
+                        huella.
+                      </>
+                    ) : (
+                      <>
+                        <AlertTitle>
+                          Esta huella todavía no tiene un año
+                        </AlertTitle>
+                        Cada factor de emisión es válido solo para el año que
+                        declara, así que una huella sin año no recibe ninguno y
+                        el selector «Fuente» se verá vacío en todas las fuentes
+                        de emisión. Vuelve al Paso 1 y elige el año de la huella
+                        para que el catálogo se cargue.
+                      </>
+                    )}
                   </Alert>
                 )}
                 <CategoryCarousel

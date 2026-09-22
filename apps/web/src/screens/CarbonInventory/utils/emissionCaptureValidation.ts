@@ -28,6 +28,36 @@ export function hasNoCatalogueFactors(
   );
 }
 
+/**
+ * Which notice capture owes the user when no «Fuente» dropdown has anything to
+ * offer. `null` when the screen has nothing to explain.
+ *
+ * The two cases look identical on screen and have opposite ways out, so they
+ * are told apart here rather than merged:
+ *  - `YEAR_NOT_LOADED` — the footprint has a year and the catalogue does not
+ *    cover it yet. Capture still works: a manual factor is what the
+ *    methodology asks for when no published factor applies.
+ *  - `NO_YEAR` — the footprint never got a year. `carbon_inventory.year` is
+ *    nullable and no route guard enforces the order of the steps, so capture
+ *    can be opened by URL before step 1 has saved one, and
+ *    `buildEmissionFactorWhere` offers nothing at all to a footprint with no
+ *    year. Nothing on this screen fixes it; the year does.
+ *
+ * A methodology with no categories says nothing either way — there is no
+ * dropdown to be empty — so it earns no notice.
+ */
+export type EmptyCatalogueNotice = "YEAR_NOT_LOADED" | "NO_YEAR";
+
+export function resolveEmptyCatalogueNotice(
+  year: number | null | undefined,
+  categories: CategoryWithSubcategoriesAndLines[] | undefined
+): EmptyCatalogueNotice | null {
+  if (!categories || categories.length === 0) return null;
+  if (!hasNoCatalogueFactors(categories)) return null;
+
+  return year == null ? "NO_YEAR" : "YEAR_NOT_LOADED";
+}
+
 export function shouldShowSubcategory(
   subcategory: SubcategoryWithLines,
   formSubcategory:

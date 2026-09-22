@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { hasNoCatalogueFactors } from "./emissionCaptureValidation";
+import {
+  hasNoCatalogueFactors,
+  resolveEmptyCatalogueNotice,
+} from "./emissionCaptureValidation";
 import type { CategoryWithSubcategoriesAndLines } from "../types/EmissionCaptureTypes";
 
 const buildCategories = (
@@ -29,5 +32,31 @@ describe("hasNoCatalogueFactors", () => {
 
   it("treats a methodology with no categories as empty", () => {
     expect(hasNoCatalogueFactors([])).toBe(true);
+  });
+});
+
+describe("resolveEmptyCatalogueNotice", () => {
+  const empty = buildCategories([[0, 0], [0]]);
+  const stocked = buildCategories([[0, 0], [3]]);
+
+  it("names the year whose catalogue is not loaded yet", () => {
+    expect(resolveEmptyCatalogueNotice(2026, empty)).toBe("YEAR_NOT_LOADED");
+  });
+
+  it("names the missing year when the footprint has none", () => {
+    // Reachable by URL: no route guard enforces the order of the steps, and a
+    // footprint with no year is offered no factor at all.
+    expect(resolveEmptyCatalogueNotice(null, empty)).toBe("NO_YEAR");
+    expect(resolveEmptyCatalogueNotice(undefined, empty)).toBe("NO_YEAR");
+  });
+
+  it("says nothing when the catalogue has something to offer", () => {
+    expect(resolveEmptyCatalogueNotice(2025, stocked)).toBeNull();
+    expect(resolveEmptyCatalogueNotice(null, stocked)).toBeNull();
+  });
+
+  it("says nothing while there is no methodology to be empty", () => {
+    expect(resolveEmptyCatalogueNotice(2026, [])).toBeNull();
+    expect(resolveEmptyCatalogueNotice(2026, undefined)).toBeNull();
   });
 });
