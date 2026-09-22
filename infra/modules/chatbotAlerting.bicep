@@ -110,8 +110,8 @@ resource actionGroup 'Microsoft.Insights/actionGroups@2023-01-01' = {
   }
 }
 
-// Scoped to the resource group this deployment targets, so it measures the cost
-// of this stack rather than the whole subscription.
+// Deployed at resource-group scope and then narrowed by the filter below to the
+// Azure OpenAI account alone, so it measures what its name says it measures.
 //
 // DEPLOYMENT PREREQUISITE: creating this resource needs Microsoft.Consumption
 // write permission, which a service principal scoped only to Contributor on the
@@ -128,6 +128,29 @@ resource budget 'Microsoft.Consumption/budgets@2023-05-01' = {
     timePeriod: {
       startDate: budgetStartDate
       endDate: budgetEndDate
+    }
+    // Scoped to the Azure OpenAI account, NOT to everything in the resource
+    // group. A budget deploys at resource-group scope and without this filter
+    // measures the whole group — Postgres, the App Service, the registry,
+    // storage — while carrying a name that promises it measures the chatbot.
+    //
+    // That was wrong in both directions. It fired for spend the chatbot had no
+    // part in, which is how an alarm teaches people to ignore it; and the
+    // default amount was calibrated against the team's chatbot cost model
+    // (about 10 USD/month at 300 users, 27 at 500), a figure that never made
+    // sense as a ceiling for an entire environment. Observed: a 20.94 USD
+    // forecast raised this alarm while the assistant's own share of it was
+    // cents.
+    //
+    // Filtering on the resource id rather than the resource type keeps this
+    // alarm measuring exactly what the metric alert below watches, so the two
+    // can never disagree about what "the chatbot" means.
+    filter: {
+      dimensions: {
+        name: 'ResourceId'
+        operator: 'In'
+        values: [openAiAccountId]
+      }
     }
     notifications: {
       // Three thresholds on ACTUAL spend, plus one on the FORECAST. The actual

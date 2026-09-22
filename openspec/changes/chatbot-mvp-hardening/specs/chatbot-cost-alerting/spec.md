@@ -18,7 +18,9 @@ The module SHALL contain an action group, a monthly consumption budget, and an A
 
 ### Requirement: A monthly consumption budget warns at three thresholds
 
-The module SHALL create a `Microsoft.Consumption/budgets` resource scoped to the resource group, with notification thresholds at 50%, 80%, and 100% of a monthly amount on ACTUAL spend, and a fourth at 100% on FORECAST spend. The amount SHALL be a Bicep parameter with a default of 30 USD.
+The module SHALL create a `Microsoft.Consumption/budgets` resource with notification thresholds at 50%, 80%, and 100% of a monthly amount on ACTUAL spend, and a fourth at 100% on FORECAST spend. The amount SHALL be a Bicep parameter with a default of 30 USD.
+
+The budget SHALL carry a `filter` restricting it to the Azure OpenAI account by resource id. A budget deploys at resource-group scope, and unfiltered it measures every resource in the group while carrying a name that promises it measures the chatbot. That is wrong in both directions: it fires for spend the assistant had no part in, which teaches operators to ignore it, and the default amount is calibrated against the chatbot cost model — a figure that was never a sensible ceiling for a whole environment. Filtering on the resource id rather than the resource type also keeps this alarm measuring exactly what the metric alerts watch, so the two cannot disagree about what "the chatbot" means.
 
 The forecast threshold is the only notification in the module that can arrive before the money is spent: Azure bills before it reports, so every actual threshold is late by construction. It is noisier, because a projection swings on a single busy afternoon, which is why it accompanies the actual thresholds rather than replacing them — the forecast warns and may be wrong, the actual ones record and are not.
 
@@ -33,6 +35,11 @@ The default is calibrated so that normal operation is silent and growth is audib
 
 - **WHEN** accrued spend for the month crosses 50%, 80%, or 100% of the configured amount
 - **THEN** the budget SHALL notify the action group at each crossing
+
+#### Scenario: Spend outside the assistant does not raise the budget
+
+- **WHEN** other resources in the group accumulate cost while the Azure OpenAI account's own spend stays below the amount
+- **THEN** the budget SHALL NOT notify, because the filter excludes them
 
 #### Scenario: Budget amount is overridable per deployment
 

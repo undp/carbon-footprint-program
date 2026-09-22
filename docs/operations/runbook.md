@@ -408,6 +408,12 @@ two clocks, none of which refuses anything:
 | Budget 50 / 80 / 100% actual    | billed spend, evaluated ~daily       | the 1st of each month              |
 | Budget 100% forecast            | projected month-end spend            | the 1st of each month              |
 
+The budget is filtered to the Azure OpenAI account by resource id, so it measures
+the assistant and not the group it happens to be deployed into. Without that
+filter it reports the whole environment — Postgres, the App Service, the registry
+— under a name that says `chatbot`, and its amount was calibrated against the
+chatbot cost model, which was never a sensible ceiling for an entire stack.
+
 The token rungs are percentages of `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`, not
 absolute counts, so one number moves all three and the mail names a fraction
 instead of a figure the reader has to divide. Two things that percentage does
