@@ -76,6 +76,32 @@ References held by a deleted line, or by a line under a deleted footprint, SHALL
 - **WHEN** an administrator updates that factor
 - **THEN** the update SHALL succeed
 
+### Requirement: Deleting a factor detaches the lines it leaves behind
+
+When a factor is deleted, the system SHALL remove the frozen factor snapshot and the computed result of every line that still references it under an unclaimed anonymous footprint, in the same transaction. Those lines SHALL keep their subcategory, dimension selections, measurement unit and quantity, and SHALL read as unfinished.
+
+Snapshots held by superseded line inputs, by deleted lines and by deleted footprints SHALL be left untouched, because no reader of the application consults them.
+
+The system SHALL NOT attach a line to a deleted factor. A payload naming one SHALL be reconciled the same way a payload naming a factor of another year is: the line is saved without a snapshot and without a result.
+
+#### Scenario: The line comes back asking for a factor
+
+- **GIVEN** a factor referenced by a line of an unclaimed anonymous footprint
+- **WHEN** an administrator deletes that factor
+- **THEN** the line SHALL keep its quantity and unit, and SHALL hold no factor snapshot and no computed result
+
+#### Scenario: Audit trail is not rewritten
+
+- **GIVEN** a factor referenced from a superseded input and from a deleted line
+- **WHEN** an administrator deletes that factor
+- **THEN** both snapshots SHALL survive
+
+#### Scenario: A stale payload does not re-attach it
+
+- **GIVEN** a client that still names a deleted factor on a line
+- **WHEN** the line is saved
+- **THEN** the line SHALL be stored with no factor snapshot and no computed result
+
 ### Requirement: The rule does not depend on the methodology version's status
 
 Whether the methodology version the factor hangs off is published SHALL NOT affect whether the factor can be changed. A factor of the published version with no lines behind it SHALL be editable, and a factor of an unpublished version with lines behind it SHALL NOT be.

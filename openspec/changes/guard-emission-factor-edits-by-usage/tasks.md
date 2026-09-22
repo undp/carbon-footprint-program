@@ -72,6 +72,8 @@ These land in their own places and are not part of this change's diff. They are 
 - [x] 8b.4 Scope the `conceptual-guide.md` paragraph to `PATCH`/`DELETE` on a factor. `softDeleteSubcategoryDependents` and the two dimension services delete or rewrite factors with no usage check, and their screens are editable over any superseded version.
 - [x] 8b.5 Gate the edit-mode toolbar on a methodology being edited rather than on write permission, through a flag the scope exposes. It holds the only "Salir de edición", and over the published version three screens are read-only by design.
 - [x] 8b.6 Put the lock reason on every cell that stops responding, not only the subcategory one. The maintainer reaches for the value they want to fix.
+- [x] 8b.8 Detach the unclaimed lines when a factor is deleted, clearing the snapshot and the computed result in the delete's own transaction. Left holding the snapshot they showed a blank "Fuente factor" next to a populated "Factor", because the selector only offers ACTIVE factors — complete data that reads as broken. Same reconciliation the `add-emission-factor-year` migration applied, different trigger.
+- [x] 8b.9 Filter `findReferencedEmissionFactors` on `ACTIVE`, so a client holding pre-delete state cannot silently re-attach a line to a factor the catalogue no longer offers.
 - [ ] 8b.7 **Not taken** — `GET /api/emission-factors` is `private` with no `systemRoles`, so the counts are visible to any authenticated account. Consistent with every other maintainer route today; narrowing them is a separate decision about the whole maintainer surface, not about this field.
 
 ## 9. Tests — API
