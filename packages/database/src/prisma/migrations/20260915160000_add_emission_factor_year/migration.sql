@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 -- has the factor snapshots of its catalogue-backed lines removed, and the
 -- results computed from them, so those lines come back asking for a factor while
 -- keeping their subcategory, dimension selections, measurement unit and
--- quantity. A typed direct total is not computed from a factor and is kept.
+-- quantity. DIRECT inputs are the one exception, explained below.
 --
 -- It spares nothing: editable, submitted and verified footprints alike. Sparing
 -- the submitted ones is what would leave a source of mismatched data behind —
@@ -81,6 +81,14 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 --     them apart from a manual line, whose snapshot has a null id and a custom
 --     source. No attempt is made to re-link them — with no real data behind it,
 --     a reconciliation query would be written and justified to rescue nothing.
+--   * a snapshot with neither a factor id nor a source is swept with them, which
+--     is what the COALESCE expresses: a manual factor is one whose source is
+--     custom, not merely one without a factor id. `createLineInput` writes
+--     `manual_factor` only alongside a custom source, so a snapshot with no
+--     source has no manual value behind it to lose.
+--     `clearCatalogueFactorsOfLines` and `isFactorKeptOnLine` encode the same
+--     definition of a catalogue-backed snapshot, and the three must agree or a
+--     line slips through every one.
 --   * a footprint with a NULL year is included. It is offered no factors at all,
 --     so a snapshot there is as unofferable as one from another year.
 --
@@ -88,14 +96,16 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 -- `manual_factor_rate_unit_id` on the input included: their value and source
 -- were typed by the user and no catalogue can restore them.
 --
--- A DIRECT input keeps its result. Its total was typed, not computed, so a
--- snapshot it happens to carry says nothing about it, and deleting the result
--- would leave the number on `direct_total_emissions` and out of every total —
--- the editor would keep showing it while `carbon_inventory_subtotals_view`
--- counted the line as zero and unfinished. Its snapshot still goes, in step 2.
+-- The one exception: a DIRECT input keeps its result. Its total was typed, not
+-- computed, so a snapshot it happens to carry says nothing about it, and
+-- deleting the result would leave the number on `direct_total_emissions` and
+-- out of every total — the editor would keep showing it while
+-- `carbon_inventory_subtotals_view` counted the line as zero and unfinished.
+-- This bends nothing in the definition above, which is about snapshots: the
+-- DIRECT line's snapshot still goes, in step 2. Only step 1 skips it.
 
 -- Clearing, step 1: the computed results of the lines whose snapshot is going,
--- except a DIRECT input's, whose result is the total the user typed
+-- DIRECT inputs excepted
 DELETE FROM "carbon_inventory_line_result"
 WHERE "line_input_id" IN (
   SELECT "i"."id"
