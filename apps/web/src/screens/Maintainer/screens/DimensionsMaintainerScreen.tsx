@@ -12,6 +12,7 @@ import {
   useDimensionsForm,
   flattenDimensions,
   type DimensionFormRow,
+  type DimensionVariable,
 } from "../hooks/useDimensionsForm";
 import { useDimensionColumns } from "../hooks/useDimensionColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
@@ -458,7 +459,7 @@ export const DimensionsMaintainerScreen: FC = () => {
   );
 
   const handleSaveVariables = useCallback(
-    (variables: Array<{ id: string; value: string }>) => {
+    (variables: DimensionVariable[]) => {
       const { rowIndex } = variablesModal;
       if (rowIndex < 0) return;
       handleCellChange(rowIndex, "variables", variables);

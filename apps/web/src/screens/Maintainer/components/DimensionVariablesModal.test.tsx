@@ -128,7 +128,7 @@ describe("DimensionVariablesModal — removing variables", () => {
   });
 
   it("explains the lock only when something is actually locked", () => {
-    const notice = /en uso por factores de emisión activos/i;
+    const notice = /Algunas variables están en uso y no se pueden eliminar/i;
 
     const { unmount } = renderModal({
       variables: [{ id: "1", value: "Excavadora", inUse: false }],

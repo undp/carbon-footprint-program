@@ -102,9 +102,10 @@ const DimensionVariablesModalContent: FC<
       <DialogContent>
         {hasVariablesInUse && !readOnly && (
           <Alert severity="info" sx={{ mb: 2 }}>
-            Algunas variables están en uso por factores de emisión activos y no
-            se pueden eliminar. Puedes renombrarlas, agregar nuevas y eliminar
-            las que no están en uso.
+            Algunas variables están en uso y no se pueden eliminar: hay factores
+            de emisión, capturas o iniciativas de reducción activas que las
+            referencian. Puedes renombrarlas, agregar nuevas y eliminar las que
+            no están en uso.
           </Alert>
         )}
 
@@ -152,7 +153,7 @@ const DimensionVariablesModalContent: FC<
                   <Tooltip
                     title={
                       removeBlocked
-                        ? "No se puede eliminar: hay factores de emisión activos que usan esta variable"
+                        ? "No se puede eliminar: está en uso por factores de emisión, capturas o iniciativas activas"
                         : "Eliminar variable"
                     }
                   >

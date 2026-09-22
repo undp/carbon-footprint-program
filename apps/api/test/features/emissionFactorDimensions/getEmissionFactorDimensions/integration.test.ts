@@ -17,6 +17,11 @@ import {
   createTestEmissionFactor,
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
+import {
+  createCarbonInventory,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+} from "@test/factories/carbonInventorySeeder.js";
 import { getEmissionFactorDimensionsService } from "@/features/emissionFactorDimensions/getEmissionFactorDimensions/service.js";
 import type { GetEmissionFactorDimensionsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -220,6 +225,124 @@ describe("GET /api/emission-factor-dimensions/ - Integration Tests", () => {
       ) as GetEmissionFactorDimensionsResponse;
       const value2 = body[0].dimensions[0].values[0];
       expect(value2.inUse).toBe(true);
+    });
+
+    it("should mark a dimension value as in use when only an active capture selects it", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Capture"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Captured Value" }
+      );
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+      // No emission factor exists, so the subcategory-wide flag stays false:
+      // only the per-value flag protects this value from removal.
+      expect(body[0].subcategoryHasEmissionFactors).toBe(false);
+      expect(body[0].dimensions[0].values[0].inUse).toBe(true);
+    });
+
+    it("should not mark a dimension value as in use for an inactive capture", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Inactive Capture"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Discarded Capture Value" }
+      );
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+        isActive: false,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+      expect(body[0].dimensions[0].values[0].inUse).toBe(false);
+    });
+
+    it("should mark a dimension value as in use when only an active reduction initiative references it", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Initiative"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Initiative Value" }
+      );
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: subcategory.id,
+          dimensionValue1Id: value.id,
+          title: "Test - Initiative",
+          description: "Test initiative referencing a dimension value",
+        },
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+      expect(body[0].subcategoryHasEmissionFactors).toBe(false);
+      expect(body[0].dimensions[0].values[0].inUse).toBe(true);
     });
   });
 
