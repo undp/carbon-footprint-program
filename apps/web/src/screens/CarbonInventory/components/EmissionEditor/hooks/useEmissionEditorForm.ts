@@ -160,6 +160,33 @@ export const useEmissionEditorForm = ({
     [setValue]
   );
 
+  /**
+   * Drops the factor a line holds while keeping the rate unit its measurement
+   * unit implies.
+   *
+   * `resetFactorValueFields` nulls that unit too, which is what its other
+   * caller needs — the measurement unit just changed there, so the compatible
+   * rate unit went with it. When the factor is what changed, the unit did not:
+   * it is derived from the line, `getCompatibleRateUnitId` hands back the same
+   * value on the next pass, and clearing it only makes the «Otro» path recompute
+   * what was already on screen.
+   */
+  const clearFactorSelection = useCallback(
+    (
+      subcategoryId: SubcategoryId,
+      lineId: LineId,
+      compatibleRateUnitId: string | null
+    ) => {
+      resetFactorValueFields(subcategoryId, lineId);
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+        compatibleRateUnitId,
+        { shouldDirty: true }
+      );
+    },
+    [resetFactorValueFields, setValue]
+  );
+
   const resetFactorRelatedFields = useCallback(
     (subcategoryId: SubcategoryId, lineId: LineId) => {
       setValue(
@@ -236,7 +263,7 @@ export const useEmissionEditorForm = ({
         // rather than left behind: `baseFactorId` now survives a reload (the
         // capture payload echoes it back), so keeping it would persist a
         // snapshot whose factor identity contradicts its own source.
-        resetFactorValueFields(subcategoryId, lineId);
+        clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -254,7 +281,7 @@ export const useEmissionEditorForm = ({
         if (
           !isSelectedFactorAvailable(sourceFilteredFactors, line.baseFactorId)
         )
-          resetFactorValueFields(subcategoryId, lineId);
+          clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -268,7 +295,7 @@ export const useEmissionEditorForm = ({
         );
         // The factor exists but cannot be applied, which is no better than not
         // having found one.
-        resetFactorValueFields(subcategoryId, lineId);
+        clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -294,7 +321,7 @@ export const useEmissionEditorForm = ({
       setValue,
       subcategoryId,
       getValues,
-      resetFactorValueFields,
+      clearFactorSelection,
     ]
   );
 
