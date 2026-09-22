@@ -113,6 +113,17 @@ export async function findReferencedEmissionFactors(
  * migration's `DELETE` predicate encode; the three must agree or a line slips
  * through every one of them.
  *
+ * A damaged snapshot is therefore reconciled by any save of its subcategory,
+ * including one the user did not aim at it: capture sends every line of the
+ * subcategory, so editing one line carries the others along and a damaged
+ * neighbour loses its snapshot and its result in the same request. That is the
+ * intended end state and not a silent one — the line comes back with an empty
+ * «Fuente», which the completeness rules read as unfinished — but nothing says
+ * why, and the alternative is worse: keeping it means keeping a factor whose
+ * year cannot be checked, on a footprint where the year is what makes a factor
+ * applicable. Telling the user which lines a save reconciled would take the
+ * endpoint reporting them back, which is a feature, not this guard.
+ *
  * `lineSubcategoryId` is checked for the same reason the year is: filtering the
  * capture selector is not enforcing. Nothing else ties `baseFactorId` to the
  * line, so a crafted payload could otherwise freeze a factor from an unrelated
