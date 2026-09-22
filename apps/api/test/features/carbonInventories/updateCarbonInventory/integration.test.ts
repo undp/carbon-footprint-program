@@ -614,6 +614,62 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(await snapshotsOf(carbonInventory.id)).toHaveLength(5);
     });
 
+    it("keeps the typed total of a direct line when its snapshot is cleared", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        methodologyVersionId,
+      });
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const factor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "2.5" }
+      );
+
+      // A DIRECT line carrying a catalogue snapshot: the total was typed by
+      // hand, the snapshot came along with it.
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(1200),
+        isActive: true,
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(2.5),
+        appliedFactorRateUnitId: rateUnitId,
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      await createCarbonInventoryLineResult(prisma, input.id, 1200);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await readInput(line.id);
+      // The snapshot goes, like any other of another year.
+      expect(updated.factor).toBeNull();
+      // The typed total stays. Removing it would leave the number on the input
+      // and out of every total, which reads as a line silently worth zero.
+      expect(updated.directTotalEmissions?.toString()).toBe("1200");
+      expect(Number(updated.result?.totalEmissions)).toBe(1200);
+    });
+
     it("leaves the frozen factors alone when the year does not change", async () => {
       const { carbonInventory, catalogue } =
         await buildFootprintWithFrozenFactors();

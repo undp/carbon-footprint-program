@@ -1,4 +1,8 @@
-import { CarbonInventoryLineStatus, type Prisma } from "@repo/database";
+import {
+  CarbonInventoryLineStatus,
+  InputType,
+  type Prisma,
+} from "@repo/database";
 import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 
 /**
@@ -74,18 +78,34 @@ export async function clearCatalogueFactorsOfLines(
         },
       },
     },
-    select: { id: true, lineInputId: true },
+    select: {
+      id: true,
+      lineInputId: true,
+      lineInput: { select: { inputType: true } },
+    },
   });
 
   if (staleFactors.length === 0) return;
 
-  const lineInputIds = staleFactors.map((factor) => factor.lineInputId);
-
   // The result of a factor-backed line is the quantity times the factor, so it
   // goes with the snapshot it was computed from.
-  await tx.carbonInventoryLineResult.deleteMany({
-    where: { lineInputId: { in: lineInputIds } },
-  });
+  //
+  // A direct total is not. It was typed, not computed, and the snapshot a
+  // DIRECT line happens to carry says nothing about it — `createLineResult`
+  // protects the same invariant on the synchronization path, and the two have
+  // to agree or a year change erases a number the user entered by hand while
+  // `direct_total_emissions` survives on the input: the editor keeps showing it
+  // and `carbon_inventory_subtotals_view` counts the line as zero and
+  // unfinished. The snapshot itself still goes, like any other of another year.
+  const computedLineInputIds = staleFactors
+    .filter((factor) => factor.lineInput.inputType !== InputType.DIRECT)
+    .map((factor) => factor.lineInputId);
+
+  if (computedLineInputIds.length > 0) {
+    await tx.carbonInventoryLineResult.deleteMany({
+      where: { lineInputId: { in: computedLineInputIds } },
+    });
+  }
 
   await tx.carbonInventoryLineFactor.deleteMany({
     where: { id: { in: staleFactors.map((factor) => factor.id) } },
