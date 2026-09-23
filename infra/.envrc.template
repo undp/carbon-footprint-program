@@ -145,6 +145,57 @@ export VITE_CHATBOT_ENABLED="false"
 # fails the deployment rather than falling back.
 # export OPENAI_LOCATION="eastus2"
 
+# --- Cost alarms -----------------------------------------------------------
+#
+# CHATBOT_ALERT_EMAIL is what turns the cost alarms on. Leave it empty and
+# main.bicep deploys NO alerting at all: no monthly budget warning, no hourly
+# token spike alert. The chatbot still deploys and still enforces its own
+# per-identity and global token quotas, but nothing tells you the bill is
+# growing until the bill arrives. Set it to an address someone actually reads
+# — a shared inbox outlives whoever ran the deploy.
+#
+# The address becomes an Azure Monitor action group receiver. Azure sends it a
+# confirmation mail on first deploy; alerts arrive whether or not it is
+# acknowledged.
+#
+# Deploying this needs Cost Management write access on the subscription for
+# Microsoft.Consumption/budgets. Contributor on the resource group alone is not
+# enough, and the failure surfaces at deploy time naming that resource type.
+# export CHATBOT_ALERT_EMAIL="huella-alerts@example.org"
+
+# Optional overrides for the alarm thresholds. Empty means "use the Bicep
+# defaults", which are sized in modules/chatbotAlerting.bicep against the
+# team's own usage modelling — raise them only with a number you can defend,
+# because an alarm that cries wolf is an alarm everyone learns to ignore.
+#
+#   CHATBOT_MONTHLY_BUDGET_AMOUNT    USD/month, warned on at 50/80/100% of
+#                                    actual spend plus 100% of forecast.
+#                                    Default 30. Cents are allowed ("0.05"):
+#                                    the budget is filtered to the Azure OpenAI
+#                                    account, whose spend is a fraction of a
+#                                    dollar a month, so a whole-dollar floor
+#                                    could never be crossed.
+#   CHATBOT_DAILY_TOKEN_ALLOWANCE    the assistant's daily anonymous token
+#                                    pool. The three token alerts fire at 50,
+#                                    80 and 100% of it, so this one number
+#                                    moves all of them. Default 300000, and it
+#                                    must match CHATBOT_MAX_ANONYMOUS_TOKENS_
+#                                    PER_DAY in apps/api — Bicep cannot read a
+#                                    TypeScript constant, so the two are kept
+#                                    equal by hand.
+#
+# The allowance must be a positive integer and the amount a positive number;
+# deploy.sh refuses anything else up front rather than letting Bicep reject it
+# minutes into a deployment.
+# export CHATBOT_MONTHLY_BUDGET_AMOUNT="30"
+# export CHATBOT_DAILY_TOKEN_ALLOWANCE="300000"
+
+# Optional: the budget's anchor, first day of a month. Fixed at 2026-09-01 so a
+# redeploy never rewrites it; the monthly reset happens on its own. Set it only
+# if Azure refuses a date this old on a fresh deployment, or an environment
+# wants a different anchor.
+# export CHATBOT_BUDGET_START_DATE="2026-09-01"
+
 # Model names, versions and capacity live in params/main.$ENVIRONMENT.bicepparam,
 # not here — they are durable per-environment choices rather than per-deploy ones.
 

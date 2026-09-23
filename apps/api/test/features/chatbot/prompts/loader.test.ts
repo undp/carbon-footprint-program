@@ -33,4 +33,16 @@ describe("System prompt", () => {
       "Eres el Asistente de Huella Latam, una plataforma para medir y reducir"
     );
   });
+
+  // Without verified sources the assistant must not hand out numbers: a user
+  // copies them into a formal inventory, where they can disagree with the
+  // platform's own factors. An earlier version allowed "factores aproximados,
+  // cifras orientativas" if qualified; this guards against it coming back.
+  it("forbids numeric values when no sources are found", () => {
+    expect(SYSTEM_PROMPT_ES).toContain(
+      "PROHIBIDO en este escenario: entregar cualquier valor numérico"
+    );
+    expect(SYSTEM_PROMPT_ES).not.toContain("cifras orientativas");
+    expect(SYSTEM_PROMPT_ES).not.toContain("factores aproximados");
+  });
 });

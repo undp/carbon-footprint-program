@@ -21,7 +21,12 @@ import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
-import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
+import {
+  APP_LOCALE,
+  CHATBOT_AI_DISCLAIMER,
+  CHATBOT_INTRODUCED_KEY,
+  CHATBOT_PRIVACY_NOTICE,
+} from "@/config/constants";
 import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
@@ -33,11 +38,6 @@ import { useConversationRehydrate } from "./useConversationRehydrate";
 // the cap so the user is not surprised by a hard stop.
 const COUNTER_VISIBILITY_THRESHOLD = 0.8;
 const COUNTER_WARNING_THRESHOLD = 0.95;
-
-// Shown in every widget state: the assistant is generative and can be wrong,
-// so attribution and verification are the user's job.
-const FOOT_DISCLAIMER =
-  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
 
 const hasBeenIntroduced = (): boolean => {
   if (typeof window === "undefined") return true;
@@ -76,6 +76,7 @@ export function ChatbotWidget() {
   const {
     state,
     messages,
+    cooldownSeconds,
     sendMessage,
     stop,
     seedMessages,
@@ -151,6 +152,9 @@ export function ChatbotWidget() {
   }
 
   const isBusy = state === "loading" || state === "streaming";
+  // A burst limit is running out: the send path is closed until it clears, so
+  // the user cannot spend the next window's slots retrying into a refusal.
+  const isCoolingDown = cooldownSeconds > 0;
 
   const draftLength = draft.length;
   const draftRatio = draftLength / CHATBOT_MAX_USER_INPUT_CHARS;
@@ -167,7 +171,7 @@ export function ChatbotWidget() {
     // button: the IconButton is disabled while busy, but the keyboard
     // path can still re-enter handleSend before React applies the
     // disabled prop on the next render.
-    if (isBusy) return;
+    if (isBusy || isCoolingDown) return;
     const content = draft.trim();
     if (!content) return;
     markIntroduced();
@@ -328,7 +332,11 @@ export function ChatbotWidget() {
             maxRows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escribe tu pregunta…"
+            placeholder={
+              isCoolingDown
+                ? `Puedes volver a preguntar en ${cooldownSeconds} s`
+                : "Escribe tu pregunta…"
+            }
             // Never disabled — kept enabled in every state (including
             // "degraded") so the user can always retry in place without the
             // destructive "Nueva conversación", and so streaming never blurs
@@ -356,7 +364,7 @@ export function ChatbotWidget() {
           <IconButton
             color="primary"
             onClick={() => void handleSend()}
-            disabled={!draft.trim() || isBusy}
+            disabled={!draft.trim() || isBusy || isCoolingDown}
             aria-label="Enviar mensaje"
           >
             <SendIcon />
@@ -379,9 +387,26 @@ export function ChatbotWidget() {
           </Typography>
         ) : null}
       </Box>
-      <Box sx={{ px: 1, pb: 0.5, display: "flex", justifyContent: "center" }}>
+      {/* Both notices are unconditional and undismissable: a disclaimer the
+          user can close is one they will not be reading on the turn that
+          matters. The retention line states the 30-day ceiling rather than the
+          7-day anonymous window — overstating retention is harmless, while
+          understating it would be a privacy assurance the system does not
+          keep. See the constants for the full reasoning. */}
+      <Box
+        sx={{
+          px: 1,
+          pb: 0.5,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         <Typography variant="caption" color="text.secondary" textAlign="center">
-          {FOOT_DISCLAIMER}
+          {CHATBOT_AI_DISCLAIMER}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {CHATBOT_PRIVACY_NOTICE}
         </Typography>
       </Box>
     </Paper>

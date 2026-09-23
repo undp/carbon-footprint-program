@@ -759,6 +759,168 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(content).not.toContain("segundos.");
   });
 
+  // A quota 429 arrives WITH limiter headers, which is the whole trap. The
+  // plugin writes `x-ratelimit-*` on every request it admits, and a token
+  // budget refuses later, in the handler — so the response carries a reset
+  // value belonging to a limit that did not refuse anything. This fixture
+  // mirrors a real one captured against the deployed API: remaining 1, reset
+  // 31, body QUOTA_EXCEEDED. Reading the header here told people to wait
+  // 31 seconds for an allowance that clears the next day.
+  it("shows the server's message on a quota 429 despite limiter headers", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+          },
+          { "x-ratelimit-remaining": "1", "x-ratelimit-reset": "31" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(result.current.state).toBe("error");
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toBe("Alcanzaste tu límite de uso diario. Vuelve mañana.");
+    expect(content).not.toContain("31 segundos");
+  });
+
+  it("surfaces the shared-pool remedy rather than a wait instruction", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message:
+              "El asistente alcanzó su límite de uso diario. Inicia sesión para continuar.",
+          },
+          { "x-ratelimit-reset": "44" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("Inicia sesión");
+    // The burst copy would be actively misleading here — waiting does nothing.
+    expect(content).not.toContain("muy seguido");
+    expect(content).not.toContain("44 segundos");
+  });
+
+  // The burst limiter's own body is English text from the plugin, so it is
+  // never shown; its reset value becomes the Spanish countdown instead.
+  it("names the wait for a burst 429 rather than echoing the plugin's English", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "TOO_MANY_REQUESTS",
+            message: "Rate limit exceeded, retry in 1 minute",
+          },
+          { "x-ratelimit-reset": "17" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("17 segundos");
+    expect(content).not.toContain("Rate limit exceeded");
+  });
+
+  // The limiter counts refused requests too, so retrying into a live burst
+  // window spends slots of the window being waited out. Left open, an
+  // impatient user turns a one-minute wait into an unending one.
+  describe("burst cooldown", () => {
+    it("holds the send path closed until the named wait elapses", async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            { code: "TOO_MANY_REQUESTS", message: "Rate limit exceeded" },
+            { "x-ratelimit-reset": "5" }
+          )
+        )
+      );
+      await act(async () => {
+        await result.current.sendMessage("hola");
+      });
+
+      expect(result.current.cooldownSeconds).toBe(5);
+
+      // A retry inside the window never reaches the network.
+      fetchMock.mockClear();
+      await act(async () => {
+        await result.current.sendMessage("de nuevo");
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
+      expect(result.current.cooldownSeconds).toBe(0);
+    });
+
+    it("counts down each second rather than clearing all at once", async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            { code: "TOO_MANY_REQUESTS" },
+            { "x-ratelimit-reset": "3" }
+          )
+        )
+      );
+      await act(async () => {
+        await result.current.sendMessage("hola");
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(result.current.cooldownSeconds).toBe(2);
+    });
+
+    // A token budget clears in twenty-four hours, so closing the composer for
+    // its reset value would be both wrong and useless — the message already
+    // names the remedy that works.
+    it("opens no cooldown for a quota refusal", async () => {
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            {
+              code: "QUOTA_EXCEEDED",
+              message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+            },
+            { "x-ratelimit-reset": "31" }
+          )
+        )
+      );
+      await sendTurn(result, "hola");
+
+      expect(result.current.cooldownSeconds).toBe(0);
+    });
+  });
+
   it("maps 400 to the too-large message (the Zod character cap)", async () => {
     const { result } = renderHook(() => useChatStream());
 

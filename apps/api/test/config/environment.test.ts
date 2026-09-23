@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StorageProvider } from "@repo/storage";
+import { CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT } from "@/config/constants.js";
 import {
   MAX_EVENT_LOOP_DELAY_MS,
   MAX_EVENT_LOOP_UTILIZATION,
@@ -47,6 +48,7 @@ describe("parseEnv — defaults (empty environment)", () => {
       LOCAL_BYPASS_REQUIRED_FIELDS: false,
       APP_VERSION: "unknown",
       CHATBOT_ENABLED: false,
+      CHATBOT_MAX_TURNS_PER_MINUTE: CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT,
       LLM_PROVIDER: "mock",
       COOKIE_SECRET: "dev-only-cookie-secret-change-me",
       AZURE_OPENAI_ENDPOINT: undefined,
@@ -800,4 +802,40 @@ describe("parseEnv — TRUST_PROXY", () => {
       }).TRUST_PROXY
     ).toBe("loopback");
   });
+});
+
+describe("CHATBOT_MAX_TURNS_PER_MINUTE", () => {
+  it("defaults to the constant when unset", () => {
+    expect(parse().CHATBOT_MAX_TURNS_PER_MINUTE).toBe(
+      CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT
+    );
+  });
+
+  it("takes an explicit integer", () => {
+    expect(
+      parse({ CHATBOT_MAX_TURNS_PER_MINUTE: "40" }).CHATBOT_MAX_TURNS_PER_MINUTE
+    ).toBe(40);
+  });
+
+  it.each(["abc", "15.5", ""])(
+    "refuses the non-integer %j rather than coercing it",
+    (value) => {
+      expect(() => parse({ CHATBOT_MAX_TURNS_PER_MINUTE: value })).toThrow(
+        /CHATBOT_MAX_TURNS_PER_MINUTE/
+      );
+    }
+  );
+
+  // Zero would rate-limit the chatbot out of existence while leaving every
+  // other signal saying it is enabled — a shape that reads as a bug for as long
+  // as it takes someone to find this variable. CHATBOT_ENABLED=false is the
+  // supported way to turn it off, and the error says so.
+  it.each(["0", "-1"])(
+    "refuses %j, which would silently disable the chatbot",
+    (value) => {
+      expect(() => parse({ CHATBOT_MAX_TURNS_PER_MINUTE: value })).toThrow(
+        /at least 1/
+      );
+    }
+  );
 });

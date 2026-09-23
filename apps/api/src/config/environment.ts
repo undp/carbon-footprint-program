@@ -4,6 +4,7 @@ import {
   StorageProvider,
   type StorageConfig,
 } from "@repo/storage";
+import { CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT } from "./constants.js";
 
 // ============================================================================
 // Load Shedding (@fastify/under-pressure) — defaults
@@ -275,6 +276,7 @@ export interface ApiEnv {
   LOCAL_BYPASS_REQUIRED_FIELDS: boolean;
   APP_VERSION: string;
   CHATBOT_ENABLED: boolean;
+  CHATBOT_MAX_TURNS_PER_MINUTE: number;
   LLM_PROVIDER: LlmProviderType;
   COOKIE_SECRET: string;
   AZURE_OPENAI_ENDPOINT: string | undefined;
@@ -439,6 +441,31 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
   // a deployment can run the whole platform with no AI and no cloud dependency.
   const CHATBOT_ENABLED: boolean =
     (source.CHATBOT_ENABLED ?? "false").toLowerCase() === "true";
+
+  // Chatbot turns accepted per minute per client IP, on top of the global
+  // request limiter. Per-deployment rather than a constant for two reasons: a
+  // country serving many users from behind one NAT shares a single bucket and
+  // may legitimately need a higher ceiling, and the integration suite drives
+  // more turns per file than any real caller would in a minute. See
+  // CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT for how the default was sized.
+  const chatbotTurnsRaw = source.CHATBOT_MAX_TURNS_PER_MINUTE;
+  const chatbotTurnsParsed =
+    chatbotTurnsRaw === undefined ? NaN : Number(chatbotTurnsRaw);
+  if (chatbotTurnsRaw !== undefined && !Number.isInteger(chatbotTurnsParsed)) {
+    throw new Error(
+      `CHATBOT_MAX_TURNS_PER_MINUTE must be an integer; received "${chatbotTurnsRaw}".`
+    );
+  }
+  if (chatbotTurnsRaw !== undefined && chatbotTurnsParsed < 1) {
+    throw new Error(
+      `CHATBOT_MAX_TURNS_PER_MINUTE must be at least 1; received ${chatbotTurnsParsed}. ` +
+        "Set CHATBOT_ENABLED=false to disable the chatbot instead of rate-limiting it to zero."
+    );
+  }
+  const CHATBOT_MAX_TURNS_PER_MINUTE: number =
+    chatbotTurnsRaw === undefined
+      ? CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT
+      : chatbotTurnsParsed;
 
   // `mock` is rejected at boot when the chatbot is enabled in production, to
   // prevent the mock from leaking into user traffic.
@@ -630,6 +657,7 @@ export function parseEnv(source: Record<string, string | undefined>): ApiEnv {
     LOCAL_BYPASS_REQUIRED_FIELDS,
     APP_VERSION,
     CHATBOT_ENABLED,
+    CHATBOT_MAX_TURNS_PER_MINUTE,
     LLM_PROVIDER,
     COOKIE_SECRET,
     AZURE_OPENAI_ENDPOINT,
@@ -669,6 +697,7 @@ export const FORCED_USER_IDP_ID = env.FORCED_USER_IDP_ID;
 export const LOCAL_BYPASS_REQUIRED_FIELDS = env.LOCAL_BYPASS_REQUIRED_FIELDS;
 export const APP_VERSION = env.APP_VERSION;
 export const CHATBOT_ENABLED = env.CHATBOT_ENABLED;
+export const CHATBOT_MAX_TURNS_PER_MINUTE = env.CHATBOT_MAX_TURNS_PER_MINUTE;
 export const LLM_PROVIDER = env.LLM_PROVIDER;
 export const COOKIE_SECRET = env.COOKIE_SECRET;
 export const AZURE_OPENAI_ENDPOINT = env.AZURE_OPENAI_ENDPOINT;

@@ -5,10 +5,12 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { ChatbotWidget } from "./ChatbotWidget";
 import type { ChatbotMessage, ChatbotState } from "./types";
 
-// Byte-for-byte mirror of the widget's disclaimer (Task 10.34). Duplicated here
+// Byte-for-byte mirrors of the widget's standing notices. Duplicated here
 // deliberately so a copy change has to be made in two places on purpose.
 const DISCLAIMER =
-  "Huella usa IA y puede equivocarse. Verifica las respuestas con las fuentes citadas.";
+  "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
+const PRIVACY_NOTICE =
+  "Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales.";
 const NEW_CONVERSATION_LABEL = "Nueva conversación";
 
 // Per-test inputs for the useChatStream stub, plus a spy for the reset call.
@@ -19,11 +21,13 @@ const h = vi.hoisted(() => {
   const holder: {
     initialState: ChatbotState;
     initialMessages: ChatbotMessage[];
+    cooldownSeconds: number;
     resetSpy: Mock;
     sendSpy: Mock;
   } = {
     initialState: "empty",
     initialMessages: [],
+    cooldownSeconds: 0,
     resetSpy: vi.fn(),
     sendSpy: vi.fn(),
   };
@@ -43,6 +47,7 @@ vi.mock("./useChatStream", () => ({
     return {
       state,
       messages,
+      cooldownSeconds: h.cooldownSeconds,
       sendMessage: h.sendSpy,
       stop: vi.fn(),
       deleteHistory: vi.fn(),
@@ -74,6 +79,7 @@ let fetchMock: Mock;
 beforeEach(() => {
   h.initialState = "empty";
   h.initialMessages = [];
+  h.cooldownSeconds = 0;
   h.resetSpy.mockClear();
   h.sendSpy.mockClear();
   fetchMock = vi.fn();
@@ -106,6 +112,12 @@ describe("ChatbotWidget", () => {
       });
       expect(button).toBeInTheDocument();
       // Guards against regressing to the destructive wording of earlier drafts.
+      //
+      // The absence of any deletion control is deliberate, not an oversight:
+      // chatbot-rag-mvp design decision 25 defers the delete-history affordance,
+      // and chatbot-mvp-hardening re-examined and upheld it — the erasure gap it
+      // would have closed is narrowed instead by the 7-day anonymous retention
+      // window. Do not "fix" this by adding a button.
       expect(
         screen.queryByRole("button", { name: /Limpiar conversación/ })
       ).toBeNull();
@@ -150,9 +162,46 @@ describe("ChatbotWidget", () => {
     });
   });
 
-  // Task 10.34 — the disclaimer is unconditional, so it must survive every
-  // state the widget can be in, not just the happy path.
-  describe("foot-of-chat disclaimer", () => {
+  // The burst limiter counts refused requests too, so an open composer lets an
+  // impatient user spend the next window's slots before it even opens.
+  describe("burst cooldown", () => {
+    it("closes the send path and names the remaining wait", () => {
+      h.cooldownSeconds = 7;
+      render(<ChatbotWidget />);
+
+      expect(
+        screen.getByPlaceholderText("Puedes volver a preguntar en 7 s")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Enviar mensaje" })
+      ).toBeDisabled();
+    });
+
+    it("sends nothing on Enter while the wait is running", () => {
+      h.cooldownSeconds = 7;
+      render(<ChatbotWidget />);
+
+      const input = screen.getByPlaceholderText(
+        "Puedes volver a preguntar en 7 s"
+      );
+      fireEvent.change(input, { target: { value: "otra pregunta" } });
+      fireEvent.keyDown(input, { key: "Enter" });
+
+      expect(h.sendSpy).not.toHaveBeenCalled();
+    });
+
+    it("restores the ordinary placeholder once the wait clears", () => {
+      render(<ChatbotWidget />);
+
+      expect(
+        screen.getByPlaceholderText("Escribe tu pregunta…")
+      ).toBeInTheDocument();
+    });
+  });
+
+  // Both notices are unconditional, so they must survive every state the widget
+  // can be in, not just the happy path.
+  describe("standing foot-of-chat notices", () => {
     const states: ChatbotState[] = [
       "empty",
       "loading",
@@ -162,23 +211,43 @@ describe("ChatbotWidget", () => {
       "degraded",
     ];
 
-    it.each(states)("is rendered in the %s state", (state) => {
+    it.each(states)("are both rendered in the %s state", (state) => {
       h.initialState = state;
       h.initialMessages =
         state === "empty" ? [] : [assistantMessage("contenido")];
       render(<ChatbotWidget />);
 
       expect(screen.getByText(DISCLAIMER)).toBeInTheDocument();
+      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
     });
 
-    it("is static text with no interactive affordance", () => {
+    it.each([
+      ["AI disclaimer", DISCLAIMER],
+      ["privacy notice", PRIVACY_NOTICE],
+    ])(
+      "the %s is static text with no interactive affordance",
+      (_label, text) => {
+        render(<ChatbotWidget />);
+
+        const notice = screen.getByText(text);
+        expect(notice).not.toHaveAttribute("role", "button");
+        expect(notice.closest("button")).toBeNull();
+        // No dismiss control anywhere in the notices' own container.
+        expect(notice.parentElement?.querySelector("button")).toBeNull();
+      }
+    );
+
+    // Nothing deletes expired conversations yet: `expires_at` bounds how long
+    // one stays reachable, not how long the row survives. Any duration in this
+    // notice would therefore read as a deletion promise the system does not
+    // keep, which is the error that errs against the reader. This guards
+    // against one creeping back in — put it back only with the purge.
+    it("claims no retention window at all", () => {
       render(<ChatbotWidget />);
 
-      const disclaimer = screen.getByText(DISCLAIMER);
-      expect(disclaimer).not.toHaveAttribute("role", "button");
-      expect(disclaimer.closest("button")).toBeNull();
-      // No dismiss control anywhere in the disclaimer's own container.
-      expect(disclaimer.parentElement?.querySelector("button")).toBeNull();
+      expect(screen.getByText(PRIVACY_NOTICE)).toBeInTheDocument();
+      expect(screen.queryByText(/días/)).toBeNull();
+      expect(screen.queryByText(/se guardan/)).toBeNull();
     });
   });
 });

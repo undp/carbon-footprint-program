@@ -254,6 +254,18 @@ param enableChatbot bool = false
 @description('Location for the Azure OpenAI account. Defaults to the resource group location, but model availability is regional — override when the RG region does not offer both models.')
 param openAiLocation string = ''
 
+@description('Email notified by the chatbot cost alarms. Required when enableChatbot is true; the alerting module is not deployed otherwise.')
+param chatbotAlertEmailAddress string = ''
+
+@description('Monthly chatbot cost budget in USD, warned on at 50/80/100%. Default sized so ordinary use is silent and growth is audible — see modules/chatbotAlerting.bicep.')
+param chatbotMonthlyBudgetAmount string = '30'
+
+@description('Daily anonymous token pool the three chatbot alert rungs are percentages of (50/80/100%). Keep equal to CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY in apps/api.')
+param chatbotDailyTokenAllowance int = 300000
+
+@description('Chatbot budget anchor, first day of a month (yyyy-MM-dd). Fixed so redeploys do not rewrite it; see modules/chatbotAlerting.bicep.')
+param chatbotBudgetStartDate string = '2026-09-01'
+
 @description('Chat model deployment name')
 param openAiChatDeploymentName string = 'chat'
 
@@ -393,6 +405,27 @@ module openAi 'modules/openai.bicep' = if (enableChatbot) {
     embeddingModelVersion: openAiEmbeddingModelVersion
     embeddingCapacity: openAiEmbeddingCapacity
     embeddingSkuName: openAiEmbeddingSkuName
+    tags: tags
+  }
+}
+
+// --------- Chatbot cost alerting ---------
+// Gated on enableChatbot like every other chatbot resource, and additionally on
+// an email being supplied: an action group with no receiver is an alarm nobody
+// hears, which is worse than no alarm because it looks like coverage.
+//
+// `openAi!` is safe for the same reason it is safe on the App Service block
+// below — the ternary is only evaluated when enableChatbot is true, which is
+// exactly when the module exists.
+module chatbotAlerting 'modules/chatbotAlerting.bicep' = if (enableChatbot && chatbotAlertEmailAddress != '') {
+  name: 'chatbotAlertingDeployment'
+  params: {
+    location: location
+    openAiAccountId: enableChatbot ? openAi!.outputs.id : ''
+    alertEmailAddress: chatbotAlertEmailAddress
+    monthlyBudgetAmount: chatbotMonthlyBudgetAmount
+    anonymousDailyTokenAllowance: chatbotDailyTokenAllowance
+    budgetStartDate: chatbotBudgetStartDate
     tags: tags
   }
 }

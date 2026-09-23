@@ -365,6 +365,214 @@ Guide](../infrastructure/Deployment.md).
 
 ---
 
+## Chatbot Cost Controls
+
+Four layers, only one of which actually stops anything.
+
+| Layer                                     | Where                                 | Stops spend?                         |
+| ----------------------------------------- | ------------------------------------- | ------------------------------------ |
+| TPM quota on the OpenAI deployments       | `infra/modules/openai.bicep`          | Yes — caps throughput per minute     |
+| Kill switch (`CHATBOT_ENABLED=false`)     | App setting                           | Yes — immediately, see below         |
+| Burst limit, token budget, anonymous pool | `apps/api`                            | Yes — refuses turns before the model |
+| Budget + metric alerts                    | `infra/modules/chatbotAlerting.bicep` | **No** — they only notify            |
+
+**A quota rejection is not an outage.** Three different refusals answer 429 and
+each carries its own Spanish message, so the body identifies which layer
+refused:
+
+| Message names                        | Layer                 | What it means                                                                              |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------ |
+| "Espera unos segundos"               | Burst limit           | One IP exceeded 15 turns/minute. Clears within the minute.                                 |
+| "Alcanzaste tu límite de uso diario" | Per-identity budget   | That caller spent 40,000 tokens in 24h (150,000 if signed in). Clears as the window rolls. |
+| "El asistente alcanzó su límite"     | Shared anonymous pool | All anonymous callers together spent 300,000 tokens in 24h.                                |
+
+The third is the one that looks like an incident and is not. **One actor can
+exhaust the shared pool and deny the chatbot to every anonymous visitor** until
+the window rolls — that is the accepted trade for having a cost ceiling that
+cannot be evaded by discarding a cookie. Authenticated callers keep service
+throughout, which is why that message tells the user to sign in.
+
+To confirm it rather than guess: the API logs the refusing layer, and the token
+metric alert will have fired well before the pool emptied. Raising
+`CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` requires a deploy; `CHATBOT_ENABLED=false`
+is the only immediate lever, and it turns the assistant off for everyone.
+
+**What the alarms actually are, and when each can speak.** Four notifications on
+two clocks, none of which refuses anything:
+
+| Alarm                           | Clock                                | Resets                             |
+| ------------------------------- | ------------------------------------ | ---------------------------------- |
+| Token rate 50% of pool (Sev 2)  | rolling hour, evaluated every 15 min | when the hour falls below the rung |
+| Token rate 80% of pool (Sev 1)  | same                                 | same                               |
+| Token rate 100% of pool (Sev 0) | same                                 | same                               |
+| Budget 50 / 80 / 100% actual    | billed spend, evaluated ~daily       | the 1st of each month              |
+| Budget 100% forecast            | projected month-end spend            | the 1st of each month              |
+
+The budget is filtered to the Azure OpenAI account by resource id, so it measures
+the assistant and not the group it happens to be deployed into. Without that
+filter it reports the whole environment — Postgres, the App Service, the registry
+— under a name that says `chatbot`, and its amount was calibrated against the
+chatbot cost model, which was never a sensible ceiling for an entire stack.
+
+The token rungs are percentages of `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`, not
+absolute counts, so one number moves all three and the mail names a fraction
+instead of a figure the reader has to divide. Two things that percentage does
+**not** mean: the window is an hour and the allowance is a day, so the 50% rung
+says "one hour consumed half a day's allowance" — at that rate the pool is gone
+in two hours — and Azure's `TokenTransaction` counts every token the account
+processes while the application's pool sums only the terminal round of each turn
+(measured here: 3,445 against 2,174, so the app sees about 63%). It also counts
+authenticated traffic, which never draws on the pool. Both differences make the
+alarm speak early, which for an alarm that stops nothing is the right direction
+to be wrong in.
+
+Three token rules rather than one because **a metric alert notifies on the
+transition into `Fired` and then goes quiet**, however much worse the burn gets,
+for as long as the condition holds. With a one-hour window, continued use keeps
+it holding, so the whole episode produces one mail. This has been seen here: a
+3,445-token hour raised the alarm, and a 20,766-token hour twenty minutes later
+sent nothing, because the rule was already firing. The rungs are separate rules,
+so a climb crosses new ones and each sends its own first mail — and the severity
+that arrives tells you how far it climbed.
+
+To force a reset, disable and re-enable the rule; closing the alert in the portal
+changes `alertState`, which is human workflow, not `monitorCondition`, which is
+what governs notification.
+
+The budget's actual thresholds are late by construction, since Azure bills before
+it reports. The forecast threshold is the only one that can arrive while there is
+still a month left to act in; it is noisier, because a projection swings on one
+busy afternoon, which is why it accompanies the actual ones rather than replacing
+them.
+
+**The alerting is Azure-only.** It provisions a consumption budget and an Azure
+Monitor metric alert, neither of which exists in the on-premise topology: there
+is no Azure OpenAI account to watch and no consumption data to bill against. An
+on-premise deployment therefore has no cost alerting whatsoever and depends
+entirely on the application-level quotas above. Operators of that topology
+should watch the API logs for quota rejections instead.
+
+**Deploying the alerting needs an extra permission.** `Microsoft.Consumption/budgets`
+requires Cost Management write access, which a principal scoped only to
+Contributor on the resource group may not have. The failure appears at deploy
+time as an authorization error naming that resource type. The module is also
+skipped entirely unless `chatbotAlertEmailAddress` is supplied — an action group
+with no receiver looks like coverage and is not.
+
+**Turning the alerting on.** `deploy.sh` reads `CHATBOT_ALERT_EMAIL` from the
+environment (`infra/.envrc`) and forwards it as `chatbotAlertEmailAddress`.
+Leaving it unset deploys the chatbot with no alerting at all, and the deploy log
+says so. `CHATBOT_MONTHLY_BUDGET_AMOUNT` and `CHATBOT_DAILY_TOKEN_ALLOWANCE`
+override the thresholds; both are validated as positive integers before the
+deployment starts. The second is the assistant's daily anonymous token pool, of
+which the three token alerts are 50, 80 and 100%, so one number moves all of
+them — and it must be kept equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` in
+`apps/api`, since Bicep cannot read a TypeScript constant. `CHATBOT_BUDGET_START_DATE`
+(`YYYY-MM-01`) overrides the budget's anchor, which is otherwise fixed at
+2026-09-01 so that a redeploy never rewrites it — the monthly reset comes from
+the budget's time grain, not from this date. The address becomes an action group receiver, so prefer a
+shared inbox over a personal one — it outlives whoever ran the deploy.
+
+---
+
+## Chatbot Model Retirement
+
+Azure retires model versions on a published schedule
+(<https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirements>).
+The chat model pinned today, `gpt-4o-mini` version `2024-07-18`, retires on
+**2027-10-01**. After that date the deployment stops answering: every chatbot turn
+fails with the generic error, and **no alarm fires**, because a model that does
+not answer consumes no tokens. Plan the swap before the date rather than after the
+first support ticket.
+
+Both models are pinned in the environment's `.bicepparam`, not in code:
+
+```bicep
+param openAiChatModelName = 'gpt-4o-mini'
+param openAiChatModelVersion = '2024-07-18'
+param openAiEmbeddingModelName = 'text-embedding-3-large'
+param openAiEmbeddingModelVersion = '1'
+```
+
+**Replacing the chat model** is a parameter change plus a redeploy of the
+infrastructure (`infra/deploy.sh`). Check first that the replacement is offered
+in the region and SKU the deployment uses, and that the TPM capacity still fits.
+Nothing else needs to change: conversations, quotas and alarms are independent of
+which chat model answers.
+
+**Replacing the embedding model is not just a parameter change.** Every stored
+chunk carries a vector produced by the old model, and vectors from two models are
+not comparable, so retrieval silently degrades to noise if the corpus is left as
+it is. After the redeploy, re-ingest every active source with the ingestion CLI
+(see "Chatbot corpus ingestion and activation" below) and activate the new
+versions. The new model must also produce 1024-dimension vectors, which is what
+`EMBEDDING_DIMENSIONS` in `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts`
+requests and the `vector(1024)` column stores; a model that cannot must be
+accompanied by a code and migration change.
+
+---
+
+## Chatbot Emergency Shutdown
+
+Turns the assistant off completely. Use it when the chatbot is burning budget,
+answering badly enough to be a liability, or implicated in an incident.
+
+`CHATBOT_ENABLED` is read once at boot. When it is false the chatbot routes are
+never registered, so every chatbot endpoint answers 404 and no code path can
+reach Azure OpenAI. This is the only control that stops spend immediately — the
+rate limits, token budgets and cost alerts shipped with `chatbot-mvp-hardening`
+narrow or report spend, they do not stop it.
+
+**Disable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=false
+```
+
+Changing an app setting restarts the App Service on its own; no separate
+`az webapp restart` is needed.
+
+**What to expect:**
+
+|                   |                                                  |
+| ----------------- | ------------------------------------------------ |
+| Restart           | ~1 minute                                        |
+| Chatbot endpoints | 404                                              |
+| Azure OpenAI      | no request reaches it                            |
+| Rest of the API   | unaffected — only the chatbot routes are skipped |
+| Widget            | **still visible**, and every turn fails          |
+
+**The widget stays visible, and that is expected.** `VITE_CHATBOT_ENABLED` is a
+build-time variable baked into the frontend bundle, so it cannot be flipped from
+the Azure CLI. Turning the backend off leaves the launcher on screen until the
+frontend is rebuilt and redeployed with `VITE_CHATBOT_ENABLED=false`. For an
+emergency this is the right trade — the spend stops in a minute either way — but
+it is written here so nobody interprets the visible widget as a failed shutdown
+and starts hunting for a second switch.
+
+**Re-enable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=true
+```
+
+Verify with a request to any chatbot endpoint: 404 means still disabled, any
+other status means the routes are registered again.
+
+> Boot-time validation applies when re-enabling in production: with
+> `CHATBOT_ENABLED=true`, the API refuses to start if `LLM_PROVIDER` or
+> `EMBEDDING_PROVIDER` is still `mock`, or if `COOKIE_SECRET` is too short. A
+> failure to come back up after re-enabling is usually one of these, and the
+> startup log names which.
+
+---
+
 ## Chatbot Conversation Purge
 
 The chatbot stores conversations in `chatbot_chat_conversation` with a 30-day `expires_at` column populated at row creation. **Foundation does not include the daily purge job** — the pg_cron extension and the scheduled purge are a separate infra change that must enable `azure.extensions = pg_cron` on the Postgres server parameter and schedule the daily job.

@@ -28,6 +28,7 @@ import {
 } from "@/features/chatbot/tools/searchKnowledge/index.js";
 import {
   acquireIdentityAdvisoryLock,
+  enforceTokenBudgets,
   enforceUserInputCap,
   loadConversationHistory,
   resolveOrCreateConversation,
@@ -92,6 +93,17 @@ export const sendMessageHandler = async (
   const systemPrompt = getSystemPromptEs();
 
   const prisma = request.server.prisma;
+
+  // Before the provider and before any row is written. Both halves matter: a
+  // refusal issued after the completion has been paid for controls nothing, and
+  // a refused turn that still persisted a user message would leave the caller's
+  // own budget consuming itself.
+  //
+  // Throws QuotaExceededError (429), which the error handler serializes as an
+  // ordinary JSON body — the reply has not been hijacked yet, so the client
+  // gets a status it can branch on rather than an SSE stream ending in an error
+  // event it has to parse.
+  await enforceTokenBudgets(prisma, identity);
 
   // The thread this turn continues, as named by the client. `null` — the field
   // was omitted — means start a new conversation; see
