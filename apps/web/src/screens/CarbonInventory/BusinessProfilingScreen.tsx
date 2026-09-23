@@ -427,7 +427,7 @@ export const BusinessProfilingScreen: FC = () => {
         onClose={advanceYearChangeConfirmation.cancel}
         onConfirm={advanceYearChangeConfirmation.confirm}
         isLoading={isSubmitting}
-        variant="warning"
+        variant="error"
         {...YEAR_CHANGE_DIALOG_CONTENT}
       />
       <ConfirmDialog
@@ -435,7 +435,7 @@ export const BusinessProfilingScreen: FC = () => {
         onClose={exitYearChangeConfirmation.cancel}
         onConfirm={exitYearChangeConfirmation.confirm}
         isLoading={isSubmittingAndExiting}
-        variant="warning"
+        variant="error"
         {...YEAR_CHANGE_DIALOG_CONTENT}
       />
     </>
