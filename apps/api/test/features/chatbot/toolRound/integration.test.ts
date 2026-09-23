@@ -639,16 +639,15 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
   //   the generic Spanish error, and SHALL mark the assistant row
   //   `truncated = true` via the existing disconnect-finalizer path.
   //
-  // The natural path (snippet truncation at 240 chars × topK=8) caps the
-  // toolResultMessage at ~2 KB, well below the 12000-token budget. To
-  // exceed the budget we seed a source whose `cite_label` and `cite_url`
-  // are each ~5 KB; with 8 chunks the formatted result message clears
-  // 80 KB of text (~20 000 estimated tokens), triggering the RAG cap.
-  // The URL stays a parseable HTTPS URL so SourceCitationSchema does not
-  // filter it out before formatting.
+  // Oversize comes from the chunks themselves, which is the only way it can
+  // happen now that the tool round carries chunk content whole: at the
+  // chunker's ~600-token target, topK=3 lands around 1800 tokens, far under
+  // the 12000 budget. Reaching the cap takes chunks an ingest run would never
+  // produce — three of ~20 000 characters each (~15 000 estimated tokens).
+  // Before, when the model only ever saw 240-character cuts, this cap could
+  // not be reached at all and the test had to inflate `cite_label` and
+  // `cite_url` instead.
   it("oversized RAG context aborts the second round with terminal SSE error", async () => {
-    const HUGE_LABEL = "L".repeat(5000);
-    const HUGE_URL = `https://example.com/${"u".repeat(5000)}`;
     const source = await prisma.chatbotCorpusSource.create({
       data: {
         embeddingModel: MOCK_MODEL_NAME,
@@ -658,18 +657,19 @@ describe("POST /api/chatbot/message — toolRound integration", () => {
         scope: CorpusSourceScope.GLOBAL,
         status: CorpusSourceStatus.ACTIVE,
         activatedAt: new Date(),
-        citeLabel: HUGE_LABEL,
-        citeUrl: HUGE_URL,
+        citeLabel: "Fuente inflada",
+        citeUrl: "https://example.com/inflada",
       },
     });
     const contents = Array.from(
-      { length: 8 },
-      (_, i) => `Contenido ${i} sobre alcance y factor de emisión.`
+      { length: 3 },
+      (_, i) =>
+        `Contenido ${i} sobre alcance y factor de emisión. ${"Texto de relleno para superar el techo de contexto. ".repeat(400)}`
     );
     const embeddingProvider = getEmbeddingProvider();
     const { vectors } = await embeddingProvider.embed(contents);
     const toVectorLiteral = (v: number[]): string => `[${v.join(",")}]`;
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < contents.length; i++) {
       await prisma.$executeRaw`
         INSERT INTO chatbot_corpus_chunk (source_id, chunk_index, content, embedding)
         VALUES (${source.id}, ${i}, ${contents[i]}, ${toVectorLiteral(vectors[i])}::vector)

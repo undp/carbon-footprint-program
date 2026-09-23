@@ -297,8 +297,12 @@ describe("searchKnowledge — integration", () => {
 
     const QUERY = "consulta general sobre el corpus";
 
-    // No filter → all 4 chunks return.
-    const noFilter = await searchKnowledge(prisma, QUERY);
+    // No filter → all 4 chunks return. topK is explicit because the default
+    // (3) is a retrieval-cost setting, not a statement about filtering, and
+    // this assertion is about the filters.
+    const noFilter = await searchKnowledge(prisma, QUERY, {
+      topK: seededIds.length,
+    });
     expect(new Set(noFilter.map((r) => r.source_id))).toEqual(
       new Set(seededIds)
     );

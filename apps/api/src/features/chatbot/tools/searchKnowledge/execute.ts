@@ -13,6 +13,11 @@ const SearchKnowledgeArgsSchema = z.object({
 
 const EMPTY_RESULT_FALLBACK_MESSAGE = "0 fuentes válidas encontradas";
 
+// Citation-only cap. `SourceCitationSchema` bounds `snippet` at this length,
+// so it is what gets persisted and put on the wire. The model is NOT held to
+// it: it reads the chunk whole (see `formatToolResultMessage`), because a
+// passage cut at 240 characters ends mid-sentence and answers nothing — the
+// chunker sizes chunks at ~600 tokens precisely so each one stands alone.
 const SNIPPET_MAX_LENGTH = 240;
 
 const truncateForSnippet = (text: string): string => {
@@ -26,14 +31,29 @@ export type ExecuteSearchKnowledgeResult = {
   toolResultMessage: string;
 };
 
-const formatToolResultMessage = (validSources: SourceCitation[]): string => {
-  if (validSources.length === 0) {
+/**
+ * A chunk that cleared citation validation, paired with its full text.
+ *
+ * The two travel together so the model and the citation panel can never
+ * disagree about which sources grounded the turn: the message is built from
+ * `content`, the wire payload from `citation`.
+ */
+type GroundedChunk = { citation: SourceCitation; content: string };
+
+/**
+ * Format what the model reads. Carries the chunk whole — the 240-character
+ * `snippet` on the citation is for persistence and the wire, not for
+ * reasoning. Size is bounded upstream by `topK` and checked against
+ * CHATBOT_MAX_RAG_CONTEXT_TOKENS by the handler before the second round.
+ */
+const formatToolResultMessage = (grounded: GroundedChunk[]): string => {
+  if (grounded.length === 0) {
     return EMPTY_RESULT_FALLBACK_MESSAGE;
   }
-  return validSources
-    .map((source, index) => {
-      const label = `[${source.cite_label}](${source.cite_url})`;
-      return `Fuente ${index + 1}: ${label} - Contenido: "${source.snippet}"`;
+  return grounded
+    .map(({ citation, content }, index) => {
+      const label = `[${citation.cite_label}](${citation.cite_url})`;
+      return `Fuente ${index + 1}: ${label} - Contenido: "${content}"`;
     })
     .join("\n");
 };
@@ -89,16 +109,18 @@ export const executeSearchKnowledgeTool = async (
     throw err;
   }
   const validSources: SourceCitation[] = [];
+  const grounded: GroundedChunk[] = [];
   for (const chunk of chunks) {
     const candidate = buildCandidateCitation(chunk);
     const parseResult = SourceCitationSchema.safeParse(candidate);
     if (parseResult.success) {
       validSources.push(parseResult.data);
+      grounded.push({ citation: parseResult.data, content: chunk.content });
     }
   }
   return {
     chunks,
     validSources,
-    toolResultMessage: formatToolResultMessage(validSources),
+    toolResultMessage: formatToolResultMessage(grounded),
   };
 };

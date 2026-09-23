@@ -97,15 +97,21 @@ When `options.scope` is supplied, the SQL SHALL include `chatbot_corpus_source.s
 - **AND** `searchKnowledge` is invoked with `options = {}` or omitted
 - **THEN** the result SHALL include chunks from any of those sources, ranked by similarity
 
-### Requirement: Retrieval defaults to top-K = 8 and respects custom topK
+### Requirement: Retrieval defaults to top-K = 3 and respects custom topK
 
-The SQL SHALL include `LIMIT $topK`. Default 8 when omitted. `topK` SHALL be an **integer in the inclusive range `[1, 20]`**; non-integer values (e.g., `3.5`), negative values, and out-of-range values SHALL throw `InvalidQueryError` and SHALL NOT execute SQL. Upper bound calibrated against `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000` (~600-token chunks × 20 ≈ budget).
+The SQL SHALL include `LIMIT $topK`. Default 3 when omitted. `topK` SHALL be an **integer in the inclusive range `[1, 20]`**; non-integer values (e.g., `3.5`), negative values, and out-of-range values SHALL throw `InvalidQueryError` and SHALL NOT execute SQL. Upper bound calibrated against `CHATBOT_MAX_RAG_CONTEXT_TOKENS = 12000` (~600-token chunks × 20 ≈ budget).
 
-#### Scenario: Default top-K is 8
+The default was 8 while the tool round handed the model a 240-character cut of
+each chunk. Now that it carries the chunk whole, a source costs the model a
+whole passage rather than an opening sentence, and the retrieval budget buys
+fewer complete passages instead of more fragments: ~1800 tokens per turn,
+against the 8000 the conversation history alone is allowed.
+
+#### Scenario: Default top-K is 3
 
 - **WHEN** the database contains 100 ACTIVE chunks all with non-NULL embeddings
 - **AND** `searchKnowledge` is invoked with `options = {}` or omitted
-- **THEN** the returned array SHALL contain at most 8 entries
+- **THEN** the returned array SHALL contain at most 3 entries
 
 #### Scenario: Custom top-K is honored
 

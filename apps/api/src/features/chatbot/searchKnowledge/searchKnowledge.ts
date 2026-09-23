@@ -4,7 +4,12 @@ import { estimateTokens } from "@/features/chatbot/llmProvider/estimateTokens.js
 import { InvalidQueryError } from "./errors.js";
 import type { ChunkWithMetadata, SearchKnowledgeOptions } from "./types.js";
 
-const DEFAULT_TOP_K = 8;
+// Lowered from 8 when the tool round stopped truncating chunks. Each source
+// now costs the model a whole ~600-token passage instead of a 240-character
+// opening, so the same retrieval budget buys fewer, complete passages rather
+// than more fragments: ~1800 tokens of context per turn against the 8000 the
+// history alone is already allowed.
+const DEFAULT_TOP_K = 3;
 const TOP_K_MIN = 1;
 const TOP_K_MAX = 20;
 const QUERY_TOKEN_LIMIT = 512;
