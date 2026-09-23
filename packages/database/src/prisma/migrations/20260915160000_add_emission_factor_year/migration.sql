@@ -6,7 +6,7 @@
 -- rest keep their edition in the name (IPCC, EcoAct 2020, Kool, A.) while
 -- stating 2025 as their validity. No `source` string is rewritten: the name and
 -- the validity answer different questions. A factor an administrator loaded by
--- hand for another period is swept into 2025 along with the rest; correcting it
+-- hand for another period is swept into 2025 along with the rest. Correcting it
 -- afterwards is editing one row in the maintainer, which is only possible at all
 -- because the year is now explicit.
 --
@@ -42,9 +42,10 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 -- a total computed from factors it will no longer be offered, and its capture
 -- screen would paint the factor cell blank — the frozen source is no longer among
 -- the options the selector builds for its year. Every such footprint therefore
--- has the factor snapshots and the computed results of its catalogue-backed
--- lines removed, so those lines come back asking for a factor while keeping
--- their subcategory, dimension selections, measurement unit and quantity.
+-- has the factor snapshots of its catalogue-backed lines removed, and the
+-- results computed from them, so those lines come back asking for a factor while
+-- keeping their subcategory, dimension selections, measurement unit and
+-- quantity. A typed direct total is not computed from a factor and is kept.
 --
 -- It spares nothing: editable, submitted and verified footprints alike. Sparing
 -- the submitted ones is what would leave a source of mismatched data behind —
@@ -93,7 +94,8 @@ CREATE UNIQUE INDEX "emission_factor_unique_subcategory_dims_source"
 -- the editor would keep showing it while `carbon_inventory_subtotals_view`
 -- counted the line as zero and unfinished. Its snapshot still goes, in step 2.
 
--- Clearing, step 1: the computed results of the lines whose snapshot is going
+-- Clearing, step 1: the computed results of the lines whose snapshot is going,
+-- except a DIRECT input's, whose result is the total the user typed
 DELETE FROM "carbon_inventory_line_result"
 WHERE "line_input_id" IN (
   SELECT "i"."id"
