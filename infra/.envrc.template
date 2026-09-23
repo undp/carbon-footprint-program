@@ -190,6 +190,12 @@ export VITE_CHATBOT_ENABLED="false"
 # export CHATBOT_MONTHLY_BUDGET_AMOUNT="30"
 # export CHATBOT_DAILY_TOKEN_ALLOWANCE="300000"
 
+# Optional: the budget's anchor, first day of a month. Fixed at 2026-09-01 so a
+# redeploy never rewrites it; the monthly reset happens on its own. Set it only
+# if Azure refuses a date this old on a fresh deployment, or an environment
+# wants a different anchor.
+# export CHATBOT_BUDGET_START_DATE="2026-09-01"
+
 # Model names, versions and capacity live in params/main.$ENVIRONMENT.bicepparam,
 # not here — they are durable per-environment choices rather than per-deploy ones.
 

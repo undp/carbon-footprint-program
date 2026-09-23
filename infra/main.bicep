@@ -263,6 +263,9 @@ param chatbotMonthlyBudgetAmount string = '30'
 @description('Daily anonymous token pool the three chatbot alert rungs are percentages of (50/80/100%). Keep equal to CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY in apps/api.')
 param chatbotDailyTokenAllowance int = 300000
 
+@description('Chatbot budget anchor, first day of a month (yyyy-MM-dd). Fixed so redeploys do not rewrite it; see modules/chatbotAlerting.bicep.')
+param chatbotBudgetStartDate string = '2026-09-01'
+
 @description('Chat model deployment name')
 param openAiChatDeploymentName string = 'chat'
 
@@ -422,6 +425,7 @@ module chatbotAlerting 'modules/chatbotAlerting.bicep' = if (enableChatbot && ch
     alertEmailAddress: chatbotAlertEmailAddress
     monthlyBudgetAmount: chatbotMonthlyBudgetAmount
     anonymousDailyTokenAllowance: chatbotDailyTokenAllowance
+    budgetStartDate: chatbotBudgetStartDate
     tags: tags
   }
 }

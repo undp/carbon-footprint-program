@@ -467,7 +467,10 @@ override the thresholds; both are validated as positive integers before the
 deployment starts. The second is the assistant's daily anonymous token pool, of
 which the three token alerts are 50, 80 and 100%, so one number moves all of
 them — and it must be kept equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` in
-`apps/api`, since Bicep cannot read a TypeScript constant. The address becomes an action group receiver, so prefer a
+`apps/api`, since Bicep cannot read a TypeScript constant. `CHATBOT_BUDGET_START_DATE`
+(`YYYY-MM-01`) overrides the budget's anchor, which is otherwise fixed at
+2026-09-01 so that a redeploy never rewrites it — the monthly reset comes from
+the budget's time grain, not from this date. The address becomes an action group receiver, so prefer a
 shared inbox over a personal one — it outlives whoever ran the deploy.
 
 ---

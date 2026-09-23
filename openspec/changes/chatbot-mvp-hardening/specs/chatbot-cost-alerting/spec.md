@@ -41,6 +41,11 @@ The default is calibrated so that normal operation is silent and growth is audib
 - **WHEN** other resources in the group accumulate cost while the Azure OpenAI account's own spend stays below the amount
 - **THEN** the budget SHALL NOT notify, because the filter excludes them
 
+#### Scenario: A redeploy does not move the budget's anchor
+
+- **WHEN** the module is deployed again in a later month
+- **THEN** the budget's start date SHALL be the same value as before, because it is a fixed default rather than one derived from the current date; the monthly reset comes from the time grain, not from the start date
+
 #### Scenario: Budget amount is overridable per deployment
 
 - **WHEN** a deployment supplies its own monthly amount

@@ -39,12 +39,20 @@ param alertEmailAddress string
 // a month, so an integer floor of 1 USD could never be crossed.
 param monthlyBudgetAmount string = '30'
 
-// Consumption budgets require a start date on the first of a month, and Bicep
-// only allows utcNow() in a parameter default. Redeployments keep the original
-// start date because the resource already exists; a fresh deployment starts
-// from the current month.
-@description('Budget start date, first day of a month (yyyy-MM-dd). Defaults to the first of the current month.')
-param budgetStartDate string = utcNow('yyyy-MM-01')
+// A FIXED anchor, not a calendar. `timeGrain: Monthly` resets the budget on
+// the 1st of every month by itself; this date only says where counting starts,
+// so it must not move. It used to default to utcNow('yyyy-MM-01'), which ARM
+// re-evaluates on every deployment: a redeploy in October sent 2026-10-01 to a
+// budget created with 2026-09-01, and what-if reports that as a Modify. With a
+// monthly grain the period boundaries come out the same, but the value is
+// silently rewritten — which would overwrite a deliberately chosen anchor (a
+// fiscal year, say) and would shift the periods outright under a quarterly or
+// annual grain.
+//
+// Override with CHATBOT_BUDGET_START_DATE if a fresh deployment is refused a
+// start date this old, or if an environment wants a different anchor.
+@description('Budget anchor, first day of a month (yyyy-MM-dd). Fixed on purpose: the monthly grain does the resetting; this only anchors it.')
+param budgetStartDate string = '2026-09-01'
 
 @description('Budget end date (yyyy-MM-dd). Azure requires one; it is deliberately far out so the budget does not silently stop evaluating.')
 param budgetEndDate string = '2035-01-01'

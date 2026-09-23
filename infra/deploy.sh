@@ -609,6 +609,19 @@ add_positive_amount_param() {
   log "  $param_name overridden to $value (via $var_name)"
 }
 
+# A budget anchor: an ISO date on the first of a month, which is the only shape
+# Azure accepts for a consumption budget's start date.
+add_month_start_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  if ! [[ "$value" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-01$ ]]; then
+    log "ERROR: $var_name must be the first day of a month as YYYY-MM-01; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
 # Add chatbot parameters if enabled
 if [ "$ENABLE_CHATBOT" = "true" ]; then
   log "Adding chatbot parameters to deployment..."
@@ -644,6 +657,8 @@ if [ "$ENABLE_CHATBOT" = "true" ]; then
       "${CHATBOT_MONTHLY_BUDGET_AMOUNT:-}"
     add_positive_int_param CHATBOT_DAILY_TOKEN_ALLOWANCE chatbotDailyTokenAllowance \
       "${CHATBOT_DAILY_TOKEN_ALLOWANCE:-}"
+    add_month_start_param CHATBOT_BUDGET_START_DATE chatbotBudgetStartDate \
+      "${CHATBOT_BUDGET_START_DATE:-}"
     log "  Cost alarms will notify: $CHATBOT_ALERT_EMAIL"
     log "  NOTE: Microsoft.Consumption/budgets needs Cost Management write access, which"
     log "        Contributor on the resource group alone does not grant. If the deployment"
