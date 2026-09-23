@@ -421,6 +421,30 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect(await countResults(input.id)).toBe(0);
     });
 
+    // The line's "Fuente factor" is a string frozen on the snapshot, and the
+    // capture screen offers only the sources of the factors it was given. A
+    // renamed source therefore strands the line exactly as a moved one does.
+    // Nothing upstream prevents the rename: `validateSourceConsistency` only
+    // rejects a source that disagrees with another active factor of the same
+    // subcategory and year, and this factor is alone in its own.
+    it("detaches them when the source is renamed", async () => {
+      const context = await createUnusedFactor("Update Source");
+      const { input } = await referenceFactor(context, { claimed: false });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { source: "Update Source Renamed" },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect((await readFactor(context.factor)).source).toBe(
+        "Update Source Renamed"
+      );
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect(await countResults(input.id)).toBe(0);
+    });
+
     // The snapshot is a frozen copy on purpose: correcting a value must not
     // rewrite the footprints that already reported the old one, and the factor
     // keeps its place in the selector, so the line has nothing to re-pick.

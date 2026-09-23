@@ -79,6 +79,7 @@ export const updateEmissionFactorService = async (
       }
 
       const effectiveYear = data.year ?? existing.year;
+      const effectiveSource = data.source ?? existing.source;
 
       if (
         data.source !== undefined ||
@@ -92,7 +93,7 @@ export const updateEmissionFactorService = async (
         await validateSourceConsistency(
           tx,
           targetSubcategoryId,
-          data.source ?? existing.source,
+          effectiveSource,
           effectiveYear,
           emissionFactorId
         );
@@ -204,6 +205,15 @@ export const updateEmissionFactorService = async (
       // lands those lines where the delete path already lands them: quantity
       // and unit survive, and the line asks for a factor again.
       //
+      // The source is in the list for a reason that is easy to miss: the
+      // snapshot freezes the source string, and the capture screen builds the
+      // "Fuente factor" options from the sources of the factors it is offered.
+      // Rename the source and the line is left holding one that is no longer
+      // among them. `validateSourceConsistency` does not stand in the way,
+      // since it only rejects a source that disagrees with another active
+      // factor of the same subcategory and year -- a factor alone in its
+      // subcategory and year can be renamed freely.
+      //
       // `value` is deliberately not in the list. A snapshot that keeps the old
       // value while the catalogue moves on is the whole point of freezing it.
       //
@@ -220,6 +230,7 @@ export const updateEmissionFactorService = async (
       const leavesItsLinesBehind =
         effectiveSubcategoryId !== existing.subcategoryId ||
         effectiveYear !== existing.year ||
+        effectiveSource !== existing.source ||
         effectiveRateMeasurementUnitId !== existing.rateMeasurementUnitId ||
         narrows(effectiveDim1Id, existing.dimensionValue1Id) ||
         narrows(effectiveDim2Id, existing.dimensionValue2Id);
