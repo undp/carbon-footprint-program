@@ -82,7 +82,7 @@ When a factor is deleted, the system SHALL remove the frozen factor snapshot and
 
 Snapshots held by superseded line inputs, by deleted lines and by deleted footprints SHALL be left untouched, because no reader of the application consults them.
 
-The system SHALL NOT attach a line to a deleted factor. A payload naming one SHALL be reconciled the same way a payload naming a factor of another year is: the line is saved without a snapshot and without a result.
+The system SHALL NOT attach a line to a deleted factor. A payload naming one SHALL be refused with `INVALID_EMISSION_FACTOR_REFERENCE` (422) before anything is written, the same way a payload naming a factor of another year or of another subcategory is.
 
 #### Scenario: The line comes back asking for a factor
 
@@ -100,7 +100,7 @@ The system SHALL NOT attach a line to a deleted factor. A payload naming one SHA
 
 - **GIVEN** a client that still names a deleted factor on a line
 - **WHEN** the line is saved
-- **THEN** the line SHALL be stored with no factor snapshot and no computed result
+- **THEN** the request SHALL be refused with a 422 whose `details.reason` is `DELETED`, and nothing SHALL be written
 
 ### Requirement: The rule does not depend on the methodology version's status
 

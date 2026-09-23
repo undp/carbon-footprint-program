@@ -201,9 +201,12 @@ export const updateEmissionFactorService = async (
       // filters by the footprint's year, and the front matches the line's
       // subcategory, dimensions and rate unit. The line would then paint a
       // blank "Fuente factor" beside a populated "Factor", and its next save
-      // would drop the snapshot and the result without saying so. Detaching
-      // lands those lines where the delete path already lands them: quantity
-      // and unit survive, and the line asks for a factor again.
+      // would go wrong either way: a year or subcategory that no longer
+      // matches is refused by the sync with a 422, on a line the user may not
+      // even have touched, while a moved rate unit, dimension or source is
+      // accepted and freezes the stale reference again. Detaching lands those
+      // lines where the delete path already lands them: quantity and unit
+      // survive, and the line asks for a factor again.
       //
       // The source is in the list for a reason that is easy to miss: the
       // snapshot freezes the source string, and the capture screen builds the
