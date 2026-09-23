@@ -1476,6 +1476,24 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       ...overrides,
     });
 
+    /**
+     * The refusal every stale reference gets: a 422 naming its reason in
+     * `details`, so a client can tell the three apart without parsing the
+     * message.
+     */
+    const expectRefused = (
+      response: { statusCode: number; body: string },
+      reason: string
+    ) => {
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("INVALID_EMISSION_FACTOR_REFERENCE");
+      expect(body.details?.reason).toBe(reason);
+    };
+
+    const countLines = (carbonInventoryId: bigint) =>
+      prisma.carbonInventoryLine.count({ where: { carbonInventoryId } });
+
     const readSnapshot = async (lineId: string) => {
       const input = await prisma.carbonInventoryLineInput.findFirstOrThrow({
         where: { lineId: BigInt(lineId), isActive: true },
@@ -1484,7 +1502,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       return input;
     };
 
-    it("persists a created line without its factor when the factor is of another year", async () => {
+    it("refuses a created line whose factor is of another year", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2024);
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
@@ -1508,29 +1526,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-
-      expect(body.created).toHaveLength(1);
-      const created = body.created[0];
-
-      // The line is there and keeps everything the user typed — only the
-      // factor is gone, which is what the completeness rules read as
-      // unfinished. Nothing else reports the clearing.
-      expect(created.quantity).toBe(1500);
-      expect(created.comment).toBe("Stale factor");
-      expect(created.factorSource).toBeNull();
-      expect(created.factorValue).toBeNull();
-      expect(created.baseFactorId).toBeNull();
-
-      const input = await readSnapshot(created.id);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
-      expect(input.quantity?.toString()).toBe("1500");
+      expectRefused(response, "YEAR_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
-
     it("reconciles a snapshot that lost its factor id but kept a catalogue source", async () => {
       // The shape a line damaged before PR 647 round-trips with: the payload
       // echoes `baseFactorId: null` while the source is a real catalogue one.
@@ -1574,7 +1573,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result).toBeNull();
     });
 
-    it("drops a factor that belongs to another subcategory", async () => {
+    it("refuses a factor that belongs to another subcategory", async () => {
       // Only a crafted payload reaches this: the selector never offers a
       // factor of a subcategory other than the line's. Nothing else ties
       // `baseFactorId` to the line, so without the check the value and source
@@ -1611,19 +1610,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-      const created = body.created[0];
-      expect(created.quantity).toBe(100);
-      expect(created.baseFactorId).toBeNull();
-
-      const input = await readSnapshot(created.id);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
+      expectRefused(response, "SUBCATEGORY_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
-
     it("applies the subcategory check to an update as well", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2025, 2025);
@@ -1686,13 +1676,13 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
+      expectRefused(response, "SUBCATEGORY_MISMATCH");
+      // The line keeps the factor it froze before the refused update.
       const input = await readSnapshot(lineId);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+      expect(input.result).not.toBeNull();
     });
-
-    it("drops a factor the maintainer has deleted", async () => {
+    it("refuses a factor the maintainer has deleted", async () => {
       // Same subcategory and same year as the footprint, so only the status
       // explains the reconciliation. A client holding a page opened before the
       // factor was retired sends exactly this.
@@ -1726,20 +1716,10 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-      const created = body.created[0];
-      // The rest of the line is persisted as always; only the factor is gone.
-      expect(created.quantity).toBe(100);
-      expect(created.baseFactorId).toBeNull();
-
-      const input = await readSnapshot(created.id);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
+      expectRefused(response, "DELETED");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
-
     it("applies the status check to an update as well", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2025, 2025);
@@ -1801,14 +1781,13 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
+      expectRefused(response, "DELETED");
+      // The line keeps the snapshot it froze while the factor was in the
+      // catalogue: the refused update replaced nothing.
       const input = await readSnapshot(lineId);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
-      // The line itself survives the reconciliation intact.
-      expect(input.quantity?.toString()).toBe("100");
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+      expect(input.result).not.toBeNull();
     });
-
     it("keeps a direct-total line, whose emissions were typed rather than computed", async () => {
       // A direct total carries no factor id either, and must not be swept up
       // with the damaged snapshots: the number is the user's own.
@@ -1844,7 +1823,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result).not.toBeNull();
     });
 
-    it("persists the rest of the payload normally", async () => {
+    it("refuses the whole payload when one of its factors is stale", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2024);
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
@@ -1880,29 +1859,13 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-      expect(body.created).toHaveLength(2);
-
-      const [stale, current] = body.created;
-      expect(stale.factorValue).toBeNull();
-      expect(current.factorValue).toBe(3.5);
-      expect(current.baseFactorId).toBe(factorOfFootprintYear.id.toString());
-
-      const staleInput = await readSnapshot(stale.id);
-      expect(staleInput.factor).toBeNull();
-      expect(staleInput.result).toBeNull();
-
-      const currentInput = await readSnapshot(current.id);
-      expect(currentInput.factor?.emissionFactorId).toBe(
-        factorOfFootprintYear.id
-      );
-      expect(currentInput.result?.totalEmissions.toString()).toBe("700");
+      expectRefused(response, "YEAR_MISMATCH");
+      // The valid line is refused with the stale one: the save is all or
+      // nothing, so the user redoes one selection instead of finding half of
+      // what they sent persisted.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
-
-    it("applies the same rule when an update points at a factor of another year", async () => {
+    it("refuses an update that points at a factor of another year", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2024);
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
@@ -1943,19 +1906,11 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-      expect(body.updated).toHaveLength(1);
-      expect(body.updated[0].quantity).toBe(20);
-      expect(body.updated[0].factorValue).toBeNull();
-
+      expectRefused(response, "YEAR_MISMATCH");
+      // The line keeps the input it had: the update sent 20, the seed was 5.
       const input = await readSnapshot(line.id.toString());
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
+      expect(input.quantity?.toString()).toBe("5");
     });
-
     it("persists the snapshot and the result for a factor of the footprint's year", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2026);
@@ -2033,7 +1988,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result?.totalEmissions.toString()).toBe("21");
     });
 
-    it("clears the factor of a footprint with no year at all", async () => {
+    it("refuses a catalogue factor on a footprint with no year at all", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(null, 2025);
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
@@ -2056,13 +2011,11 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
         },
       });
 
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as SyncCarbonInventoryLinesResponse;
-      const input = await readSnapshot(body.created[0].id);
-      expect(input.factor).toBeNull();
-      expect(input.result).toBeNull();
+      // A footprint with no year is offered no factor, so any catalogue
+      // factor is of another year.
+      expectRefused(response, "YEAR_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
   });
 

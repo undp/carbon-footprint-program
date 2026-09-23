@@ -21,6 +21,7 @@ import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState"
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureActions } from "../../../hooks/useEmissionCaptureActions";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 interface UseEmissionEditorFormParams {
@@ -568,10 +569,17 @@ export const useEmissionEditorForm = ({
         );
         // eslint-disable-next-line no-console
         console.error("EmissionEditor error:", err);
-        // Display snackbar to alert user about the failure
-        enqueueSnackbar("Ocurrió un error al cambiar el modo de emisiones.", {
-          variant: "error",
-        });
+        // Display snackbar to alert user about the failure. The API's own
+        // message when it has one: this submit sends every line, not only the
+        // edited ones, so a factor the catalogue has since retired is refused
+        // here too, and the user needs to hear that a reload fixes it.
+        enqueueSnackbar(
+          getApiErrorMessage(
+            err,
+            "Ocurrió un error al cambiar el modo de emisiones."
+          ),
+          { variant: "error" }
+        );
       } finally {
         setIsLocalTotalManualEmissionsModeActive(null);
         setIsTotalManualEmissionsModeLoading(false);

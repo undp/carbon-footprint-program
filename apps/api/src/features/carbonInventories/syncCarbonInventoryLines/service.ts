@@ -8,6 +8,7 @@ import {
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
+  assertFactorReferenceIsValid,
   createLineInput,
   createLineFactor,
   createLineResult,
@@ -111,16 +112,34 @@ export const syncCarbonInventoryLinesService = async (
     }
   }
 
-  // Read every factor the payload references, so a line whose factor is of
-  // another year can be persisted without it. The footprint was read before the
-  // transaction opened and stays there: these transactions run at READ
-  // COMMITTED and the interleaving with a concurrent year change is accepted —
-  // it needs two people editing the same footprint at once, and the line loses
-  // its stale factor on the next save of that subcategory.
+  // Read every factor the payload references and refuse the request if any of
+  // them is one this footprint cannot use — deleted, of another year, or of
+  // another subcategory. Checked before the transaction opens, so a refused
+  // save writes nothing. The footprint was read before too and stays there:
+  // these transactions run at READ COMMITTED and the interleaving with a
+  // concurrent year change is accepted — it needs two people editing the same
+  // footprint at once.
   const referencedFactors = await findReferencedEmissionFactors(prismaClient, [
     ...request.create,
     ...request.update,
   ]);
+
+  for (const createItem of request.create)
+    assertFactorReferenceIsValid(
+      createItem,
+      referencedFactors,
+      carbonInventory.year,
+      createItem.subcategoryId
+    );
+  for (const updateItem of request.update)
+    assertFactorReferenceIsValid(
+      updateItem,
+      referencedFactors,
+      carbonInventory.year,
+      // Present for every id in `request.update`: the validation above throws
+      // `LineNotFoundError` before reaching here otherwise.
+      subcategoryIdByLineId.get(updateItem.id) ?? ""
+    );
 
   // Execute all operations in a transaction
   const createdLineIds: bigint[] = [];
@@ -153,15 +172,10 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      // A factor of another year is left off the line entirely: no snapshot and
-      // no result, so the cell comes back empty and the line reads as
-      // unfinished. Everything else the payload carries is persisted.
-      const keepsFactor = isFactorKeptOnLine(
-        createItem,
-        referencedFactors,
-        carbonInventory.year,
-        createItem.subcategoryId
-      );
+      // Every stale reference was refused above. What is still left off the
+      // line is a damaged snapshot or a forged id: no snapshot and no result,
+      // so the cell comes back empty and the line reads as unfinished.
+      const keepsFactor = isFactorKeptOnLine(createItem, referencedFactors);
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, createItem, userId);
       await createLineResult(
@@ -203,14 +217,7 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      const keepsFactor = isFactorKeptOnLine(
-        updateItem,
-        referencedFactors,
-        carbonInventory.year,
-        // Present for every id in `request.update`: the validation above throws
-        // `LineNotFoundError` before reaching here otherwise.
-        subcategoryIdByLineId.get(updateItem.id) ?? ""
-      );
+      const keepsFactor = isFactorKeptOnLine(updateItem, referencedFactors);
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, updateItem, userId);
       await createLineResult(

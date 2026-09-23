@@ -168,6 +168,10 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   // Emission factors
   ["EMISSION_FACTOR_NOT_FOUND", "El factor de emisión no fue encontrado."],
   [
+    "INVALID_EMISSION_FACTOR_REFERENCE",
+    "El catálogo de factores cambió mientras editabas. Recarga la página para ver los factores disponibles.",
+  ],
+  [
     "EMISSION_FACTOR_DUPLICATE",
     "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
   ],

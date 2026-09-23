@@ -5,9 +5,12 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
 import { MissingFilesError } from "@/features/files/errors.js";
+import { attachDetails } from "@/errors/index.js";
 import {
   CrossInventoryFileLinkingError,
+  EmissionFactorReferenceIssue,
   FileAlreadyLinkedError,
+  InvalidEmissionFactorReferenceError,
 } from "../errors.js";
 import { buildCarbonInventoryLineBlobPathPrefix } from "../helpers.js";
 
@@ -24,24 +27,26 @@ export type ItemData = {
   baseFactorId: string | null;
 };
 
+type ReferencedEmissionFactor = {
+  year: number;
+  subcategoryId: bigint;
+  status: EmissionFactorStatus;
+};
+
 /**
  * Reads every emission factor referenced by the payload, keyed by id as a
  * string.
  *
  * This service never queried the factor table before: `createLineFactor`
  * persists the value, the source and the id straight from the request. The
- * lookup exists so the year can be checked against the footprint's — filtering
- * the capture selector is not enforcing, since a stale client payload would
- * otherwise write a factor from another year and the filter would never notice.
+ * lookup exists so each reference can be checked — filtering the capture
+ * selector is not enforcing, since a stale client payload would otherwise write
+ * a factor the selector no longer offers and the filter would never notice.
+ * `assertFactorReferenceIsValid` does the checking.
  *
- * Only ACTIVE factors are read, the same status the capture selector offers.
- * A deleted factor is read as one that does not exist: it stays out of the map,
- * and `isFactorKeptOnLine` reconciles the line exactly as it does for a factor
- * of another year — the line is saved without a snapshot and without a result,
- * keeping everything else. Without the filter a client holding a page opened
- * before an administrator retired the factor would freeze it onto the line,
- * value and source taken verbatim from the request, with nothing left in the
- * catalogue to check it against.
+ * The status is selected rather than filtered on. A deleted factor has to stay
+ * in the map so it can be refused as deleted: filtered out, it would be
+ * indistinguishable from an id that never existed.
  *
  * The referenced ids are always the numeric id of a real `emission_factor` row:
  * `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`,
@@ -51,16 +56,16 @@ export type ItemData = {
  *
  * TODO(fix/mati/activity-unit-factor-mismatch): `rateMeasurementUnitId` and the
  * rate unit's `denominatorMeasurementUnit` are selected here although only the
- * year and the subcategory are read, so the postponed unit-mismatch fix — the
- * line's `measurementUnitId` is never cross-checked against the denominator of
- * the applied factor's rate unit, so a `kg/kg` factor over a quantity in tonnes
- * yields a result a thousand times too large — becomes a check added to this
- * query rather than a second round trip.
+ * year, the subcategory and the status are read, so the postponed unit-mismatch
+ * fix — the line's `measurementUnitId` is never cross-checked against the
+ * denominator of the applied factor's rate unit, so a `kg/kg` factor over a
+ * quantity in tonnes yields a result a thousand times too large — becomes a
+ * check added to this query rather than a second round trip.
  */
 export async function findReferencedEmissionFactors(
   prisma: Prisma.TransactionClient,
   items: Pick<ItemData, "baseFactorId">[]
-): Promise<Map<string, { year: number; subcategoryId: bigint }>> {
+): Promise<Map<string, ReferencedEmissionFactor>> {
   const referencedIds = [
     ...new Set(
       items
@@ -72,14 +77,12 @@ export async function findReferencedEmissionFactors(
   if (referencedIds.length === 0) return new Map();
 
   const factors = await prisma.emissionFactor.findMany({
-    where: {
-      id: { in: referencedIds.map((id) => BigInt(id)) },
-      status: EmissionFactorStatus.ACTIVE,
-    },
+    where: { id: { in: referencedIds.map((id) => BigInt(id)) } },
     select: {
       id: true,
       year: true,
       subcategoryId: true,
+      status: true,
       rateMeasurementUnitId: true,
       rateMeasurementUnit: {
         select: { denominatorMeasurementUnit: { select: { id: true } } },
@@ -91,20 +94,69 @@ export async function findReferencedEmissionFactors(
 }
 
 /**
+ * Refuses a line that references a catalogue factor this footprint cannot use.
+ *
+ * Three reasons, checked in this order, each answered with the same 422:
+ *  - the factor is deleted. The maintainer retired it after the page was
+ *    opened, so the selection is stale.
+ *  - its year is not the footprint's, a footprint with no year included — it is
+ *    offered no factor at all. The year changed in another tab, or the payload
+ *    is stale.
+ *  - its subcategory is not the line's. Only a crafted payload reaches this:
+ *    nothing else ties `baseFactorId` to the line. A subcategory belongs to one
+ *    category of one methodology version, and the line's subcategory is already
+ *    checked against the footprint's methodology, so this covers the version
+ *    too.
+ *
+ * Refused rather than reconciled. Saving the line without its factor was the
+ * earlier answer, and it changed what the user saw without telling them: the
+ * cell came back empty on a line they may not have edited, and the only trace
+ * was the completeness rules reading it as unfinished. A stale selection is
+ * the user's to redo, so the save is refused whole — the transaction has not
+ * opened yet — and the client says the catalogue changed and asks for a
+ * reload, which brings back the factors that are offered now.
+ *
+ * An id that matches no row at all is left to `isFactorKeptOnLine`, which
+ * reconciles it as before. Factors are only ever soft-deleted, so such an id is
+ * not a stale selection but a forged one, and none of the three reasons would
+ * describe it.
+ */
+export function assertFactorReferenceIsValid(
+  item: Pick<ItemData, "baseFactorId">,
+  factorsById: Map<string, ReferencedEmissionFactor>,
+  footprintYear: number | null,
+  lineSubcategoryId: string
+): void {
+  if (item.baseFactorId === null) return;
+
+  const factor = factorsById.get(item.baseFactorId);
+  if (!factor) return;
+
+  const reason =
+    factor.status === EmissionFactorStatus.DELETED
+      ? EmissionFactorReferenceIssue.DELETED
+      : factor.year !== footprintYear
+        ? EmissionFactorReferenceIssue.YEAR_MISMATCH
+        : factor.subcategoryId.toString() !== lineSubcategoryId
+          ? EmissionFactorReferenceIssue.SUBCATEGORY_MISMATCH
+          : null;
+
+  if (reason === null) return;
+
+  throw attachDetails(
+    new InvalidEmissionFactorReferenceError(item.baseFactorId, reason),
+    { emissionFactorId: item.baseFactorId, reason }
+  );
+}
+
+/**
  * Whether the line's frozen factor may be persisted for this footprint.
  *
- * A line referencing a catalogue factor of another year is saved without its
- * factor snapshot and without its result, keeping everything else — this is
- * reconciliation, not validation: rejecting would tell the user that a factor
- * they never touched is invalid, on a line they may not have edited, and refuse
- * the whole subcategory with no way out. Leaving the cell empty lands the line
- * in the state a year change already produces, which the existing completeness
- * rules read as unfinished.
- *
- * A referenced factor that is not in the map — unknown, deleted, or simply of
- * another year — cannot be offered to this footprint, and a footprint with no
- * year is offered no factors at all, so all of them are reconciled the same
- * way.
+ * Runs after `assertFactorReferenceIsValid` has refused every stale reference,
+ * so a referenced factor that is in the map is one this footprint may use. One
+ * that is not in the map matches no row at all — a forged id, since factors are
+ * only ever soft-deleted — and the line is saved without a snapshot and without
+ * a result, keeping everything else.
  *
  * A null `baseFactorId` is not enough to call a line manual. Three shapes
  * arrive with one:
@@ -115,11 +167,12 @@ export async function findReferencedEmissionFactors(
  *  - a manual factor, whose source is one of `CUSTOM_FACTOR_SOURCES`. Its value
  *    and source were typed by the user and no catalogue can restore them.
  *  - a value with a *catalogue* source and no id: either a snapshot damaged
- *    before PR 647 preserved the factor identity, or a forged payload. Both are
- *    reconciled like a factor of another year. Treating them as manual is what
- *    would make them permanent — `mapLineToResponse` derives `baseFactorId`
- *    from `emissionFactorId`, so the line round-trips with a null id and no
- *    later save would ever look at it again, while the source keeps
+ *    before PR 647 preserved the factor identity, or a forged payload. It is
+ *    reconciled, not refused — it is not a selection the user made and can
+ *    redo, and refusing it would make the whole subcategory unsavable. Treating
+ *    it as manual is what would make it permanent: `mapLineToResponse` derives
+ *    `baseFactorId` from `emissionFactorId`, so the line round-trips with a null
+ *    id and no later save would ever look at it again, while the source keeps
  *    `fieldValidationService` from reading the line as unfinished.
  *
  * The same three-way split is what `clearCatalogueFactorsOfLines` and the
@@ -136,28 +189,12 @@ export async function findReferencedEmissionFactors(
  * year cannot be checked, on a footprint where the year is what makes a factor
  * applicable. Telling the user which lines a save reconciled would take the
  * endpoint reporting them back, which is a feature, not this guard.
- *
- * `lineSubcategoryId` is checked for the same reason the year is: filtering the
- * capture selector is not enforcing. Nothing else ties `baseFactorId` to the
- * line, so a crafted payload could otherwise freeze a factor from an unrelated
- * subcategory — value and source taken verbatim from the request — onto a line
- * the selector would never have offered it for. A subcategory belongs to one
- * category of one methodology version, and the line's subcategory is already
- * checked against the footprint's methodology, so this covers the version too.
  */
 export function isFactorKeptOnLine(
   item: Pick<ItemData, "baseFactorId" | "factorSource" | "appliedFactorValue">,
-  factorsById: Map<string, { year: number; subcategoryId: bigint }>,
-  footprintYear: number | null,
-  lineSubcategoryId: string
+  factorsById: Map<string, ReferencedEmissionFactor>
 ): boolean {
-  if (item.baseFactorId !== null) {
-    const factor = factorsById.get(item.baseFactorId);
-    return (
-      factor?.year === footprintYear &&
-      factor.subcategoryId.toString() === lineSubcategoryId
-    );
-  }
+  if (item.baseFactorId !== null) return factorsById.has(item.baseFactorId);
 
   if (item.appliedFactorValue === null) return true;
 
