@@ -28,6 +28,7 @@ Images are **not built on the deploy server** and there is no registry. They are
 - **Deploy server**: Docker Engine + Compose v2 (`docker compose version`). It needs only `docker-compose.prod.yml`, the filled env file, and the image tarball — **not** the repo, Node, or pnpm.
 - **Builder machine**: a git checkout of the repo at the release tag, Docker, and the filled env file (to bake `VITE_*`). May be the same machine as the migrator.
 - **External PostgreSQL ≥ 15** (project standard: 18). Migrations use `NULLS NOT DISTINCT`, which requires 15+; `pnpm --filter @repo/database validate:version` enforces this.
+- **pgvector available on that PostgreSQL server** — migration `20260506220000_add_chatbot_embedding_and_pgvector` runs `CREATE EXTENSION IF NOT EXISTS vector` and then declares a `vector(1024)` column. This is **not** conditional on the chatbot: `migrate deploy` applies every migration, so a server without pgvector cannot migrate at all, including deployments where the assistant is switched off. Managed providers ship it but gate it (Azure Database for PostgreSQL: the `azure.extensions` server parameter, already handled by `infra/modules/postgres.bicep`); a self-managed server needs the OS package (e.g. `postgresql-18-pgvector` on Debian/Ubuntu). Creating it is the DBA's job — see the [contract below](#database-roles--privileges-dba-contract).
 - **Database and roles provisioned by the DBA** — see the [contract below](#database-roles--privileges-dba-contract). The repo ships no provisioning SQL.
 - **Network reachability**:
   - app server → DB server `:5432`. Containers reach external IPs through the host's NAT — no special Docker network config. The flip side: the DB server's `pg_hba.conf`/firewall must allow the **app server's IP** (connections from containers arrive NATed behind it).
@@ -48,6 +49,14 @@ The platform expects two separations of duty (both provisioned by the country's 
 >
 > - The DBA configures it once: `ALTER DEFAULT PRIVILEGES FOR ROLE <migration-user> IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO <app-user>;` (and the equivalent `GRANT USAGE, SELECT ON SEQUENCES`); or
 > - re-run the `GRANT ... ON ALL TABLES/SEQUENCES IN SCHEMA public` statements after **every** deploy that includes migrations.
+
+> ⚠️ **pgvector is created by the DBA, not by the migration user.** pgvector is not a PostgreSQL _trusted_ extension, so `CREATE EXTENSION vector` requires superuser — which the migration user is not meant to be. Do not grant superuser for this. Have the DBA run it once per database, before the first deploy:
+>
+> ```sql
+> CREATE EXTENSION IF NOT EXISTS vector;
+> ```
+>
+> The migration's own `CREATE EXTENSION IF NOT EXISTS vector` then finds it present and skips with a notice — PostgreSQL does not reach the privilege check on that path — and the `CREATE` grant above is all the migration user needs to declare `vector` columns and build the HNSW index. Verified on PostgreSQL 18 with pgvector.
 
 Both users connect to the same database; the `?schema=public` suffix in `DATABASE_URL` must match the schema the DBA granted.
 
@@ -101,6 +110,18 @@ dcp --profile migrate run --rm migrate
 `--rm` removes the one-shot container when it exits. A non-zero exit means the preflight or a migration failed — read the output and fix it before continuing.
 
 > ⚠️ **Table-ownership grants are not automated here.** Tables are owned by whoever runs `migrate deploy`. If the migration user differs from the application user, **re-apply/verify the grants** from the [DBA contract](#database-roles--privileges-dba-contract) after **every** migrate run — otherwise the app user cannot read/write the newly created objects.
+
+> ⚠️ **A failed migration blocks every later deploy.** Prisma records the failure in `_prisma_migrations`, and the next `migrate deploy` stops with **P3009** (`migrate found failed migrations in the target database`) rather than retrying. Each migration runs in a transaction, so the schema is whatever it was before — there is no half-applied state to unpick — but the recorded failure has to be cleared by hand:
+>
+> 1. Fix the cause. A missing pgvector surfaces as `extension "vector" is not available` (the package is not installed on the server) or `permission denied to create extension "vector"` (installed, but nobody created it) — see the [DBA contract](#database-roles--privileges-dba-contract).
+> 2. Mark the failed entry as rolled back, naming the migration exactly as its directory:
+>
+>    ```bash
+>    dcp --profile migrate run --rm migrate sh -c \
+>      "pnpm --filter @repo/database exec prisma migrate resolve --rolled-back <migration-directory-name>"
+>    ```
+>
+> 3. Re-run the migrate one-shot above.
 
 ### 2. Seed reference data (first deploy only)
 
