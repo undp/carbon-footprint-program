@@ -380,11 +380,11 @@ Four layers, only one of which actually stops anything.
 each carries its own Spanish message, so the body identifies which layer
 refused:
 
-| Message names                        | Layer                 | What it means                                                       |
-| ------------------------------------ | --------------------- | ------------------------------------------------------------------- |
-| "Espera unos segundos"               | Burst limit           | One IP exceeded 15 turns/minute. Clears within the minute.          |
-| "Alcanzaste tu límite de uso diario" | Per-identity budget   | That caller spent 40,000 tokens in 24h. Clears as the window rolls. |
-| "El asistente alcanzó su límite"     | Shared anonymous pool | All anonymous callers together spent 300,000 tokens in 24h.         |
+| Message names                        | Layer                 | What it means                                                                              |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------ |
+| "Espera unos segundos"               | Burst limit           | One IP exceeded 15 turns/minute. Clears within the minute.                                 |
+| "Alcanzaste tu límite de uso diario" | Per-identity budget   | That caller spent 40,000 tokens in 24h (150,000 if signed in). Clears as the window rolls. |
+| "El asistente alcanzó su límite"     | Shared anonymous pool | All anonymous callers together spent 300,000 tokens in 24h.                                |
 
 The third is the one that looks like an incident and is not. **One actor can
 exhaust the shared pool and deny the chatbot to every anonymous visitor** until

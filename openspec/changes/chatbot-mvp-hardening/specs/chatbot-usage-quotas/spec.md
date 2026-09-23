@@ -41,7 +41,9 @@ This layer exists because the token budgets are consulted before a turn and cred
 
 ### Requirement: Each identity carries a daily token budget
 
-Before invoking the LLM provider, the system SHALL sum `chatbot_chat_message.tokens_used` for the resolved caller identity over the preceding 24 hours and SHALL refuse the turn when that sum is greater than or equal to `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY`. The constant SHALL live in `apps/api/src/config/constants.ts` with a value of 40000.
+Before invoking the LLM provider, the system SHALL sum `chatbot_chat_message.tokens_used` for the resolved caller identity over the preceding 24 hours and SHALL refuse the turn when that sum is greater than or equal to the budget for the caller's identity kind: `CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY` (40000) for a session identity, and `CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY` (150000) for an authenticated one. Both constants SHALL live in `apps/api/src/config/constants.ts`.
+
+The authenticated allowance is larger because an account is not free to mint the way a session cookie is, and because authenticated callers never draw on the shared pool — so their budget can be sized for use rather than for containment, and signing in becomes a remedy worth taking.
 
 The sum SHALL join `chatbot_chat_message` to `chatbot_chat_conversation` and filter on the identity columns, since messages carry no identity of their own. The query SHALL use the identity indexes already declared in the chatbot migration; any additional index SHALL be declared in raw SQL in a migration rather than as a Prisma `@@index`, matching the existing convention for these tables.
 

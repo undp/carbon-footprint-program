@@ -4,7 +4,8 @@ import {
   CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS,
   CHATBOT_CONVERSATION_TTL_DAYS,
   CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY,
-  CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY,
   CHATBOT_TOKEN_BUDGET_WINDOW_MS,
   CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
@@ -321,8 +322,12 @@ export const enforceTokenBudgets = async (
 ): Promise<void> => {
   const since = new Date(Date.now() - CHATBOT_TOKEN_BUDGET_WINDOW_MS);
 
+  const identityBudget =
+    identity.kind === "user"
+      ? CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY
+      : CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY;
   const identityTokens = await sumIdentityTokensSince(prisma, identity, since);
-  if (identityTokens >= CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY) {
+  if (identityTokens >= identityBudget) {
     throw new QuotaExceededError(CHATBOT_IDENTITY_BUDGET_MESSAGE);
   }
 

@@ -46,7 +46,7 @@
 
 ## 6. Token quotas
 
-- [x] 6.1 Add `CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
+- [x] 6.1 Add `CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY = 40_000`, `CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY = 150_000` and `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY = 300_000`, documenting that the recorded `tokens_used` counts only the terminal round and therefore understates real spend.
 - [x] 6.2 Add the three rejection message constants in neutral Spanish, beside the existing `CHATBOT_GENERIC_ERROR_MESSAGE`.
 - [x] 6.3 Implement the per-identity 24-hour token sum, joining messages to conversations on the identity columns. **No new index needed**: the aggregate filters on `created_at` plus the conversation's identity columns, both of which the foundation migration already indexes (`chatbot_chat_message_conversation_id_created_at_idx`, `chatbot_chat_conversation_user_id_expires_at_idx`, `chatbot_chat_conversation_session_id_created_at_idx`).
 - [x] 6.4 Implement the global anonymous 24-hour token sum over conversations with no `user_id`.

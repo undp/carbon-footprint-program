@@ -14,7 +14,8 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import { enforceTokenBudgets } from "@/features/chatbot/sendMessage/service.js";
 import {
   CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY,
-  CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY,
 } from "@/config/constants.js";
 import {
   CHATBOT_IDENTITY_BUDGET_MESSAGE,
@@ -74,7 +75,10 @@ describe("chatbot token budgets — integration", () => {
 
   describe("per-identity budget", () => {
     it("allows a caller under the budget", async () => {
-      await spend({ userId }, CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY - 1);
+      await spend(
+        { userId },
+        CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY - 1
+      );
 
       await expect(
         enforceTokenBudgets(prisma, { kind: "user", userId })
@@ -82,7 +86,10 @@ describe("chatbot token budgets — integration", () => {
     });
 
     it("refuses a caller at or over the budget, naming their own limit", async () => {
-      await spend({ userId }, CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY);
+      await spend(
+        { userId },
+        CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY
+      );
 
       await expect(
         enforceTokenBudgets(prisma, { kind: "user", userId })
@@ -95,7 +102,7 @@ describe("chatbot token budgets — integration", () => {
     it("does not count another identity's spend against this one", async () => {
       await spend(
         { sessionId: "someone-else" },
-        CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY * 2
+        CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY * 2
       );
 
       await expect(
@@ -106,7 +113,7 @@ describe("chatbot token budgets — integration", () => {
     it("ignores spend older than the window", async () => {
       await spend(
         { userId },
-        CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY * 2,
+        CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY * 2,
         hoursAgo(25)
       );
 
@@ -116,12 +123,44 @@ describe("chatbot token budgets — integration", () => {
     });
   });
 
+  describe("budget by identity kind", () => {
+    // The two kinds get different allowances on purpose: an account costs
+    // something to mint and never draws on the shared pool, a cookie does not.
+    it("refuses an anonymous caller at the anonymous budget", async () => {
+      await spend(
+        { sessionId: "anon" },
+        CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY
+      );
+
+      await expect(
+        enforceTokenBudgets(prisma, { kind: "session", sessionId: "anon" })
+      ).rejects.toMatchObject({ message: CHATBOT_IDENTITY_BUDGET_MESSAGE });
+    });
+
+    it("lets an authenticated caller spend past the anonymous budget", async () => {
+      await spend(
+        { userId },
+        CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY
+      );
+
+      await expect(
+        enforceTokenBudgets(prisma, { kind: "user", userId })
+      ).resolves.toBeUndefined();
+    });
+
+    it("gives authenticated callers the larger allowance", () => {
+      expect(
+        CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY
+      ).toBeGreaterThan(CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY);
+    });
+  });
+
   describe("shared anonymous pool", () => {
     it("refuses an anonymous caller once the pool is exhausted, naming the remedy", async () => {
       // Spread across several identities, each well under the per-identity
       // budget: this is the case the per-identity layer structurally cannot
       // catch, because discarding a cookie mints a fresh one for free.
-      const perIdentity = CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY / 2;
+      const perIdentity = CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY / 2;
       const identitiesNeeded = Math.ceil(
         CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY / perIdentity
       );
@@ -138,7 +177,7 @@ describe("chatbot token budgets — integration", () => {
     });
 
     it("leaves authenticated callers unaffected by an exhausted pool", async () => {
-      const perIdentity = CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY / 2;
+      const perIdentity = CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY / 2;
       const identitiesNeeded = Math.ceil(
         CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY / perIdentity
       );

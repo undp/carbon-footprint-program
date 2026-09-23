@@ -62,7 +62,8 @@ export const CHATBOT_MAX_USER_INPUT_TOKENS = 4000;
 export const CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15;
 
 /**
- * Tokens one caller identity may consume in a rolling 24 hours.
+ * Tokens one caller identity may consume in a rolling 24 hours, by identity
+ * kind.
  *
  * The layer that catches an accident: a stuck tab, a client retry loop, a
  * single person exploring far past what a demo needs. It is explicitly NOT the
@@ -72,11 +73,19 @@ export const CHATBOT_MAX_TURNS_PER_MINUTE_DEFAULT = 15;
  * all. `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` is the layer that cannot be
  * evaded; this one keeps one accident from draining it for everybody.
  *
- * At roughly 13% of the anonymous pool, it takes about seven identities at
- * their limit to exhaust the shared budget — enough headroom that one runaway
- * client is contained rather than fatal.
+ * Anonymous: at roughly 13% of the anonymous pool, it takes about seven
+ * identities at their limit to exhaust the shared budget — enough headroom
+ * that one runaway client is contained rather than fatal.
+ *
+ * Authenticated: higher, and deliberately so. An account is not free to mint
+ * the way a session cookie is, and authenticated callers never draw on the
+ * shared pool, so their allowance can be sized for use rather than for
+ * containment. Raised in review after 40 000 was judged to stop a registered
+ * user after a handful of retrieval questions; this is also what makes
+ * "inicia sesión" a remedy worth taking rather than a lateral move.
  */
-export const CHATBOT_MAX_TOKENS_PER_IDENTITY_PER_DAY = 40_000;
+export const CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY = 40_000;
+export const CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY = 150_000;
 
 /**
  * Tokens ALL anonymous callers may consume between them in a rolling 24 hours.
