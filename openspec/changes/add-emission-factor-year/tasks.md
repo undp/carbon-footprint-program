@@ -53,6 +53,7 @@
 - [x] 6.7 Check the referenced factor belongs to the line's subcategory, reconciling the line the same way when it does not. Nothing else ties `baseFactorId` to the line, so a crafted payload could otherwise freeze a factor of an unrelated subcategory onto it — the same gap the year check closes, and the lookup is already paying for the round trip. An update reads its line's subcategory from the validation query rather than a second one. A subcategory belongs to one category of one methodology version, so the version is covered by the same comparison.
 - [x] 6.6 Leave `createLineFactor` otherwise untouched: no year is persisted on the line.
 - [x] 6.8 Give `clearCatalogueFactorsOfLines` the migration's definition of catalogue-backed, not the `emissionFactorId` half of it. The migration only clears the damaged snapshots on footprints of another year, so the ones on the catalogue's own year reach the year change intact; missing them there is permanent, and the footprint reports a total from the previous year's factors while `carbon_inventory_subtotals_view` counts the line as completed.
+- [x] 6.9 Read only ACTIVE factors in the lookup, the status the capture selector already filters on. A deleted factor stays out of the map and the line is reconciled like one of another year — the catalogue row is gone, so nothing is left to check the frozen value and source against, and a client holding a page opened before the deletion would otherwise freeze them onto the line verbatim. Covered on create and on update.
 
 ## 7. API — duplication and exports
 

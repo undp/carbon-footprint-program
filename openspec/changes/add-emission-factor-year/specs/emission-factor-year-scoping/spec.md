@@ -175,9 +175,17 @@ Lines whose factor was entered manually SHALL be untouched by this rule. A line 
 
 The server SHALL also check that the referenced factor belongs to the line's subcategory, and SHALL reconcile the line the same way when it does not. Filtering the capture selector is not enforcing: nothing else ties the reference to the line.
 
+The server SHALL read only ACTIVE factors, the status the capture selector offers. A factor the maintainer has deleted SHALL be read as one that does not exist, and the line SHALL be reconciled the same way: with the catalogue row gone there is nothing left to check the frozen value and source against, and a client holding a page opened before the deletion would otherwise freeze them onto the line verbatim.
+
 The rule SHALL apply identically on creation and on update.
 
 The year SHALL NOT be frozen on the line. This reconciliation, the clearing on a year change and the preserved factor identity together keep a catalogue-backed line on its footprint's year, so that year is derived rather than stored.
+
+#### Scenario: A line referencing a deleted factor is saved without it
+
+- **GIVEN** a footprint for year 2025 and a factor of that footprint's year and of the line's own subcategory, whose status is `DELETED`
+- **WHEN** a sync request creates or updates a line referencing that factor
+- **THEN** the request SHALL succeed, AND the line SHALL be persisted with no factor snapshot and no result, keeping everything else
 
 #### Scenario: A line referencing a factor from another year is saved without it
 
