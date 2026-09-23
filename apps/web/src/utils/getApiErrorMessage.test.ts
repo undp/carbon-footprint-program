@@ -219,6 +219,10 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL",
     "La variable a eliminar no fue encontrada.",
   ],
+  [
+    "DIMENSION_VALUE_IN_USE",
+    "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.",
+  ],
   // Reduction plan initiatives
   [
     "REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS",

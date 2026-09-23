@@ -3,6 +3,7 @@ import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
   User,
   type UpdateEmissionFactorDimensionRequest,
   type UpdateEmissionFactorDimensionResponse,
@@ -15,7 +16,9 @@ import {
   DimensionValueNotFoundForRemovalError,
   DimensionIsRequiredChangeBlockedError,
   DimensionValueNotFoundForRenameError,
+  DimensionValueInUseError,
 } from "../errors.js";
+import { LIVE_CAPTURE_WHERE } from "../helpers.js";
 
 export const updateEmissionFactorDimensionService = async (
   prismaClient: PrismaClient,
@@ -91,6 +94,36 @@ export const updateEmissionFactorDimensionService = async (
             (valueId) => !removableIds.has(valueId)
           );
           throw new DimensionValueNotFoundForRemovalError(missingId ?? "");
+        }
+
+        // Removal cascades over emission factors, but nothing cleans up what
+        // users captured with a value or the initiatives built on it: those
+        // would be left pointing at a DELETED row. The maintainer screen hides
+        // the trash for such values, yet its flag comes from a cached read and
+        // the endpoint can be called directly, so refuse here too.
+        const pinnedValue = await tx.emissionFactorDimensionValue.findFirst({
+          where: {
+            id: { in: valueIdsToRemove },
+            OR: [
+              { lineInputsAsSelection1: { some: LIVE_CAPTURE_WHERE } },
+              { lineInputsAsSelection2: { some: LIVE_CAPTURE_WHERE } },
+              {
+                reductionPlanInitiativesAsDimension1: {
+                  some: { status: ReductionPlanInitiativeStatus.ACTIVE },
+                },
+              },
+              {
+                reductionPlanInitiativesAsDimension2: {
+                  some: { status: ReductionPlanInitiativeStatus.ACTIVE },
+                },
+              },
+            ],
+          },
+          select: { value: true },
+        });
+
+        if (pinnedValue) {
+          throw new DimensionValueInUseError(pinnedValue.value);
         }
       }
 

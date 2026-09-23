@@ -18,6 +18,12 @@ import {
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
 import {
+  createCarbonInventory,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+} from "@test/factories/carbonInventorySeeder.js";
+import {
+  CarbonInventoryLineStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
 } from "@repo/types";
@@ -287,6 +293,94 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       expect(response.statusCode).toBe(409);
       const body = JSON.parse(response.body) as { code: string };
       expect(body.code).toBe("DIMENSION_IS_REQUIRED_CHANGE_BLOCKED");
+    });
+
+    it("should return 409 when removing a value an active capture selects", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimension();
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Spare Value",
+      });
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { values: { remove: [value.id.toString()] } },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
+      const stored = await prisma.emissionFactorDimensionValue.findUnique({
+        where: { id: value.id },
+      });
+      expect(stored?.status).toBe(EmissionFactorDimensionValueStatus.ACTIVE);
+    });
+
+    it("should return 409 when removing a value an active reduction initiative references", async () => {
+      const { subcategory, dimension, value } = await buildTestDimension();
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Spare Value",
+      });
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: subcategory.id,
+          dimensionValue1Id: value.id,
+          title: "Test - Initiative",
+          description: "Test initiative referencing a dimension value",
+        },
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { values: { remove: [value.id.toString()] } },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
+    });
+
+    it("should allow removing a value whose only capture sits on a deleted line", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimension();
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Spare Value",
+      });
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id,
+        { status: CarbonInventoryLineStatus.DELETED }
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { values: { remove: [value.id.toString()] } },
+      });
+
+      expect(response.statusCode).toBe(200);
     });
 
     it("should return 404 when removing a value that does not belong to the dimension", async () => {
