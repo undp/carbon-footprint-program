@@ -37,18 +37,18 @@ Campos y validaciones:
 
 Hacer clic sobre la fila para entrar en modo edición y modificar los campos editables. El desglose por GEI se edita en un modal dedicado al que se accede desde la propia fila.
 
-Sólo puede editarse un Factor que ninguna línea de huella esté usando. Un Factor en uso queda inerte en la tabla —no entra en modo edición y no ofrece eliminar— e indica cuántas líneas dependen de él. Esto vale igual en la Metodología activa y en una versión anterior: lo que decide no es el estado de la versión, sino si alguna línea vigente apunta al Factor.
+Sólo puede editarse un Factor que ninguna fuente de emisión de una huella esté usando. Un Factor en uso queda inerte en la tabla —no entra en modo edición y no ofrece eliminar— e indica cuántas fuentes de emisión dependen de él. Esto vale igual en la Metodología activa y en una versión anterior: lo que decide no es el estado de la versión, sino si alguna fuente de emisión vigente apunta al Factor.
 
 ### Eliminar Factor de Emisión
 
 La operación se realiza como eliminación lógica: el Factor queda marcado como eliminado y deja de mostrarse en los listados activos.
 
-Rige la misma regla que para editar: un Factor que alguna línea vigente esté usando no puede eliminarse. Las líneas de huellas anteriores que lo usaron y luego cambiaron a otro Factor no lo bloquean, porque ya no dependen de él.
+Rige la misma regla que para editar: un Factor que alguna fuente de emisión vigente esté usando no puede eliminarse. Las fuentes de emisión de huellas anteriores que lo usaron y luego cambiaron a otro Factor no lo bloquean, porque ya no dependen de él.
 
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**
-> Los Factores de Emisión son la base del cálculo de huella, y por eso un Factor deja de ser modificable en cuanto alguna línea de huella lo usa. Mientras nadie lo use puede corregirse libremente, incluso en la Metodología activa: un Factor recién agregado es corregible hasta que una huella lo tome.
+> Los Factores de Emisión son la base del cálculo de huella, y por eso un Factor deja de ser modificable en cuanto alguna fuente de emisión de una huella lo usa. Mientras nadie lo use puede corregirse libremente, incluso en la Metodología activa: un Factor recién agregado es corregible hasta que una huella lo tome.
 >
 > La consecuencia a tener presente es la contraria a la habitual: un Factor cargado con un valor equivocado que ya esté en uso no se puede arreglar desde esta pantalla. Conviene revisar el valor, la fuente y el desglose antes de guardar.
 

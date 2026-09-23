@@ -97,7 +97,7 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // its tooltip. This covers the case where that count was stale: a line
   // started using the factor after the last read.
   EMISSION_FACTOR_IN_USE:
-    "Este factor de emisión está siendo usado por líneas de huella y no se puede modificar ni eliminar.",
+    "Este factor de emisión está siendo usado por fuentes de emisión de huellas y no se puede modificar ni eliminar.",
 
   // Emission factor dimensions
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",

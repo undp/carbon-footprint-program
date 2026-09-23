@@ -37,12 +37,12 @@ describe("resolveEmissionFactorRowLock", () => {
     const lock = resolveEmissionFactorRowLock(true, 3, 0);
 
     expect(lock.canEdit).toBe(false);
-    expect(lock.reason).toContain("3 líneas");
+    expect(lock.reason).toContain("3 fuentes de emisión");
   });
 
-  it("says línea in the singular for one line", () => {
+  it("names a single emission source in the singular", () => {
     expect(resolveEmissionFactorRowLock(true, 1, 0).reason).toContain(
-      "1 línea "
+      "1 fuente de emisión:"
     );
   });
 
@@ -60,7 +60,7 @@ describe("resolveEmissionFactorRowLock", () => {
     const lock = resolveEmissionFactorRowLock(true, 2, 7);
 
     expect(lock.canEdit).toBe(false);
-    expect(lock.reason).toContain("2 líneas");
+    expect(lock.reason).toContain("2 fuentes de emisión");
   });
 
   it("reports no unclaimed lines on a read-only screen", () => {
@@ -81,7 +81,7 @@ describe("resolveEmissionFactorDeleteMessage", () => {
   it("names the unclaimed lines and says the delete goes ahead", () => {
     const message = resolveEmissionFactorDeleteMessage(4);
 
-    expect(message).toContain("4 líneas");
+    expect(message).toContain("4 fuentes de emisión");
     expect(message).toContain("anónimas sin reclamar");
     // The delete detaches them, so the copy has to promise that and not that
     // they keep what they had.
@@ -89,7 +89,13 @@ describe("resolveEmissionFactorDeleteMessage", () => {
     expect(message).toContain("¿Eliminarlo igual?");
   });
 
-  it("says línea in the singular for one line", () => {
-    expect(resolveEmissionFactorDeleteMessage(1)).toContain("1 línea ");
+  // The verbs agree with the count too: "1 fuente … usan" read as a typo.
+  it("keeps a single emission source in the singular throughout", () => {
+    const message = resolveEmissionFactorDeleteMessage(1);
+
+    expect(message).toContain(
+      "1 fuente de emisión de una huella anónima sin reclamar usa este factor."
+    );
+    expect(message).toContain("Volverá a pedir un factor");
   });
 });

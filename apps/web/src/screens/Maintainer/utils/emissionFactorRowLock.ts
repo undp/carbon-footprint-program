@@ -12,7 +12,8 @@ export interface EmissionFactorRowLock {
   unclaimedReferencedLineCount: number;
 }
 
-const lines = (count: number) => `${count} ${count === 1 ? "línea" : "líneas"}`;
+const emissionSources = (count: number) =>
+  `${count} ${count === 1 ? "fuente de emisión" : "fuentes de emisión"}`;
 
 /**
  * The rule the maintainer applies per row: a factor is immutable while a line
@@ -47,7 +48,7 @@ export const resolveEmissionFactorRowLock = (
 
   return {
     canEdit: false,
-    reason: `Usado por ${lines(count)} de huella: no se puede modificar ni eliminar.`,
+    reason: `Usado por ${emissionSources(count)}: no se puede modificar ni eliminar.`,
     unclaimedReferencedLineCount: unclaimed,
   };
 };
@@ -68,5 +69,8 @@ export const resolveEmissionFactorDeleteMessage = (
   if (unclaimedReferencedLineCount === 0)
     return "¿Estás seguro de que deseas eliminar este factor de emisión?";
 
-  return `${lines(unclaimedReferencedLineCount)} de huellas anónimas sin reclamar usan este factor. Volverán a pedir un factor, conservando su cantidad y su unidad. ¿Eliminarlo igual?`;
+  if (unclaimedReferencedLineCount === 1)
+    return `${emissionSources(1)} de una huella anónima sin reclamar usa este factor. Volverá a pedir un factor, conservando su cantidad y su unidad. ¿Eliminarlo igual?`;
+
+  return `${emissionSources(unclaimedReferencedLineCount)} de huellas anónimas sin reclamar usan este factor. Volverán a pedir un factor, conservando su cantidad y su unidad. ¿Eliminarlo igual?`;
 };
