@@ -475,6 +475,43 @@ shared inbox over a personal one — it outlives whoever ran the deploy.
 
 ---
 
+## Chatbot Model Retirement
+
+Azure retires model versions on a published schedule
+(<https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirements>).
+The chat model pinned today, `gpt-4o-mini` version `2024-07-18`, retires on
+**2027-10-01**. After that date the deployment stops answering: every chatbot turn
+fails with the generic error, and **no alarm fires**, because a model that does
+not answer consumes no tokens. Plan the swap before the date rather than after the
+first support ticket.
+
+Both models are pinned in the environment's `.bicepparam`, not in code:
+
+```bicep
+param openAiChatModelName = 'gpt-4o-mini'
+param openAiChatModelVersion = '2024-07-18'
+param openAiEmbeddingModelName = 'text-embedding-3-large'
+param openAiEmbeddingModelVersion = '1'
+```
+
+**Replacing the chat model** is a parameter change plus a redeploy of the
+infrastructure (`infra/deploy.sh`). Check first that the replacement is offered
+in the region and SKU the deployment uses, and that the TPM capacity still fits.
+Nothing else needs to change: conversations, quotas and alarms are independent of
+which chat model answers.
+
+**Replacing the embedding model is not just a parameter change.** Every stored
+chunk carries a vector produced by the old model, and vectors from two models are
+not comparable, so retrieval silently degrades to noise if the corpus is left as
+it is. After the redeploy, re-ingest every active source with the ingestion CLI
+(see "Chatbot corpus ingestion and activation" below) and activate the new
+versions. The new model must also produce 1024-dimension vectors, which is what
+`EMBEDDING_DIMENSIONS` in `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts`
+requests and the `vector(1024)` column stores; a model that cannot must be
+accompanied by a code and migration change.
+
+---
+
 ## Chatbot Emergency Shutdown
 
 Turns the assistant off completely. Use it when the chatbot is burning budget,
