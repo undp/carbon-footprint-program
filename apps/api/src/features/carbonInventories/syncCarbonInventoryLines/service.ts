@@ -113,9 +113,9 @@ export const syncCarbonInventoryLinesService = async (
   }
 
   // Read every factor the payload references and refuse the request if any of
-  // them is one this footprint cannot use — deleted, of another year, or of
-  // another subcategory. Checked before the transaction opens, so a refused
-  // save writes nothing. The footprint was read before too and stays there:
+  // them does not exist (404) or is one this footprint cannot use — deleted, of
+  // another year, or of another subcategory (422). Checked before the
+  // transaction opens, so a refused save writes nothing. The footprint was read before too and stays there:
   // these transactions run at READ COMMITTED and the interleaving with a
   // concurrent year change is accepted — it needs two people editing the same
   // footprint at once.
@@ -172,10 +172,10 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      // Every stale reference was refused above. What is still left off the
-      // line is a damaged snapshot or a forged id: no snapshot and no result,
-      // so the cell comes back empty and the line reads as unfinished.
-      const keepsFactor = isFactorKeptOnLine(createItem, referencedFactors);
+      // Every unknown or stale reference was refused above. What is still
+      // left off the line is a damaged snapshot: no snapshot and no result, so
+      // the cell comes back empty and the line reads as unfinished.
+      const keepsFactor = isFactorKeptOnLine(createItem);
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, createItem, userId);
       await createLineResult(
@@ -217,7 +217,7 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      const keepsFactor = isFactorKeptOnLine(updateItem, referencedFactors);
+      const keepsFactor = isFactorKeptOnLine(updateItem);
       if (keepsFactor)
         await createLineFactor(tx, newInput.id, updateItem, userId);
       await createLineResult(

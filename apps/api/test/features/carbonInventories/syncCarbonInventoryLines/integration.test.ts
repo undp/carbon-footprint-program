@@ -1823,6 +1823,105 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result).not.toBeNull();
     });
 
+    it("returns 404 when a created line references a factor that does not exist", async () => {
+      // 404 when the referenced row does not exist, 422 when it exists but
+      // cannot be used here — the same split the endpoint applies to a
+      // subcategory. Factors are only ever soft-deleted, so no stale page
+      // produces this id: only a forged payload does.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: "999999999",
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("EMISSION_FACTOR_NOT_FOUND");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+
+    it("returns 404 when an update references a factor that does not exist", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 300,
+              factorSource: "DEFRA 2025",
+              baseFactorId: "999999999",
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("EMISSION_FACTOR_NOT_FOUND");
+      // The line keeps the input and the factor it had before the refusal.
+      const input = await readSnapshot(lineId);
+      expect(input.quantity?.toString()).toBe("100");
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+    });
+
     it("refuses the whole payload when one of its factors is stale", async () => {
       const { carbonInventory, subcategoryId, factor } =
         await buildYearScenario(2026, 2024);

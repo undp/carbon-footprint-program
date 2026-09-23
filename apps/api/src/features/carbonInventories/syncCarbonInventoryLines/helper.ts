@@ -5,6 +5,7 @@ import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
 import { tonToKg } from "@/utils/number.js";
 import { MissingFilesError } from "@/features/files/errors.js";
+import { EmissionFactorNotFoundError } from "@/features/emissionFactors/errors.js";
 import { attachDetails } from "@/errors/index.js";
 import {
   CrossInventoryFileLinkingError,
@@ -45,8 +46,8 @@ type ReferencedEmissionFactor = {
  * `assertFactorReferenceIsValid` does the checking.
  *
  * The status is selected rather than filtered on. A deleted factor has to stay
- * in the map so it can be refused as deleted: filtered out, it would be
- * indistinguishable from an id that never existed.
+ * in the map so it can be refused as deleted, with a 422: filtered out, it
+ * would be indistinguishable from an id that never existed, which is a 404.
  *
  * The referenced ids are always the numeric id of a real `emission_factor` row:
  * `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`,
@@ -96,7 +97,12 @@ export async function findReferencedEmissionFactors(
 /**
  * Refuses a line that references a catalogue factor this footprint cannot use.
  *
- * Three reasons, checked in this order, each answered with the same 422:
+ * An id that matches no factor at all is a 404, `EmissionFactorNotFoundError`
+ * — the pattern this endpoint already follows for a subcategory: 404 when the
+ * referenced row does not exist, 422 when it exists but cannot be used here.
+ *
+ * Otherwise three reasons, checked in this order, each answered with the same
+ * 422:
  *  - the factor is deleted. The maintainer retired it after the page was
  *    opened, so the selection is stale.
  *  - its year is not the footprint's, a footprint with no year included — it is
@@ -116,10 +122,8 @@ export async function findReferencedEmissionFactors(
  * opened yet — and the client says the catalogue changed and asks for a
  * reload, which brings back the factors that are offered now.
  *
- * An id that matches no row at all is left to `isFactorKeptOnLine`, which
- * reconciles it as before. Factors are only ever soft-deleted, so such an id is
- * not a stale selection but a forged one, and none of the three reasons would
- * describe it.
+ * Every reference is checked before the transaction opens, so a refused
+ * request — 404 or 422 — persists nothing.
  */
 export function assertFactorReferenceIsValid(
   item: Pick<ItemData, "baseFactorId">,
@@ -130,7 +134,7 @@ export function assertFactorReferenceIsValid(
   if (item.baseFactorId === null) return;
 
   const factor = factorsById.get(item.baseFactorId);
-  if (!factor) return;
+  if (!factor) throw new EmissionFactorNotFoundError(item.baseFactorId);
 
   const reason =
     factor.status === EmissionFactorStatus.DELETED
@@ -152,11 +156,9 @@ export function assertFactorReferenceIsValid(
 /**
  * Whether the line's frozen factor may be persisted for this footprint.
  *
- * Runs after `assertFactorReferenceIsValid` has refused every stale reference,
- * so a referenced factor that is in the map is one this footprint may use. One
- * that is not in the map matches no row at all — a forged id, since factors are
- * only ever soft-deleted — and the line is saved without a snapshot and without
- * a result, keeping everything else.
+ * Runs after `assertFactorReferenceIsValid` has refused every reference that
+ * is unknown or stale, so a referenced factor reaching here is one this
+ * footprint may use and its snapshot is kept.
  *
  * A null `baseFactorId` is not enough to call a line manual. Three shapes
  * arrive with one:
@@ -191,10 +193,9 @@ export function assertFactorReferenceIsValid(
  * endpoint reporting them back, which is a feature, not this guard.
  */
 export function isFactorKeptOnLine(
-  item: Pick<ItemData, "baseFactorId" | "factorSource" | "appliedFactorValue">,
-  factorsById: Map<string, ReferencedEmissionFactor>
+  item: Pick<ItemData, "baseFactorId" | "factorSource" | "appliedFactorValue">
 ): boolean {
-  if (item.baseFactorId !== null) return factorsById.has(item.baseFactorId);
+  if (item.baseFactorId !== null) return true;
 
   if (item.appliedFactorValue === null) return true;
 

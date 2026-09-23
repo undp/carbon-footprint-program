@@ -177,7 +177,7 @@ The rejection SHALL be one domain error, `INVALID_EMISSION_FACTOR_REFERENCE`, fo
 
 The rule SHALL apply identically on creation and on update.
 
-Lines whose factor was entered manually SHALL be untouched by this rule. A line counts as manual when its frozen source is one of the custom sources, not merely when it carries no factor reference: a snapshot with no reference but a catalogue source is a damaged or forged one and SHALL be persisted without a factor snapshot and without a computed result, keeping everything else — it is not a selection the user made and can redo, so it is reconciled rather than rejected. A line with nothing frozen yet — no applied factor value — SHALL be persisted as it always was, a direct-total line included, whose typed emissions SHALL never be dropped. A reference to an id that matches no factor at all SHALL be reconciled the same way: factors are only ever soft-deleted, so such an id is forged rather than stale.
+Lines whose factor was entered manually SHALL be untouched by this rule. A line counts as manual when its frozen source is one of the custom sources, not merely when it carries no factor reference: a snapshot with no reference but a catalogue source is a damaged or forged one and SHALL be persisted without a factor snapshot and without a computed result, keeping everything else — it is not a selection the user made and can redo, so it is reconciled rather than rejected. A line with nothing frozen yet — no applied factor value — SHALL be persisted as it always was, a direct-total line included, whose typed emissions SHALL never be dropped. A reference to an id that matches no factor at all SHALL be rejected with `404` and `EMISSION_FACTOR_NOT_FOUND`, the split this endpoint already applies to a subcategory: `404` when the referenced row does not exist, `422` when it exists but cannot be used. It is checked before any write as well, so nothing of the request SHALL be persisted.
 
 The year SHALL NOT be frozen on the line. This rejection, the clearing on a year change and the preserved factor identity together keep a catalogue-backed line on its footprint's year, so that year is derived rather than stored.
 
@@ -210,6 +210,12 @@ The year SHALL NOT be frozen on the line. This rejection, the clearing on a year
 - **GIVEN** a sync request whose line references a factor of the footprint's year belonging to a different subcategory
 - **WHEN** a sync request creates or updates that line
 - **THEN** the request SHALL be rejected with `422` and `details.reason = SUBCATEGORY_MISMATCH`
+
+#### Scenario: A reference to a factor that does not exist is rejected with 404
+
+- **GIVEN** a sync request whose line references an id that matches no emission factor
+- **WHEN** a sync request creates or updates that line
+- **THEN** the request SHALL be rejected with `404` and `EMISSION_FACTOR_NOT_FOUND`, AND nothing SHALL be persisted
 
 #### Scenario: A snapshot with no reference but a catalogue source is reconciled
 
