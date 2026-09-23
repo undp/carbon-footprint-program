@@ -1692,6 +1692,123 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       expect(input.result).toBeNull();
     });
 
+    it("drops a factor the maintainer has deleted", async () => {
+      // Same subcategory and same year as the footprint, so only the status
+      // explains the reconciliation. A client holding a page opened before the
+      // factor was retired sends exactly this.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const deletedFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryId,
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9", status: "DELETED" }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: deletedFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      // The rest of the line is persisted as always; only the factor is gone.
+      expect(created.quantity).toBe(100);
+      expect(created.baseFactorId).toBeNull();
+
+      const input = await readSnapshot(created.id);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+    });
+
+    it("applies the status check to an update as well", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+      // The line froze the factor while it was still in the catalogue.
+      expect((await readSnapshot(lineId)).factor).not.toBeNull();
+
+      await prisma.emissionFactor.update({
+        where: { id: factor.id },
+        data: { status: "DELETED" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const input = await readSnapshot(lineId);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+      // The line itself survives the reconciliation intact.
+      expect(input.quantity?.toString()).toBe("100");
+    });
+
     it("keeps a direct-total line, whose emissions were typed rather than computed", async () => {
       // A direct total carries no factor id either, and must not be swept up
       // with the damaged snapshots: the number is the user's own.

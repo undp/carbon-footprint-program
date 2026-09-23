@@ -1,5 +1,5 @@
 import { FileStatus } from "@repo/types";
-import { InputType, type Prisma } from "@repo/database";
+import { EmissionFactorStatus, InputType, type Prisma } from "@repo/database";
 import { CUSTOM_FACTOR_SOURCES } from "@/utils/index.js";
 import { mapBigIntField } from "@/utils/bigint.js";
 import { mapDecimalField } from "@/utils/decimal.js";
@@ -34,6 +34,15 @@ export type ItemData = {
  * the capture selector is not enforcing, since a stale client payload would
  * otherwise write a factor from another year and the filter would never notice.
  *
+ * Only ACTIVE factors are read, the same status the capture selector offers.
+ * A deleted factor is read as one that does not exist: it stays out of the map,
+ * and `isFactorKeptOnLine` reconciles the line exactly as it does for a factor
+ * of another year — the line is saved without a snapshot and without a result,
+ * keeping everything else. Without the filter a client holding a page opened
+ * before an administrator retired the factor would freeze it onto the line,
+ * value and source taken verbatim from the request, with nothing left in the
+ * catalogue to check it against.
+ *
  * The referenced ids are always the numeric id of a real `emission_factor` row:
  * `useEmissionEditorForm` sends `factor.originalEmissionFactorId ?? factor.id`,
  * so the composite id of a converted factor (`123-1`) never reaches the
@@ -63,7 +72,10 @@ export async function findReferencedEmissionFactors(
   if (referencedIds.length === 0) return new Map();
 
   const factors = await prisma.emissionFactor.findMany({
-    where: { id: { in: referencedIds.map((id) => BigInt(id)) } },
+    where: {
+      id: { in: referencedIds.map((id) => BigInt(id)) },
+      status: EmissionFactorStatus.ACTIVE,
+    },
     select: {
       id: true,
       year: true,
@@ -89,9 +101,10 @@ export async function findReferencedEmissionFactors(
  * in the state a year change already produces, which the existing completeness
  * rules read as unfinished.
  *
- * A referenced factor that is not in the map cannot be of the footprint's year
- * either, and a footprint with no year is offered no factors at all, so both
- * are reconciled the same way.
+ * A referenced factor that is not in the map — unknown, deleted, or simply of
+ * another year — cannot be offered to this footprint, and a footprint with no
+ * year is offered no factors at all, so all of them are reconciled the same
+ * way.
  *
  * A null `baseFactorId` is not enough to call a line manual. Three shapes
  * arrive with one:
