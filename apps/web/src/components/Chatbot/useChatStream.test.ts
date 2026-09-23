@@ -948,17 +948,22 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(assistant.error).toBe(true);
   });
 
-  it("uses the server message from a single 503 without escalating", async () => {
+  // The mocked body is what production actually sends: the API error handler
+  // replaces the message of every 5xx with that fixed English string, so a
+  // widget that echoed the server would show English in a Spanish-only UI.
+  it("shows its own copy on a single 503, ignoring the server message", async () => {
     const { result } = renderHook(() => useChatStream());
 
     fetchMock.mockImplementationOnce(() =>
-      Promise.resolve(makeHttpResponse(503, { message: "Vuelve más tarde" }))
+      Promise.resolve(
+        makeHttpResponse(503, { message: "An unexpected error occurred" })
+      )
     );
     await sendTurn(result, "hola");
 
     expect(result.current.state).toBe("error");
     expect(lastMessage(result.current.messages).content).toBe(
-      "Vuelve más tarde"
+      GENERIC_ERROR_MESSAGE
     );
   });
 });

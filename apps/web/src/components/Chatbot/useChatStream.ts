@@ -50,9 +50,9 @@ const DEGRADED_MESSAGE =
 
 /**
  * Read the `message` an API error response carries, or null when it carries
- * none. The 503, 413 and quota-429 branches all need it: the server writes a
- * specific, user-facing Spanish string for each and the widget should show
- * that rather than a fixed one.
+ * none. The 413 and quota-429 branches need it: the server writes a specific,
+ * user-facing Spanish string for each and the widget should show that rather
+ * than a fixed one. The 5xx branch deliberately does not read it.
  */
 const readServerError = async (
   response: Response
@@ -566,11 +566,6 @@ export const useChatStream = () => {
           // errors (the backend answered fine), so they reset the counter.
           if (response.status >= 500) {
             consecutiveFailuresRef.current += 1;
-            let serverMessage = GENERIC_ERROR_MESSAGE;
-            if (response.status === 503) {
-              serverMessage =
-                (await readServerMessage(response)) ?? GENERIC_ERROR_MESSAGE;
-            }
             if (consecutiveFailuresRef.current >= 2) {
               setState("degraded");
               updateLastAssistant((msg) => ({
@@ -581,9 +576,15 @@ export const useChatStream = () => {
               return;
             }
             setState("error");
+            // The widget composes its own copy for 5xx instead of reading the
+            // body: in production `buildErrorResponse` replaces the message of
+            // every 5xx with a fixed English string, so showing the server's
+            // would put "An unexpected error occurred" in a Spanish-only UI.
+            // 4xx messages survive that masking, which is why the branch below
+            // still reads them.
             updateLastAssistant((msg) => ({
               ...msg,
-              content: serverMessage,
+              content: GENERIC_ERROR_MESSAGE,
               error: true,
             }));
             return;
