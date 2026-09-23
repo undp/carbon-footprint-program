@@ -8,59 +8,6 @@ import type { MethodologyEmissionFactor } from "../types";
 import { isSelectedFactorAvailable } from "../components/EmissionEditor/services/emissionFactorService";
 
 /**
- * Whether the methodology came back with no emission factor at all.
- *
- * The factors offered to a footprint are filtered by its year, so a year the
- * catalogue does not cover yet — the current one, until its set is loaded —
- * produces a methodology whose every subcategory has an empty factor list.
- * Without saying so, capture shows an empty «Fuente» dropdown on every line
- * and reads as broken rather than as not-yet-available.
- *
- * It is one answer for the whole footprint, not a per-line collection: a
- * subcategory that legitimately has no factor for a dimension combination is
- * ordinary, the catalogue being absent is not.
- */
-export function hasNoCatalogueFactors(
-  categories: CategoryWithSubcategoriesAndLines[]
-): boolean {
-  return categories.every((category) =>
-    category.subcategories.every(
-      (subcategory) => subcategory.emissionFactors.length === 0
-    )
-  );
-}
-
-/**
- * Which notice capture owes the user when no «Fuente» dropdown has anything to
- * offer. `null` when the screen has nothing to explain.
- *
- * The two cases look identical on screen and have opposite ways out, so they
- * are told apart here rather than merged:
- *  - `YEAR_NOT_LOADED` — the footprint has a year and the catalogue does not
- *    cover it yet. Capture still works: a manual factor is what the
- *    methodology asks for when no published factor applies.
- *  - `NO_YEAR` — the footprint never got a year. `carbon_inventory.year` is
- *    nullable and no route guard enforces the order of the steps, so capture
- *    can be opened by URL before step 1 has saved one, and
- *    `buildEmissionFactorWhere` offers nothing at all to a footprint with no
- *    year. Nothing on this screen fixes it; the year does.
- *
- * A methodology with no categories says nothing either way — there is no
- * dropdown to be empty — so it earns no notice.
- */
-export type EmptyCatalogueNotice = "YEAR_NOT_LOADED" | "NO_YEAR";
-
-export function resolveEmptyCatalogueNotice(
-  year: number | null | undefined,
-  categories: CategoryWithSubcategoriesAndLines[] | undefined
-): EmptyCatalogueNotice | null {
-  if (!categories || categories.length === 0) return null;
-  if (!hasNoCatalogueFactors(categories)) return null;
-
-  return year == null ? "NO_YEAR" : "YEAR_NOT_LOADED";
-}
-
-/**
  * Whether a saved line points at a catalogue factor its subcategory no longer
  * offers.
  *

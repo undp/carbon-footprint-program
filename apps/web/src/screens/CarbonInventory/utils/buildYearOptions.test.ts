@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buildDeclarableYears, buildYearOptions } from "./buildYearOptions";
+import {
+  buildDeclarableYears,
+  buildYearOptions,
+  findYearWithoutFactors,
+} from "./buildYearOptions";
 import { CALCULATOR_YEARS_RANGE_FROM_CURRENT } from "@/config/constants";
 
 describe("buildYearOptions", () => {
@@ -53,5 +57,26 @@ describe("buildDeclarableYears", () => {
     expect(buildDeclarableYears(2026)).toHaveLength(
       CALCULATOR_YEARS_RANGE_FROM_CURRENT
     );
+  });
+});
+
+describe("findYearWithoutFactors", () => {
+  it("returns the selected year when the catalogue has no factor for it", () => {
+    expect(findYearWithoutFactors("2022", [2024, 2025])).toBe(2022);
+  });
+
+  it("returns null when the catalogue covers the selected year", () => {
+    expect(findYearWithoutFactors("2025", [2024, 2025])).toBeNull();
+  });
+
+  it("returns null while no year is selected", () => {
+    // An empty select is the required-field error's to report, not this one's.
+    expect(findYearWithoutFactors("", [2025])).toBeNull();
+    expect(findYearWithoutFactors(null, [2025])).toBeNull();
+    expect(findYearWithoutFactors(undefined, [2025])).toBeNull();
+  });
+
+  it("flags every selected year when the catalogue is empty", () => {
+    expect(findYearWithoutFactors("2025", [])).toBe(2025);
   });
 });

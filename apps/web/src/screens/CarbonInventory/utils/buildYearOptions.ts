@@ -44,3 +44,23 @@ export const buildYearOptions = (
 
   return [...years].sort((a, b) => a - b).map(String);
 };
+
+/**
+ * The selected year when the catalogue has no factor for it, or `null` when
+ * there is nothing to warn about.
+ *
+ * A year outside the catalogue is reachable two ways: the expert mode offers
+ * the declarable window, and every mode keeps the year the footprint already
+ * carries. Neither is decided by the selector, so step 1 states what that year
+ * costs before the capture step does. An empty selection is not a year yet and
+ * earns no warning.
+ */
+export const findYearWithoutFactors = (
+  selectedYear: string | null | undefined,
+  catalogueYears: number[]
+): number | null => {
+  if (!selectedYear) return null;
+
+  const year = Number(selectedYear);
+  return catalogueYears.includes(year) ? null : year;
+};

@@ -15,6 +15,7 @@ import {
 } from "@/components";
 import {
   StepHeader,
+  YearWithoutFactorsAlert,
   ExitInventoryDialog,
   CarbonInventoryNavigationButton,
 } from "./components";
@@ -29,6 +30,7 @@ import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
 import {
   buildDeclarableYears,
   buildYearOptions,
+  findYearWithoutFactors,
 } from "./utils/buildYearOptions";
 import {
   IS_DEVELOPMENT,
@@ -57,13 +59,6 @@ const NO_CATALOGUE_YEARS_MESSAGE = {
   description: `No hay factores cargados para ningún año, así que todavía no es posible medir una ${VOCAB.carbonInventory.shortNoun.singular}. Escribe a ${SUPPORT_EMAIL} y vuelve a intentarlo más tarde.`,
   retryButtonText: "Recargar Página",
 } as const;
-
-// A year outside the catalogue is reachable two ways: the expert mode offers
-// the declarable window, and every mode keeps the year the footprint already
-// carries. Neither is decided by the selector any more, so the field states
-// what that year costs before the capture step does.
-const YEAR_WITHOUT_FACTORS_MESSAGE =
-  "La metodología no tiene factores de emisión cargados para este año: las subcategorías llegarán sin factores al paso de captura.";
 
 const INVENTORY_ERROR_MESSAGE = {
   title: "No se encontró la huella",
@@ -179,13 +174,10 @@ export const BusinessProfilingScreen: FC = () => {
 
   const selectedYear = useWatch({ control, name: "year" });
 
-  const yearHelperText = useMemo(() => {
-    if (!selectedYear || catalogueYears.includes(Number(selectedYear))) {
-      return undefined;
-    }
-
-    return YEAR_WITHOUT_FACTORS_MESSAGE;
-  }, [selectedYear, catalogueYears]);
+  const yearWithoutFactors = useMemo(
+    () => findYearWithoutFactors(selectedYear, catalogueYears),
+    [selectedYear, catalogueYears]
+  );
 
   const {
     selectedSector,
@@ -383,7 +375,6 @@ export const BusinessProfilingScreen: FC = () => {
                       label: year,
                       value: year,
                     }))}
-                    helperText={yearHelperText}
                     required
                   />
                   <FormTextField
@@ -393,6 +384,9 @@ export const BusinessProfilingScreen: FC = () => {
                     required
                   />
                 </Box>
+                {yearWithoutFactors !== null && (
+                  <YearWithoutFactorsAlert year={yearWithoutFactors} />
+                )}
                 <Divider />
                 <Box className="mt-6 flex flex-1 flex-row gap-6">
                   <FormTextField
