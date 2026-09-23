@@ -95,13 +95,17 @@ export const CHATBOT_REHYDRATE_TIMEOUT_MS = 10_000;
  * `chatbot-conversation-purge` change; a duration belongs in this line once
  * that has landed and not before.
  *
- * What is left was the load-bearing half regardless: a retention figure is a
- * disclosure, "no compartas datos personales" is a control — the cheapest
- * personal data to delete is the kind that was never typed.
+ * The first sentence says that conversations are stored and why — to answer
+ * and to resume them — which is true today and stays true after the purge,
+ * because it names a purpose rather than a duration. The second is the
+ * load-bearing half: a retention figure is a disclosure, "no compartas datos
+ * personales" is a control — the cheapest personal data to delete is the kind
+ * that was never typed.
  */
 export const CHATBOT_AI_DISCLAIMER =
   "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
-export const CHATBOT_PRIVACY_NOTICE = "No compartas datos personales.";
+export const CHATBOT_PRIVACY_NOTICE =
+  "Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales.";
 
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;

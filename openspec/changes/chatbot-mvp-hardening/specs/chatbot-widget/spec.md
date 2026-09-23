@@ -25,7 +25,7 @@ This is a thin, persistent reminder that the chatbot is AI-generated and that ci
 
 ### Requirement: Widget renders a persistent privacy notice beside the disclaimer
 
-The widget SHALL render a second notice in the same foot-of-chat area, with the exact text `"No compartas datos personales."` held as a named constant in `apps/web/src/config/constants.ts`. It SHALL share the disclaimer's typography and non-interactive, undismissable nature, and SHALL be visible in every widget state.
+The widget SHALL render a second notice in the same foot-of-chat area, with the exact text `"Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales."` held as a named constant in `apps/web/src/config/constants.ts`. It SHALL share the disclaimer's typography and non-interactive, undismissable nature, and SHALL be visible in every widget state.
 
 The notice SHALL NOT state a retention window while nothing deletes expired conversations. `expires_at` is written at row creation and every read filters on it, so an expired conversation stops being reachable, but the row survives in the database and in any dump of it. A sentence such as "las conversaciones se guardan hasta 30 días" therefore reads as a deletion promise the system does not keep — and of the two possible errors, the one that errs against the reader is the one worth avoiding. Physical deletion is the `chatbot-conversation-purge` change; a duration may be restored to this line once that change has landed, and not before.
 
@@ -34,7 +34,7 @@ What remains is the load-bearing half regardless. A retention figure is a disclo
 #### Scenario: Privacy notice present in every widget state
 
 - **WHEN** the chatbot widget is open in any of its canonical states
-- **THEN** the rendered DOM SHALL contain an element with the exact text `"No compartas datos personales."`
+- **THEN** the rendered DOM SHALL contain an element with the exact text `"Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales."`
 
 #### Scenario: Notice claims no retention window
 
