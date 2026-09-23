@@ -20,3 +20,14 @@ Refusing before the provider is the entire point: a refusal that still pays for 
 
 - **WHEN** a quota refuses the turn
 - **THEN** the response SHALL be an ordinary JSON 429, not an SSE stream carrying a terminal error event
+
+### Requirement: Answers without verified sources carry no numeric values
+
+When `searchKnowledge` reports `'0 fuentes válidas encontradas'`, the system prompt SHALL instruct the assistant to open with the existing K=0 literal, MAY let it point to official external sources (GHG Protocol, IPCC, DEFRA, a certified verifier) and give conceptual context, and SHALL forbid it from giving any numeric value — emission factors, figures, ranges, percentages or estimates — even when qualified as approximate. The prohibition on invented URLs, section numbers, tables and bibliographic references SHALL remain.
+
+This supersedes the K=0 guidance of `chatbot-rag-mvp` Decision 14, which allowed qualified approximate figures. A qualifier does not survive being copied into an inventory, and an unsourced figure can contradict the platform's own factors.
+
+#### Scenario: The prompt forbids numbers in the K=0 path
+
+- **WHEN** the system prompt is loaded
+- **THEN** it SHALL contain the prohibition on numeric values for the zero-sources case, and SHALL NOT contain the earlier permission for "factores aproximados" or "cifras orientativas"

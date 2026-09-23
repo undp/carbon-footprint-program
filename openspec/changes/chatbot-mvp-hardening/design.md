@@ -84,6 +84,14 @@ Two further notes for whoever revisits this. "D11" is a design-decision identifi
 
 **Rationale**: taken from the team's own cost modelling — roughly 10 USD/month at 300 users, 27 at 500, 108 at 1000. Thirty is the value at which ordinary operation is silent (the 300-user case never reaches the 50% threshold), growth is audible (the 500-user case trips 50% and 80%), and an anomaly is unmistakable (the 1000-user case exceeds all three). A default calibrated so that the first threshold fires during normal use would train everyone to ignore it.
 
+### Decision 9 — Without sources, no numbers: `chatbot-rag-mvp` Decision 14 is reversed
+
+**Decision**: when retrieval returns zero valid sources, the assistant may name official sources to consult (GHG Protocol, IPCC, DEFRA, a certified verifier) and give conceptual context, but SHALL NOT give any numeric value — no emission factors, figures, ranges, percentages or estimates — however it is qualified.
+
+**Rationale**: `chatbot-rag-mvp` Decision 14 allowed "factores aproximados, cifras orientativas" in the K=0 path provided they were qualified, on the grounds that the opener plus the widget's disclaimer protect the reader. Review found the failure that reasoning misses: a user copies the number into a formal inventory, where the qualifier does not travel with it, and it can disagree with the platform's own factors. Suggesting a figure without a source is a responsibility the assistant should not take. Derivation points to external sources rather than to the platform's factors because the assistant has no access to those yet and they sit behind `/admin`, out of reach of an anonymous visitor.
+
+**Archive note**: item 6 of the base requirement "System prompt is loaded at boot…" in `chatbot-rag-mvp/specs/chatbot-message-streaming` still quotes the old K=0 text and states that figures may appear. When the base change is archived, that paragraph must be updated to match; the requirement added by this change is the one the prompt implements.
+
 ## Risks / Trade-offs
 
 - **One actor can deny the anonymous chatbot for a day** → accepted per Decision 2; authenticated callers keep service and the rejection message tells anonymous callers so.
