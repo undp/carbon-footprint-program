@@ -248,8 +248,10 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       expect(duplicatedSubcategories).toHaveLength(2);
       expect(duplicatedSubcategories[0].name).toBe("Test - Sub A");
       expect(duplicatedSubcategories[0].description).toBe("Subcategory A");
+      expect(duplicatedSubcategories[0].position).toBe(1);
       expect(duplicatedSubcategories[1].name).toBe("Test - Sub B");
       expect(duplicatedSubcategories[1].description).toBe("Subcategory B");
+      expect(duplicatedSubcategories[1].position).toBe(2);
     });
 
     it("should duplicate measurement unit associations for subcategories", async () => {

@@ -129,10 +129,20 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "METHODOLOGY_VERSION_NOT_FOUND_FOR_CATEGORY",
     "La versión de metodología no fue encontrada.",
   ],
+  ["CATEGORY_NOT_FOUND", "La categoría no fue encontrada."],
+  ["SAME_CATEGORY", "No se puede reordenar una categoría consigo misma."],
+  [
+    "CATEGORIES_FROM_DIFFERENT_METHODOLOGY_VERSIONS",
+    "Solo se pueden reordenar categorías de la misma metodología. Si otra persona las movió, recarga la página.",
+  ],
   // Subcategories
   [
     "SUBCATEGORY_NAME_ALREADY_EXISTS",
     "Ya existe una sub-categoría con este nombre en esta categoría.",
+  ],
+  [
+    "SUBCATEGORY_POSITION_ALREADY_EXISTS",
+    "Ya existe una sub-categoría con esta posición en esta categoría.",
   ],
   [
     "CATEGORY_NOT_FOUND_FOR_SUBCATEGORY",
@@ -141,6 +151,19 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   [
     "CATEGORY_FROM_DIFFERENT_METHODOLOGY",
     "La categoría debe pertenecer a la misma metodología.",
+  ],
+  ["SUBCATEGORY_NOT_FOUND", "La sub-categoría no fue encontrada."],
+  [
+    "SAME_SUBCATEGORY",
+    "No se puede reordenar una sub-categoría consigo misma.",
+  ],
+  [
+    "SUBCATEGORIES_FROM_DIFFERENT_CATEGORIES",
+    "Solo se pueden reordenar sub-categorías de la misma categoría. Si otra persona las movió, recarga la página.",
+  ],
+  [
+    "SUBCATEGORY_CONCURRENTLY_MOVED",
+    "Otra persona movió esta sub-categoría a otra categoría mientras editabas. Recarga la página e inténtalo de nuevo.",
   ],
   // Emission factors
   ["EMISSION_FACTOR_NOT_FOUND", "El factor de emisión no fue encontrado."],

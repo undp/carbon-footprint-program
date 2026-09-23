@@ -4,7 +4,7 @@ import { Tooltip } from "@mui/material";
 import { DetailTooltipText, NumericInput } from "@/components";
 import { isFactorValueEditable } from "../services/emissionFactorService";
 import { useLineValidation } from "../hooks/useLineValidation";
-import { formatter } from "@/utils/formatting";
+import { formatRateUnit, formatter } from "@/utils/formatting";
 import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
 import {
   MethodologyEmissionFactorDimension,
@@ -62,14 +62,14 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
   const exactValueDetail =
     displayedFactor === exactFactor
       ? ""
-      : `Valor usado en el cálculo: ${exactFactor} ${
-          unit?.abbreviation ?? ""
-        }`.trim();
+      : `Valor usado en el cálculo: ${exactFactor} ${formatRateUnit(
+          unit?.abbreviation
+        )}`.trim();
 
   const inputElement = isEditableBySource ? (
     <NumericInput
       value={value ?? null}
-      suffix={unit?.abbreviation ?? ""}
+      suffix={formatRateUnit(unit?.abbreviation)}
       onChange={onChange}
       // Own factors accept the full precision the database preserves, so a
       // pasted official factor is never truncated without warning.
@@ -88,7 +88,7 @@ export const EmissionEditorFactorCell: FC<EmissionEditorFactorCellProps> = ({
     />
   ) : (
     <DetailTooltipText detail={exactValueDetail} tabIndex={tabIndex}>
-      {displayedFactor} {unit?.abbreviation ?? ""}
+      {displayedFactor} {formatRateUnit(unit?.abbreviation)}
     </DetailTooltipText>
   );
 

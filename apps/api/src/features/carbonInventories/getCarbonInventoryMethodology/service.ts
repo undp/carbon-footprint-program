@@ -184,7 +184,7 @@ export const getCarbonInventoryMethodologyService = async (
               },
             },
             orderBy: {
-              name: "asc",
+              position: "asc",
             },
           },
         },

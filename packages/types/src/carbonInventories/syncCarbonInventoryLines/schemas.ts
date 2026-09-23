@@ -28,6 +28,9 @@ const LineItemSchema = z
       "The ID of the measurement unit"
     ),
     factorSource: z.string().nullable().describe("The source of the factor"),
+    baseFactorId: IdSchema.nullable().describe(
+      "The ID of the base emission factor (null for manual factors)"
+    ),
     factorValue: z.number().nullable().describe("The factor value"),
     factorRateMeasurementUnitId: IdSchema.nullable().describe(
       "The ID of the rate measurement unit of the factor"
@@ -56,9 +59,7 @@ export const SyncCreateLineItemSchema = z
     quantity: LineItemSchema.shape.quantity,
     measurementUnitId: LineItemSchema.shape.measurementUnitId,
     factorSource: LineItemSchema.shape.factorSource,
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
-    ),
+    baseFactorId: LineItemSchema.shape.baseFactorId,
     appliedFactorValue: LineItemSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       LineItemSchema.shape.factorRateMeasurementUnitId,
@@ -86,9 +87,7 @@ export const SyncUpdateLineItemSchema = LineItemSchema.pick({
     inputType: InputTypeSchema.describe(
       "The input type: DIRECT for manual total emissions, SIMPLIFIED for factor-based, EXPERT for custom factors"
     ),
-    baseFactorId: IdSchema.nullable().describe(
-      "The ID of the base emission factor (null for manual factors)"
-    ),
+    baseFactorId: LineItemSchema.shape.baseFactorId,
     appliedFactorValue: LineItemSchema.shape.factorValue,
     appliedFactorRateMeasurementUnitId:
       LineItemSchema.shape.factorRateMeasurementUnitId,

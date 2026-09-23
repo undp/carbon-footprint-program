@@ -10,6 +10,7 @@ import {
 import { createTestApp } from "@test/factories/appFactory.js";
 import { createEmptyMethodologyVersion } from "@test/factories/methodologyFactory.js";
 import { createTestCategory } from "@test/factories/categoryFactory.js";
+import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type { SwapCategoryPositionsResponse } from "@repo/types";
 import { CategoryStatus } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -108,6 +109,46 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
 
       expect(dbCatA!.position).toBe(3);
       expect(dbCatB!.position).toBe(1);
+    });
+
+    it("should stamp the acting user on both swapped categories", async () => {
+      const user = await getTestLoggedUser(prisma);
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Audit",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const catA = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Audit A",
+        position: 1,
+      });
+      const catB = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Audit B",
+        position: 2,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/categories/swap-positions",
+        payload: {
+          categoryIdA: catA.id.toString(),
+          categoryIdB: catB.id.toString(),
+        },
+      });
+
+      expect(response.statusCode).toBe(201);
+
+      const [dbCatA, dbCatB] = await Promise.all([
+        prisma.category.findUniqueOrThrow({ where: { id: catA.id } }),
+        prisma.category.findUniqueOrThrow({ where: { id: catB.id } }),
+      ]);
+
+      // updatedAt is bumped by Prisma on any write; without the actor next to
+      // it the row claims it was last touched by whoever edited it before.
+      expect(dbCatA.updatedById).toBe(user.id);
+      expect(dbCatB.updatedById).toBe(user.id);
+      expect(dbCatA.updatedAt).not.toBeNull();
+      expect(dbCatB.updatedAt).not.toBeNull();
     });
 
     it("should not affect other categories in the same methodology version", async () => {
@@ -368,6 +409,78 @@ describe("POST /api/categories/swap-positions - Integration Tests", () => {
         message: string;
       };
       expect(body.code).toBe("CATEGORY_NOT_FOUND");
+    });
+
+    it("should reject a category soft-deleted while the request waits for the lock", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Swap Vanishing Category",
+        status: MethodologyVersionStatus.PUBLISHED,
+      });
+
+      const catA = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Vanishing A",
+        position: 1,
+      });
+      const catB = await createTestCategory(prisma, methodology.id, {
+        name: "Test - Swap Vanishing B",
+        position: 2,
+      });
+
+      // The positions written below come from a read without a lock. A holder
+      // soft-deletes B and keeps the lock, so a request that trusted that read
+      // would write a position into a DELETED row — and leave A holding B's
+      // old one.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.category.update({
+            where: { id: catB.id },
+            data: { status: CategoryStatus.DELETED },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "POST",
+        url: "/api/categories/swap-positions",
+        payload: {
+          categoryIdA: catA.id.toString(),
+          categoryIdB: catB.id.toString(),
+        },
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(404);
+      const conflictBody = JSON.parse(response.body) as {
+        code: string;
+        message: string;
+      };
+      expect(conflictBody.code).toBe("CATEGORY_NOT_FOUND");
+
+      const [rowA, rowB] = await Promise.all([
+        prisma.category.findUniqueOrThrow({ where: { id: catA.id } }),
+        prisma.category.findUniqueOrThrow({ where: { id: catB.id } }),
+      ]);
+      expect(rowA.position).toBe(1);
+      expect(rowB.position).toBe(2);
     });
   });
 

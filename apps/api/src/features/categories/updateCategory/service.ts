@@ -6,12 +6,8 @@ import {
   type UpdateCategoryResponse,
 } from "@repo/types";
 import { mapCategoryToResponse } from "../mappers.js";
-import {
-  CategoryNotFoundError,
-  CategoryNameAlreadyExistsError,
-  CategoryPositionAlreadyExistsError,
-} from "../errors.js";
-import { getDuplicatedFieldsFromP2002Error } from "@/errors/index.js";
+import { CategoryNotFoundError } from "../errors.js";
+import { rethrowCategoryUniqueViolation } from "../helpers.js";
 
 export const updateCategoryService = async (
   prismaClient: PrismaClient,
@@ -28,7 +24,6 @@ export const updateCategoryService = async (
   if (data.synonyms !== undefined) updateData.synonyms = data.synonyms;
   if (data.description !== undefined) updateData.description = data.description;
   if (data.explanation !== undefined) updateData.explanation = data.explanation;
-  if (data.position !== undefined) updateData.position = data.position;
 
   if (Object.keys(updateData).length > 0) {
     updateData.updatedById = user ? BigInt(user.id) : null;
@@ -55,17 +50,6 @@ export const updateCategoryService = async (
     });
     return mapCategoryToResponse(category);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === "P2002") {
-        const duplicatedFields = getDuplicatedFieldsFromP2002Error(error);
-        if (duplicatedFields.includes("name")) {
-          throw new CategoryNameAlreadyExistsError();
-        }
-        if (duplicatedFields.includes("position")) {
-          throw new CategoryPositionAlreadyExistsError();
-        }
-      }
-    }
-    throw error;
+    rethrowCategoryUniqueViolation(error);
   }
 };

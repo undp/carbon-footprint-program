@@ -19,6 +19,7 @@ export {
   useAddSubcategory,
   useUpdateSubcategory,
   useDeleteSubcategory,
+  useSwapSubcategoryPositions,
 } from "./useSubcategories";
 export {
   useEmissionFactors,

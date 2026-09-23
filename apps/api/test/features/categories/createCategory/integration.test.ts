@@ -54,7 +54,6 @@ describe("POST /api/categories/ - Integration Tests", () => {
       color: "#FF0000",
       synonyms: "synonym1, synonym2",
       description: "Test category description",
-      position: 1,
       ...overrides,
     };
   }
@@ -82,7 +81,8 @@ describe("POST /api/categories/ - Integration Tests", () => {
       expect(body.color).toBe(payload.color);
       expect(body.synonyms).toBe(payload.synonyms);
       expect(body.description).toBe(payload.description);
-      expect(body.position).toBe(payload.position);
+      // First category of an empty methodology version.
+      expect(body.position).toBe(1);
       expect(body.status).toBe(CategoryStatus.ACTIVE);
       expect(body.createdAt).toBeTruthy();
       expect(body.updatedAt).toBeFalsy();
@@ -114,8 +114,103 @@ describe("POST /api/categories/ - Integration Tests", () => {
       expect(dbRecord!.color).toBe(payload.color);
       expect(dbRecord!.synonyms).toBe(payload.synonyms);
       expect(dbRecord!.description).toBe(payload.description);
-      expect(dbRecord!.position).toBe(payload.position);
+      expect(dbRecord!.position).toBe(1);
       expect(dbRecord!.status).toBe(CategoryStatus.ACTIVE);
+    });
+
+    it("should append the new category last inside its methodology version", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Category Position",
+      });
+      await createTestCategory(prisma, methodology.id, {
+        name: "Test - Existing Position Category",
+        position: 1,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/categories/",
+        payload: buildCategoryPayload(methodology.id.toString()),
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCategoryResponse;
+
+      const dbRecord = await prisma.category.findUnique({
+        where: { id: BigInt(body.id) },
+      });
+
+      expect(dbRecord!.position).toBe(2);
+    });
+
+    it("should wait for a concurrent create in the same methodology version", async () => {
+      const methodology = await createEmptyMethodologyVersion(prisma, {
+        name: "Test - Category Concurrent Position",
+      });
+      await createTestCategory(prisma, methodology.id, {
+        name: "Test - Concurrent Existing Category",
+        position: 1,
+      });
+
+      // Reproduces the race the methodology version lock exists for: a
+      // transaction holds position 2 uncommitted while the request computes its
+      // own. With the lock the request blocks, then reads MAX(position) = 2 and
+      // appends 3. Without it, it computes 2 as well and the partial unique
+      // index rejects it with a 409 about a position the client never supplied.
+      // Mirrors the same test on createSubcategory.
+      let releaseHolder: () => void = () => undefined;
+      const holderReleased = new Promise<void>((resolve) => {
+        releaseHolder = resolve;
+      });
+      let holderLocked: () => void = () => undefined;
+      const holderHasLock = new Promise<void>((resolve) => {
+        holderLocked = resolve;
+      });
+
+      const holder = prisma.$transaction(
+        async (tx) => {
+          await tx.$queryRaw`SELECT "id" FROM "methodology_version" WHERE "id" = ${methodology.id} FOR UPDATE`;
+          await tx.category.create({
+            data: {
+              methodologyVersionId: methodology.id,
+              name: "Test - Concurrent Holder Category",
+              icon: "FACTORY",
+              color: "#000000",
+              synonyms: "test",
+              description: "Holds position 2 until the request is in flight",
+              position: 2,
+              status: CategoryStatus.ACTIVE,
+            },
+          });
+          holderLocked();
+          await holderReleased;
+        },
+        { timeout: 20000 }
+      );
+
+      // The request must not start until the holder owns the lock and has taken
+      // position 2. Starting both and hoping the holder wins makes the
+      // interleaving a race: if the request got there first it would take
+      // position 2 itself and the holder's insert would be the one rejected.
+      await holderHasLock;
+
+      const requestPromise = app.inject({
+        method: "POST",
+        url: "/api/categories/",
+        payload: buildCategoryPayload(methodology.id.toString()),
+      });
+
+      // Only to let the request reach the lock and block on it, so the test
+      // exercises the waiting path rather than a sequential one.
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      releaseHolder();
+      await holder;
+
+      const response = await requestPromise;
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateCategoryResponse;
+      expect(body.position).toBe(3);
     });
   });
 
@@ -142,13 +237,16 @@ describe("POST /api/categories/ - Integration Tests", () => {
       expect(response.statusCode).toBe(400);
     });
 
-    it("should return 400 when position is less than 1", async () => {
+    it("should return 400 when a position is sent", async () => {
       const methodology = await createEmptyMethodologyVersion(prisma, {
-        name: "Test - Invalid Position",
+        name: "Test - Rejected Position",
       });
 
+      // The server assigns the position, so the schema is strict about it: a
+      // client that keeps sending one is out of date, and silently ignoring it
+      // would leave the row somewhere the caller did not ask for.
       const payload = buildCategoryPayload(methodology.id.toString(), {
-        position: 0,
+        position: 1,
       });
 
       const response = await app.inject({
@@ -216,7 +314,6 @@ describe("POST /api/categories/ - Integration Tests", () => {
 
       const payload = buildCategoryPayload(methodology.id.toString(), {
         name: existingCategory.name,
-        position: 2,
       });
 
       const response = await app.inject({
@@ -231,34 +328,6 @@ describe("POST /api/categories/ - Integration Tests", () => {
         message: string;
       };
       expect(body.code).toBe("CATEGORY_NAME_ALREADY_EXISTS");
-    });
-
-    it("should return 409 when category position already exists for the same methodology", async () => {
-      const methodology = await createEmptyMethodologyVersion(prisma, {
-        name: "Test - Duplicate Position Methodology",
-      });
-
-      await createTestCategory(prisma, methodology.id, {
-        name: "Test - Existing Position Category",
-        position: 1,
-      });
-
-      const payload = buildCategoryPayload(methodology.id.toString(), {
-        position: 1,
-      });
-
-      const response = await app.inject({
-        method: "POST",
-        url: "/api/categories/",
-        payload,
-      });
-
-      expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as {
-        code: string;
-        message: string;
-      };
-      expect(body.code).toBe("CATEGORY_POSITION_ALREADY_EXISTS");
     });
   });
 });

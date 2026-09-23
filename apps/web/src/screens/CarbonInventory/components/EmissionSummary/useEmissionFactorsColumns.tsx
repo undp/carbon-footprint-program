@@ -4,7 +4,7 @@ import { GridColDef } from "@mui/x-data-grid";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { CategoryChip } from "@/components/EmissionResults";
 import { DetailTooltipText } from "@/components";
-import { formatter } from "@/utils/formatting";
+import { formatRateUnit, formatter } from "@/utils/formatting";
 
 const extractDenominator = (rateUnit: string): string => {
   const parts = rateUnit.split("/");
@@ -73,7 +73,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
       },
       {
         field: "factorValue",
-        headerName: "Factor (Kg CO₂e/unidad)",
+        headerName: "Factor (kgCO₂e/unidad)",
         minWidth: 180,
         headerClassName,
         cellClassName,
@@ -90,7 +90,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
           const exactValueDetail =
             displayedFactor === exactFactor
               ? ""
-              : `Valor usado en el cálculo: ${exactFactor} ${row.rateUnit}`;
+              : `Valor usado en el cálculo: ${exactFactor} ${formatRateUnit(row.rateUnit)}`;
           return (
             <Box className="flex flex-col gap-0.5">
               <DetailTooltipText
@@ -99,7 +99,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
                 variant="body2"
                 fontWeight="fontWeightRegular"
               >
-                {displayedFactor} {row.rateUnit}
+                {displayedFactor} {formatRateUnit(row.rateUnit)}
               </DetailTooltipText>
               {row.gasBreakdownLines.map((line, idx) => (
                 <Typography
@@ -108,7 +108,7 @@ export const useEmissionFactorsColumns = (): GridColDef<
                   color="text.secondary"
                   sx={{ fontSize: "0.65rem" }}
                 >
-                  {formatter.emissionFactor(line.value)} kg CO₂e of {line.gas}/
+                  {formatter.emissionFactor(line.value)} kgCO₂e de {line.gas}/
                   {denominator}
                 </Typography>
               ))}

@@ -1,7 +1,68 @@
-import { SubcategoryStatus, type PrismaClient } from "@repo/database";
+import {
+  CategoryStatus,
+  SubcategoryStatus,
+  type PrismaClient,
+} from "@repo/database";
 import { z } from "zod";
 import { checkForDuplicates, type SeedsDataset } from "@/utils/index.js";
 import { FullMethodologyDataSchema } from "../shared.js";
+
+export interface PositionedSubcategory {
+  countryIsoCode: string;
+  methodologyVersionName: string;
+  categoryName: string;
+  position: number;
+}
+
+/**
+ * Authored positions must run 1..N inside each category.
+ *
+ * This is the only check the authored positions need: 1..N with no gaps also
+ * means no duplicates, since [1, 2, 2] does not sort to [1, 2, 3] either. It is
+ * stricter than the database's partial unique index, which accepts [1, 2, 4] and
+ * [2, 3, 4] — and the authored order is published as a numbered table in the
+ * docs and carried into the methodology export, so a subcategory dropped from
+ * the JSON without renumbering would leave a permanent hole users can see. Gaps
+ * that appear at runtime from soft deletes are expected and fine; this is only
+ * about authored seed data.
+ */
+export function checkPositionsAreContiguous(
+  data: PositionedSubcategory[]
+): void {
+  const positionsByCategory = new Map<string, number[]>();
+
+  for (const row of data) {
+    const key = [
+      row.countryIsoCode,
+      row.methodologyVersionName,
+      row.categoryName,
+    ].join(" > ");
+
+    const positions = positionsByCategory.get(key);
+    if (positions) {
+      positions.push(row.position);
+    } else {
+      positionsByCategory.set(key, [row.position]);
+    }
+  }
+
+  const offenders = [...positionsByCategory.entries()]
+    .map(([key, positions]) => ({
+      key,
+      sorted: [...positions].sort((a, b) => a - b),
+    }))
+    .filter(({ sorted }) =>
+      sorted.some((position, index) => position !== index + 1)
+    )
+    .map(({ key, sorted }) => `${key} (${sorted.join(", ")})`);
+
+  if (offenders.length > 0) {
+    throw new Error(
+      `Subcategory positions must run 1..N with no gaps inside each category. ` +
+        `Offending categories: ${offenders.join("; ")}. Please renumber and try again.`
+    );
+  }
+}
 
 export async function seedSubcategories(
   prisma: PrismaClient,
@@ -20,6 +81,7 @@ export async function seedSubcategories(
         name: subcategory.name,
         icon: subcategory.icon,
         description: subcategory.description,
+        position: subcategory.position,
         allowedMeasurementUnitsAbbreviations:
           subcategory.allowedMeasurementUnitsAbbreviations ?? [],
       }))
@@ -34,8 +96,19 @@ export async function seedSubcategories(
     "name",
   ]);
 
+  // Positions must also be unique per category (enforced by a partial unique
+  // index in the database). No separate duplicate check for them: 1..N with no
+  // gaps already implies uniqueness, and the message below names the category
+  // and prints its sorted positions, so the duplicate is visible.
+  checkPositionsAreContiguous(subcategoriesData);
+
   // Fetch categories with their methodology versions and countries to map by full path
   const categories = await prisma.category.findMany({
+    // Live rows only: the partial unique indexes ignore DELETED ones, so a
+    // category a maintainer soft-deleted and this seed re-created has two rows
+    // for the same full path, and the map would keep whichever the unordered
+    // read returned last — attaching the subcategories below to the dead one.
+    where: { status: CategoryStatus.ACTIVE },
     include: {
       methodologyVersion: {
         include: {
@@ -70,6 +143,7 @@ export async function seedSubcategories(
       icon: subcategory.icon,
       status: SubcategoryStatus.ACTIVE,
       description: subcategory.description,
+      position: subcategory.position,
     };
   });
 
@@ -81,6 +155,11 @@ export async function seedSubcategories(
 
   // Verify all subcategories were created
   const subcategories = await prisma.subcategory.findMany({
+    // Live rows only, for the same reason as the categories read above: a
+    // soft-deleted row would satisfy the existence check below and could shadow
+    // the ACTIVE row just created for the same full path, silently leaving the
+    // live subcategory with none of the measurement units seeded further down.
+    where: { status: SubcategoryStatus.ACTIVE },
     include: {
       category: {
         include: {
@@ -94,10 +173,44 @@ export async function seedSubcategories(
     },
   });
 
-  if (subcategories.length !== subcategoriesData.length)
+  // Create a map of subcategories by full path for lookup
+  const subcategoriesByFullPath = new Map(
+    subcategories.map((subcategory) => [
+      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
+      subcategory,
+    ])
+  );
+
+  // skipDuplicates drops a row that collides with any partial unique index, not
+  // only the one on (category, name): since positions became unique per category
+  // too, a row whose position is already held by an unrelated subcategory
+  // disappears without an error. Name those rows — a bare count says neither
+  // which row nor which constraint.
+  const missingSubcategories = subcategoriesData.filter(
+    (subcategory) =>
+      !subcategoriesByFullPath.has(
+        `${subcategory.countryIsoCode}:${subcategory.methodologyVersionName}:${subcategory.categoryName}:${subcategory.name}`
+      )
+  );
+
+  if (missingSubcategories.length > 0) {
+    const details = missingSubcategories
+      .map(
+        (subcategory) =>
+          `'${subcategory.name}' (category '${subcategory.categoryName}', position ${subcategory.position})`
+      )
+      .join(", ");
+
     throw new Error(
-      `Expected ${subcategoriesData.length} subcategories but found ${subcategories.length} for dataset ${dataset}`
+      `${missingSubcategories.length} subcategories were not created for dataset ${dataset}: ${details}. A row is skipped when its (category, name) or (category, position) is already taken by an existing subcategory.`
     );
+  }
+
+  // No count check on top of the block above: `subcategories` is every
+  // subcategory in the database, so the only way the counts could differ once
+  // every authored row was found is that the database holds rows this dataset
+  // never authored — a subcategory a maintainer added through the UI, which is
+  // legitimate and must not abort a re-seed.
 
   console.log(
     `   ✓ Ensured ${subcategoriesData.length} subcategories exist for dataset ${dataset}`
@@ -110,14 +223,6 @@ export async function seedSubcategories(
   const measurementUnits = await prisma.measurementUnit.findMany();
   const measurementUnitsByAbbreviation = new Map(
     measurementUnits.map((mu) => [mu.abbreviation, mu])
-  );
-
-  // Create a map of subcategories by full path for lookup
-  const subcategoriesByFullPath = new Map(
-    subcategories.map((subcategory) => [
-      `${subcategory.category.methodologyVersion.country.isoCode}:${subcategory.category.methodologyVersion.name}:${subcategory.category.name}:${subcategory.name}`,
-      subcategory,
-    ])
   );
 
   // Prepare SubcategoryMeasurementUnit records

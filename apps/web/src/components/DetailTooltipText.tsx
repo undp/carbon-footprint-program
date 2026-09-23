@@ -45,6 +45,24 @@ export const DetailTooltipText: FC<DetailTooltipTextProps> = ({
       describeChild
       enterTouchDelay={0}
       leaveTouchDelay={6000}
+      // Every detail this component shows is one line — an unrounded value or
+      // a calculation chain — and MUI's 300px cap broke the chain in two,
+      // stranding the final unit from the number it belongs to. An equation
+      // someone is re-checking by hand has to read as one equation.
+      //
+      // Raised rather than removed, and the raise is measured: the chain has a
+      // hard ceiling of ~120 characters, because its denominators come from
+      // the sealed unit catalog (`pieza arre` is the longest, and it appears
+      // twice) and its decimals are capped at `DB_DECIMAL_SCALE`. The cap is
+      // expressed in character widths so it tracks the tooltip's font instead
+      // of assuming a pixel size.
+      //
+      // Note `whiteSpace: nowrap` would make this cap decorative: nothing
+      // could ever wrap, so content past the ceiling would overflow the screen
+      // instead of the box. Leaving wrapping on is what makes the ceiling real
+      // — every chain we can actually produce fits on one line, and anything
+      // that somehow does not degrades to two lines rather than off-screen.
+      slotProps={{ tooltip: { sx: { maxWidth: "130ch" } } }}
     >
       <Typography
         tabIndex={tabIndex}

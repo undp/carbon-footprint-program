@@ -34,6 +34,7 @@ export const FullMethodologyDataSchema = z.array(
             name: z.string().min(1),
             description: z.string().min(1),
             icon: z.string().min(1),
+            position: z.int().min(1),
             allowedMeasurementUnitsAbbreviations: z
               .array(z.string())
               .optional(),

@@ -62,7 +62,7 @@ export const TotalEmissionsBar: FC<TotalEmissionsBarProps> = ({
             variant="caption"
             sx={{ color: theme.palette.common.deepForest, opacity: 0.7 }}
           >
-            Equivalencia: {intensity.value} {intensity.unit}/
+            Intensidad: {intensity.value} {intensity.unit}/
             {equivalence.activityName}
           </Typography>
         )}

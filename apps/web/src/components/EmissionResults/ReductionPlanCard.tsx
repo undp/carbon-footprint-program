@@ -34,7 +34,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
       sx={{ backgroundColor: alpha(theme.palette.text.primary, 0.03) }}
     >
       <Typography variant="body1" fontWeight="fontWeightMedium">
-        Plan de reducción sugerido
+        Iniciativas de reducción sugeridas
       </Typography>
 
       <Box className="flex min-h-0 flex-1 flex-col">
@@ -53,13 +53,13 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
 
         {!isLoading && hasError && (
           <LoadingErrorStateMessage
-            message={`Ocurrió un error al cargar el plan de reducción sugerido para tu ${VOCAB.organization.noun.singular}`}
+            message={`Ocurrió un error al cargar las iniciativas de reducción sugeridas para tu ${VOCAB.organization.noun.singular}`}
           />
         )}
 
         {!isLoading && !hasError && !hasInitiatives && (
           <EmptyStateMessage
-            message={`Cuando tengas completo el registro, se creará un plan de reducción sugerido que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
+            message={`Cuando tengas completo el registro, se crearán iniciativas de reducción sugeridas que puedes implementar en tu ${VOCAB.organization.noun.singular}`}
           />
         )}
 
@@ -105,7 +105,7 @@ export const ReductionPlanCard: FC<ReductionPlanCardProps> = ({
                     WebkitTextFillColor: "transparent",
                   }}
                 >
-                  Ver plan completo
+                  Ver todas las iniciativas
                 </Typography>
               </Button>
             )}

@@ -76,6 +76,11 @@ export const getReductionPlanService = async (
             orderBy: { id: "asc" },
           },
         },
+        // The `where` above selects by id, not by status, so a soft-deleted
+        // subcategory that still holds initiatives is in scope — and positions
+        // are unique only among non-DELETED rows, so `id` breaks the tie the
+        // same way fetchCategoryData does.
+        orderBy: [{ position: "asc" }, { id: "asc" }],
       },
     },
     orderBy: { position: "asc" },

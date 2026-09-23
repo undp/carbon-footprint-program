@@ -57,11 +57,12 @@ export function flattenDimensions(
       });
     }
   }
-  rows.sort((a, b) => {
-    if (a.subcategoryId !== b.subcategoryId)
-      return a.subcategoryId.localeCompare(b.subcategoryId);
-    return a.position - b.position;
-  });
+  // No re-sorting: the endpoint already returns subcategories by category
+  // position then subcategory position — the GHG Protocol order the grid
+  // shows — and each subcategory's dimensions by their own position. Sorting
+  // by `subcategoryId` here compared numeric ids as text, so subcategory 10
+  // came before 9 and the grouping matched neither the ids nor the order the
+  // rest of the app displays.
   return rows;
 }
 

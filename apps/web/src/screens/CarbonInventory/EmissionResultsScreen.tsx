@@ -99,7 +99,7 @@ export const EmissionResultsScreen: FC = () => {
         <Box className="flex items-center justify-between">
           <StepHeader
             title="Paso 5: Resultados"
-            description="Conoce el total de tu huella de carbono y toma acción con el plan de reducción sugerido."
+            description="Conoce el total de tu huella de carbono y toma acción con las iniciativas de reducción sugeridas."
             explanationSlug={EMISSION_RESULTS_EXPLANATION_SLUGS.MAIN}
           />
           {summaryData?.carbonInventory.status && (

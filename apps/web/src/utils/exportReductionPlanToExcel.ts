@@ -6,7 +6,7 @@ export async function exportReductionPlanToExcel(
   inventoryName: string,
   data: GetReductionPlanResponse
 ) {
-  const filename = `${sanitizeExcelSheetName(inventoryName)}-plan-de-reduccion.xlsx`;
+  const filename = `${sanitizeExcelSheetName(inventoryName)}-iniciativas-de-reduccion.xlsx`;
   const workbook = new ExcelJS.Workbook();
 
   for (const category of data.categories) {

@@ -53,6 +53,7 @@ const fullMethodology: GetMethodologyExportResponse = {
         {
           id: "100",
           name: "Electricidad",
+          position: 1,
           description: "Consumo eléctrico",
           measurementUnits: [
             { id: "1000", name: "kWh", abbreviation: "kWh" },
@@ -136,6 +137,7 @@ const fullMethodology: GetMethodologyExportResponse = {
         {
           id: "101",
           name: "Terrestre",
+          position: 1,
           description: "Vehículos terrestres",
           // Empty units → join("") → display "-"; no dims/factors → no rows.
           measurementUnits: [],
@@ -246,9 +248,10 @@ describe("buildMethodologyWorkbook", () => {
     );
 
     expect(sheet.getRow(2).getCell(1).value).toBe("Energía");
-    expect(sheet.getRow(2).getCell(2).value).toBe("Electricidad");
-    expect(sheet.getRow(2).getCell(3).value).toBe("Consumo eléctrico");
-    expect(sheet.getRow(2).getCell(4).value).toBe("kWh, MWh");
+    expect(sheet.getRow(2).getCell(2).value).toBe(1);
+    expect(sheet.getRow(2).getCell(3).value).toBe("Electricidad");
+    expect(sheet.getRow(2).getCell(4).value).toBe("Consumo eléctrico");
+    expect(sheet.getRow(2).getCell(5).value).toBe("kWh, MWh");
   });
 
   it("renders '-' when a subcategory has no measurement units", async () => {
@@ -257,8 +260,8 @@ describe("buildMethodologyWorkbook", () => {
       "Subcategorías"
     );
     // Second subcategory row belongs to the barren "Terrestre" subcategory.
-    expect(sheet.getRow(3).getCell(2).value).toBe("Terrestre");
-    expect(sheet.getRow(3).getCell(4).value).toBe("-");
+    expect(sheet.getRow(3).getCell(3).value).toBe("Terrestre");
+    expect(sheet.getRow(3).getCell(5).value).toBe("-");
   });
 
   it("lists dimensions with Sí/No for the required flag", async () => {
@@ -296,7 +299,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(4).value).toBe("Norte");
     expect(row.getCell(5).value).toBe(2.5);
     expect(row.getCell(5).numFmt).toBe(NUMBER_FORMAT);
-    expect(row.getCell(6).value).toBe("kg/kWh");
+    expect(row.getCell(6).value).toBe("kgCO₂e/kWh");
     expect(row.getCell(7).value).toBe("IPCC 2006");
   });
 
@@ -325,7 +328,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(4).value).toBe("-"); // dimensionValue2 null
     expect(row.getCell(5).value).toBe("N/A"); // non-numeric value kept verbatim
     expect(row.getCell(5).numFmt).not.toBe(NUMBER_FORMAT);
-    expect(row.getCell(6).value).toBe("kg/MWh");
+    expect(row.getCell(6).value).toBe("kgCO₂e/MWh");
     expect(row.getCell(7).value).toBe("-"); // empty source
     // Only the two factors of the populated subcategory produce rows.
     expect(sheet.rowCount).toBe(3);
