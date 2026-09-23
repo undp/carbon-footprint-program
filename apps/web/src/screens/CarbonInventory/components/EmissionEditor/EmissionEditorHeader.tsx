@@ -60,7 +60,7 @@ const buildNoEmissionFactorsMessage = (
   footprintYear?: number | null
 ): string =>
   footprintYear
-    ? `No hay factores precargados para esta subcategoría en ${footprintYear.toString()}. Puedes ingresar un factor propio o registrar el total de emisiones`
+    ? `No hay factores precargados para esta subcategoría en el año seleccionado (${footprintYear.toString()}). Puedes ingresar un factor propio o registrar el total de emisiones`
     : "No hay factores precargados disponibles para esta subcategoría. Puedes ingresar un factor propio o registrar el total de emisiones";
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
