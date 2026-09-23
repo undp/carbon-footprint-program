@@ -9,6 +9,7 @@ import {
   type GetEmissionFactorDimensionsQuery,
   type GetEmissionFactorDimensionsResponse,
 } from "@repo/types";
+import { LIVE_CAPTURE_WHERE } from "../helpers.js";
 
 export const getEmissionFactorDimensionsService = async (
   prismaClient: PrismaClient,
@@ -64,12 +65,12 @@ export const getEmissionFactorDimensionsService = async (
               // maintainer retire a value that active captures still point at
               // — exactly what the maintainer help forbids.
               lineInputsAsSelection1: {
-                where: { isActive: true },
+                where: LIVE_CAPTURE_WHERE,
                 select: { id: true },
                 take: 1,
               },
               lineInputsAsSelection2: {
-                where: { isActive: true },
+                where: LIVE_CAPTURE_WHERE,
                 select: { id: true },
                 take: 1,
               },

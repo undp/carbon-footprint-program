@@ -23,6 +23,7 @@ import {
   createCarbonInventoryLineInput,
 } from "@test/factories/carbonInventorySeeder.js";
 import { getEmissionFactorDimensionsService } from "@/features/emissionFactorDimensions/getEmissionFactorDimensions/service.js";
+import { CarbonInventoryLineStatus, InventoryStatus } from "@repo/types";
 import type { GetEmissionFactorDimensionsResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -342,6 +343,125 @@ describe("GET /api/emission-factor-dimensions/ - Integration Tests", () => {
         response.body
       ) as GetEmissionFactorDimensionsResponse;
       expect(body[0].subcategoryHasEmissionFactors).toBe(false);
+      expect(body[0].dimensions[0].values[0].inUse).toBe(true);
+    });
+    it("should not mark a dimension value as in use when its capture sits on a deleted line", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Deleted Line"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Deleted Line Value" }
+      );
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id,
+        { status: CarbonInventoryLineStatus.DELETED }
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+      expect(body[0].dimensions[0].values[0].inUse).toBe(false);
+    });
+
+    it("should not mark a dimension value as in use when its capture belongs to a deleted inventory", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Deleted Inventory"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Deleted Inventory Value" }
+      );
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.DELETED,
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
+      expect(body[0].dimensions[0].values[0].inUse).toBe(false);
+    });
+
+    it("should keep a dimension value in use when its capture sits on an outdated line", async () => {
+      const { subcategory, methodology } = await buildScenario(
+        "Get Dims InUse Outdated Line"
+      );
+      const dimension = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: false }
+      );
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension.id,
+        { value: "Outdated Line Value" }
+      );
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id,
+        { status: CarbonInventoryLineStatus.OUTDATED }
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/emission-factor-dimensions/?methodologyVersionId=${methodology.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetEmissionFactorDimensionsResponse;
       expect(body[0].dimensions[0].values[0].inUse).toBe(true);
     });
   });
