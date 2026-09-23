@@ -12,7 +12,7 @@ export const INCOMPLETE_SOURCES_TOOLTIP =
 export const YEAR_CHANGE_DIALOG_CONTENT = {
   title: "¿Cambiar el año de la huella?",
   message:
-    "Las fuentes de emisión que usan un factor del catálogo quedarán sin factor y tendrás que asignarles uno nuevamente, porque cada factor de emisión es válido solo para el año que declara.",
+    "Las fuentes de emisión que usan un factor del catálogo quedarán sin factor y tendrás que asignarles uno nuevamente, porque los factores son válidos para un solo año.",
   description:
     "Las cantidades, las unidades y las variables de cada fuente de emisión se mantienen, y los factores que ingresaste manualmente quedan tal como están.",
   confirmLabel: "Cambiar el año",
