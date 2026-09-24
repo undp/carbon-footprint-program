@@ -84,7 +84,7 @@
 
 ## 10. Web — maintainer
 
-- [x] 10.1 Add the year to `toFormEmissionFactor` and to the form defaults in `useEmissionFactorsForm.ts`. A new row should default to the current year rather than to empty.
+- [x] 10.1 Add the year to `toFormEmissionFactor` and to the form defaults in `useEmissionFactorsForm.ts`. A new row is born **without** a year, and the form schema refuses to save it until the admin chooses one ("Año es requerido"). This task first had it default to the current year; that was replaced because a guess dates a factor silently, and a factor dated to the wrong year is offered to the wrong footprints.
 - [x] 10.2 Add a required «Año» column to `useEmissionFactorColumns.tsx`, as a select over `[currentYear - 4 .. currentYear + 1]` derived beside `CALCULATOR_YEARS_RANGE_FROM_CURRENT` in `apps/web/src/config/constants.ts`. No "sin año" option.
 - [x] 10.3 Add `year` to the create payload in `EmissionFactorsMaintainerScreen.tsx`, which enumerates the fields it sends.
 - [x] 10.4 Add `year` to the update payload in the same file, and — the one that is easy to miss — to the `hasRealChanges` comparison. Without it, an administrator who corrects only the year sees the row close with no error and nothing saved.

@@ -45,7 +45,12 @@ type PersistedFactor = Pick<
  */
 export const resolveLockedSource = (
   persistedRows: PersistedFactor[],
-  row: Pick<EmissionFactorForm, "id" | "subcategoryId" | "year"> | undefined
+  // A form row: its year is `null` until the admin chooses one.
+  row:
+    | (Pick<EmissionFactorForm, "id" | "subcategoryId"> & {
+        year: number | null;
+      })
+    | undefined
 ): string | undefined => {
   if (!row?.subcategoryId || row.year == null) return undefined;
 

@@ -13,7 +13,8 @@ import { useRateMeasurementUnits } from "@/api/query/measurementUnits/useRateMea
 import {
   useEmissionFactorsForm,
   toFormEmissionFactor,
-  getDefaultEmissionFactorYear,
+  createNewEmissionFactorRow,
+  type EmissionFactorFormRow,
 } from "../hooks/useEmissionFactorsForm";
 import { useEmissionFactorColumns } from "../hooks/useEmissionFactorColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
@@ -230,6 +231,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       });
       return false;
     }
+    // Validation refuses a row without a year, so this only narrows the type
+    // for the requests below.
+    if (row.year === null) return false;
 
     if (isNewRow(row.id)) {
       try {
@@ -364,17 +368,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    fieldArray.prepend({
-      id: tempId,
-      subcategoryId: "",
-      dimensionValue1Name: null,
-      dimensionValue2Name: null,
-      rateMeasurementUnitId: "",
-      source: "",
-      year: getDefaultEmissionFactorYear(),
-      value: 0,
-      gasDetails: EMPTY_GAS_DETAILS,
-    });
+    fieldArray.prepend(createNewEmissionFactorRow(tempId));
     setPaginationModel((prev) =>
       prev.page === 0 ? prev : { ...prev, page: 0 }
     );
@@ -382,7 +376,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
-    async (row: EmissionFactorForm) => {
+    async (row: EmissionFactorFormRow) => {
       try {
         const rows = form.getValues("emissionFactors");
         const index = rows.findIndex((currentRow) => currentRow.id === row.id);
@@ -591,7 +585,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid<EmissionFactorForm>
+      <MaintainerDataGrid<EmissionFactorFormRow>
         editingRowId={editingRowId}
         cellMaxHeight={60}
         searchable={{
@@ -619,7 +613,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         columns={columns}
         rows={currentRows}
         loading={!isDataReady}
-        getRowId={(row: EmissionFactorForm) => row.id}
+        getRowId={(row: EmissionFactorFormRow) => row.id}
         hideFooter={false}
         pageSizeOptions={[25, 50, 100]}
         paginationModel={paginationModel}

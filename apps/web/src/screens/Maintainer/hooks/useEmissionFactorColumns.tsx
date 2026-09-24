@@ -26,6 +26,7 @@ import {
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
+import type { EmissionFactorFormRow } from "./useEmissionFactorsForm";
 
 type EmissionFactor = GetAllEmissionFactorsResponse[number];
 
@@ -64,9 +65,9 @@ interface UseEmissionFactorColumnsParams {
   onStartEditRow: (rowId: string) => void;
   onStopEditRow: () => void;
   onCancelEditRow: () => void;
-  onDelete: (row: EmissionFactorForm) => void;
+  onDelete: (row: EmissionFactorFormRow) => void;
   onOpenGEIBreakdown: (rowIndex: number) => void;
-  getValues: () => EmissionFactorForm[];
+  getValues: () => EmissionFactorFormRow[];
   /**
    * The factors as the server holds them. The source lock reads these, never
    * the form, so an unsaved edit of one row cannot move the lock of another.

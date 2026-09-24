@@ -15,7 +15,19 @@ export interface DimensionRequirements {
   var2Required: boolean;
 }
 
+/**
+ * A row as the form holds it, before validation. It differs from
+ * `EmissionFactorForm` only in the year, which is `null` until the admin
+ * chooses one: a new row is born without it. Validation refuses the `null`,
+ * so what reaches the API is always an `EmissionFactorForm`.
+ */
+export type EmissionFactorFormRow = z.input<typeof EmissionFactorFormSchema>;
+
 export interface EmissionFactorsFormValues {
+  emissionFactors: EmissionFactorFormRow[];
+}
+
+interface ValidatedEmissionFactorsFormValues {
   emissionFactors: EmissionFactorForm[];
 }
 
@@ -30,12 +42,24 @@ const DEFAULT_GAS_DETAILS: EmissionFactorForm["gasDetails"] = {
 };
 
 /**
- * The year a new row starts on. Every factor states the footprint year it is
- * valid for, so a new row is born dated rather than empty — the current year is
- * the only sensible guess.
+ * The row the grid prepends when the admin adds a factor. It is born without a
+ * year: guessing the current one dated factors silently, and a factor dated to
+ * the wrong year is offered to the wrong footprints. The schema refuses to save
+ * it until the admin chooses one.
  */
-export const getDefaultEmissionFactorYear = (): number =>
-  new Date().getFullYear();
+export const createNewEmissionFactorRow = (
+  id: string
+): EmissionFactorFormRow => ({
+  id,
+  subcategoryId: "",
+  dimensionValue1Name: null,
+  dimensionValue2Name: null,
+  rateMeasurementUnitId: "",
+  source: "",
+  year: null,
+  value: 0,
+  gasDetails: DEFAULT_GAS_DETAILS,
+});
 
 /** Transform server response to form shape. */
 export function toFormEmissionFactor(ef: EmissionFactor): EmissionFactorForm {
@@ -81,7 +105,11 @@ export const useEmissionFactorsForm = (
     [dimensionRequirements]
   );
 
-  const form = useForm<EmissionFactorsFormValues>({
+  const form = useForm<
+    EmissionFactorsFormValues,
+    unknown,
+    ValidatedEmissionFactorsFormValues
+  >({
     defaultValues: { emissionFactors: [] },
     mode: "onBlur",
     resolver: zodResolver(emissionFactorsFormSchema),
