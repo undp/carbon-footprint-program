@@ -341,10 +341,16 @@ content corrections**. `prod:deploy` will apply the migration and report success
 rows. Whoever owns the methodology has to decide whether each correction applies and re-enter it
 through the maintainer.
 
-So when you track an upstream release, read the migrations that touch `subcategory.explanation`,
-`emission_factor_dimension.name` or `emission_factor`, and treat them as a changelog of content
-decisions to review — not as changes you have already received. The migration headers state what
-changed in the text and why.
+So when you track an upstream release, read every migration that matches on the demo country —
+they rewrite guides and labels, but also add dimension values and subcategories and reorder the
+catalogue — and treat them as a changelog of content decisions to review, not as changes you have
+already received. They are the ones that filter on `iso_code = 'PD'`:
+
+```bash
+grep -l "iso_code.*= 'PD'" packages/database/src/prisma/migrations/*/migration.sql
+```
+
+The migration headers state what changed and why.
 
 ---
 
