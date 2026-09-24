@@ -1,6 +1,6 @@
 ## Context
 
-Findings that drive every decision below. All verified on `mrivas00/append-factors-active-methodology`, which branches off `feat/mati/add-emission-factor-year` (PR 652, open and mergeable).
+Findings that drive every decision below. All verified on `mrivas00/append-factors-active-methodology`, which branched off `feat/mati/add-emission-factor-year` (PR 652, since squash-merged into `main` as 38fa5f32).
 
 **1. `PUBLISHED` has no write semantics anywhere in the API.** `createEmissionFactor`, `updateEmissionFactor` and `deleteEmissionFactor` never read the methodology's status. `createCategory/service.ts:40` and `swapCategoryPositions` guard `DELETED` only. The single place the status decides anything on the write path is `createCarbonInventory/service.ts:18-27`, which picks `findFirst({ where: { status: PUBLISHED }, orderBy: { id: "asc" } })` as the version a new footprint is bound to. Everything else that treats the published version as frozen is maintainer UI.
 

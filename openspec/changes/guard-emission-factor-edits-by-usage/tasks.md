@@ -1,6 +1,6 @@
 ## 1. Pre-conditions
 
-- [ ] 1.1 **Not met yet** — PR 652 is open, not merged; this branch is stacked on it. This change depends on PR 652 (`feat/mati/add-emission-factor-year`) being merged. Nothing here needs the `year` column, but the branch is cut from it and the maintainer files diverge heavily.
+- [x] 1.1 **Met** — PR 652 (`feat/mati/add-emission-factor-year`) was squash-merged into `main` as 38fa5f32, so this branch is rebased onto `main` rather than stacked on it. Nothing here needed the `year` column, but the branch was cut from it and the maintainer files diverged heavily, which is why the order mattered.
 - [x] 1.2 Rename the branch to `feat/mati/guard-emission-factor-edits-by-usage`. The openspec directory is already renamed; the worktree path is deliberately left as it is.
 - [x] 1.3 Run `pnpm install` before any format / lint / type-check.
 
