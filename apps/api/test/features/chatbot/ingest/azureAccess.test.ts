@@ -3,6 +3,8 @@ import {
   EMBEDDINGS_DATA_ACTION,
   findAccountForEndpoint,
   grantsDataAction,
+  roleAssignmentHelp,
+  SUGGESTED_ROLE,
   supportsConfiguredDimensions,
   type CognitiveServicesAccount,
 } from "../../../../scripts/chatbot/azureAccess.js";
@@ -97,5 +99,23 @@ describe("supportsConfiguredDimensions", () => {
     expect(supportsConfiguredDimensions("text-embedding-3-small")).toBe(true);
     expect(supportsConfiguredDimensions("text-embedding-ada-002")).toBe(false);
     expect(supportsConfiguredDimensions("gpt-4o-mini")).toBe(false);
+  });
+});
+
+describe("roleAssignmentHelp", () => {
+  it("gives a one-line command that skips the Graph lookup", () => {
+    const help = roleAssignmentHelp(
+      { id: "principal-id", type: "ServicePrincipal" },
+      "/subscriptions/s/accounts/oai-dev"
+    );
+
+    const command = help
+      .split("\n")
+      .find((line) => line.includes("az role assignment create"));
+    expect(command?.trim()).toBe(
+      "az role assignment create --assignee-object-id principal-id " +
+        `--assignee-principal-type ServicePrincipal --role "${SUGGESTED_ROLE}" ` +
+        "--scope /subscriptions/s/accounts/oai-dev"
+    );
   });
 });

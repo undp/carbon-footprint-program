@@ -5,7 +5,33 @@ export const EMBEDDINGS_DATA_ACTION =
   "Microsoft.CognitiveServices/accounts/OpenAI/deployments/embeddings/action";
 
 /** The least-privileged built-in role that carries it, suggested in fixes. */
-const SUGGESTED_ROLE = "Cognitive Services OpenAI User";
+export const SUGGESTED_ROLE = "Cognitive Services OpenAI User";
+
+/**
+ * Its built-in definition id, the same in every tenant. Assigning by id keeps
+ * the role name — which has spaces — off the command line, where the Windows
+ * shell `az` runs through would split it.
+ */
+const SUGGESTED_ROLE_ID = "5e0bd9bd-7b93-4f28-af87-19fc36ad61bd";
+
+type Principal = { id: string; type: "User" | "ServicePrincipal" };
+
+/**
+ * The fix for a missing role, ready to paste. `--assignee-object-id` with an
+ * explicit principal type skips the Microsoft Graph lookup `--assignee` does,
+ * which fails for operators without directory read access. Kept on one line so
+ * it pastes the same into bash, PowerShell, and cmd.
+ */
+export const roleAssignmentHelp = (
+  principal: Principal,
+  accountId: string
+): string =>
+  "  Para obtenerlo, alguien con permiso para asignar roles en la cuenta (Owner, " +
+  "User Access Administrator o Role Based Access Control Administrator) ejecuta:\n" +
+  `    az role assignment create --assignee-object-id ${principal.id} ` +
+  `--assignee-principal-type ${principal.type} --role "${SUGGESTED_ROLE}" --scope ${accountId}\n` +
+  "  La asignación puede tardar hasta 10 minutos en propagarse; confirma con " +
+  '"pnpm chatbot:ingest-corpus:check".';
 
 export class AzureAccessError extends Error {
   constructor(message: string) {
@@ -108,12 +134,24 @@ type AzureAccessInput = {
   endpoint: string;
   deploymentName: string;
   usesApiKey: boolean;
+  /**
+   * Asked when the role is missing; answering yes assigns it on the spot.
+   * Omitted in non-interactive runs, where a missing role only fails: a
+   * permission change in Azure is never made without a person agreeing to it.
+   */
+  askToAssignRole?: (question: string) => Promise<boolean>;
 };
 
 export type AzureAccessSummary = {
   signedInAs: string;
   subscription: string;
   accountName: string;
+  /**
+   * The role was assigned during this run. Azure takes up to ten minutes to
+   * honour a new assignment on the data plane, so the caller's first calls may
+   * still be refused.
+   */
+  roleJustAssigned: boolean;
 };
 
 /**
@@ -124,12 +162,13 @@ export type AzureAccessSummary = {
  * not enough for the latter: it is a control-plane role with no data actions.
  *
  * Each check reports through `ok` as it passes and throws, with the command
- * that fixes it, on the first that fails.
+ * that fixes it, on the first that fails — except a missing role, which it
+ * offers to assign when `askToAssignRole` is given.
  */
-export const validateAzureAccess = (
-  { endpoint, deploymentName, usesApiKey }: AzureAccessInput,
+export const validateAzureAccess = async (
+  { endpoint, deploymentName, usesApiKey, askToAssignRole }: AzureAccessInput,
   ok: (message: string) => void
-): AzureAccessSummary => {
+): Promise<AzureAccessSummary> => {
   const version = az<{ "azure-cli": string }>(["version"]);
   let session: {
     name: string;
@@ -199,23 +238,40 @@ export const validateAzureAccess = (
     signedInAs: session.user.name,
     subscription: session.name,
     accountName: account.name,
+    roleJustAssigned: false,
   };
+
+  const resolvePrincipal = (): Principal =>
+    session.user.type === "user"
+      ? {
+          id: az<{ id: string }>(["ad", "signed-in-user", "show"]).id,
+          type: "User",
+        }
+      : {
+          id: az<{ id: string }>([
+            "ad",
+            "sp",
+            "show",
+            "--id",
+            session.user.name,
+          ]).id,
+          type: "ServicePrincipal",
+        };
 
   if (usesApiKey) {
     if (account.properties.disableLocalAuth) {
       throw new AzureAccessError(
         `La cuenta ${account.name} rechaza API keys (disableLocalAuth). Quita ` +
-          `AZURE_OPENAI_API_KEY para autenticarte con tu sesión de az y asígnate el rol "${SUGGESTED_ROLE}".`
+          `AZURE_OPENAI_API_KEY para autenticarte con tu sesión de az; esa ` +
+          `identidad necesita el rol "${SUGGESTED_ROLE}".\n` +
+          roleAssignmentHelp(resolvePrincipal(), account.id)
       );
     }
     ok("La cuenta acepta autenticación por API key");
     return summary;
   }
 
-  const principalId =
-    session.user.type === "user"
-      ? az<{ id: string }>(["ad", "signed-in-user", "show"]).id
-      : az<{ id: string }>(["ad", "sp", "show", "--id", session.user.name]).id;
+  const principal = resolvePrincipal();
   const assignments = az<
     Array<{ roleDefinitionId: string; roleDefinitionName: string }>
   >([
@@ -223,7 +279,7 @@ export const validateAzureAccess = (
     "assignment",
     "list",
     "--assignee",
-    principalId,
+    principal.id,
     "--scope",
     account.id,
     "--include-inherited",
@@ -246,20 +302,59 @@ export const validateAzureAccess = (
       ? grantsDataAction(definition.permissions, EMBEDDINGS_DATA_ACTION)
       : false;
   });
-  if (!grantingRole) {
+  let roleJustAssigned = false;
+  if (grantingRole) {
+    ok(
+      `Rol "${grantingRole.roleDefinitionName}" sobre ${account.name} (incluye embeddings)`
+    );
+  } else {
     const held = assignments.map((assignment) => assignment.roleDefinitionName);
-    throw new AzureAccessError(
+    const missingRole =
       `${session.user.name} no tiene un rol que permita generar embeddings en ${account.name}` +
-        (held.length > 0
-          ? ` (tiene: ${[...new Set(held)].join(", ")} — ninguno incluye acciones de datos de OpenAI).`
-          : ".") +
-        ` Asígnalo con:\n    az role assignment create --assignee ${principalId} --role "${SUGGESTED_ROLE}" --scope ${account.id}\n` +
-        "  La asignación puede tardar unos minutos en propagarse."
+      (held.length > 0
+        ? ` (tiene: ${[...new Set(held)].join(", ")} — ninguno incluye acciones de datos de OpenAI).`
+        : ".");
+    if (!askToAssignRole) {
+      throw new AzureAccessError(
+        `${missingRole}\n${roleAssignmentHelp(principal, account.id)}`
+      );
+    }
+    process.stdout.write(`  ⚠ ${missingRole}\n`);
+    const assign = await askToAssignRole(
+      `  ¿Asignarte "${SUGGESTED_ROLE}" sobre ${account.name} ahora?`
+    );
+    if (!assign) {
+      throw new AzureAccessError(
+        `Sin el rol no se puede ingerir.\n${roleAssignmentHelp(principal, account.id)}`
+      );
+    }
+    try {
+      az([
+        "role",
+        "assignment",
+        "create",
+        "--assignee-object-id",
+        principal.id,
+        "--assignee-principal-type",
+        principal.type,
+        "--role",
+        SUGGESTED_ROLE_ID,
+        "--scope",
+        account.id,
+      ]);
+    } catch (err) {
+      const reason = err instanceof Error ? err.message : String(err);
+      throw new AzureAccessError(
+        `No se pudo asignar el rol: ${reason}\n` +
+          "  Si no tienes permiso para asignar roles, pásale el comando a quien sí lo tenga:\n" +
+          roleAssignmentHelp(principal, account.id)
+      );
+    }
+    roleJustAssigned = true;
+    ok(
+      `Rol "${SUGGESTED_ROLE}" asignado a ${session.user.name} sobre ${account.name}`
     );
   }
-  ok(
-    `Rol "${grantingRole.roleDefinitionName}" sobre ${account.name} (incluye embeddings)`
-  );
 
   // DefaultAzureCredential tries these before the Azure CLI: when present, the
   // API authenticates as that identity, not as the session checked above.
@@ -273,5 +368,5 @@ export const validateAzureAccess = (
       `  ⚠ ${credentialOverride} está definida: DefaultAzureCredential usará esa identidad, no la sesión de az validada arriba.\n`
     );
   }
-  return summary;
+  return { ...summary, roleJustAssigned };
 };

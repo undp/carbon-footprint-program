@@ -2,6 +2,7 @@
 import { spawnSync } from "node:child_process";
 import { resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { setTimeout as sleep } from "node:timers/promises";
 import { PrismaClient, generatePrismaAdapter } from "@repo/database";
 import { CorpusSourceStatus } from "@repo/database/enums";
 import {
@@ -20,6 +21,14 @@ const API_ROOT = resolve(import.meta.dirname, "../..");
 const DEFAULT_CORPUS_DIR = resolve(API_ROOT, "../../corpus");
 const INGEST_SCRIPT = resolve(import.meta.dirname, "ingestCorpus.ts");
 const ACTIVATE_SCRIPT = resolve(import.meta.dirname, "activateCorpusSource.ts");
+
+/**
+ * How long to keep retrying the test embedding after assigning the role here:
+ * Azure documents up to ten minutes before a new assignment is honoured on the
+ * data plane, and until then the call is refused with 401/403.
+ */
+const ROLE_PROPAGATION_TIMEOUT_MS = 10 * 60_000;
+const ROLE_PROPAGATION_RETRY_MS = 20_000;
 
 const USAGE = `\
 Uso: pnpm chatbot:ingest-corpus [--app-url <https-url>] [--corpus-dir <ruta>] [--yes | --check]
@@ -44,6 +53,22 @@ Argumentos:
   --check              Solo valida: corre el paso 1, muestra la configuración y
                        el plan, y sale sin preguntar ni escribir en la base de
                        datos. Sale con 0 si todo está listo para ingerir.
+
+Permisos en Azure (solo con EMBEDDING_PROVIDER="azure-openai"):
+  Sin AZURE_OPENAI_API_KEY, el script se autentica con tu sesión de az, que
+  necesita un rol con acceso a datos de OpenAI sobre la cuenta, como
+  "Cognitive Services OpenAI User". Owner y Contributor NO alcanzan: son roles
+  de administración, sin acceso a datos. Para asignártelo (bash):
+
+    az role assignment create \\
+      --assignee-object-id "$(az ad signed-in-user show --query id -o tsv)" \\
+      --assignee-principal-type User \\
+      --role "Cognitive Services OpenAI User" \\
+      --scope "$(az cognitiveservices account show -g <grupo> -n <cuenta> --query id -o tsv)"
+
+  Si falta el rol, el script ofrece asignártelo (solo en modo interactivo;
+  --check y --yes nunca cambian permisos) y espera a que se propague, hasta
+  10 minutos. Si no, imprime este comando con los valores ya resueltos.
 `;
 
 type Options = {
@@ -150,13 +175,16 @@ const main = async (argv: string[]): Promise<number> => {
     input: process.stdin,
     output: process.stdout,
   });
+  const ask = async (question: string): Promise<boolean> => {
+    const answer = await prompt.question(`${question} [s/N] `);
+    return /^(s|si|sí|y|yes)$/i.test(answer.trim());
+  };
   const confirm = async (question: string): Promise<boolean> => {
     if (options.assumeYes) {
       process.stdout.write(`${question} [s/N] s (--yes)\n`);
       return true;
     }
-    const answer = await prompt.question(`${question} [s/N] `);
-    return /^(s|si|sí|y|yes)$/i.test(answer.trim());
+    return ask(question);
   };
 
   // -------------------------------------------------------------------------
@@ -274,10 +302,14 @@ const main = async (argv: string[]): Promise<number> => {
 
     let azureAccess: AzureAccessSummary | undefined;
     if (azureTarget) {
-      azureAccess = validateAzureAccess(
+      azureAccess = await validateAzureAccess(
         {
           ...azureTarget,
           usesApiKey: Boolean(environment.AZURE_OPENAI_API_KEY),
+          // Only a person at the terminal may grant a permission: --check
+          // changes nothing and --yes must not change Azure behind their back.
+          askToAssignRole:
+            options.checkOnly || options.assumeYes ? undefined : ask,
         },
         ok
       );
@@ -290,16 +322,32 @@ const main = async (argv: string[]): Promise<number> => {
     // actually authenticates as, and the network path to the endpoint.
     const { getEmbeddingProvider } =
       await import("@/features/chatbot/embeddingProvider/index.js");
+    // A role assigned a moment ago is refused until it propagates, so only
+    // then are 401/403 retried; any other failure is final.
+    const retryUntil = azureAccess?.roleJustAssigned
+      ? Date.now() + ROLE_PROPAGATION_TIMEOUT_MS
+      : 0;
     let embeddingModel: string;
-    try {
-      ({ model: embeddingModel } = await getEmbeddingProvider().embed([
-        "Prueba de conexión del corpus",
-      ]));
-    } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err);
-      throw new CorpusFolderError(
-        `El proveedor de embeddings no respondió: ${reason}`
-      );
+    for (;;) {
+      try {
+        ({ model: embeddingModel } = await getEmbeddingProvider().embed([
+          "Prueba de conexión del corpus",
+        ]));
+        break;
+      } catch (err) {
+        const status = (err as { status?: unknown } | null)?.status;
+        if ((status === 401 || status === 403) && Date.now() < retryUntil) {
+          process.stdout.write(
+            `  … el rol todavía no se propaga; reintentando en ${ROLE_PROPAGATION_RETRY_MS / 1000} s\n`
+          );
+          await sleep(ROLE_PROPAGATION_RETRY_MS);
+          continue;
+        }
+        const reason = err instanceof Error ? err.message : String(err);
+        throw new CorpusFolderError(
+          `El proveedor de embeddings no respondió: ${reason}`
+        );
+      }
     }
     ok(`Proveedor de embeddings responde (modelo "${embeddingModel}")`);
 
