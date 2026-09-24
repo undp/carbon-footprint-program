@@ -63,6 +63,24 @@ describe("EmissionEditorActionsCell", () => {
         findOnboardingTarget("emission-capture-line-extra-info")()
       ).toBeNull();
     });
+
+    it("tags nothing when it is not an onboarding target", () => {
+      // The manual-total header renders this cell too. Tagged, it would be the
+      // first match in the DOM above any detailed subcategory, and the hint
+      // would land next to the total input the user is typing in.
+      renderCell({ isOnboardingTarget: false });
+
+      // The actions still render — only the tags are gone.
+      expect(
+        screen.getByRole("button", { name: "Adjuntar archivos" })
+      ).toBeInTheDocument();
+      expect(
+        findOnboardingTarget("emission-capture-line-attachments")()
+      ).toBeNull();
+      expect(
+        findOnboardingTarget("emission-capture-line-extra-info")()
+      ).toBeNull();
+    });
   });
 
   it("routes each action to its own handler", () => {

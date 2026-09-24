@@ -19,6 +19,13 @@ interface EmissionEditorActionsCellProps {
   hasComment?: boolean;
   pendingFilesCount?: number;
   linkedFilesCount?: number;
+  /**
+   * Whether the actions carry their onboarding ids. Off for the manual-total
+   * header: those hints are not triggered by a manual total, and since the
+   * resolver takes the first tagged element in the DOM, a tagged header above
+   * a detailed subcategory would pull the spotlight next to the total input.
+   */
+  isOnboardingTarget?: boolean;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -31,6 +38,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   hasComment = false,
   pendingFilesCount = 0,
   linkedFilesCount = 0,
+  isOnboardingTarget = true,
 }) => {
   const totalFilesCount = pendingFilesCount + linkedFilesCount;
   const categoryColorPalette = categoryColor
@@ -56,7 +64,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
           first match. */}
       {uploadFiles && (
         <Badge
-          {...onboardingTargetProps("emission-capture-line-attachments")}
+          {...(isOnboardingTarget &&
+            onboardingTargetProps("emission-capture-line-attachments"))}
           badgeContent={totalFilesCount}
           invisible={totalFilesCount === 0}
           overlap="circular"
@@ -81,7 +90,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       )}
       {updateComment && (
         <Badge
-          {...onboardingTargetProps("emission-capture-line-extra-info")}
+          {...(isOnboardingTarget &&
+            onboardingTargetProps("emission-capture-line-extra-info"))}
           variant="dot"
           invisible={!hasComment}
           overlap="circular"

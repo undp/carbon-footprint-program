@@ -305,6 +305,10 @@ export const EmissionCaptureScreen: FC = () => {
         const formSubcategory = watchedSubcategories?.[subcategory.id];
         return (
           shouldShowSubcategory(subcategory, formSubcategory) &&
+          // A manual total doesn't count: its hidden line is created by the
+          // first keystroke in the total input, so counting it would open the
+          // overlay on top of that input while the user is still typing.
+          !formSubcategory?.isTotalManualEmissionsModeActive &&
           Object.values(formSubcategory?.lines ?? {}).some(
             // Only real lines count, same filter as `areAllSubcategoriesFilled`:
             // RHF reconciliation can leave id-less partial objects behind, and
