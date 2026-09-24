@@ -37,7 +37,7 @@ Desde el botón de acciones se puede eliminar una dimensión, con confirmación 
 
 ### Gestionar variables
 
-El botón "Editar" (o "Ver" en modo lectura) abre el modal de variables. Permite agregar, renombrar y eliminar entradas. Una variable que esté en uso no se puede eliminar: el bloqueo se aplica variable por variable, y se activa cuando hay factores de emisión, capturas o iniciativas de reducción activas que la referencian. Las variables que nadie usa sí se pueden eliminar, aunque la subcategoría tenga factores de emisión en otras variables. Renombrar y agregar están siempre disponibles.
+El botón "Editar" (o "Ver" en modo lectura) abre el modal de variables. Permite agregar, renombrar y eliminar entradas. Una variable que esté en uso no se puede eliminar: el bloqueo se aplica variable por variable, y se activa cuando hay factores de emisión, capturas o iniciativas de reducción activas que la referencian. Las variables que nadie usa sí se pueden eliminar, aunque la subcategoría tenga factores de emisión en otras variables. Para eliminar una variable que solo usan factores de emisión, elimina primero esos factores desde el mantenedor de factores de emisión. Renombrar y agregar están siempre disponibles.
 
 ### La variable "Otro" siempre se muestra al final
 

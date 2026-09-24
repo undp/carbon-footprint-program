@@ -12,7 +12,7 @@ import {
   DimensionInUseError,
   EmissionFactorDimensionNotFoundError,
 } from "../errors.js";
-import { findValueInLiveUse } from "../helpers.js";
+import { findValueHeldByCapturesOrInitiatives } from "../helpers.js";
 
 export const deleteEmissionFactorDimensionService = async (
   prismaClient: PrismaClient,
@@ -59,8 +59,9 @@ export const deleteEmissionFactorDimensionService = async (
     }
 
     // Deleting the dimension retires every one of its values, so it must not
-    // get around the guard that stops a single in-use value from being removed.
-    const pinnedValue = await findValueInLiveUse(tx, {
+    // orphan the captures and initiatives that hold them. Its emission factor
+    // cascade below is intended, unlike removing a single value.
+    const pinnedValue = await findValueHeldByCapturesOrInitiatives(tx, {
       dimensionId,
       status: EmissionFactorDimensionValueStatus.ACTIVE,
     });

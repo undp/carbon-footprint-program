@@ -18,7 +18,7 @@ import {
   DimensionValueNotFoundForRenameError,
   DimensionValueInUseError,
 } from "../errors.js";
-import { findValueInLiveUse } from "../helpers.js";
+import { findValueInUse } from "../helpers.js";
 
 export const updateEmissionFactorDimensionService = async (
   prismaClient: PrismaClient,
@@ -99,7 +99,7 @@ export const updateEmissionFactorDimensionService = async (
         // The maintainer screen hides the trash for values in use, but its
         // flag comes from a cached read and the endpoint can be called
         // directly, so refuse here too.
-        const pinnedValue = await findValueInLiveUse(tx, {
+        const pinnedValue = await findValueInUse(tx, {
           id: { in: valueIdsToRemove },
         });
 
@@ -124,40 +124,8 @@ export const updateEmissionFactorDimensionService = async (
       }
 
       if (valueIdsToRemove.length > 0) {
-        const efWhereClause =
-          dimension.position === 1
-            ? { dimensionValue1Id: { in: valueIdsToRemove } }
-            : { dimensionValue2Id: { in: valueIdsToRemove } };
-
-        if (dimension.isRequired) {
-          await tx.emissionFactor.updateMany({
-            where: {
-              ...efWhereClause,
-              status: EmissionFactorStatus.ACTIVE,
-            },
-            data: {
-              status: EmissionFactorStatus.DELETED,
-              updatedById: userId,
-            },
-          });
-        } else {
-          const efUpdateData =
-            dimension.position === 1
-              ? { dimensionValue1Id: null }
-              : { dimensionValue2Id: null };
-
-          await tx.emissionFactor.updateMany({
-            where: {
-              ...efWhereClause,
-              status: EmissionFactorStatus.ACTIVE,
-            },
-            data: {
-              ...efUpdateData,
-              updatedById: userId,
-            },
-          });
-        }
-
+        // Nothing to cascade: the guard above refused if an active emission
+        // factor, capture or initiative referenced any of these values.
         await tx.emissionFactorDimensionValue.updateMany({
           where: { id: { in: valueIdsToRemove } },
           data: {

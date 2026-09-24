@@ -139,68 +139,19 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       expect(body.values).toHaveLength(3); // Initial + 2 new
     });
 
-    it("should remove values and set EF FK to null for non-required dimension", async () => {
-      const { dimension, value, subcategory } = await buildTestDimension({
-        isRequired: false,
-      });
-      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
-
-      // Create an emission factor referencing this value
-      const ef = await createTestEmissionFactor(
-        prisma,
-        subcategory.id,
-        rateUnitId,
-        { dimensionValue1Id: value.id }
-      );
-
-      // Add another value so we don't drop below 1
-      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
-        value: "Backup Value",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/emission-factor-dimensions/${dimension.id}`,
-        payload: {
-          values: { remove: [value.id.toString()] },
-        },
-      });
-
-      expect(response.statusCode).toBe(200);
-      const body = JSON.parse(
-        response.body
-      ) as UpdateEmissionFactorDimensionResponse;
-      expect(body.values).toHaveLength(1);
-      expect(body.values[0].value).toBe("Backup Value");
-
-      const updatedValue = await prisma.emissionFactorDimensionValue.findUnique(
-        {
-          where: { id: value.id },
-        }
-      );
-      expect(updatedValue!.status).toBe(
-        EmissionFactorDimensionValueStatus.DELETED
-      );
-
-      // Verify EF FK was set to null (not soft-deleted)
-      const updatedEf = await prisma.emissionFactor.findUnique({
-        where: { id: ef.id },
-      });
-      expect(updatedEf!.dimensionValue1Id).toBeNull();
-      expect(updatedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
-    });
-
-    it("should remove values and soft-delete EFs for required dimension", async () => {
+    it("should allow removing a value whose emission factors are all deleted", async () => {
       const { dimension, value, subcategory } = await buildTestDimension({
         isRequired: true,
       });
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
-
       const ef = await createTestEmissionFactor(
         prisma,
         subcategory.id,
         rateUnitId,
-        { dimensionValue1Id: value.id }
+        {
+          dimensionValue1Id: value.id,
+          status: EmissionFactorStatus.DELETED,
+        }
       );
 
       // Add another value so we don't drop below 1
@@ -217,25 +168,72 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as UpdateEmissionFactorDimensionResponse;
+      expect(body.values).toHaveLength(1);
+      expect(body.values[0].value).toBe("Remaining Value");
 
       const updatedValue = await prisma.emissionFactorDimensionValue.findUnique(
-        {
-          where: { id: value.id },
-        }
+        { where: { id: value.id } }
       );
       expect(updatedValue!.status).toBe(
         EmissionFactorDimensionValueStatus.DELETED
       );
 
-      // Verify EF was soft-deleted
-      const updatedEf = await prisma.emissionFactor.findUnique({
+      // The deleted factor is history: it keeps pointing at the value.
+      const untouchedEf = await prisma.emissionFactor.findUnique({
         where: { id: ef.id },
       });
-      expect(updatedEf!.status).toBe(EmissionFactorStatus.DELETED);
+      expect(untouchedEf!.dimensionValue1Id).toBe(value.id);
     });
   });
 
   describe("Validation errors", () => {
+    it("should return 409 when removing a value an active emission factor references, leaving the factor untouched", async () => {
+      const { dimension, value, subcategory } = await buildTestDimension({
+        isRequired: false,
+      });
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const ef = await createTestEmissionFactor(
+        prisma,
+        subcategory.id,
+        rateUnitId,
+        { dimensionValue1Id: value.id }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Backup Value",
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: {
+          values: { remove: [value.id.toString()] },
+        },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { valueName?: string };
+      };
+      expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
+      expect(body.details?.valueName).toBe("Initial Value");
+
+      const storedValue = await prisma.emissionFactorDimensionValue.findUnique({
+        where: { id: value.id },
+      });
+      expect(storedValue!.status).toBe(
+        EmissionFactorDimensionValueStatus.ACTIVE
+      );
+      const storedEf = await prisma.emissionFactor.findUnique({
+        where: { id: ef.id },
+      });
+      expect(storedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
+      expect(storedEf!.dimensionValue1Id).toBe(value.id);
+    });
+
     it("should return 400 when removing all values with no adds", async () => {
       const { dimension, value } = await buildTestDimension();
 
@@ -512,14 +510,13 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
     });
   });
 
-  describe("Position 2 removal branches", () => {
-    it("should remove a value and soft-delete EFs for a required position-2 dimension", async () => {
+  describe("Position 2 references", () => {
+    it("should return 409 when an active emission factor references a position-2 value, leaving the factor untouched", async () => {
       const { dimension, value, subcategory } = await buildTestDimension({
         position: 2,
         isRequired: true,
       });
       const rateUnitId = await getTestRateMeasurementUnitId(prisma);
-
       const ef = await createTestEmissionFactor(
         prisma,
         subcategory.id,
@@ -538,46 +535,15 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
         },
       });
 
-      expect(response.statusCode).toBe(200);
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
 
-      const updatedEf = await prisma.emissionFactor.findUnique({
+      const storedEf = await prisma.emissionFactor.findUnique({
         where: { id: ef.id },
       });
-      expect(updatedEf!.status).toBe(EmissionFactorStatus.DELETED);
-    });
-
-    it("should remove a value and nullify the FK for a non-required position-2 dimension", async () => {
-      const { dimension, value, subcategory } = await buildTestDimension({
-        position: 2,
-        isRequired: false,
-      });
-      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
-
-      const ef = await createTestEmissionFactor(
-        prisma,
-        subcategory.id,
-        rateUnitId,
-        { dimensionValue2Id: value.id }
-      );
-      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
-        value: "Backup Dim2 Value",
-      });
-
-      const response = await app.inject({
-        method: "PATCH",
-        url: `/api/emission-factor-dimensions/${dimension.id}`,
-        payload: {
-          values: { remove: [value.id.toString()] },
-        },
-      });
-
-      expect(response.statusCode).toBe(200);
-
-      const updatedEf = await prisma.emissionFactor.findUnique({
-        where: { id: ef.id },
-      });
-      expect(updatedEf!.dimensionValue2Id).toBeNull();
-      expect(updatedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
+      expect(storedEf!.status).toBe(EmissionFactorStatus.ACTIVE);
+      expect(storedEf!.dimensionValue2Id).toBe(value.id);
     });
   });
 

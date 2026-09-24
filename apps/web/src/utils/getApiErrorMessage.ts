@@ -110,8 +110,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // `inUse` flag was stale, so the trash gave no cue about which value it was.
   DIMENSION_VALUE_IN_USE: (details) =>
     typeof details?.valueName === "string"
-      ? `No se puede eliminar la variable "${details.valueName}": hay capturas o iniciativas de reducción activas que la usan.`
-      : "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.",
+      ? `No se puede eliminar la variable "${details.valueName}": hay factores de emisión, capturas o iniciativas de reducción activas que la usan.`
+      : "No se puede eliminar la variable: hay factores de emisión, capturas o iniciativas de reducción activas que la usan.",
   DIMENSION_IN_USE: (details) =>
     typeof details?.valueName === "string"
       ? `No se puede eliminar la dimensión: la variable "${details.valueName}" está en uso por capturas o iniciativas de reducción activas.`

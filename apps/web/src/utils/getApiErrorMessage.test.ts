@@ -399,7 +399,7 @@ describe("getApiErrorMessage — RESTORE_ON_ACTIVE", () => {
 describe("getApiErrorMessage — DIMENSION_VALUE_IN_USE", () => {
   const CODE = "DIMENSION_VALUE_IN_USE";
   const GENERIC =
-    "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.";
+    "No se puede eliminar la variable: hay factores de emisión, capturas o iniciativas de reducción activas que la usan.";
 
   it("names the variable the server reports", () => {
     expect(
@@ -408,7 +408,7 @@ describe("getApiErrorMessage — DIMENSION_VALUE_IN_USE", () => {
         FALLBACK
       )
     ).toBe(
-      'No se puede eliminar la variable "Excavadora": hay capturas o iniciativas de reducción activas que la usan.'
+      'No se puede eliminar la variable "Excavadora": hay factores de emisión, capturas o iniciativas de reducción activas que la usan.'
     );
   });
 
