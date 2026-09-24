@@ -33,6 +33,12 @@ const REPO_ROOT = resolve(import.meta.dirname, "../../../../../..");
 // forward slashes only is accepted by Node on Windows too, and needs no escaping
 // in either shell.
 const FIXTURE_REL_PATH = "test/fixtures/chatbot/ghg-protocol-sample.pdf";
+// Markdown counterpart: self-authored Spanish prose with ATX headings and
+// YAML front matter, long enough to yield several chunks. Written rather than
+// excerpted so the fixture exercises the heading path without dragging a
+// third-party licence into the repository.
+const MARKDOWN_FIXTURE_REL_PATH =
+  "test/fixtures/chatbot/guia-inventarios-sample.md";
 
 /**
  * Wrap an argument in double quotes so a value containing spaces survives shell
@@ -412,5 +418,140 @@ describe("ingest CLI — integration", () => {
     expect(audits).toHaveLength(1);
     expect(audits[0].completedAt).toBeNull();
     expect(audits[0].sourceId).toBeNull();
+  }, 60_000);
+
+  // Maps to chatbot-corpus-ingest "Ingest CLI reads PDF and Markdown sources".
+  // Markdown takes the same path as a PDF from `chunkText` onwards; what is
+  // specific to it is the reader (front matter stripped) and the heading
+  // detection that fills `section_title`.
+  it("happy path with valid Markdown", async () => {
+    const command = [
+      "pnpm",
+      "--filter=api",
+      "chatbot:ingest",
+      quote(MARKDOWN_FIXTURE_REL_PATH),
+      "--label",
+      quote("Guía de inventarios Test"),
+      "--version",
+      "v01",
+      "--source-type",
+      "MD",
+      "--scope",
+      "GLOBAL",
+      "--cite-url",
+      "https://huellalatam.org/guia-inventarios",
+    ].join(" ");
+
+    execSync(command, {
+      cwd: REPO_ROOT,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        DATABASE_URL: databaseUrl,
+        EMBEDDING_PROVIDER: "mock",
+      },
+    });
+
+    const sources = await prisma.chatbotCorpusSource.findMany();
+    expect(sources).toHaveLength(1);
+    const source = sources[0];
+    expect(source.sourceType).toBe(CorpusSourceType.MD);
+    expect(source.status).toBe(CorpusSourceStatus.DRAFT);
+
+    const chunkRows = await prisma.$queryRaw<
+      Array<{
+        chunk_id: bigint;
+        dims: number | null;
+        section_title: string | null;
+        content: string;
+      }>
+    >`
+        SELECT id AS chunk_id,
+               vector_dims(embedding) AS dims,
+               section_title,
+               content
+        FROM chatbot_corpus_chunk
+        WHERE source_id = ${source.id}
+        ORDER BY chunk_index ASC
+      `;
+    expect(chunkRows.length).toBeGreaterThanOrEqual(1);
+    for (const row of chunkRows) {
+      expect(row.dims).toBe(1024);
+    }
+
+    // Headings reached the database as section titles, without their hash
+    // marks. A regression in the Markdown heading pattern shows up here as
+    // every title being NULL — the sentence-block fallback — rather than as a
+    // failed ingest.
+    const titles = chunkRows
+      .map((row) => row.section_title)
+      .filter((title): title is string => title !== null);
+    expect(titles.length).toBeGreaterThanOrEqual(1);
+    expect(titles).toContain("Alcance dos: emisiones indirectas por energía");
+    for (const title of titles) {
+      expect(title.startsWith("#")).toBe(false);
+    }
+
+    // YAML front matter is document metadata, not prose: it must not reach a
+    // chunk, where it would be quoted back to the model as content.
+    for (const row of chunkRows) {
+      expect(row.content).not.toContain("autor: equipo Huella Latam");
+    }
+
+    const audits = await prisma.chatbotCorpusIngestRun.findMany();
+    expect(audits).toHaveLength(1);
+    expect(audits[0].completedAt).not.toBeNull();
+    expect(audits[0].sourceId).toBe(source.id);
+    expect(audits[0].chunksCreated).toBe(chunkRows.length);
+  }, 60_000);
+
+  // Maps to chatbot-corpus-ingest scenario "File extension contradicting
+  // --source-type rejected at CLI layer". `source_type` is what
+  // `searchKnowledge` filters on, so a mislabelled row is a source that every
+  // type-filtered query silently misses — a failure with no error to read.
+  it("rejects a file whose extension contradicts --source-type before any database write", async () => {
+    const command = [
+      "pnpm",
+      "--filter=api",
+      "chatbot:ingest",
+      quote(MARKDOWN_FIXTURE_REL_PATH),
+      "--label",
+      quote("Guía de inventarios Test"),
+      "--version",
+      "v02",
+      "--source-type",
+      "PDF",
+      "--scope",
+      "GLOBAL",
+      "--cite-url",
+      "https://huellalatam.org/guia-inventarios",
+    ].join(" ");
+
+    let exitCode = 0;
+    let stderr = "";
+    try {
+      execSync(command, {
+        cwd: REPO_ROOT,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          DATABASE_URL: databaseUrl,
+          EMBEDDING_PROVIDER: "mock",
+        },
+      });
+    } catch (err) {
+      const e = err as { status: number; stderr: string };
+      exitCode = e.status;
+      stderr = e.stderr;
+    }
+
+    expect(exitCode).not.toBe(0);
+    expect(stderr).toContain("espera un archivo .pdf");
+
+    // Argument validation runs before the audit-row insert, so a rejected
+    // invocation leaves the database exactly as it was.
+    expect(await prisma.chatbotCorpusSource.count()).toBe(0);
+    expect(await prisma.chatbotCorpusChunk.count()).toBe(0);
+    expect(await prisma.chatbotCorpusIngestRun.count()).toBe(0);
   }, 60_000);
 });

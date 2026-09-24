@@ -294,9 +294,9 @@ Retrieval is split into an **offline** path an operator runs, and an **online** 
 **Offline — corpus ingest (CLI, never an HTTP route):**
 
 ```
-pnpm --filter api chatbot:ingest <pdf> --label … --version … --cite-url …
+pnpm --filter api chatbot:ingest <file> --label … --version … --cite-url …
     │
-    ├─ pdf-parse extracts text
+    ├─ read text (pdf-parse for PDF, UTF-8 read for Markdown)
     ├─ chunk at section boundaries
     ├─ embed each chunk (Azure OpenAI, 1024-dim)
     └─ write ChatbotCorpusSource (status DRAFT) + chunks + an ingest-run audit row

@@ -1,0 +1,13 @@
+{
+  "documents": [
+    {
+      "file": "../guia-inventarios-sample.md",
+      "label": "Guía de inventarios de prueba",
+      "scope": "NATIONAL",
+      "citeUrl": "https://example.org/guia-inventarios"
+    }
+  ],
+  "explanations": [
+    { "dir": "subcategories", "labelPrefix": "Subcategoría", "scope": "GLOBAL" }
+  ]
+}

@@ -15,6 +15,7 @@
     "start": "node dist/server.js",
     "chatbot:ingest": "tsx scripts/chatbot/ingestCorpus.ts",
     "chatbot:activate": "tsx scripts/chatbot/activateCorpusSource.ts",
+    "chatbot:ingest-corpus": "tsx scripts/chatbot/ingestCorpusFolder.ts",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "test:leg": ": \"${LEG:?LEG must be set (base|storage-azure|storage-minio)}\" && vitest run --project=\"$LEG\" --coverage --reporter=blob --outputFile.blob=.vitest-reports/blob-$LEG.json --coverage.thresholds.lines=0 --coverage.thresholds.statements=0 --coverage.thresholds.functions=0 --coverage.thresholds.branches=0",

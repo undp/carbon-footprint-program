@@ -2,14 +2,14 @@
 
 ### Requirement: Ingest CLI is the V1 surface for adding corpus sources
 
-The system SHALL provide `apps/api/scripts/chatbot/ingestCorpus.ts`, registered in `apps/api/package.json` as `"chatbot:ingest"`, invoked as `pnpm --filter api chatbot:ingest <pdf-path> --label <label> --version <version> --source-type <type> --scope <scope> --cite-url <url> [--triggered-by <id>]`. Output SHALL be Spanish; success exits 0, failure exits non-zero with a Spanish error.
+The system SHALL provide `apps/api/scripts/chatbot/ingestCorpus.ts`, registered in `apps/api/package.json` as `"chatbot:ingest"`, invoked as `pnpm --filter api chatbot:ingest <file-path> --label <label> --version <version> --source-type <type> --scope <scope> --cite-url <url> [--triggered-by <id>]`. Output SHALL be Spanish; success exits 0, failure exits non-zero with a Spanish error.
 
 Argument validation:
 
-- `<pdf-path>` — positional; readable file ending in `.pdf`
+- `<file-path>` — positional; readable file whose extension is one of the supported ones: `.pdf` or `.md`
 - `--label <label>` — non-empty string; SHALL NOT contain the `:` character (rejected at CLI argument parsing with a Spanish error). Written to `chatbot_corpus_source.cite_label`. Rationale: the activate CLI's advisory-lock key (see "Activate CLI flips state atomically under an identity-scoped advisory lock") is built as `'chatbot-corpus:' || name || ':' || scope`; permitting `:` inside `name` would let two distinct `(name, scope)` tuples hash to the same lock key (e.g., `("Foo:Bar", "GLOBAL")` vs `("Foo", "Bar:GLOBAL")` both yield `'chatbot-corpus:Foo:Bar:GLOBAL'`), causing unrelated activations to needlessly serialize on the same lock
 - `--version <version>` — non-empty string; written to `chatbot_corpus_source.version`
-- `--source-type <type>` — only `PDF` accepted in V1
+- `--source-type <type>` — `PDF` or `MD`. The value SHALL agree with the file's extension (`PDF` ↔ `.pdf`, `MD` ↔ `.md`); a mismatch is rejected at CLI argument parsing with a Spanish error. Rationale: `source_type` is a retrieval filter (`searchKnowledge` narrows on it), so a row that declares one type while holding another's text is a source that every type-filtered query silently misses — a failure with no error to read. `URL` and `XLSX` exist in the database enum but have no reader and are rejected
 - `--scope <scope>` — `GLOBAL` or `NATIONAL`
 - `--cite-url <url>` — parseable HTTPS URL
 - `--triggered-by <id>` — optional; defaults to `"cli:<os-user>"`
@@ -34,7 +34,17 @@ Argument validation:
 #### Scenario: Invalid source-type rejected at CLI layer
 
 - **WHEN** the script is invoked with `--source-type XLSX`
-- **THEN** the script SHALL exit non-zero with a Spanish error indicating only `PDF` is supported in V1
+- **THEN** the script SHALL exit non-zero with a Spanish error naming the accepted values (`PDF`, `MD`)
+
+#### Scenario: File extension contradicting --source-type rejected at CLI layer
+
+- **WHEN** the script is invoked with a `.md` file and `--source-type PDF` (or a `.pdf` file and `--source-type MD`)
+- **THEN** the script SHALL exit non-zero with a Spanish error naming both the declared type and the received extension, before any database write, embedding-provider call, or audit-row insert
+
+#### Scenario: Unsupported extension rejected at CLI layer
+
+- **WHEN** the script is invoked with a positional path ending in anything other than `.pdf` or `.md`
+- **THEN** the script SHALL exit non-zero with a Spanish error listing the supported extensions
 
 #### Scenario: Invalid cite-url rejected at CLI layer
 
@@ -46,9 +56,16 @@ Argument validation:
 - **WHEN** the script is invoked with `--label "Foo:Bar"` (or any label string containing `:`)
 - **THEN** the script SHALL exit non-zero with a Spanish error indicating `--label` SHALL NOT contain `:`, before any database write or embedding-provider call. This prevents the advisory-lock-key collision documented on the `--label` argument-validation rule
 
-### Requirement: Ingest CLI parses PDFs with pdf-parse and chunks with the documented heuristic
+### Requirement: Ingest CLI reads PDF and Markdown sources and chunks with the documented heuristic
 
-The CLI SHALL parse PDFs via `pdf-parse`, then split into chunks targeting ~600 tokens with ~80-token overlap (token counts via `estimateTokens`). When section markers (`^\d+(\.\d+)*\s+[A-Z]`) are present, the chunker SHALL prefer the nearest such marker within ±150 tokens of the target boundary; otherwise it splits at the nearest sentence boundary. Each chunk persists with a 0-indexed monotonically-increasing `chunk_index`.
+The CLI SHALL turn the source file into plain text with a reader selected by `--source-type`, then split into chunks targeting ~600 tokens with ~80-token overlap (token counts via `estimateTokens`). Each chunk persists with a 0-indexed monotonically-increasing `chunk_index`.
+
+Readers:
+
+- `PDF` — `pdf-parse`.
+- `MD` — a UTF-8 read. YAML front matter (a `---` fence on the first line through its closing `---`) SHALL be stripped: it is document metadata, and a chunk carrying it would quote `date:`/`autor:` lines back to the model as content. Markdown syntax is otherwise preserved — the chunker reads `#` headings as section boundaries and the model reads Markdown natively. A Markdown table is flattened into a paragraph by the block builder; the text survives, the column alignment does not.
+
+Section markers, whichever reader produced the text: a numbered marker (`^\d+(\.\d+)*\s+[A-Z]`, how a PDF's sections survive text extraction) or an ATX Markdown heading (`^#{1,6}\s+`). When markers are present the chunker SHALL prefer the nearest one within ±150 tokens of the target boundary; otherwise it splits at the nearest sentence boundary. A Markdown heading's `#` marks SHALL be stripped from the value written to `section_title` and SHALL be preserved in the chunk's `content`. Setext headings (a title underlined with `===` or `---`) are NOT recognised — the underline arrives on the line after the title, which a line-at-a-time reader has already emitted as body text.
 
 #### Scenario: Chunk sizes within target range under normal text
 
@@ -62,7 +79,7 @@ The CLI SHALL parse PDFs via `pdf-parse`, then split into chunks targeting ~600 
 
 #### Scenario: Section-heading-aware split where possible
 
-- **WHEN** the source PDF contains markers matching the documented pattern, and a chunk boundary falls within ±150 tokens of one
+- **WHEN** the source contains markers matching either documented pattern, and a chunk boundary falls within ±150 tokens of one
 - **THEN** the chunker SHALL split at that marker rather than at a mid-sentence boundary
 
 ### Requirement: Ingest CLI computes embeddings and inserts source plus chunks atomically
@@ -167,7 +184,9 @@ The script exits 0 on success, non-zero with a Spanish error when: target id doe
 
 ### Requirement: Test fixture path documented for ingest integration tests
 
-Integration tests SHALL reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` as the standard fixture: ~5 pages of GHG Protocol Corporate Standard fair-use, parseable by `pdf-parse`, ≥1 section heading and ≥1 paragraph of definition text. The PDF binary itself SHALL be committed during the implementation phase. Tests SHALL fail explicitly (Spanish skip message naming the missing fixture) when absent.
+Integration tests SHALL reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` as the standard PDF fixture: ~5 pages of GHG Protocol Corporate Standard fair-use, parseable by `pdf-parse`, ≥1 section heading and ≥1 paragraph of definition text. The PDF binary itself SHALL be committed during the implementation phase. Tests SHALL fail explicitly (Spanish skip message naming the missing fixture) when absent.
+
+`apps/api/test/fixtures/chatbot/guia-inventarios-sample.md` is the Markdown fixture: self-authored Spanish prose (written rather than excerpted, so no third-party licence enters the repository) with YAML front matter, ATX headings at more than one level, and enough body text to yield several chunks.
 
 #### Scenario: Tests use the documented fixture path
 

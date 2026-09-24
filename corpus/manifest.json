@@ -1,0 +1,14 @@
+{
+  "documents": [
+    {
+      "file": "GHG.pdf",
+      "label": "GHG Protocol Corporate Standard",
+      "scope": "GLOBAL",
+      "citeUrl": "https://ghgprotocol.org/corporate-standard"
+    }
+  ],
+  "explanations": [
+    { "dir": "categories", "labelPrefix": "Categoría", "scope": "GLOBAL" },
+    { "dir": "subcategories", "labelPrefix": "Subcategoría", "scope": "GLOBAL" }
+  ]
+}

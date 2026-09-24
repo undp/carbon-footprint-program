@@ -13,9 +13,10 @@ import { EMBEDDING_PROVIDER, IS_PROD } from "@/config/environment.js";
 import { getEmbeddingProvider } from "@/features/chatbot/embeddingProvider/index.js";
 import { chunkText } from "./chunking.js";
 import { parsePdf } from "./parsePdf.js";
+import { readMarkdown } from "./readMarkdown.js";
 
 const USAGE = `\
-Uso: pnpm --filter api chatbot:ingest <pdf-path> --label <label> --version <version> --source-type <PDF> --scope <GLOBAL|NATIONAL> --cite-url <https-url> [--triggered-by <id>]
+Uso: pnpm --filter api chatbot:ingest <file-path> --label <label> --version <version> --source-type <PDF|MD> --scope <GLOBAL|NATIONAL> --cite-url <https-url> [--triggered-by <id>]
 
 Las rutas relativas se resuelven desde el directorio de trabajo actual. Al
 invocar con "pnpm --filter api" ese directorio es apps/api, NO la raíz del
@@ -31,22 +32,48 @@ Tras la ingesta la fuente queda en estado DRAFT y NO es visible para la
 búsqueda. Actívala con: pnpm --filter api chatbot:activate <source-id>
 
 Argumentos:
-  <pdf-path>             Ruta al archivo PDF que será ingerido (relativa al
-                         directorio actual, o absoluta).
+  <file-path>            Ruta al archivo que será ingerido (relativa al
+                         directorio actual, o absoluta). La extensión debe
+                         corresponder a --source-type: .pdf para PDF, .md
+                         para MD.
   --label <label>        Etiqueta legible de la fuente (no puede contener ":").
   --name <name>          Alias opcional de --label.
   --version <version>    Versión del documento (texto libre, ej. "v05").
-  --source-type <type>   Tipo de fuente (V1 solo acepta "PDF").
+  --source-type <type>   Tipo de fuente: "PDF" o "MD".
   --scope <scope>        Alcance: "GLOBAL" o "NATIONAL".
   --cite-url <url>       URL HTTPS canónica que se mostrará al citar.
   --triggered-by <id>    Identificador opcional del invocador (default cli:<usuario>).
 `;
 
+/**
+ * The file extensions the CLI accepts, keyed by the `source_type` that
+ * declares them.
+ *
+ * The pairing is enforced rather than inferred because `source_type` is not
+ * decoration: `searchKnowledge` filters on it, so a row that claims MD while
+ * holding PDF text is a source every type-filtered query silently misses.
+ */
+const EXTENSION_BY_SOURCE_TYPE = {
+  PDF: ".pdf",
+  MD: ".md",
+} as const satisfies Partial<Record<CorpusSourceType, string>>;
+
+type SupportedSourceType = keyof typeof EXTENSION_BY_SOURCE_TYPE;
+
+const SUPPORTED_SOURCE_TYPES = Object.keys(
+  EXTENSION_BY_SOURCE_TYPE
+) as SupportedSourceType[];
+
+const SUPPORTED_EXTENSIONS = Object.values(EXTENSION_BY_SOURCE_TYPE);
+
+const isSupportedSourceType = (value: string): value is SupportedSourceType =>
+  (SUPPORTED_SOURCE_TYPES as string[]).includes(value);
+
 type ParsedArgs = {
-  pdfPath: string;
+  filePath: string;
   label: string;
   version: string;
-  sourceType: CorpusSourceType;
+  sourceType: SupportedSourceType;
   scope: CorpusSourceScope;
   citeUrl: string;
   triggeredBy: string;
@@ -67,12 +94,18 @@ const parseArgs = (argv: string[]): ParsedArgs => {
   const [maybePath, ...rest] = argv;
   if (!maybePath || maybePath.startsWith("--")) {
     throw new CliArgumentError(
-      "Falta el argumento posicional <pdf-path>. " + USAGE
+      "Falta el argumento posicional <file-path>. " + USAGE
     );
   }
-  if (!maybePath.toLowerCase().endsWith(".pdf")) {
+  const lowerPath = maybePath.toLowerCase();
+  const pathExtension = SUPPORTED_EXTENSIONS.find((extension) =>
+    lowerPath.endsWith(extension)
+  );
+  if (!pathExtension) {
     throw new CliArgumentError(
-      `<pdf-path> debe terminar en ".pdf"; se recibió "${maybePath}".`
+      `<file-path> debe terminar en ${SUPPORTED_EXTENSIONS.join(
+        " o "
+      )}; se recibió "${maybePath}".`
     );
   }
   const flagPairs = new Map<string, string>();
@@ -101,10 +134,19 @@ const parseArgs = (argv: string[]): ParsedArgs => {
     throw new CliArgumentError("Falta el argumento --version.");
   }
   const sourceTypeRaw = (flagPairs.get("--source-type") ?? "").trim();
-  if (sourceTypeRaw !== CorpusSourceType.PDF) {
+  if (!isSupportedSourceType(sourceTypeRaw)) {
     throw new CliArgumentError(
-      'En V1 --source-type solo acepta "PDF"; se recibió ' +
-        `"${sourceTypeRaw || "<vacío>"}".`
+      `--source-type solo acepta ${SUPPORTED_SOURCE_TYPES.join(" o ")}; ` +
+        `se recibió "${sourceTypeRaw || "<vacío>"}".`
+    );
+  }
+  const expectedExtension = EXTENSION_BY_SOURCE_TYPE[sourceTypeRaw];
+  if (expectedExtension !== pathExtension) {
+    throw new CliArgumentError(
+      `--source-type ${sourceTypeRaw} espera un archivo ${expectedExtension}, ` +
+        `pero <file-path> termina en "${pathExtension}". El tipo declarado se ` +
+        "guarda en source_type y la búsqueda filtra por él: una fuente mal " +
+        "etiquetada queda invisible para las consultas que piden ese tipo."
     );
   }
   const scopeRaw = (flagPairs.get("--scope") ?? "").trim();
@@ -135,11 +177,11 @@ const parseArgs = (argv: string[]): ParsedArgs => {
   const triggeredBy = flagPairs.get("--triggered-by") ?? `cli:${osUser}`;
 
   return {
-    pdfPath: maybePath,
+    filePath: maybePath,
     label,
     version,
-    // No cast needed: the `!== CorpusSourceType.PDF` guard above narrows this
-    // to that literal, which is already assignable to CorpusSourceType.
+    // No cast needed: `isSupportedSourceType` above narrows this to the
+    // supported literals, which are assignable to CorpusSourceType.
     sourceType: sourceTypeRaw,
     scope: scopeRaw as CorpusSourceScope,
     citeUrl,
@@ -204,14 +246,21 @@ const main = async (argv: string[]): Promise<number> => {
       select: { id: true },
     });
 
-    // Parse the PDF and chunk the text outside the transaction. Embedding
+    // Read the document and chunk the text outside the transaction. Embedding
     // failures (network / quota) bubble up here BEFORE we open any DB write
     // so the source row is never created when embeddings fail.
-    const parsed = await parsePdf(args.pdfPath);
-    const chunks = chunkText(parsed.text);
+    //
+    // Both readers hand back plain text and the chunker takes it from there:
+    // Markdown keeps its `#` headings, which `chunking.ts` reads as section
+    // boundaries exactly as it reads a PDF's numbered markers.
+    const text =
+      args.sourceType === CorpusSourceType.MD
+        ? await readMarkdown(args.filePath)
+        : (await parsePdf(args.filePath)).text;
+    const chunks = chunkText(text);
     if (chunks.length === 0) {
       process.stderr.write(
-        `El PDF en ${args.pdfPath} no produjo chunks utilizables. Aborta.\n`
+        `El archivo en ${args.filePath} no produjo chunks utilizables. Aborta.\n`
       );
       return 4;
     }

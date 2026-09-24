@@ -4,7 +4,35 @@ const TARGET_TOKENS = 600;
 const OVERLAP_TOKENS = 80;
 const HEADER_WINDOW_TOKENS = 150;
 
-const HEADER_REGEX = /^\d+(\.\d+)*\s+[A-Z]/;
+/**
+ * A numbered section marker as it survives a PDF-to-text pass: `3 ALCANCE`,
+ * `3.1 Límites operativos`.
+ */
+const NUMBERED_HEADING_REGEX = /^\d+(\.\d+)*\s+[A-Z]/;
+
+/**
+ * An ATX Markdown heading: one to six `#` followed by the title. Setext
+ * headings (a title underlined with `===` or `---`) are NOT recognised — the
+ * underline arrives on the line AFTER the title, so a line-at-a-time reader
+ * would have already emitted the title as body text. Documents written that
+ * way fall back to sentence blocks, which costs the section title and the
+ * heading-aligned boundaries but ingests correctly.
+ */
+const MARKDOWN_HEADING_REGEX = /^(#{1,6})\s+(\S.*)$/;
+
+/**
+ * The section title a line opens, or `null` when the line is body text.
+ *
+ * Markdown titles are returned without their `#` marks: the value lands in
+ * `chatbot_corpus_chunk.section_title` as metadata, where the markup is noise.
+ * The block's own content keeps the line verbatim, so the chunk the model
+ * reads still shows the heading level.
+ */
+const headingTitle = (line: string): string | null => {
+  const markdown = MARKDOWN_HEADING_REGEX.exec(line);
+  if (markdown) return markdown[2].trim();
+  return NUMBERED_HEADING_REGEX.test(line) ? line : null;
+};
 
 export type Chunk = {
   content: string;
@@ -48,14 +76,15 @@ const buildBlocksWithHeaders = (text: string): Block[] => {
   };
   for (const line of lines) {
     const trimmed = line.trim();
-    if (trimmed.length > 0 && HEADER_REGEX.test(trimmed)) {
+    const title = trimmed.length > 0 ? headingTitle(trimmed) : null;
+    if (title !== null) {
       flushBuf();
-      currentSection = trimmed;
+      currentSection = title;
       blocks.push({
         content: trimmed,
         tokens: estimateTokens(trimmed),
         isHeaderStart: true,
-        sectionTitle: trimmed,
+        sectionTitle: title,
       });
       continue;
     }
@@ -142,7 +171,9 @@ const splitOversizedBlock = (block: Block): Block[] => {
  * Split a long piece of text into ~600-token chunks with ~80-token overlap.
  *
  * Two-pass strategy:
- * 1. Detect section headings via /^\d+(\.\d+)*\s+[A-Z]/ on each line and
+ * 1. Detect section headings on each line — numbered markers
+ *    (/^\d+(\.\d+)*\s+[A-Z]/, how a PDF's sections survive text extraction)
+ *    and ATX Markdown headings (/^#{1,6}\s+/) — and
  *    build "blocks" — each block is either a header line or a paragraph
  *    between headers/blank lines. When packing, an upcoming header within
  *    ±HEADER_WINDOW_TOKENS of the current target (~600) becomes a preferred
