@@ -117,7 +117,9 @@ Key Vault is provisioned per environment via Bicep with the following configurat
 | ------------------------- | ------------------------- | ------------------------------------------------------- |
 | `postgres-admin-password` | PostgreSQL admin password | App Service (via Key Vault reference), Bicep deployment |
 
-As new integrations are added (Azure OpenAI, AI Search, Communication Services), their keys must be added to Key Vault and injected as Key Vault references — never hardcoded or stored as plaintext app settings.
+**Azure OpenAI holds no secret here — by design.** The chatbot's chat and embedding clients authenticate keylessly in production, via the App Service system-assigned managed identity against `https://cognitiveservices.azure.com/.default`, so there is no API key to store. `AZURE_OPENAI_API_KEY` exists only as a local-development fallback and must stay unset in deployed environments. See [Chatbot and RAG Security](./chatbot.md) and [Azure AI access requirements](../infrastructure/chatbot-ai-access-requirements.md).
+
+As further integrations are added (AI Search, Communication Services), prefer managed identity on the same pattern. Where a service genuinely has no keyless path, its key must be added to Key Vault and injected as a Key Vault reference — never hardcoded or stored as a plaintext app setting.
 
 ---
 
@@ -125,16 +127,17 @@ As new integrations are added (Azure OpenAI, AI Search, Communication Services),
 
 The following env vars are used by the API. Each is classified by sensitivity:
 
-| Variable                       | Sensitivity                             | Delivery method                           |
-| ------------------------------ | --------------------------------------- | ----------------------------------------- |
-| `DATABASE_URL`                 | **Secret** — contains DB password       | Key Vault reference → App Service setting |
-| `JWT_SECRET`                   | **Secret** — signing key for dev modes  | Key Vault reference (if used at all)      |
-| `AZURE_TENANT_ID`              | Non-secret — public tenant identifier   | App Service setting (plaintext)           |
-| `AZURE_CLIENT_ID`              | Non-secret — public app registration ID | App Service setting (plaintext)           |
-| `AZURE_STORAGE_ACCOUNT_NAME`   | Non-secret — public resource name       | App Service setting (plaintext)           |
-| `AZURE_STORAGE_CONTAINER_NAME` | Non-secret — public container name      | App Service setting (plaintext)           |
-| `ALLOWED_ORIGIN`               | Non-secret — frontend hostname          | App Service setting (plaintext)           |
-| `AUTH_PROVIDER`                | Non-secret — provider selector          | App Service setting (plaintext)           |
+| Variable                       | Sensitivity                             | Delivery method                                                           |
+| ------------------------------ | --------------------------------------- | ------------------------------------------------------------------------- |
+| `DATABASE_URL`                 | **Secret** — contains DB password       | Key Vault reference → App Service setting                                 |
+| `JWT_SECRET`                   | **Secret** — signing key for dev modes  | Key Vault reference (if used at all)                                      |
+| `AZURE_OPENAI_API_KEY`         | **Secret** — dev-only fallback          | `.env` locally; unset in deployed environments (managed identity instead) |
+| `AZURE_TENANT_ID`              | Non-secret — public tenant identifier   | App Service setting (plaintext)                                           |
+| `AZURE_CLIENT_ID`              | Non-secret — public app registration ID | App Service setting (plaintext)                                           |
+| `AZURE_STORAGE_ACCOUNT_NAME`   | Non-secret — public resource name       | App Service setting (plaintext)                                           |
+| `AZURE_STORAGE_CONTAINER_NAME` | Non-secret — public container name      | App Service setting (plaintext)                                           |
+| `ALLOWED_ORIGIN`               | Non-secret — frontend hostname          | App Service setting (plaintext)                                           |
+| `AUTH_PROVIDER`                | Non-secret — provider selector          | App Service setting (plaintext)                                           |
 
 Full variable reference: [Environment Variables](../development/environment-variables.md).
 

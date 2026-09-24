@@ -2,6 +2,13 @@
 set -euo pipefail
 
 # Dry run mode (set DRY_RUN=true to simulate without executing)
+#
+# Captured BEFORE the default below, because step 1 sources .env/.envrc with
+# `set -o allexport` and those files routinely set DRY_RUN for their own
+# environment. Without this, `DRY_RUN=true ./deploy.sh` prints the "no changes
+# will be made" banner and then runs a real deployment anyway — the one failure
+# mode a dry run exists to prevent. The caller's word wins; see step 1b.
+DRY_RUN_FROM_CALLER="${DRY_RUN:-}"
 DRY_RUN=${DRY_RUN:-false}
 
 # Function to log with timestamp
@@ -60,6 +67,13 @@ if [ -f "$SCRIPT_DIR/.envrc" ]; then
   # shellcheck disable=SC1091
   source "$SCRIPT_DIR/.envrc"
   set +o allexport
+fi
+
+# 1b) Restore the caller's DRY_RUN over anything the files just set.
+if [ -n "$DRY_RUN_FROM_CALLER" ] && [ "$DRY_RUN_FROM_CALLER" != "$DRY_RUN" ]; then
+  log "DRY_RUN=$DRY_RUN comes from the environment file; the caller passed"
+  log "DRY_RUN=$DRY_RUN_FROM_CALLER. Honouring the caller."
+  DRY_RUN="$DRY_RUN_FROM_CALLER"
 fi
 
 # 2) Check required non-sensitive variables
@@ -279,6 +293,48 @@ else
   log "No existing Key Vault found. Generating new password..."
   DB_PASSWORD=$(openssl rand -hex 32)
   log "New password generated"
+fi
+
+# 6b) Chatbot cookie secret (only when the chatbot is being deployed).
+#
+# Same create-or-preserve contract as the database password, and the same reason
+# for being careful: overwriting COOKIE_SECRET invalidates every signed
+# chatbot_session_id and chatbot_conversation_id cookie in the wild, so every
+# user silently loses their conversation history on the next redeploy. Empty
+# means "preserve whatever the vault already holds".
+ENABLE_CHATBOT="${ENABLE_CHATBOT:-false}"
+CHATBOT_COOKIE_SECRET=""
+
+if [ "$ENABLE_CHATBOT" = "true" ]; then
+  log "Chatbot enabled — resolving cookie signing secret..."
+  if [ -n "$EXISTING_VAULT" ]; then
+    COOKIE_LOOKUP_RESULT=0
+    COOKIE_LOOKUP=$(az keyvault secret show \
+      --vault-name "$EXISTING_VAULT" \
+      --name "chatbot-cookie-secret" \
+      --query "name" -o tsv 2>&1) || COOKIE_LOOKUP_RESULT=$?
+
+    if [ "$COOKIE_LOOKUP_RESULT" -eq 0 ] && [ -n "$COOKIE_LOOKUP" ]; then
+      log "Cookie secret already exists. Preserving it (will not overwrite)."
+      CHATBOT_COOKIE_SECRET=""
+    elif printf '%s' "$COOKIE_LOOKUP" | grep -qi "SecretNotFound"; then
+      log "No existing cookie secret found. Generating new secret..."
+      CHATBOT_COOKIE_SECRET=$(openssl rand -hex 32)
+      log "New cookie secret generated"
+    else
+      log "ERROR: could not determine whether chatbot-cookie-secret exists in $EXISTING_VAULT."
+      log "       $COOKIE_LOOKUP"
+      log ""
+      log "       Refusing to generate a new secret: if one does exist, replacing it signs out"
+      log "       every active chatbot conversation. Grant 'Key Vault Secrets User' on"
+      log "       $EXISTING_VAULT and retry."
+      exit 1
+    fi
+  else
+    log "No existing Key Vault found. Generating new cookie secret..."
+    CHATBOT_COOKIE_SECRET=$(openssl rand -hex 32)
+    log "New cookie secret generated"
+  fi
 fi
 
 # 7) Deploy using Azure Deployment Stack (enhanced lifecycle management)
@@ -512,6 +568,116 @@ if [ "$ENABLE_AZURE_AUTH" = "true" ]; then
   DEPLOY_PARAMS+=(--parameters azureAuthTenantType="${AZURE_TENANT_TYPE:-external}")
   DEPLOY_PARAMS+=(--parameters azureAuthFrontAppId="$AUTH_FRONTEND_CLIENT_ID")
   DEPLOY_PARAMS+=(--parameters azureAuthApiAppId="$AUTH_API_CLIENT_ID")
+fi
+
+# Appends an optional override to DEPLOY_PARAMS, refusing a value Bicep would
+# reject minutes into a deploy. Empty means "leave the Bicep default alone".
+add_positive_int_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  case "$value" in
+    *[!0-9]*)
+      log "ERROR: $var_name must be a positive integer; received '$value'."
+      exit 1
+      ;;
+  esac
+  if [ "$value" -lt 1 ]; then
+    log "ERROR: $var_name must be at least 1; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
+# Same contract for a money amount, which may carry cents. Bicep takes this one
+# as a string and parses it with json(), because ARM numbers are integers and a
+# budget filtered to one small resource has to be expressible below 1 USD.
+add_positive_amount_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  case "$value" in
+    *[!0-9.]* | *.*.* | . | "")
+      log "ERROR: $var_name must be a positive amount like 30 or 0.05; received '$value'."
+      exit 1
+      ;;
+  esac
+  if ! awk -v v="$value" 'BEGIN { exit !(v > 0) }'; then
+    log "ERROR: $var_name must be greater than zero; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
+# A budget anchor: an ISO date on the first of a month, which is the only shape
+# Azure accepts for a consumption budget's start date.
+add_month_start_param() {
+  local var_name="$1" param_name="$2" value="$3"
+  [ -n "$value" ] || return 0
+  if ! [[ "$value" =~ ^[0-9]{4}-(0[1-9]|1[0-2])-01$ ]]; then
+    log "ERROR: $var_name must be the first day of a month as YYYY-MM-01; received '$value'."
+    exit 1
+  fi
+  DEPLOY_PARAMS+=(--parameters "$param_name=$value")
+  log "  $param_name overridden to $value (via $var_name)"
+}
+
+# Add chatbot parameters if enabled
+if [ "$ENABLE_CHATBOT" = "true" ]; then
+  log "Adding chatbot parameters to deployment..."
+  log "  NOTE: in UNDP-governed subscriptions this deployment fails with"
+  log "        RequestDisallowedByPolicy until the subscription is exempted from the"
+  log "        deny-AI-resources policy. See docs/infrastructure/chatbot-ai-access-requirements.md"
+  DEPLOY_PARAMS+=(--parameters enableChatbot=true)
+  if [ -n "${OPENAI_LOCATION:-}" ]; then
+    DEPLOY_PARAMS+=(--parameters openAiLocation="$OPENAI_LOCATION")
+  fi
+  if [ -n "$CHATBOT_COOKIE_SECRET" ]; then
+    DEPLOY_PARAMS+=(--parameters chatbotCookieSecret="$CHATBOT_COOKIE_SECRET")
+  fi
+
+  # Cost alarms (modules/chatbotAlerting.bicep). main.bicep skips the module
+  # outright when the address is empty, because an action group with no
+  # receiver looks like coverage and is not. So an unset CHATBOT_ALERT_EMAIL
+  # deploys a chatbot with no budget alert and no token alert whatsoever —
+  # permitted, never intended, and therefore said out loud rather than left to
+  # be discovered from a bill.
+  if [ -n "${CHATBOT_ALERT_EMAIL:-}" ]; then
+    case "$CHATBOT_ALERT_EMAIL" in
+      *@*.*) ;;
+      *)
+        log "ERROR: CHATBOT_ALERT_EMAIL is not an email address: '$CHATBOT_ALERT_EMAIL'"
+        log "       Azure rejects a malformed action-group receiver late, once the rest"
+        log "       of the stack has already deployed. Failing here instead."
+        exit 1
+        ;;
+    esac
+    DEPLOY_PARAMS+=(--parameters chatbotAlertEmailAddress="$CHATBOT_ALERT_EMAIL")
+    add_positive_amount_param CHATBOT_MONTHLY_BUDGET_AMOUNT chatbotMonthlyBudgetAmount \
+      "${CHATBOT_MONTHLY_BUDGET_AMOUNT:-}"
+    add_positive_int_param CHATBOT_DAILY_TOKEN_ALLOWANCE chatbotDailyTokenAllowance \
+      "${CHATBOT_DAILY_TOKEN_ALLOWANCE:-}"
+    add_month_start_param CHATBOT_BUDGET_START_DATE chatbotBudgetStartDate \
+      "${CHATBOT_BUDGET_START_DATE:-}"
+    log "  Cost alarms will notify: $CHATBOT_ALERT_EMAIL"
+    log "  NOTE: Microsoft.Consumption/budgets needs Cost Management write access, which"
+    log "        Contributor on the resource group alone does not grant. If the deployment"
+    log "        fails naming that resource type, that permission is why."
+  else
+    log "  WARNING: CHATBOT_ALERT_EMAIL is unset, so NO cost alerting is deployed."
+    log "           No monthly budget alert, no hourly token alert — the only thing"
+    log "           bounding spend is the application's own quotas. Set it to an"
+    log "           address someone reads. See docs/operations/runbook.md,"
+    log "           \"Chatbot Cost Controls\"."
+  fi
+
+  if [ "$ENABLE_ROLE_ASSIGNMENTS" != "true" ]; then
+    log "  WARNING: role assignments are disabled for this deployment, so the App Service"
+    log "           will NOT be granted 'Cognitive Services OpenAI User'. The resources"
+    log "           deploy and the app settings point at them, but every chatbot request"
+    log "           returns 401 until someone with User Access Administrator creates that"
+    log "           assignment by hand."
+  fi
 fi
 
 deployment_result=0

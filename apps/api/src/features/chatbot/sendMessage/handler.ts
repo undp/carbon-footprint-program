@@ -1,27 +1,75 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+import type { Prisma } from "@repo/database";
 import { ChatMessageRole } from "@repo/database/enums";
-import type { SendMessageRequestBody } from "@repo/types";
-import { CHATBOT_MAX_OUTPUT_TOKENS } from "@/config/constants.js";
-import { CHATBOT_GENERIC_ERROR_MESSAGE } from "@/features/chatbot/constants.js";
-import { getLlmProvider } from "@/features/chatbot/llmProvider/index.js";
-import type { LlmMessage } from "@/features/chatbot/llmProvider/types.js";
+import {
+  CHATBOT_CONVERSATION_ID_HEADER,
+  type SendMessageRequestBody,
+  type SourceCitation,
+} from "@repo/types";
+import {
+  CHATBOT_MAX_OUTPUT_TOKENS,
+  CHATBOT_MAX_RAG_CONTEXT_TOKENS,
+} from "@/config/constants.js";
+import { ExternalServiceError } from "@/errors/ExternalServiceError.js";
+import {
+  CHATBOT_GENERIC_ERROR_MESSAGE,
+  CHATBOT_K0_OPENER,
+} from "@/features/chatbot/constants.js";
+import {
+  estimateTokens,
+  getLlmProvider,
+  type LlmMessage,
+  type LlmStreamEvent,
+} from "@/features/chatbot/llmProvider/index.js";
+import { getSystemPromptEs } from "@/features/chatbot/prompts/loader.js";
+import {
+  executeSearchKnowledgeTool,
+  searchKnowledgeToolDefinition,
+} from "@/features/chatbot/tools/searchKnowledge/index.js";
 import {
   acquireIdentityAdvisoryLock,
-  enforceHistoryCap,
-  enforceTurnCap,
+  enforceTokenBudgets,
   enforceUserInputCap,
   loadConversationHistory,
   resolveOrCreateConversation,
+  trimHistoryToBudget,
 } from "./service.js";
 import { writeSseEvent, writeSseHeaders } from "./helpers.js";
 
 type SendMessageRequest = FastifyRequest<{ Body: SendMessageRequestBody }>;
 
+type StreamUsage = { inputTokens: number; outputTokens: number };
+
+const historyToLlmMessage = (m: {
+  role: ChatMessageRole;
+  content: string;
+}): LlmMessage => {
+  switch (m.role) {
+    case ChatMessageRole.USER:
+    case ChatMessageRole.SYSTEM:
+      return { role: m.role, content: m.content };
+    case ChatMessageRole.ASSISTANT:
+      return { role: ChatMessageRole.ASSISTANT, content: m.content };
+    case ChatMessageRole.TOOL:
+      // History does not preserve tool_call_id, and no TOOL row is ever
+      // persisted (the tool round lives entirely within a single turn), so
+      // this branch is unreachable in practice. Carry a placeholder id rather
+      // than hard-failing, because the discriminated union requires one.
+      return {
+        role: ChatMessageRole.TOOL,
+        content: m.content,
+        toolCallId: "history-tool-noop",
+      };
+  }
+};
+
 const buildLlmMessages = (
   history: { role: ChatMessageRole; content: string }[],
-  userContent: string
+  userContent: string,
+  systemPrompt: string
 ): LlmMessage[] => [
-  ...history.map((m) => ({ role: m.role, content: m.content })),
+  { role: ChatMessageRole.SYSTEM, content: systemPrompt },
+  ...history.map(historyToLlmMessage),
   { role: ChatMessageRole.USER, content: userContent },
 ];
 
@@ -36,10 +84,35 @@ export const sendMessageHandler = async (
     );
   }
 
-  const { content } = request.body;
+  const { content, conversationId: requestedConversationIdRaw } = request.body;
   enforceUserInputCap(content);
 
+  // Read (and memoize) the prompt here rather than at module scope: the route
+  // module is imported on every boot, including when CHATBOT_ENABLED is off, so
+  // a packaging problem must not be able to fail the API's startup.
+  const systemPrompt = getSystemPromptEs();
+
   const prisma = request.server.prisma;
+
+  // Before the provider and before any row is written. Both halves matter: a
+  // refusal issued after the completion has been paid for controls nothing, and
+  // a refused turn that still persisted a user message would leave the caller's
+  // own budget consuming itself.
+  //
+  // Throws QuotaExceededError (429), which the error handler serializes as an
+  // ordinary JSON body — the reply has not been hijacked yet, so the client
+  // gets a status it can branch on rather than an SSE stream ending in an error
+  // event it has to parse.
+  await enforceTokenBudgets(prisma, identity);
+
+  // The thread this turn continues, as named by the client. `null` — the field
+  // was omitted — means start a new conversation; see
+  // resolveOrCreateConversation. The Zod body schema has already checked the
+  // shape, so BigInt() cannot throw here.
+  const requestedConversationId =
+    requestedConversationIdRaw === undefined
+      ? null
+      : BigInt(requestedConversationIdRaw);
 
   // History snapshot, turn cap, and message inserts ALL run inside the
   // identity-scoped advisory lock. Doing the cap checks pre-lock would let two
@@ -50,11 +123,22 @@ export const sendMessageHandler = async (
   const { assistantRowId, conversationId, history } = await prisma.$transaction(
     async (tx) => {
       await acquireIdentityAdvisoryLock(tx, identity);
-      const conversation = await resolveOrCreateConversation(tx, identity);
+      const conversation = await resolveOrCreateConversation(
+        tx,
+        identity,
+        requestedConversationId
+      );
 
       const lockedHistory = await loadConversationHistory(tx, conversation.id);
-      enforceHistoryCap(lockedHistory);
-      await enforceTurnCap(tx, conversation.id);
+      // Charge the system prompt and this turn's message against the budget:
+      // both are part of every request sent upstream, so excluding them would
+      // understate the real token load. Whatever does not fit is dropped from
+      // the oldest end rather than refusing the turn.
+      const windowedHistory = trimHistoryToBudget(
+        lockedHistory,
+        systemPrompt,
+        content
+      );
 
       await tx.chatbotChatMessage.create({
         data: {
@@ -80,7 +164,7 @@ export const sendMessageHandler = async (
       return {
         assistantRowId: assistantRow.id,
         conversationId: conversation.id,
-        history: lockedHistory.map((m) => ({
+        history: windowedHistory.map((m) => ({
           role: m.role,
           content: m.content,
         })),
@@ -88,8 +172,23 @@ export const sendMessageHandler = async (
     }
   );
 
+  // Tell the client which thread this turn landed in, so it can send the same
+  // id on the next one and rehydrate it after a reload. Set BEFORE
+  // reply.hijack() for two reasons: writeSseHeaders forwards it onto
+  // reply.raw.writeHead (after hijacking, Fastify no longer flushes its own
+  // header store), and the pre-hijack failure paths below answer with a normal
+  // Fastify response that carries it too. That second case is load-bearing:
+  // the transaction above has already COMMITTED the conversation and the
+  // user's message, so a provider failure that 503s before the hijack leaves a
+  // real thread behind. A client that only learned the id from a successful
+  // stream would abandon it and open a second one on retry.
+  //
+  // `enforceUserInputCap` does not need this: it runs before the transaction,
+  // so its 413 leaves no conversation behind to name.
+  reply.header(CHATBOT_CONVERSATION_ID_HEADER, conversationId.toString());
+
   const provider = getLlmProvider();
-  const llmMessages = buildLlmMessages(history, content);
+  const llmMessages = buildLlmMessages(history, content, systemPrompt);
 
   const startedAt = Date.now();
   const abortController = new AbortController();
@@ -100,6 +199,7 @@ export const sendMessageHandler = async (
   //      (`latency_ms IS NULL`) makes the UPDATE a no-op when the success
   //      path has already finalized the row, so this is idempotent.
   let assistantBuffer = "";
+  let firstChunkSeen = false;
   let clientDisconnected = false;
   reply.raw.on("close", () => {
     if (reply.raw.writableEnded) return;
@@ -118,56 +218,37 @@ export const sendMessageHandler = async (
     );
   });
 
-  // provider.streamCompletion is an async generator: calling it only builds
-  // the iterator and cannot throw synchronously — the provider body (the
-  // network call included) runs lazily inside the `for await` below. A
-  // pre-stream failure is therefore impossible, so every provider error
-  // surfaces as a terminal SSE `error` event mid-stream (handled in the catch
-  // below), never as a pre-stream HTTP status.
-  const stream = provider.streamCompletion(llmMessages, {
-    maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
-    signal: abortController.signal,
-  });
+  const assistantRowIdString = assistantRowId.toString();
+  // Every write to `usage` happens at this function's top level (never inside
+  // `emit`/`drain`), because TypeScript's control-flow analysis ignores
+  // assignments made from a nested closure and would narrow it back to `null`.
+  let usage: StreamUsage | null = null;
+  // Corpus chunks the model actually grounded its answer in. Populated only on
+  // a tool turn, and cleared again by the K=0 override below.
+  const finalSources: SourceCitation[] = [];
+  // Mutated as deltas arrive so the disconnect finalizer
+  // (reply.raw.on("close")) reads the current partial content even if the
+  // stream is cut mid-flight before the drain loop completes.
+  const onDelta = (chunk: string): void => {
+    firstChunkSeen = true;
+    assistantBuffer += chunk;
+  };
 
-  // Hijack the response so we own the raw stream and Fastify won't try to
-  // serialize a JSON body for the 200 response schema.
-  reply.hijack();
-  writeSseHeaders(reply);
-
-  let usage: { inputTokens: number; outputTokens: number } | null = null;
-  let firstChunkSeen = false;
-
-  try {
-    for await (const event of stream) {
-      if (event.type === "delta") {
-        if (!firstChunkSeen) firstChunkSeen = true;
-        assistantBuffer += event.content;
-        writeSseEvent(
-          reply,
-          undefined,
-          { content: event.content },
-          {
-            id: assistantRowId.toString(),
-          }
-        );
-      } else if (event.type === "usage") {
-        usage = {
-          inputTokens: event.inputTokens,
-          outputTokens: event.outputTokens,
-        };
-      }
-    }
-  } catch (err) {
+  /**
+   * Terminal handling for a provider failure that happens AFTER the hijack, so
+   * the response head is already on the wire and we cannot fall through to the
+   * global error handler. Persists the partial buffer, marks the row truncated,
+   * and emits a terminal SSE `error` event.
+   */
+  const failAfterHijack = async (err: unknown, round: 1 | 2): Promise<void> => {
     request.log.error(
-      { err, assistantRowId: assistantRowId.toString(), firstChunkSeen },
+      { err, assistantRowId: assistantRowIdString, firstChunkSeen, round },
       "chatbot LLM provider stream errored"
     );
     // If the client already disconnected, the reply.raw "close" handler owns
     // finalization (it marks the row truncated via the conditional UPDATE) and
     // the socket is gone — do not write to it or double-finalize here.
-    if (clientDisconnected) {
-      return;
-    }
+    if (clientDisconnected) return;
     // Genuine provider error while the client is still connected. The "close"
     // handler will NOT finalize the row here: reply.raw.end() below sets
     // writableEnded=true synchronously, so the close handler's
@@ -182,7 +263,7 @@ export const sendMessageHandler = async (
       });
     } catch (finalizeErr) {
       request.log.error(
-        { err: finalizeErr, assistantRowId: assistantRowId.toString() },
+        { err: finalizeErr, assistantRowId: assistantRowIdString },
         "chatbot mid-stream error finalizer UPDATE failed"
       );
     }
@@ -191,20 +272,322 @@ export const sendMessageHandler = async (
       message: CHATBOT_GENERIC_ERROR_MESSAGE,
     });
     reply.raw.end();
-    return;
+  };
+
+  /**
+   * Terminal handling for a failure that happens BEFORE the hijack, where
+   * throwing still maps to a real HTTP status through the global error handler.
+   *
+   * The empty assistant row was committed at the top of the handler, long
+   * before the provider is invoked, and nothing on this path would ever mark
+   * it: failAfterHijack does not run here, and the reply.raw "close" finalizer
+   * short-circuits on writableEnded once the error response is written. The row
+   * would sit at `latency_ms = NULL, truncated = false` forever — invisible to
+   * an operator query for failed turns, and inconsistent with the mid-stream
+   * and oversized-RAG paths, which both mark it. `content` stays "" because no
+   * delta can have been emitted yet.
+   *
+   * Logs and marks; the caller still throws, so the control flow stays visible
+   * at each call site.
+   */
+  const failBeforeHijack = async (
+    logPayload: Record<string, unknown>,
+    message: string
+  ): Promise<void> => {
+    request.log.error(
+      { ...logPayload, assistantRowId: assistantRowIdString },
+      message
+    );
+    try {
+      await prisma.chatbotChatMessage.updateMany({
+        where: { id: assistantRowId, latencyMs: null },
+        data: { truncated: true },
+      });
+    } catch (finalizeErr) {
+      request.log.error(
+        { err: finalizeErr, assistantRowId: assistantRowIdString },
+        "chatbot pre-hijack error finalizer UPDATE failed"
+      );
+    }
+  };
+
+  /**
+   * Write one stream event to the hijacked wire. Returns the usage totals when
+   * the event carries them, so the caller assigns `usage` in the outer scope.
+   *
+   * Token accounting: on a tool turn the persisted tokens_used comes from the
+   * SECOND (terminal) usage event only — never a sum across rounds. The first
+   * invocation terminates on tool_call and provides no usage.
+   *
+   * Per spec, tool_call SHALL NOT appear after deltas on the same stream. A
+   * misbehaving provider emitting one here has it ignored: the hijack cannot be
+   * reverted, and the terminal done/error events are the only signal left.
+   */
+  const emit = (event: LlmStreamEvent): StreamUsage | null => {
+    if (event.type === "delta") {
+      onDelta(event.content);
+      writeSseEvent(
+        reply,
+        undefined,
+        { content: event.content },
+        { id: assistantRowIdString }
+      );
+      return null;
+    }
+    if (event.type === "usage") {
+      return {
+        inputTokens: event.inputTokens,
+        outputTokens: event.outputTokens,
+      };
+    }
+    return null;
+  };
+
+  /**
+   * Drain an already-peeked iterator onto the wire. `ok: false` means the
+   * failure was already reported on the wire and the caller must return.
+   */
+  const drain = async (
+    iterator: AsyncIterator<LlmStreamEvent>,
+    round: 1 | 2
+  ): Promise<{ ok: boolean; usage: StreamUsage | null }> => {
+    let latest: StreamUsage | null = null;
+    try {
+      let next = await iterator.next();
+      while (!next.done) {
+        if (abortController.signal.aborted) break;
+        latest = emit(next.value) ?? latest;
+        next = await iterator.next();
+      }
+      return { ok: true, usage: latest };
+    } catch (err) {
+      await failAfterHijack(err, round);
+      return { ok: false, usage: latest };
+    }
+  };
+
+  // Probe the first invocation BEFORE hijacking so a provider failure can fall
+  // through to the global error handler as a real HTTP status.
+  let firstStream: AsyncIterable<LlmStreamEvent>;
+  try {
+    firstStream = provider.streamCompletion(llmMessages, {
+      maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
+      signal: abortController.signal,
+      tools: [searchKnowledgeToolDefinition],
+    });
+  } catch (err) {
+    await failBeforeHijack(
+      { err, round: 1 },
+      "chatbot LLM provider first-round invocation failed"
+    );
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
   }
 
-  // Provider implementations honor `options.signal` and may return without
-  // throwing when the abort fires (the client disconnected mid-stream).
-  // Bail out before the success finalizer would overwrite the truncated
-  // state set by the disconnect handler — otherwise an aborted turn could
-  // be persisted as a successful completion.
-  if (clientDisconnected || abortController.signal.aborted) {
-    return;
+  // Peek the first event. The handler executes a single round of tool calling
+  // server-side, and the second round runs BEFORE reply.hijack() so its errors
+  // map to standard HTTP responses (503 / 500). The peek reveals the turn
+  // shape: non-tool turns hijack immediately to preserve delta-by-delta
+  // streaming; tool turns defer the hijack until the second-round outcome is
+  // known.
+  const firstIterator = firstStream[Symbol.asyncIterator]();
+  let firstPeek: IteratorResult<LlmStreamEvent>;
+  try {
+    firstPeek = await firstIterator.next();
+  } catch (err) {
+    await failBeforeHijack(
+      { err, round: 1 },
+      "chatbot LLM provider first-round peek errored"
+    );
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+  }
+  if (firstPeek.done) {
+    await failBeforeHijack(
+      { round: 1 },
+      "chatbot LLM provider first-round stream produced no events"
+    );
+    throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+  }
+
+  const firstEvent = firstPeek.value;
+
+  if (firstEvent.type === "tool_call") {
+    // Drain anything left in the first iterator. A tool_call event terminates
+    // the stream, so the next .next() returns done immediately — drain
+    // defensively so a provider that leaks events still releases resources.
+    //
+    // Guarded because it is still a provider interaction: an upstream error or
+    // an idle-timeout abort surfaces here as a throw. Unguarded it escaped the
+    // handler entirely, so failBeforeHijack never ran and the assistant row
+    // stayed at `latency_ms = NULL, truncated = false` — invisible to the
+    // operator query for failed turns, which is exactly the state that
+    // function exists to prevent — while the caller got a 500 instead of the
+    // 503 every other pre-hijack failure maps to.
+    try {
+      let firstRemaining: IteratorResult<LlmStreamEvent>;
+      do {
+        firstRemaining = await firstIterator.next();
+      } while (!firstRemaining.done);
+    } catch (err) {
+      await failBeforeHijack(
+        { err, round: 1 },
+        "chatbot first-round drain errored after tool_call"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+
+    let toolResult;
+    try {
+      toolResult = await executeSearchKnowledgeTool(
+        prisma,
+        firstEvent.arguments
+      );
+    } catch (err) {
+      await failBeforeHijack(
+        { err, round: 1 },
+        "chatbot searchKnowledge tool execution failed"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+
+    const toolMessageTokens = estimateTokens(toolResult.toolResultMessage);
+    if (toolMessageTokens > CHATBOT_MAX_RAG_CONTEXT_TOKENS) {
+      request.log.warn(
+        {
+          assistantRowId: assistantRowIdString,
+          toolMessageTokens,
+          cap: CHATBOT_MAX_RAG_CONTEXT_TOKENS,
+        },
+        "chatbot RAG context exceeds CHATBOT_MAX_RAG_CONTEXT_TOKENS"
+      );
+      // An oversized RAG context aborts the second round with a terminal SSE
+      // error AND truncated=true. Hijack now so the wire is open, then emit
+      // the error and the explicit UPDATE before reply.raw.end() (the
+      // disconnect finalizer's writableEnded short-circuit would otherwise
+      // skip the mark).
+      reply.hijack();
+      writeSseHeaders(reply);
+      writeSseEvent(reply, "error", {
+        code: "EXTERNAL_SERVICE_ERROR",
+        message: CHATBOT_GENERIC_ERROR_MESSAGE,
+      });
+      try {
+        await prisma.chatbotChatMessage.updateMany({
+          where: { id: assistantRowId, latencyMs: null },
+          data: { truncated: true, content: assistantBuffer },
+        });
+      } catch (err) {
+        request.log.error(
+          { err, assistantRowId: assistantRowIdString },
+          "chatbot oversized-RAG truncated-mark UPDATE failed"
+        );
+      }
+      reply.raw.end();
+      return;
+    }
+
+    const secondMessages: LlmMessage[] = [
+      ...llmMessages,
+      {
+        role: ChatMessageRole.ASSISTANT,
+        content: "",
+        toolCalls: [
+          {
+            id: firstEvent.id,
+            name: firstEvent.name,
+            arguments: firstEvent.arguments,
+          },
+        ],
+      },
+      {
+        role: ChatMessageRole.TOOL,
+        content: toolResult.toolResultMessage,
+        toolCallId: firstEvent.id,
+      },
+    ];
+
+    let secondStream: AsyncIterable<LlmStreamEvent>;
+    try {
+      secondStream = provider.streamCompletion(secondMessages, {
+        maxOutputTokens: CHATBOT_MAX_OUTPUT_TOKENS,
+        signal: abortController.signal,
+        tools: [searchKnowledgeToolDefinition],
+      });
+    } catch (err) {
+      await failBeforeHijack(
+        { err, round: 2 },
+        "chatbot LLM provider second-round invocation failed"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+
+    // Peek the second stream. A tool_call here violates the single-round
+    // invariant and SHALL abort the turn — throwing pre-hijack maps cleanly to
+    // HTTP 503.
+    const secondIterator = secondStream[Symbol.asyncIterator]();
+    let secondPeek: IteratorResult<LlmStreamEvent>;
+    try {
+      secondPeek = await secondIterator.next();
+    } catch (err) {
+      await failBeforeHijack(
+        { err, round: 2 },
+        "chatbot LLM provider second-round peek errored"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+    if (secondPeek.done) {
+      await failBeforeHijack(
+        { round: 2 },
+        "chatbot LLM provider second-round stream produced no events"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+    const secondFirst = secondPeek.value;
+    if (secondFirst.type === "tool_call") {
+      await failBeforeHijack(
+        { round: 2 },
+        "chatbot LLM provider issued a second consecutive tool_call"
+      );
+      throw new ExternalServiceError(CHATBOT_GENERIC_ERROR_MESSAGE);
+    }
+
+    // The second round is going to stream — hijack now, emit the peeked event,
+    // then drain the rest onto the wire.
+    reply.hijack();
+    writeSseHeaders(reply);
+    usage = emit(secondFirst) ?? usage;
+    const drained = await drain(secondIterator, 2);
+    usage = drained.usage ?? usage;
+    if (!drained.ok) return;
+
+    if (clientDisconnected || abortController.signal.aborted) return;
+
+    finalSources.push(...toolResult.validSources);
+  } else {
+    // Non-tool turn — hijack now and stream delta-by-delta.
+    reply.hijack();
+    writeSseHeaders(reply);
+    usage = emit(firstEvent) ?? usage;
+    const drained = await drain(firstIterator, 1);
+    usage = drained.usage ?? usage;
+    if (!drained.ok) return;
+
+    // Provider implementations honor `options.signal` and may return without
+    // throwing when the abort fires (the client disconnected mid-stream).
+    // Bail out before the success finalizer would overwrite the truncated
+    // state set by the disconnect handler — otherwise an aborted turn could
+    // be persisted as a successful completion.
+    if (clientDisconnected || abortController.signal.aborted) return;
   }
 
   const latencyMs = Date.now() - startedAt;
   const tokensUsed = usage ? usage.inputTokens + usage.outputTokens : 0;
+
+  // K=0 override: when the assistant text opens with the no-corpus-support
+  // disclaimer, the model declined to ground its answer — drop validSources so
+  // the wire payload and the visible text agree.
+  if (assistantBuffer.trimStart().startsWith(CHATBOT_K0_OPENER)) {
+    finalSources.length = 0;
+  }
 
   // Finalize the assistant row OUTSIDE the transaction. Setting `latency_ms`
   // is what makes the disconnect finalizer's conditional UPDATE a no-op.
@@ -221,6 +604,7 @@ export const sendMessageHandler = async (
         tokensUsed,
         latencyMs,
         truncated: false,
+        sourcesCited: finalSources as unknown as Prisma.InputJsonValue,
       },
     });
 
@@ -230,7 +614,7 @@ export const sendMessageHandler = async (
     });
   } catch (err) {
     request.log.error(
-      { err, assistantRowId: assistantRowId.toString() },
+      { err, assistantRowId: assistantRowIdString },
       "chatbot finalization writes failed after successful stream"
     );
     writeSseEvent(reply, "error", {
@@ -241,14 +625,18 @@ export const sendMessageHandler = async (
     return;
   }
 
-  writeSseEvent(
-    reply,
-    "done",
-    {
-      inputTokens: usage?.inputTokens ?? 0,
-      outputTokens: usage?.outputTokens ?? 0,
-    },
-    { id: assistantRowId.toString() }
-  );
+  type DonePayload = {
+    inputTokens: number;
+    outputTokens: number;
+    sources?: SourceCitation[];
+  };
+  const donePayload: DonePayload = {
+    inputTokens: usage?.inputTokens ?? 0,
+    outputTokens: usage?.outputTokens ?? 0,
+  };
+  if (finalSources.length > 0) {
+    donePayload.sources = finalSources;
+  }
+  writeSseEvent(reply, "done", donePayload, { id: assistantRowIdString });
   reply.raw.end();
 };

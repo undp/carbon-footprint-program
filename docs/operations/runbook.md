@@ -365,6 +365,214 @@ Guide](../infrastructure/Deployment.md).
 
 ---
 
+## Chatbot Cost Controls
+
+Four layers, only one of which actually stops anything.
+
+| Layer                                     | Where                                 | Stops spend?                         |
+| ----------------------------------------- | ------------------------------------- | ------------------------------------ |
+| TPM quota on the OpenAI deployments       | `infra/modules/openai.bicep`          | Yes — caps throughput per minute     |
+| Kill switch (`CHATBOT_ENABLED=false`)     | App setting                           | Yes — immediately, see below         |
+| Burst limit, token budget, anonymous pool | `apps/api`                            | Yes — refuses turns before the model |
+| Budget + metric alerts                    | `infra/modules/chatbotAlerting.bicep` | **No** — they only notify            |
+
+**A quota rejection is not an outage.** Three different refusals answer 429 and
+each carries its own Spanish message, so the body identifies which layer
+refused:
+
+| Message names                        | Layer                 | What it means                                                                              |
+| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------ |
+| "Espera unos segundos"               | Burst limit           | One IP exceeded 15 turns/minute. Clears within the minute.                                 |
+| "Alcanzaste tu límite de uso diario" | Per-identity budget   | That caller spent 40,000 tokens in 24h (150,000 if signed in). Clears as the window rolls. |
+| "El asistente alcanzó su límite"     | Shared anonymous pool | All anonymous callers together spent 300,000 tokens in 24h.                                |
+
+The third is the one that looks like an incident and is not. **One actor can
+exhaust the shared pool and deny the chatbot to every anonymous visitor** until
+the window rolls — that is the accepted trade for having a cost ceiling that
+cannot be evaded by discarding a cookie. Authenticated callers keep service
+throughout, which is why that message tells the user to sign in.
+
+To confirm it rather than guess: the API logs the refusing layer, and the token
+metric alert will have fired well before the pool emptied. Raising
+`CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` requires a deploy; `CHATBOT_ENABLED=false`
+is the only immediate lever, and it turns the assistant off for everyone.
+
+**What the alarms actually are, and when each can speak.** Four notifications on
+two clocks, none of which refuses anything:
+
+| Alarm                           | Clock                                | Resets                             |
+| ------------------------------- | ------------------------------------ | ---------------------------------- |
+| Token rate 50% of pool (Sev 2)  | rolling hour, evaluated every 15 min | when the hour falls below the rung |
+| Token rate 80% of pool (Sev 1)  | same                                 | same                               |
+| Token rate 100% of pool (Sev 0) | same                                 | same                               |
+| Budget 50 / 80 / 100% actual    | billed spend, evaluated ~daily       | the 1st of each month              |
+| Budget 100% forecast            | projected month-end spend            | the 1st of each month              |
+
+The budget is filtered to the Azure OpenAI account by resource id, so it measures
+the assistant and not the group it happens to be deployed into. Without that
+filter it reports the whole environment — Postgres, the App Service, the registry
+— under a name that says `chatbot`, and its amount was calibrated against the
+chatbot cost model, which was never a sensible ceiling for an entire stack.
+
+The token rungs are percentages of `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY`, not
+absolute counts, so one number moves all three and the mail names a fraction
+instead of a figure the reader has to divide. Two things that percentage does
+**not** mean: the window is an hour and the allowance is a day, so the 50% rung
+says "one hour consumed half a day's allowance" — at that rate the pool is gone
+in two hours — and Azure's `TokenTransaction` counts every token the account
+processes while the application's pool sums only the terminal round of each turn
+(measured here: 3,445 against 2,174, so the app sees about 63%). It also counts
+authenticated traffic, which never draws on the pool. Both differences make the
+alarm speak early, which for an alarm that stops nothing is the right direction
+to be wrong in.
+
+Three token rules rather than one because **a metric alert notifies on the
+transition into `Fired` and then goes quiet**, however much worse the burn gets,
+for as long as the condition holds. With a one-hour window, continued use keeps
+it holding, so the whole episode produces one mail. This has been seen here: a
+3,445-token hour raised the alarm, and a 20,766-token hour twenty minutes later
+sent nothing, because the rule was already firing. The rungs are separate rules,
+so a climb crosses new ones and each sends its own first mail — and the severity
+that arrives tells you how far it climbed.
+
+To force a reset, disable and re-enable the rule; closing the alert in the portal
+changes `alertState`, which is human workflow, not `monitorCondition`, which is
+what governs notification.
+
+The budget's actual thresholds are late by construction, since Azure bills before
+it reports. The forecast threshold is the only one that can arrive while there is
+still a month left to act in; it is noisier, because a projection swings on one
+busy afternoon, which is why it accompanies the actual ones rather than replacing
+them.
+
+**The alerting is Azure-only.** It provisions a consumption budget and an Azure
+Monitor metric alert, neither of which exists in the on-premise topology: there
+is no Azure OpenAI account to watch and no consumption data to bill against. An
+on-premise deployment therefore has no cost alerting whatsoever and depends
+entirely on the application-level quotas above. Operators of that topology
+should watch the API logs for quota rejections instead.
+
+**Deploying the alerting needs an extra permission.** `Microsoft.Consumption/budgets`
+requires Cost Management write access, which a principal scoped only to
+Contributor on the resource group may not have. The failure appears at deploy
+time as an authorization error naming that resource type. The module is also
+skipped entirely unless `chatbotAlertEmailAddress` is supplied — an action group
+with no receiver looks like coverage and is not.
+
+**Turning the alerting on.** `deploy.sh` reads `CHATBOT_ALERT_EMAIL` from the
+environment (`infra/.envrc`) and forwards it as `chatbotAlertEmailAddress`.
+Leaving it unset deploys the chatbot with no alerting at all, and the deploy log
+says so. `CHATBOT_MONTHLY_BUDGET_AMOUNT` and `CHATBOT_DAILY_TOKEN_ALLOWANCE`
+override the thresholds; both are validated as positive integers before the
+deployment starts. The second is the assistant's daily anonymous token pool, of
+which the three token alerts are 50, 80 and 100%, so one number moves all of
+them — and it must be kept equal to `CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY` in
+`apps/api`, since Bicep cannot read a TypeScript constant. `CHATBOT_BUDGET_START_DATE`
+(`YYYY-MM-01`) overrides the budget's anchor, which is otherwise fixed at
+2026-09-01 so that a redeploy never rewrites it — the monthly reset comes from
+the budget's time grain, not from this date. The address becomes an action group receiver, so prefer a
+shared inbox over a personal one — it outlives whoever ran the deploy.
+
+---
+
+## Chatbot Model Retirement
+
+Azure retires model versions on a published schedule
+(<https://learn.microsoft.com/en-us/azure/foundry/openai/concepts/model-retirements>).
+The chat model pinned today, `gpt-4o-mini` version `2024-07-18`, retires on
+**2027-10-01**. After that date the deployment stops answering: every chatbot turn
+fails with the generic error, and **no alarm fires**, because a model that does
+not answer consumes no tokens. Plan the swap before the date rather than after the
+first support ticket.
+
+Both models are pinned in the environment's `.bicepparam`, not in code:
+
+```bicep
+param openAiChatModelName = 'gpt-4o-mini'
+param openAiChatModelVersion = '2024-07-18'
+param openAiEmbeddingModelName = 'text-embedding-3-large'
+param openAiEmbeddingModelVersion = '1'
+```
+
+**Replacing the chat model** is a parameter change plus a redeploy of the
+infrastructure (`infra/deploy.sh`). Check first that the replacement is offered
+in the region and SKU the deployment uses, and that the TPM capacity still fits.
+Nothing else needs to change: conversations, quotas and alarms are independent of
+which chat model answers.
+
+**Replacing the embedding model is not just a parameter change.** Every stored
+chunk carries a vector produced by the old model, and vectors from two models are
+not comparable, so retrieval silently degrades to noise if the corpus is left as
+it is. After the redeploy, re-ingest every active source with the ingestion CLI
+(see "Chatbot corpus ingestion and activation" below) and activate the new
+versions. The new model must also produce 1024-dimension vectors, which is what
+`EMBEDDING_DIMENSIONS` in `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts`
+requests and the `vector(1024)` column stores; a model that cannot must be
+accompanied by a code and migration change.
+
+---
+
+## Chatbot Emergency Shutdown
+
+Turns the assistant off completely. Use it when the chatbot is burning budget,
+answering badly enough to be a liability, or implicated in an incident.
+
+`CHATBOT_ENABLED` is read once at boot. When it is false the chatbot routes are
+never registered, so every chatbot endpoint answers 404 and no code path can
+reach Azure OpenAI. This is the only control that stops spend immediately — the
+rate limits, token budgets and cost alerts shipped with `chatbot-mvp-hardening`
+narrow or report spend, they do not stop it.
+
+**Disable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=false
+```
+
+Changing an app setting restarts the App Service on its own; no separate
+`az webapp restart` is needed.
+
+**What to expect:**
+
+|                   |                                                  |
+| ----------------- | ------------------------------------------------ |
+| Restart           | ~1 minute                                        |
+| Chatbot endpoints | 404                                              |
+| Azure OpenAI      | no request reaches it                            |
+| Rest of the API   | unaffected — only the chatbot routes are skipped |
+| Widget            | **still visible**, and every turn fails          |
+
+**The widget stays visible, and that is expected.** `VITE_CHATBOT_ENABLED` is a
+build-time variable baked into the frontend bundle, so it cannot be flipped from
+the Azure CLI. Turning the backend off leaves the launcher on screen until the
+frontend is rebuilt and redeployed with `VITE_CHATBOT_ENABLED=false`. For an
+emergency this is the right trade — the spend stops in a minute either way — but
+it is written here so nobody interprets the visible widget as a failed shutdown
+and starts hunting for a second switch.
+
+**Re-enable:**
+
+```bash
+az webapp config appsettings set \
+  --resource-group "$AZURE_RESOURCE_GROUP" \
+  --name "<app-service-name>" \
+  --settings CHATBOT_ENABLED=true
+```
+
+Verify with a request to any chatbot endpoint: 404 means still disabled, any
+other status means the routes are registered again.
+
+> Boot-time validation applies when re-enabling in production: with
+> `CHATBOT_ENABLED=true`, the API refuses to start if `LLM_PROVIDER` or
+> `EMBEDDING_PROVIDER` is still `mock`, or if `COOKIE_SECRET` is too short. A
+> failure to come back up after re-enabling is usually one of these, and the
+> startup log names which.
+
+---
+
 ## Chatbot Conversation Purge
 
 The chatbot stores conversations in `chatbot_chat_conversation` with a 30-day `expires_at` column populated at row creation. **Foundation does not include the daily purge job** — the pg_cron extension and the scheduled purge are a separate infra change that must enable `azure.extensions = pg_cron` on the Postgres server parameter and schedule the daily job.
@@ -384,3 +592,145 @@ Until the infra change lands, run the SQL above manually as needed (for example,
 **Cookie rotation:**
 
 Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. Any anonymous conversations whose session cookie was issued under the previous secret become unrecoverable from the user's perspective. Schedule rotations during low-traffic windows and document them in the deployment log.
+
+---
+
+## Chatbot corpus ingestion and activation
+
+### Ingesting the whole corpus folder
+
+The repository's `corpus/` folder holds every document the assistant should know: third-party PDFs, plus symlinks to the category and subcategory explanations the platform itself shows. `corpus/manifest.json` gives each PDF its label, scope and citation URL. Ingest all of it with one command:
+
+```bash
+pnpm chatbot:ingest-corpus
+```
+
+It runs in three steps:
+
+1. **Requirements** — reads the manifest and every document (a broken symlink fails here), validates the API environment, connects to the database, and checks for `pgvector` and the corpus tables. `EMBEDDING_PROVIDER` must be set explicitly — left unset, the API silently falls back to `mock` — and with `azure-openai`, `AZURE_OPENAI_ENDPOINT` (an `https` URL) and `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` must be present. The API itself checks those two only when `CHATBOT_ENABLED=true`, which a corpus seeded before switching the chatbot on does not have. With `azure-openai` it then uses the **Azure CLI** (`az`, logged in with `az login`) to check the Azure side:
+   - the account behind `AZURE_OPENAI_ENDPOINT` exists in the active subscription (`az account set` to switch);
+   - the embeddings deployment exists and runs a `text-embedding-3` model, the only family that accepts the 1024 dimensions the column needs;
+   - with `AZURE_OPENAI_API_KEY` set, the account accepts keys (`disableLocalAuth` off); without it, your identity holds a role whose data actions include embeddings — checked against the role's permissions, so custom roles count, and Owner/Contributor do not. When the role is missing and the run is interactive, it offers to assign `Cognitive Services OpenAI User` on the spot and then retries the test embedding for up to 10 minutes while the assignment propagates; `--check` and `--yes` never change permissions. Otherwise it prints the `az role assignment create` command that fixes it, with your principal and the account already filled in — someone with Owner, User Access Administrator or Role Based Access Control Administrator on the account has to run it, and it can take up to 10 minutes to propagate. `--help` shows the same command in generic form.
+
+   Last, it sends one test embedding. That covers what the CLI cannot: the identity the API actually authenticates as (`DefaultAzureCredential` prefers `AZURE_CLIENT_SECRET` and friends over the `az` session, and the script warns when they are set) and the network path to the endpoint.
+
+2. **Confirmation** — prints the environment it found (database with the password masked, embedding provider, endpoint, deployment, authentication mode, embedding model, app URL) and the plan for every document, then asks whether it is correct.
+3. **Ingest** — runs `chatbot:ingest` for each new or changed document, then asks before running `chatbot:activate` on the resulting drafts.
+
+Each document's `--version` is a hash of its content, so a re-run skips everything already `ACTIVE` and unchanged, and offers to activate drafts a previous run left behind. Explanations are cited as `<app-url>#<file>` — there is no public page per explanation, so the link opens the app and the label carries the meaning. The app URL defaults to the first `https` origin in `ALLOWED_ORIGIN`; pass `--app-url` to override it, and `--yes` to run without prompts (it confirms the environment **and** activates).
+
+To validate without ingesting, run `pnpm chatbot:ingest-corpus:check` (shorthand for `--check`): it runs step 1, prints the environment and the per-document plan, and exits `0` when everything is ready — no prompts and no database writes, so it also works in CI or over a non-interactive SSH session. The one external call it makes is step 1's test embedding. A missing app URL fails the check instead of being asked for.
+
+The plan also looks at what the database already holds, because retrieval compares vectors across every `ACTIVE` source and a source embedded by another model fails silently (see the re-embed playbook below):
+
+- a corpus document that is `ACTIVE` with unchanged content but another `embedding_model` is marked `otro modelo` and re-ingested, instead of skipped;
+- `ACTIVE` sources that are not in `corpus/` — a removed document, the `v05-sample` fixture — are listed, because the script only adds and replaces sources and they keep answering. Those embedded by another model get a louder warning; deactivate or re-ingest them.
+
+### Ingesting a single document
+
+The command above drives two CLI scripts under `apps/api/scripts/chatbot/`, which can also be run by hand:
+
+```bash
+# 1. Ingest a document — creates a DRAFT source plus chunks plus an audit row.
+pnpm --filter api chatbot:ingest path/to/document.pdf \
+  --label "GHG Protocol Corporate Standard" \
+  --version v05 \
+  --source-type PDF \
+  --scope GLOBAL \
+  --cite-url "https://ghgprotocol.org/corporate-standard"
+
+# Markdown works the same way — only the extension and --source-type change.
+pnpm --filter api chatbot:ingest path/to/document.md \
+  --label "Guía de inventarios" \
+  --version v01 \
+  --source-type MD \
+  --scope NATIONAL \
+  --cite-url "https://example.org/guia-inventarios"
+
+# 2. Activate — atomically flips the DRAFT to ACTIVE and any prior ACTIVE
+#    of the same (name, scope) to OUTDATED.
+pnpm --filter api chatbot:activate <source-id>
+```
+
+**Re-ingest contract:**
+
+- A new ingest always creates a `DRAFT` row.
+- If a `(name, version, status=DRAFT)` row already exists, the script aborts non-zero with a Spanish error naming the colliding `id`. Operators MUST delete the stale draft (or re-ingest with a new `--version`) before retrying.
+- An existing `ACTIVE` or `OUTDATED` row with the same `(name, version)` does NOT block a new ingest — the new draft sits alongside until activate flips it.
+
+**Activation playbook:**
+
+- Activation is wrapped in a single Prisma transaction, guarded by an advisory lock keyed on `'chatbot-corpus:' + name + ':' + scope`. The lock serializes concurrent activations against the same `(name, scope)` and lets activates against different `(name, scope)` proceed in parallel.
+- The script refuses non-`DRAFT` targets with an explicit Spanish error.
+- The previously `ACTIVE` row (if any) gets `status='OUTDATED'` and `deactivated_at = NOW()`; the target gets `status='ACTIVE'` and `activated_at = NOW()`. Both updates share the transaction commit timestamp.
+
+**Re-embed playbook (deployment-name rotation):**
+
+If the Azure OpenAI embedding deployment is rotated (e.g., `…prod-v1` → `…prod-v2`), every existing `chatbot_corpus_chunk.embedding` was computed against the old deployment and must be re-built. The conservative recipe:
+
+1. Run `chatbot:ingest` again with the same `--label` and a fresh `--version` (e.g., `v06`).
+2. Run `chatbot:activate <new-source-id>` — the prior version transitions to `OUTDATED`.
+3. Verify retrieval against goldens before announcing the rotation. The widget continues to work against the old `OUTDATED` chunks until the new ones are activated; activation is the cutover.
+
+If the underlying model is unchanged (only the deployment name rotated), operators MAY skip the re-embed — the persisted `embedding_model` column is the deployment name, so the audit trail will still reflect the rotation.
+
+**Model deprecation (the embedding model itself changes):**
+
+> ⚠️ The "operators MAY skip the re-embed" escape hatch above **does not apply here.** It is scoped to a deployment rename over an unchanged model. When the model changes, a full re-embed is mandatory.
+
+Vectors from two different embedding models are not stale — they are **semantically incompatible**. Cosine distance between them is meaningless, so a partially migrated corpus does not fail loudly: retrieval keeps returning results, they are simply the wrong chunks. Nothing in the system detects this, which makes it the most dangerous corpus failure mode.
+
+Azure retires models on a published schedule, so this is a planned event rather than an incident. Check the runway for the region the account lives in:
+
+```bash
+az cognitiveservices model list --location <region> \
+  --query "[?model.name=='text-embedding-3-large'] | [0].model.skus[].{sku:name, deprecation:deprecationDate}" -o table
+```
+
+Deployment **SKUs** retire independently of the model, and a retired SKU fails preflight with `ServiceModelDeprecated` — a message naming the _model_, which misdirects you to the version. See [chatbot-ai-access-requirements.md](../infrastructure/chatbot-ai-access-requirements.md) section 2.
+
+**Before choosing a replacement model, check its output dimensionality.** `dimensions: 1024` is fixed in `apps/api/src/features/chatbot/embeddingProvider/azureOpenAI.ts` and must match the `vector(1024)` column and its HNSW index. A model that can emit 1024 dimensions is a re-ingest. One that cannot is a **schema migration** — new column width, new index, and a code change — and is out of scope for this playbook.
+
+Procedure, assuming a dimension-compatible replacement:
+
+1. Update `openAiEmbeddingModelName` / `openAiEmbeddingModelVersion` (and `openAiEmbeddingSkuName` if the SKU also moved) in the environment's `params/main.<env>.bicepparam`, then redeploy so the new deployment exists.
+2. Re-ingest **every** `ACTIVE` source with the same `--label` and a fresh `--version`. Enumerate them first rather than working from memory:
+
+   ```sql
+   SELECT id, name, version, scope, cite_url
+   FROM chatbot_corpus_source WHERE status = 'ACTIVE' ORDER BY id;
+   ```
+
+3. Activate each new source. Activation is per `(name, scope)`, so a corpus of N sources needs N activations — **there is no bulk cutover**, and a corpus left half-migrated is serving mixed-model results.
+4. Verify no source is still `ACTIVE` under the old model before announcing:
+
+   ```sql
+   SELECT status, embedding_model, count(*) AS sources
+   FROM chatbot_corpus_source
+   GROUP BY status, embedding_model
+   ORDER BY status, embedding_model;
+   ```
+
+   Every `ACTIVE` row must report the new model. Any `ACTIVE` row still on the old one is serving incompatible vectors.
+
+   `chatbot_corpus_source` carries its own `embedding_model`, written at ingest alongside the copy on `chatbot_corpus_ingest_run` — so this needs no join, and no reasoning about retries or failed runs. Use the ingest-run table only when you want the audit history of _attempts_; use the source table to answer "what is live right now".
+
+5. Verify retrieval against goldens before announcing, as in the rotation recipe above.
+
+Between steps 2 and 3 the old chunks stay `ACTIVE` and keep answering, so the corpus degrades only if the migration is abandoned midway. Run the step-4 query even on an apparently clean run: it is the only check that distinguishes "migrated" from "mostly migrated", and the failure is invisible from the widget.
+
+**Document Intelligence upgrade trigger:**
+
+`pdf-parse` is the V1 default. If manual review of ingested chunks surfaces ≥3 broken samples (multi-column layouts, scanned pages, dense tables) on representative PDFs, evaluate Azure Document Intelligence as a per-deployment optional parser. Until that signal exists, `pdf-parse` is the right default.
+
+**Production constraint — `AZURE_OPENAI_API_KEY`:**
+
+Production deployments SHALL leave `AZURE_OPENAI_API_KEY` unset. The chat and embeddings clients fall back to `DefaultAzureCredential` (managed identity), which is the auditable, key-less path. Setting the key in production silently bypasses managed identity — chats still work, but the security posture degrades. The deployment manifest is the right place to enforce absence.
+
+**Reasoning models y `AZURE_OPENAI_REASONING_EFFORT`:**
+
+Cuando el chat deployment es de la familia gpt-5 o de la serie o (modelos de razonamiento), `AZURE_OPENAI_REASONING_EFFORT` SHALL ser seteado a `"minimal"`. Sin la variable, el modelo razona en el nivel default (~medium effort), el TTFT crece a decenas de segundos y el streaming SSE del widget se ve como una pantalla congelada — el usuario asume que el chat está roto y abandona. Para chat con streaming la recomendación operativa es `"minimal"`; subir a `"low"` o `"medium"` solo si se mide que la calidad de las respuestas mejora lo suficiente como para justificar el costo de UX. Para modelos non-reasoning (gpt-4.1, gpt-4o) la variable SHALL quedar **unset** — el SDK puede rechazar el parámetro y romper el endpoint.
+
+**Test fixture:**
+
+Integration tests reference `apps/api/test/fixtures/chatbot/ghg-protocol-sample.pdf` — ~5 pages of GHG Protocol Corporate Standard fair-use excerpt, parseable by `pdf-parse`, with at least one section heading and one definition paragraph. The binary is committed during the implementation phase and rebuilt by the operator if the canonical PDF revs.

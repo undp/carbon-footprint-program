@@ -92,6 +92,51 @@ export const CHATBOT_INTRODUCED_KEY = "huella-latam:chatbot-introduced";
 export const CHATBOT_STREAM_IDLE_TIMEOUT_MS = 30_000;
 export const CHATBOT_STREAM_OVERALL_TIMEOUT_MS = 120_000;
 
+/**
+ * Budget for the mount-time rehydrate request.
+ *
+ * Much tighter than the stream budgets because the work is different: one
+ * small GET, not a model completion. It exists for the same reason they do —
+ * an API that accepts the connection and then goes quiet would otherwise leave
+ * `historyLoading` true forever, and the chat surface suppresses its
+ * "¿En qué puedo ayudarte?" placeholder while that flag is set, so the panel
+ * stays blank with no way back except a reload.
+ */
+export const CHATBOT_REHYDRATE_TIMEOUT_MS = 10_000;
+
+/**
+ * Standing notices at the foot of the chat panel, rendered in every widget
+ * state rather than behind a dismiss — a disclaimer the user can close is one
+ * they will not be reading on the turn that matters.
+ *
+ * `CHATBOT_AI_DISCLAIMER` exists so a generated answer is never mistaken for
+ * an official inventory figure: the assistant cites its corpus, but the
+ * sentence wrapped around the citation is model output.
+ *
+ * `CHATBOT_PRIVACY_NOTICE` names no retention window, deliberately. An earlier
+ * draft read "Las conversaciones se guardan hasta 30 días", which reads as a
+ * promise to delete — and nothing deletes. `expires_at` is written and every
+ * read filters on it (see CHATBOT_CONVERSATION_TTL_DAYS and
+ * CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS in apps/api/src/config/constants.ts),
+ * so an expired conversation stops being reachable while the row survives in
+ * the database and in any dump of it. The window bounds visibility, not
+ * storage, and a ceiling the system does not enforce is the error that matters,
+ * because it is the one that errs against the reader. Physical deletion is the
+ * `chatbot-conversation-purge` change; a duration belongs in this line once
+ * that has landed and not before.
+ *
+ * The first sentence says that conversations are stored and why — to answer
+ * and to resume them — which is true today and stays true after the purge,
+ * because it names a purpose rather than a duration. The second is the
+ * load-bearing half: a retention figure is a disclosure, "no compartas datos
+ * personales" is a control — the cheapest personal data to delete is the kind
+ * that was never typed.
+ */
+export const CHATBOT_AI_DISCLAIMER =
+  "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
+export const CHATBOT_PRIVACY_NOTICE =
+  "Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales.";
+
 /** Maximum file size accepted by `<FileUpload />`, in megabytes. */
 export const MAX_FILE_UPLOAD_SIZE_MB = 20;
 

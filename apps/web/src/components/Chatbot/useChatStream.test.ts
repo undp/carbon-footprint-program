@@ -5,8 +5,27 @@ import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import {
+  clearConversationId,
+  readConversationId,
+  writeConversationId,
+} from "./conversationStore";
 import { useChatStream } from "./useChatStream";
 import type { ChatbotMessage } from "./types";
+
+// The store is exercised for real rather than mocked: it is plain localStorage,
+// which jsdom provides, and asserting on what the next request actually carries
+// is the behaviour that broke before.
+const CONVERSATION_ID_HEADER = "x-conversation-id";
+
+// The chatbot calls `fetch` directly, so it attaches the OIDC token itself via
+// buildChatbotHeaders. Stubbed at the token seam rather than deeper: the real
+// getAuthToken awaits the OIDC user manager, which never settles under the fake
+// timers these suites install.
+const mockGetAuthToken = vi.fn<() => Promise<string | null>>();
+vi.mock("@/api/http/auth", () => ({
+  getAuthToken: () => mockGetAuthToken(),
+}));
 
 // The hook keeps these user-facing strings private; mirror them here so the
 // assertions read intent instead of magic text. If a copy change breaks a test,
@@ -17,7 +36,10 @@ const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Por favor intenta nuevamente en unos minutos.";
 
-const SEND_URL = "/api/chatbot/message";
+// Mirrors VITE_API_BASE_URL in vitest.config.ts. The hook builds its URLs
+// from API_BASE_URL rather than a relative path, so the assertion has to
+// carry the same base the build injects.
+const SEND_URL = "http://localhost/api/chatbot/message";
 
 type FetchImpl = (input: string, init?: RequestInit) => Promise<Response>;
 
@@ -41,12 +63,14 @@ const makeStreamResponse = (opts: {
   status?: number;
   keepOpenAfterChunks?: boolean;
   signal?: AbortSignal | null;
+  headers?: Record<string, string>;
 }): Response => {
   const {
     chunks = [],
     status = 200,
     keepOpenAfterChunks = false,
     signal,
+    headers = {},
   } = opts;
   let index = 0;
   let rejectPending: ((reason: unknown) => void) | null = null;
@@ -82,6 +106,7 @@ const makeStreamResponse = (opts: {
     ok: status >= 200 && status < 300,
     status,
     body: { getReader: () => reader },
+    headers: new Headers(headers),
     json: () => Promise.resolve({}),
   } as unknown as Response;
 };
@@ -120,16 +145,25 @@ const makeDripResponse = (
     ok: true,
     status: 200,
     body: { getReader: () => reader },
+    headers: new Headers(),
     json: () => Promise.resolve({}),
   } as unknown as Response;
 };
 
 /** Non-streaming response for HTTP-status paths (4xx / 5xx / 204). */
-const makeHttpResponse = (status: number, jsonBody?: unknown): Response =>
+const makeHttpResponse = (
+  status: number,
+  jsonBody?: unknown,
+  headers: Record<string, string> = {}
+): Response =>
   ({
     ok: status >= 200 && status < 300,
     status,
     body: null,
+    // Real responses always carry headers; the 429 branch reads
+    // x-ratelimit-reset off them, so the fake has to have them too rather than
+    // the hook guarding against a shape only tests produce.
+    headers: new Headers(headers),
     json: () =>
       jsonBody === undefined
         ? Promise.reject(new Error("no json body"))
@@ -157,6 +191,11 @@ let fetchMock: Mock<FetchImpl>;
 beforeEach(() => {
   fetchMock = vi.fn<FetchImpl>();
   vi.stubGlobal("fetch", fetchMock);
+  mockGetAuthToken.mockReset();
+  mockGetAuthToken.mockResolvedValue(null);
+  // Clears both localStorage and the module's in-memory fallback, so one
+  // test's conversation cannot leak into the next one's request body.
+  clearConversationId();
 });
 
 afterEach(() => {
@@ -444,11 +483,15 @@ describe("useChatStream — abort, timeout & unmount", () => {
     fetchMock.mockImplementation(
       (_input, init) =>
         new Promise<Response>((_resolve, reject) => {
-          init?.signal?.addEventListener(
-            "abort",
-            () => reject(new DOMException("Aborted", "AbortError")),
-            { once: true }
-          );
+          const fail = () => reject(new DOMException("Aborted", "AbortError"));
+          // Real fetch rejects straight away when handed a signal that is
+          // already aborted; a listener-only fake never settles in that case
+          // and hangs the test instead of reproducing the browser.
+          if (init?.signal?.aborted) {
+            fail();
+            return;
+          }
+          init?.signal?.addEventListener("abort", fail, { once: true });
         })
     );
 
@@ -667,6 +710,230 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(result.current.state).toBe("error");
   });
 
+  it("shows the server's own message on 413 rather than a fixed one", async () => {
+    // The server distinguishes three 413 causes. Only one is fixed by
+    // shortening the message, so telling the user to shorten it when the
+    // history or the turn cap is what filled up is wrong advice.
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(413, {
+          message: "Esta conversación llegó a su máximo de mensajes.",
+        })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).content).toBe(
+      "Esta conversación llegó a su máximo de mensajes."
+    );
+  });
+
+  it("names the wait in seconds on 429", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(429, undefined, { "x-ratelimit-reset": "42" })
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(result.current.state).toBe("error");
+    expect(lastMessage(result.current.messages).content).toContain(
+      "42 segundos"
+    );
+  });
+
+  it("falls back to a generic wait message when 429 carries no reset header", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(429))
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("muy seguido");
+    expect(content).not.toContain("segundos.");
+  });
+
+  // A quota 429 arrives WITH limiter headers, which is the whole trap. The
+  // plugin writes `x-ratelimit-*` on every request it admits, and a token
+  // budget refuses later, in the handler — so the response carries a reset
+  // value belonging to a limit that did not refuse anything. This fixture
+  // mirrors a real one captured against the deployed API: remaining 1, reset
+  // 31, body QUOTA_EXCEEDED. Reading the header here told people to wait
+  // 31 seconds for an allowance that clears the next day.
+  it("shows the server's message on a quota 429 despite limiter headers", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+          },
+          { "x-ratelimit-remaining": "1", "x-ratelimit-reset": "31" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    expect(result.current.state).toBe("error");
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toBe("Alcanzaste tu límite de uso diario. Vuelve mañana.");
+    expect(content).not.toContain("31 segundos");
+  });
+
+  it("surfaces the shared-pool remedy rather than a wait instruction", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "QUOTA_EXCEEDED",
+            message:
+              "El asistente alcanzó su límite de uso diario. Inicia sesión para continuar.",
+          },
+          { "x-ratelimit-reset": "44" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("Inicia sesión");
+    // The burst copy would be actively misleading here — waiting does nothing.
+    expect(content).not.toContain("muy seguido");
+    expect(content).not.toContain("44 segundos");
+  });
+
+  // The burst limiter's own body is English text from the plugin, so it is
+  // never shown; its reset value becomes the Spanish countdown instead.
+  it("names the wait for a burst 429 rather than echoing the plugin's English", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          429,
+          {
+            code: "TOO_MANY_REQUESTS",
+            message: "Rate limit exceeded, retry in 1 minute",
+          },
+          { "x-ratelimit-reset": "17" }
+        )
+      )
+    );
+    await sendTurn(result, "hola");
+
+    const content = lastMessage(result.current.messages).content;
+    expect(content).toContain("17 segundos");
+    expect(content).not.toContain("Rate limit exceeded");
+  });
+
+  // The limiter counts refused requests too, so retrying into a live burst
+  // window spends slots of the window being waited out. Left open, an
+  // impatient user turns a one-minute wait into an unending one.
+  describe("burst cooldown", () => {
+    it("holds the send path closed until the named wait elapses", async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            { code: "TOO_MANY_REQUESTS", message: "Rate limit exceeded" },
+            { "x-ratelimit-reset": "5" }
+          )
+        )
+      );
+      await act(async () => {
+        await result.current.sendMessage("hola");
+      });
+
+      expect(result.current.cooldownSeconds).toBe(5);
+
+      // A retry inside the window never reaches the network.
+      fetchMock.mockClear();
+      await act(async () => {
+        await result.current.sendMessage("de nuevo");
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(5000);
+      });
+      expect(result.current.cooldownSeconds).toBe(0);
+    });
+
+    it("counts down each second rather than clearing all at once", async () => {
+      vi.useFakeTimers();
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            { code: "TOO_MANY_REQUESTS" },
+            { "x-ratelimit-reset": "3" }
+          )
+        )
+      );
+      await act(async () => {
+        await result.current.sendMessage("hola");
+      });
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(1000);
+      });
+      expect(result.current.cooldownSeconds).toBe(2);
+    });
+
+    // A token budget clears in twenty-four hours, so closing the composer for
+    // its reset value would be both wrong and useless — the message already
+    // names the remedy that works.
+    it("opens no cooldown for a quota refusal", async () => {
+      const { result } = renderHook(() => useChatStream());
+
+      fetchMock.mockImplementationOnce(() =>
+        Promise.resolve(
+          makeHttpResponse(
+            429,
+            {
+              code: "QUOTA_EXCEEDED",
+              message: "Alcanzaste tu límite de uso diario. Vuelve mañana.",
+            },
+            { "x-ratelimit-reset": "31" }
+          )
+        )
+      );
+      await sendTurn(result, "hola");
+
+      expect(result.current.cooldownSeconds).toBe(0);
+    });
+  });
+
+  it("maps 400 to the too-large message (the Zod character cap)", async () => {
+    const { result } = renderHook(() => useChatStream());
+
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(400))
+    );
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).content).toBe(
+      TOO_LARGE_MESSAGE
+    );
+  });
+
   it("maps 413 to the too-large message and resets the counter", async () => {
     const { result } = renderHook(() => useChatStream());
 
@@ -681,17 +948,22 @@ describe("useChatStream — degraded escalation & reset", () => {
     expect(assistant.error).toBe(true);
   });
 
-  it("uses the server message from a single 503 without escalating", async () => {
+  // The mocked body is what production actually sends: the API error handler
+  // replaces the message of every 5xx with that fixed English string, so a
+  // widget that echoed the server would show English in a Spanish-only UI.
+  it("shows its own copy on a single 503, ignoring the server message", async () => {
     const { result } = renderHook(() => useChatStream());
 
     fetchMock.mockImplementationOnce(() =>
-      Promise.resolve(makeHttpResponse(503, { message: "Vuelve más tarde" }))
+      Promise.resolve(
+        makeHttpResponse(503, { message: "An unexpected error occurred" })
+      )
     );
     await sendTurn(result, "hola");
 
     expect(result.current.state).toBe("error");
     expect(lastMessage(result.current.messages).content).toBe(
-      "Vuelve más tarde"
+      GENERIC_ERROR_MESSAGE
     );
   });
 });
@@ -737,6 +1009,151 @@ describe("useChatStream — request shape & guards", () => {
   });
 });
 
+describe("useChatStream — authenticated identity", () => {
+  const headersOf = (callIndex: number): Record<string, string> =>
+    (fetchMock.mock.calls[callIndex][1]?.headers ?? {}) as Record<
+      string,
+      string
+    >;
+
+  const streamOk = () =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("sends the bearer token so the turn is stored against the account", async () => {
+    // Without this the API's permissive requireAuth resolves no user and the
+    // conversation is keyed to the anonymous session cookie instead — which is
+    // how a signed-in person loses their thread when that cookie goes.
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)["Authorization"]).toBe("Bearer token-abc");
+  });
+
+  it("sends no Authorization header when signed out, keeping anonymous chat working", async () => {
+    mockGetAuthToken.mockResolvedValue(null);
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)).not.toHaveProperty("Authorization");
+    // The anonymous path is the session cookie, so credentials still ride.
+    expect(fetchMock.mock.calls[0][1]?.credentials).toBe("include");
+  });
+
+  it("keeps the content-type alongside the token", async () => {
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    streamOk();
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    expect(headersOf(0)["content-type"]).toBe("application/json");
+  });
+
+  it("sends the token on deleteHistory too", async () => {
+    mockGetAuthToken.mockResolvedValue("token-abc");
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(204))
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await act(async () => {
+      await result.current.deleteHistory();
+    });
+
+    // Right-to-be-forgotten deletes by identity, so an unauthenticated call
+    // would delete the anonymous session's rows rather than the account's.
+    expect(headersOf(0)["Authorization"]).toBe("Bearer token-abc");
+  });
+});
+
+describe("useChatStream — conversation id", () => {
+  const bodyOf = (callIndex: number): { conversationId?: string } =>
+    JSON.parse(
+      (fetchMock.mock.calls[callIndex][1]?.body as string) ?? "{}"
+    ) as { conversationId?: string };
+
+  it("sends no conversationId when none is stored, so the server opens a thread", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    // Omitted, not null and not empty: "absent" is the wire signal for a new
+    // conversation, and the body schema rejects the other two.
+    expect(bodyOf(0)).not.toHaveProperty("conversationId");
+  });
+
+  it("stores the id the server attached and sends it on the next turn", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+          headers: { [CONVERSATION_ID_HEADER]: "7" },
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    await sendTurn(result, "de nuevo");
+
+    expect(readConversationId()).toBe("7");
+    expect(bodyOf(1).conversationId).toBe("7");
+  });
+
+  it("stores the id even when the turn fails, so the thread is not orphaned", async () => {
+    // The server commits the conversation and the user's message before it
+    // calls the model, so a 503 still left a thread behind. Dropping the id
+    // here would strand it and open a second one on the retry.
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(
+        makeHttpResponse(
+          503,
+          { message: "no disponible" },
+          {
+            [CONVERSATION_ID_HEADER]: "11",
+          }
+        )
+      )
+    );
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ["event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    expect(readConversationId()).toBe("11");
+
+    await sendTurn(result, "reintento");
+    expect(bodyOf(1).conversationId).toBe("11");
+  });
+});
+
 describe("useChatStream — deleteHistory", () => {
   it("clears messages and resets to empty on 204", async () => {
     fetchMock.mockImplementationOnce((_input, init) =>
@@ -762,6 +1179,19 @@ describe("useChatStream — deleteHistory", () => {
     expect(result.current.state).toBe("empty");
   });
 
+  it("drops the stored id on 204, since the rows it points at are gone", async () => {
+    writeConversationId("4");
+    fetchMock.mockImplementationOnce(() =>
+      Promise.resolve(makeHttpResponse(204))
+    );
+    const { result } = renderHook(() => useChatStream());
+    await act(async () => {
+      await result.current.deleteHistory();
+    });
+
+    expect(readConversationId()).toBeNull();
+  });
+
   it("sets error state when delete fails", async () => {
     fetchMock.mockImplementationOnce(() =>
       Promise.resolve(makeHttpResponse(500))
@@ -772,5 +1202,307 @@ describe("useChatStream — deleteHistory", () => {
     });
 
     expect(result.current.state).toBe("error");
+  });
+});
+
+// Task 10.28, hook layer. The widget test covers the control's wiring and that
+// the click issues no request; these cover the state effects of the reset
+// itself, against the real hook.
+describe("useChatStream — done event sources", () => {
+  const VALID_SOURCE = {
+    source_id: "1",
+    chunk_id: "7",
+    cite_label: "GHG Protocol §2.3",
+    cite_url: "https://ghgprotocol.org/corporate-standard",
+    snippet: "Las emisiones de alcance 1 son emisiones directas.",
+  };
+
+  const streamWithDonePayload = (payload: unknown) =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'data: {"content":"Hola"}\n\n',
+            `event: done\ndata: ${JSON.stringify(payload)}\n\n`,
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("assigns a valid sources array to the in-flight assistant message", async () => {
+    streamWithDonePayload({
+      inputTokens: 12,
+      outputTokens: 34,
+      sources: [VALID_SOURCE],
+    });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toEqual([
+      VALID_SOURCE,
+    ]);
+  });
+
+  it("leaves sourcesCited unset when the field is absent", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34 });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  it("leaves sourcesCited unset for an empty sources array", async () => {
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources: [] });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "hola");
+
+    // Defensive: the API omits the field at K=0 rather than sending []. An
+    // empty array must behave identically to an absent one, never as an empty
+    // "Fuentes consultadas (0)" panel.
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+  });
+
+  // The wire is the only place these entries are validated client-side. Without
+  // it a non-conforming entry reaches MessageBubble, which keys its rows on
+  // `cite_url` — an undefined key plus a blank row.
+  it.each([
+    ["a non-array value", "broken"],
+    ["entries that are not objects", [1, 2, 3]],
+    ["an entry missing cite_url", [{ ...VALID_SOURCE, cite_url: undefined }]],
+    [
+      "an entry whose cite_url is not https",
+      [{ ...VALID_SOURCE, cite_url: "http://insecure.example" }],
+    ],
+    [
+      "an entry whose ids are not numeric strings",
+      [{ ...VALID_SOURCE, source_id: "abc" }],
+    ],
+  ])("warns and drops citations for %s", async (_label, sources) => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    streamWithDonePayload({ inputTokens: 12, outputTokens: 34, sources });
+    const { result } = renderHook(() => useChatStream());
+
+    await sendTurn(result, "alcances");
+
+    expect(lastMessage(result.current.messages).sourcesCited).toBeUndefined();
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining("sources"));
+    // The answer already streamed — a bad citations payload must not fail it.
+    expect(lastMessage(result.current.messages).content).toBe("Hola");
+    expect(result.current.state).not.toBe("error");
+  });
+});
+
+describe("useChatStream — seedMessages", () => {
+  it("seeds a persisted thread onto an untouched hook", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([
+        { role: "user", content: "pregunta previa" },
+        { role: "assistant", content: "respuesta previa" },
+      ]);
+    });
+
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "pregunta previa",
+      "respuesta previa",
+    ]);
+  });
+
+  // The seed is one mount-time round-trip, so a fast typist on a slow API can
+  // start a turn while it is still in flight. Replacing the thread then would
+  // drop the user's message AND orphan the in-flight assistant bubble — every
+  // later delta fails updateLastAssistant's id check and is discarded, so the
+  // answer streams into nothing. Required by the chatbot-widget spec:
+  // "Sending a new message while the rehydrate is in flight SHALL NOT cause
+  // the seed to overwrite the new message."
+  it("loses the race against a turn already in flight", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // The live turn survives intact: the seed neither replaced it nor appended.
+    expect(result.current.messages.map((m) => m.content)).toEqual([
+      "hola",
+      "parcial",
+    ]);
+
+    // And the bubble is still the live one — deltas arriving after the rejected
+    // seed must keep landing, which is what breaks if the seed detached it.
+    act(() => {
+      result.current.stop();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+    expect(lastMessage(result.current.messages).content).toContain("parcial");
+  });
+
+  it("leaves a thread that already has turns untouched", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const before = result.current.messages;
+
+    act(() => {
+      result.current.seedMessages([{ role: "user", content: "thread viejo" }]);
+    });
+
+    // Identity, not just equality: a late seed must not even re-render the list.
+    expect(result.current.messages).toBe(before);
+  });
+
+  it("ignores an empty seed", () => {
+    const { result } = renderHook(() => useChatStream());
+
+    act(() => {
+      result.current.seedMessages([]);
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+});
+
+describe("useChatStream — startNewConversation", () => {
+  const streamOneTurn = () =>
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"Hola"}\n\n', "event: done\ndata: {}\n\n"],
+          signal: init?.signal,
+        })
+      )
+    );
+
+  it("clears the thread and returns to the empty state", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    expect(result.current.messages.length).toBeGreaterThan(0);
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
+  });
+
+  it("issues no request of its own", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+    const callsAfterTurn = fetchMock.mock.calls.length;
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    // Non-destructive by design: prior turns stay persisted server-side, so the
+    // reset must not issue a DELETE — or anything else.
+    expect(fetchMock.mock.calls).toHaveLength(callsAfterTurn);
+  });
+
+  it("drops the stored conversation id so a reload does not rehydrate the thread", async () => {
+    streamOneTurn();
+    const { result } = renderHook(() => useChatStream());
+    writeConversationId("4");
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+
+    expect(readConversationId()).toBeNull();
+  });
+
+  it("resets Last-Event-ID so the next turn cannot carry a stale one", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: [
+            'id: 42\ndata: {"content":"Hola"}\n\n',
+            "event: done\ndata: {}\n\n",
+          ],
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    await sendTurn(result, "hola");
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await sendTurn(result, "otra");
+
+    const lastInit = fetchMock.mock.calls[fetchMock.mock.calls.length - 1][1];
+    const headers = lastInit?.headers as Record<string, string> | undefined;
+    expect(headers?.["Last-Event-ID"]).toBeUndefined();
+  });
+
+  // A turn cancelled by the reset must not write its terminal state onto the
+  // freshly-cleared thread. `stop()` deliberately behaves the other way round.
+  it("keeps a mid-flight turn from re-dirtying the cleared thread", async () => {
+    fetchMock.mockImplementation((_input, init) =>
+      Promise.resolve(
+        makeStreamResponse({
+          chunks: ['data: {"content":"parcial"}\n\n'],
+          keepOpenAfterChunks: true,
+          signal: init?.signal,
+        })
+      )
+    );
+    const { result } = renderHook(() => useChatStream());
+    let sendPromise!: Promise<void>;
+    act(() => {
+      sendPromise = result.current.sendMessage("hola");
+    });
+    await waitFor(() => {
+      expect(result.current.state).toBe("streaming");
+    });
+
+    act(() => {
+      result.current.startNewConversation();
+    });
+    await act(async () => {
+      await sendPromise;
+    });
+
+    // Contrast with the Stop test above, which resolves to "truncated": there
+    // the turn is still the current one, so its terminal state is welcome. Here
+    // the reset replaced it, so the turn must land on nothing.
+    expect(result.current.messages).toHaveLength(0);
+    expect(result.current.state).toBe("empty");
   });
 });

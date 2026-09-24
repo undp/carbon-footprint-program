@@ -2,8 +2,11 @@ version: "3.9"
 
 services:
   postgres:
-    # Digest-pinned for reproducibility; bump the tag and digest together.
-    image: postgres:18.4-alpine@sha256:1b1689b20d16a014a3d195653381cf2caa75a41a92d93b255a9d6ea29fd353aa
+    # pgvector image (Debian-based, not alpine): the chatbot corpus needs the
+    # `vector` extension for embedding similarity search, and the official
+    # postgres image does not ship it. Digest-pinned for reproducibility; bump
+    # the tag and digest together.
+    image: pgvector/pgvector:pg18@sha256:691673308c99d2161ba298736f3147f1f22d79de2fb7ec93ae9b4afcab870b62
     container_name: undp-postgres
     restart: unless-stopped
     ports:

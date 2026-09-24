@@ -232,6 +232,62 @@ if [ "${AZURE_TENANT_TYPE:-external}" = "external" ]; then
   fi
 fi
 
+# ---------------------------------------------------------------------------
+# Chatbot flag consistency
+#
+# VITE_CHATBOT_ENABLED is baked into the bundle at build time and decides whether
+# the widget mounts; the API's CHATBOT_ENABLED decides whether the routes exist.
+# They live in different places — this file's env for the first, Bicep's
+# enableChatbot param for the second — and nothing reconciles them, so a
+# mismatch is silent until someone opens the widget.
+#
+# Ground truth is the DEPLOYED App Service setting, not ENABLE_CHATBOT here:
+# the env var records what you intended, while the app setting records what
+# deploy.sh actually applied. They differ whenever deploy.sh has not been run
+# since the flag changed — running deploy-web.sh before deploy.sh is the easy
+# way to hit that. Fall back to the env var when the setting cannot be read
+# (API not deployed yet, or no permission), because a best-effort warning beats
+# blocking the build.
+# ---------------------------------------------------------------------------
+log "${YELLOW}[1d/5] Checking chatbot flag consistency...${NC}"
+
+API_APP_NAME=$(stack_output api.appService.name)
+API_CHATBOT_ENABLED=""
+if [ -n "$API_APP_NAME" ]; then
+  API_CHATBOT_ENABLED=$(az webapp config appsettings list \
+    --name "$API_APP_NAME" \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --query "[?name=='CHATBOT_ENABLED'].value | [0]" -o tsv 2>/dev/null || echo "")
+  [ "$API_CHATBOT_ENABLED" = "null" ] && API_CHATBOT_ENABLED=""
+fi
+
+if [ -n "$API_CHATBOT_ENABLED" ]; then
+  CHATBOT_API_STATE="$API_CHATBOT_ENABLED"
+  CHATBOT_API_SOURCE="deployed App Service setting"
+else
+  CHATBOT_API_STATE="${ENABLE_CHATBOT:-false}"
+  CHATBOT_API_SOURCE="ENABLE_CHATBOT in infra/.envrc (App Service setting unreadable)"
+fi
+
+if [ "${VITE_CHATBOT_ENABLED:-false}" = "true" ] && [ "$CHATBOT_API_STATE" != "true" ]; then
+  # The broken pairing: the widget mounts and every request it makes hits an
+  # unregistered route. Visible to users as a chatbot that fails on first use.
+  log "${RED}   ⚠ MISMATCH: VITE_CHATBOT_ENABLED=true but the API has the chatbot OFF${NC}"
+  log "${RED}     Source: ${CHATBOT_API_SOURCE} (CHATBOT_ENABLED=${CHATBOT_API_STATE:-<unset>})${NC}"
+  log "${RED}     The widget will mount and every request will 404 against unregistered routes.${NC}"
+  log "${RED}     Fix: set ENABLE_CHATBOT=true in infra/.envrc and re-run deploy.sh first,${NC}"
+  log "${RED}          or set VITE_CHATBOT_ENABLED=false to keep the widget hidden.${NC}"
+  log "${RED}     Continuing — the rest of the app is unaffected.${NC}"
+elif [ "$CHATBOT_API_STATE" = "true" ] && [ "${VITE_CHATBOT_ENABLED:-false}" != "true" ]; then
+  # Harmless and sometimes deliberate: endpoints stay live for direct API
+  # testing while the UI stays hidden. Worth saying out loud in case it is not.
+  log "${YELLOW}   ⚠ API has the chatbot ON but VITE_CHATBOT_ENABLED is not \"true\" — widget stays hidden.${NC}"
+  log "${YELLOW}     Intentional for API-only testing; set VITE_CHATBOT_ENABLED=true to show it.${NC}"
+else
+  log "${GREEN}   ✓ Chatbot flags agree (API=${CHATBOT_API_STATE}, widget=${VITE_CHATBOT_ENABLED:-false})${NC}"
+fi
+echo ""
+
 # Map the Azure/Entra values onto the generic OIDC build vars the frontend reads
 # (the frontend is a generic OIDC client; Entra is one such issuer). The API scope
 # is appended so the access token's aud is the API

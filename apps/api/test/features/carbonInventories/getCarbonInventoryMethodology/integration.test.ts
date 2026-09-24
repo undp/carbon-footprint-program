@@ -35,6 +35,7 @@ import {
   carbonInventoryPatterns,
   cleanupCarbonInventoryTestData,
 } from "@test/factories/carbonInventorySeeder.js";
+import { sortedByDbCollation } from "@test/helpers/collation.js";
 
 describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () => {
   let app: FastifyInstance;
@@ -609,7 +610,7 @@ describe("GET /api/carbon-inventories/:id/methodology - Integration Tests", () =
         category.subcategories.forEach((subcategory) => {
           subcategory.dimensions.forEach((dimension) => {
             const values = dimension.values.map((val) => val.value);
-            const sortedValues = [...values].sort();
+            const sortedValues = sortedByDbCollation(values);
             expect(values).toEqual(sortedValues);
           });
         });

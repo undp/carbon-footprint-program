@@ -1,12 +1,22 @@
 import type { Prisma, PrismaClient } from "@repo/database";
 import { ChatMessageRole } from "@repo/database/enums";
 import {
+  CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS,
   CHATBOT_CONVERSATION_TTL_DAYS,
+  CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY,
+  CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY,
+  CHATBOT_TOKEN_BUDGET_WINDOW_MS,
+  CHATBOT_MAX_HISTORY_MESSAGES,
   CHATBOT_MAX_HISTORY_TOKENS,
-  CHATBOT_MAX_TURNS_PER_CONVERSATION,
   CHATBOT_MAX_USER_INPUT_TOKENS,
 } from "@/config/constants.js";
+import { QuotaExceededError } from "@/errors/QuotaExceededError.js";
 import { RequestTooLargeError } from "@/errors/RequestTooLargeError.js";
+import {
+  CHATBOT_IDENTITY_BUDGET_MESSAGE,
+  CHATBOT_SHARED_BUDGET_MESSAGE,
+} from "@/features/chatbot/constants.js";
 import { estimateTokens } from "@/features/chatbot/llmProvider/estimateTokens.js";
 import type { ChatbotIdentity } from "@/features/chatbot/helpers/identity.js";
 
@@ -41,21 +51,35 @@ export const conversationIdentityFilter = (identity: ChatbotIdentity) =>
     ? { userId: identity.userId, sessionId: null }
     : { userId: null, sessionId: identity.sessionId };
 
-export const findActiveConversation = async (
+export const findConversationForIdentity = async (
   tx: Tx,
+  conversationId: bigint,
   identity: ChatbotIdentity
 ) => {
   return tx.chatbotChatConversation.findFirst({
     where: {
+      id: conversationId,
       ...conversationIdentityFilter(identity),
       expiresAt: { gt: new Date() },
     },
-    orderBy: { createdAt: "desc" },
   });
 };
 
-const computeExpiresAt = (now: Date): Date =>
-  new Date(now.getTime() + CHATBOT_CONVERSATION_TTL_DAYS * 24 * 60 * 60 * 1000);
+/**
+ * Retention window for a new conversation, chosen by identity kind.
+ *
+ * Anonymous callers keep less: they gain only a thread that survives a reload,
+ * which the browser can revoke on its own by dropping the session cookie, while
+ * carrying the same data-at-rest exposure as an account holder. See the
+ * constants for the full reasoning.
+ */
+const computeExpiresAt = (now: Date, identity: ChatbotIdentity): Date => {
+  const days =
+    identity.kind === "user"
+      ? CHATBOT_CONVERSATION_TTL_DAYS
+      : CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS;
+  return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+};
 
 export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
   const now = new Date();
@@ -66,28 +90,66 @@ export const createConversation = async (tx: Tx, identity: ChatbotIdentity) => {
     data: {
       userId: identity.kind === "user" ? identity.userId : null,
       sessionId: identity.kind === "session" ? identity.sessionId : null,
-      expiresAt: computeExpiresAt(now),
+      expiresAt: computeExpiresAt(now, identity),
       createdAt: now,
       lastMessageAt: now,
     },
   });
 };
 
+/**
+ * Resolve the conversation this turn belongs to, creating one when there is
+ * none to attach to.
+ *
+ * Driven entirely by the id the client sends. There is deliberately no
+ * fallback to "the newest active row for this identity": that would undo
+ * "Nueva conversación", whose whole mechanism is omitting the id. The next
+ * turn would reattach to the thread the user just left, feed its history back
+ * into the prompt, and hand back the same id.
+ *
+ * An id that no longer resolves — expired row, or an identity that has since
+ * changed (anon -> authenticated) — starts a fresh conversation rather than
+ * failing the turn, and the response header names the new one. The rehydrate
+ * endpoint is where a stale id is reported as a 404; the send path just moves
+ * on.
+ */
 export const resolveOrCreateConversation = async (
   tx: Tx,
-  identity: ChatbotIdentity
+  identity: ChatbotIdentity,
+  requestedConversationId: bigint | null
 ) => {
-  const existing = await findActiveConversation(tx, identity);
-  if (existing) return existing;
+  if (requestedConversationId !== null) {
+    const existing = await findConversationForIdentity(
+      tx,
+      requestedConversationId,
+      identity
+    );
+    if (existing) return existing;
+  }
   return createConversation(tx, identity);
 };
 
+/**
+ * The prior turns fed into this turn's prompt, oldest-first.
+ *
+ * Takes the NEWEST `limit` rows and reverses them. Taking the oldest instead —
+ * `orderBy: asc` with a `take` — is the same query to read and quietly wrong:
+ * past `limit` messages the model stops seeing anything recent and answers from
+ * the opening of the thread, with no error anywhere to say so.
+ *
+ * The secondary sort on `id` is load-bearing, not tidiness. `created_at` is
+ * TIMESTAMP(3) and both rows of a turn are written inside one transaction, so
+ * the column does not reliably separate a user message from its own reply.
+ * Sorting on it alone leaves their order to the planner, and a prompt that puts
+ * the answer before the question is worse than one missing the pair. `id` is a
+ * BIGSERIAL, so it always breaks the tie in insertion order.
+ */
 export const loadConversationHistory = async (
   prisma: Tx | PrismaClient,
   conversationId: bigint,
-  limit = 50
+  limit = CHATBOT_MAX_HISTORY_MESSAGES
 ) => {
-  return prisma.chatbotChatMessage.findMany({
+  const newestFirst = await prisma.chatbotChatMessage.findMany({
     // Exclude unfinalized assistant rows: an assistant row is created empty
     // inside the turn transaction and only gets `latencyMs` set once its
     // stream finalizes successfully. A row left with `latencyMs = null` is
@@ -99,9 +161,10 @@ export const loadConversationHistory = async (
       conversationId,
       NOT: { role: ChatMessageRole.ASSISTANT, latencyMs: null },
     },
-    orderBy: { createdAt: "asc" },
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     take: limit,
   });
+  return newestFirst.reverse();
 };
 
 /**
@@ -116,33 +179,162 @@ export const loadConversationHistory = async (
  * under-counts, at which point this token check becomes the effective guard.
  * Removing it now would silently drop that protection when the cap moves.
  */
+/*
+ * The 413 below reaches the end user verbatim: the widget shows the server's
+ * `message` rather than a fixed string, so this is UI copy, not an operator
+ * log. It avoids the word "turnos" — that is LLM vocabulary; a person counts
+ * messages — and it names the one action that clears it.
+ *
+ * It is also the ONLY 413 the chatbot can answer with. Two earlier ones said
+ * the conversation had accumulated too much text, or had reached its maximum
+ * number of messages, and both were dead ends: the thread could never carry
+ * another turn. They are gone, replaced by trimHistoryToBudget below, which
+ * drops old turns instead of refusing new ones. A conversation no longer fills
+ * up, so there is nothing left to tell the user about it.
+ */
 export const enforceUserInputCap = (userContent: string): void => {
   if (estimateTokens(userContent) > CHATBOT_MAX_USER_INPUT_TOKENS) {
     throw new RequestTooLargeError(
-      "El mensaje del usuario excede el límite de tokens permitido."
+      "Tu mensaje es demasiado largo. Escríbelo más corto e inténtalo de nuevo."
     );
   }
 };
 
-export const enforceHistoryCap = (history: { content: string }[]): void => {
-  const total = history.reduce((sum, m) => sum + estimateTokens(m.content), 0);
-  if (total > CHATBOT_MAX_HISTORY_TOKENS) {
-    throw new RequestTooLargeError(
-      "El historial de la conversación excede el límite de tokens permitido."
+/**
+ * Fit the prompt inside CHATBOT_MAX_HISTORY_TOKENS by dropping the oldest
+ * turns, and return what survives.
+ *
+ * Replaces a pair of hard caps. The old behaviour refused the turn — 413 on a
+ * history that had grown past the budget, and a second 413 once the
+ * conversation reached a fixed number of user messages. Both left the thread
+ * permanently unusable: every subsequent message hit the same wall, and the
+ * only escape was to abandon the conversation. That is not how a chat is
+ * expected to behave, and the turn cap additionally cost a COUNT query per
+ * turn inside the identity advisory lock.
+ *
+ * The system prompt and the incoming user message are charged against the
+ * budget but never dropped — they are not history, and the turn is
+ * meaningless without them. `enforceUserInputCap` has already bounded the user
+ * message, so the two together are a known quantity.
+ *
+ * Trimming from the oldest end leaves a contiguous, chronological suffix: the
+ * model may lose the start of a long conversation, which is the intended
+ * trade, but it never sees a gap in the middle.
+ */
+export const trimHistoryToBudget = <T extends { content: string }>(
+  history: T[],
+  systemPrompt: string,
+  userContent: string
+): T[] => {
+  const fixedCost = estimateTokens(systemPrompt) + estimateTokens(userContent);
+  if (fixedCost > CHATBOT_MAX_HISTORY_TOKENS) {
+    // Not reachable with the shipped constants: the system prompt is ~1088
+    // tokens and the user message is capped at CHATBOT_MAX_USER_INPUT_TOKENS.
+    // If it ever is, the deployment is misconfigured rather than the request
+    // oversized, and failing loudly beats sending a prompt we know is too big.
+    throw new Error(
+      `Chatbot token budget is misconfigured: the system prompt plus a maximum-size user message (${fixedCost} tokens) exceed CHATBOT_MAX_HISTORY_TOKENS (${CHATBOT_MAX_HISTORY_TOKENS}). Raise the budget or shorten the system prompt.`
     );
   }
+
+  let budget = CHATBOT_MAX_HISTORY_TOKENS - fixedCost;
+  // Walk from the newest backwards, keeping what fits, so the messages closest
+  // to the question are the ones that survive.
+  const kept: T[] = [];
+  for (let i = history.length - 1; i >= 0; i--) {
+    const cost = estimateTokens(history[i].content);
+    if (cost > budget) break;
+    budget -= cost;
+    kept.push(history[i]);
+  }
+  return kept.reverse();
 };
 
-export const enforceTurnCap = async (
-  prisma: Tx | PrismaClient,
-  conversationId: bigint
-): Promise<void> => {
-  const userTurns = await prisma.chatbotChatMessage.count({
-    where: { conversationId, role: ChatMessageRole.USER },
+/**
+ * Tokens this identity has consumed since `since`.
+ *
+ * `chatbot_chat_message` carries no identity of its own — identity lives on the
+ * conversation — so the sum has to join. The filter reuses
+ * `conversationIdentityFilter`, which is what keeps this query and the
+ * conversation lookup from drifting into disagreeing about what "this caller"
+ * means.
+ *
+ * `tokensUsed` is nullable (a turn that failed before the provider reported
+ * usage writes null), and Prisma's `_sum` returns null for an empty set; both
+ * collapse to zero, which is the honest reading — unknown consumption is not
+ * evidence of consumption.
+ */
+export const sumIdentityTokensSince = async (
+  prisma: PrismaClient,
+  identity: ChatbotIdentity,
+  since: Date
+): Promise<number> => {
+  const result = await prisma.chatbotChatMessage.aggregate({
+    _sum: { tokensUsed: true },
+    where: {
+      createdAt: { gte: since },
+      conversation: conversationIdentityFilter(identity),
+    },
   });
-  if (userTurns >= CHATBOT_MAX_TURNS_PER_CONVERSATION) {
-    throw new RequestTooLargeError(
-      "La conversación alcanzó el límite de turnos permitido."
-    );
+  return result._sum.tokensUsed ?? 0;
+};
+
+/**
+ * Tokens ALL anonymous callers have consumed between them since `since`.
+ *
+ * Keyed on `userId: null` rather than on any per-caller value, which is the
+ * whole point: an anonymous caller who discards their session cookie is minted
+ * a new identity and still draws on this same total. It is the one measure
+ * about anonymous traffic that the traffic cannot move.
+ */
+export const sumAnonymousTokensSince = async (
+  prisma: PrismaClient,
+  since: Date
+): Promise<number> => {
+  const result = await prisma.chatbotChatMessage.aggregate({
+    _sum: { tokensUsed: true },
+    where: {
+      createdAt: { gte: since },
+      conversation: { userId: null },
+    },
+  });
+  return result._sum.tokensUsed ?? 0;
+};
+
+/**
+ * Refuse the turn when either token budget is exhausted.
+ *
+ * Called after the identity preHandler and BEFORE the provider, which is the
+ * only ordering that controls anything: a refusal issued after the completion
+ * has already been paid for is a log line, not a limit.
+ *
+ * The personal budget is checked first so a caller who has exhausted their own
+ * allowance is told that, rather than being told the shared pool is empty when
+ * it is their own doing. Authenticated callers skip the pool entirely — that
+ * asymmetry is what makes signing in a genuine remedy rather than advice.
+ *
+ * Both reads are taken before the turn and credited after it, so concurrent
+ * turns pass against the same total. See CHATBOT_TOKEN_BUDGET_WINDOW_MS.
+ */
+export const enforceTokenBudgets = async (
+  prisma: PrismaClient,
+  identity: ChatbotIdentity
+): Promise<void> => {
+  const since = new Date(Date.now() - CHATBOT_TOKEN_BUDGET_WINDOW_MS);
+
+  const identityBudget =
+    identity.kind === "user"
+      ? CHATBOT_MAX_TOKENS_PER_AUTHENTICATED_IDENTITY_PER_DAY
+      : CHATBOT_MAX_TOKENS_PER_ANONYMOUS_IDENTITY_PER_DAY;
+  const identityTokens = await sumIdentityTokensSince(prisma, identity, since);
+  if (identityTokens >= identityBudget) {
+    throw new QuotaExceededError(CHATBOT_IDENTITY_BUDGET_MESSAGE);
+  }
+
+  if (identity.kind === "user") return;
+
+  const anonymousTokens = await sumAnonymousTokensSince(prisma, since);
+  if (anonymousTokens >= CHATBOT_MAX_ANONYMOUS_TOKENS_PER_DAY) {
+    throw new QuotaExceededError(CHATBOT_SHARED_BUDGET_MESSAGE);
   }
 };

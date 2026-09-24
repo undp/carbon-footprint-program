@@ -161,11 +161,13 @@ All of these frameworks share core principles with GDPR: lawful basis for proces
 
 The Huella Latam chatbot persists conversations to power per-user history and right-to-be-forgotten flows.
 
+> This section covers what the chatbot **stores** and for how long. The controls around what it **reads and accepts** — tool-argument validation, prompt-injection handling of retrieved corpus text, corpus visibility, and the mock-provider guards — are in [Chatbot and RAG Security](./chatbot.md).
+
 **Tables (all under `public` schema, prefixed `chatbot_`):**
 
 - `chatbot_chat_conversation` — one row per conversation, scoped to `user_id` (authenticated) or `session_id` (anonymous). Both columns are nullable; the database CHECK constraint allows the `(NULL, NULL)` post-deletion state produced by `ON DELETE SET NULL` on `user_id`. Application code guarantees the exactly-one-of invariant on INSERT.
-- `chatbot_chat_message` — one row per message, cascaded from `chatbot_chat_conversation`.
-- `chatbot_corpus_*` — RAG corpus tables, dormant in foundation.
+- `chatbot_chat_message` — one row per message, cascaded from `chatbot_chat_conversation`. Its `sources_cited` column (JSON, default `[]`) holds the corpus chunks the assistant grounded that turn in — source id, chunk id, citation label, and canonical URL. It carries no user content: every value originates from the operator-ingested corpus, not from the conversation.
+- `chatbot_corpus_*` — RAG corpus tables: sources, chunks, and ingest-run audit rows. Populated by the operator-run ingest CLI and read by retrieval; they contain published reference material, never user data. Chunk rows also carry an `embedding vector(1024)` derived from that same public text.
 
 **Identity scoping:**
 
@@ -174,8 +176,14 @@ The Huella Latam chatbot persists conversations to power per-user history and ri
 
 **Retention:**
 
-- Each conversation row carries `expires_at = created_at + 30 days` (`CHATBOT_CONVERSATION_TTL_DAYS`). The value is set once at creation and is **not** refreshed on subsequent messages.
-- The pg_cron job that purges expired rows is **deferred** to a separate infra change. Until it lands, expired rows accumulate and are removed manually or via the right-to-be-forgotten endpoint.
+- Retention is **tiered by identity kind**. An authenticated caller's conversation carries `expires_at = created_at + 30 days` (`CHATBOT_CONVERSATION_TTL_DAYS`); an anonymous caller's carries `created_at + 7 days` (`CHATBOT_ANONYMOUS_CONVERSATION_TTL_DAYS`). The value is set once at creation and is **not** refreshed on subsequent messages.
+- The asymmetry follows the relationship. An account holder can resume from another device and has history worth keeping. An anonymous visitor gains only a thread that survives a page reload — which the browser can revoke on its own by discarding the session cookie — while carrying the same data-at-rest exposure. Holding less of the data belonging to people the platform has no way to contact is the cheapest available reduction in exposure.
+- **Nothing deletes expired rows yet.** `expires_at` is written and every read filters on it, so an expired conversation is invisible to the user and still present in the database and in any backup. A shorter window therefore shortens how long a conversation is _visible_, not how long it is _stored_. Expired rows accumulate and are removed manually (see the runbook) or via the right-to-be-forgotten endpoint; the automated purge is the `chatbot-conversation-purge` change. Because of this, the widget's foot-of-chat notice states **no** retention duration — only `"Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales."`, which names a purpose rather than a duration — since naming a ceiling nothing enforces would be a deletion promise the system does not keep. Restore a duration there when the purge lands, not before.
+
+**Usage quotas:**
+
+- Chatbot turns are bounded by three layers: a per-IP burst limit, a per-identity daily token budget, and a daily token pool shared by all anonymous callers. Authenticated callers do not draw on the shared pool.
+- The shared pool is what actually bounds spend. The per-identity budget keys on a value an anonymous caller can replace for free by discarding the session cookie, so it guards against accidents rather than against abuse.
 
 **Cookie security:**
 
@@ -184,8 +192,19 @@ The Huella Latam chatbot persists conversations to power per-user history and ri
 - `SameSite=None; Secure` in production — the web app and API are served from different registrable domains (cross-site), so the cookie must be `SameSite=None` (which requires `Secure`) to ride the frontend's `credentials: "include"` requests. In local dev it is `SameSite=Lax` without `Secure` (plain HTTP; the Vite proxy keeps the widget same-origin). The clearing cookie emitted on delete mirrors these attributes.
 - A tampered cookie (signature invalid) is treated as no session and a fresh one is minted.
 
+**Conversation pointer — `chatbot_conversation_id` in `localStorage` (conversation persistence):**
+
+The thread the widget rehydrates on page load is named by the client, so a reload does not start an empty conversation. There is no second cookie: an earlier revision used one, and it is described in Decision 28 of the RAG change's `design.md` together with why it was replaced.
+
+- The server names the thread on an `x-conversation-id` response header of every `POST /api/chatbot/message`. The widget stores that value under `localStorage["chatbot_conversation_id"]` and sends it back as `conversationId` in the next request body, and as a query parameter on the rehydrate `GET`.
+- **The id is not a credential and is not signed.** It is an opaque pointer to a row. Anyone can put any number in the field; that is not a vulnerability, because the IDOR boundary is enforced at the lookup rather than at the pointer.
+- `GET /api/chatbot/conversations/me/current` and the send path both re-check that the row is inside its TTL **and** that the request identity matches (`user_id` for authenticated callers, `session_id` with `user_id IS NULL` for anonymous ones). An id that is expired, fabricated, or belongs to another identity yields `404` on the rehydrate and opens a fresh conversation on a send, so it can neither read nor append to a thread the caller does not own. This is the property the removed signature provided, obtained from the query instead of from a secret.
+- Because it is not a cookie, it is not attached automatically, is not sent to any other path, and is unaffected by third-party cookie restrictions. It is per-browser and per-device, and it is cleared with the site's data.
+
 **Right to be forgotten:**
 
 - `DELETE /api/chatbot/conversations/me` deletes every conversation row scoped to the caller identity, idempotently. The cascade removes all message rows.
 - For anonymous callers, the response also clears the `chatbot_session_id` cookie via `Set-Cookie: chatbot_session_id=; Max-Age=0; …`.
 - For authenticated callers, only `user_id`-scoped conversations are removed — earlier conversations created under an anonymous `session_id` are not touched by the user-id path.
+- A stored conversation id left over from a deleted thread is harmless: it now points at a row that no longer exists, so the next rehydrate returns `404` and the widget drops it. Deletion does not depend on the client cooperating.
+- Deletion does not touch `chatbot_corpus_*`. That data is operator-ingested reference material with no link to any caller.

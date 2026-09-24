@@ -1,18 +1,136 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+  CHATBOT_CONVERSATION_ID_HEADER,
+  SourceCitationWireArraySchema,
+} from "@repo/types";
+import type { SourceCitationWire } from "@repo/types";
+import {
   CHATBOT_STREAM_IDLE_TIMEOUT_MS,
   CHATBOT_STREAM_OVERALL_TIMEOUT_MS,
 } from "@/config/constants";
+import { API_BASE_URL } from "@/config/environment";
+import { buildChatbotHeaders } from "./authHeaders";
+import {
+  clearConversationId,
+  readConversationId,
+  writeConversationId,
+} from "./conversationStore";
 import type { ChatbotMessage, ChatbotState, SendMessageResult } from "./types";
 
-const SEND_URL = "/api/chatbot/message";
-const DELETE_URL = "/api/chatbot/conversations/me";
+// Absolute, like every other call in the app (see api/http/client.ts, which
+// builds `apiClient` with `prefix: API_BASE_URL`). These used to be relative
+// `/api/...` paths, which silently assumed the deployment's edge served the API
+// from the web app's own origin. Where it does not — a Static Web App front end
+// with the API on its own App Service domain — the browser sent them to the
+// static host instead: POST /api/chatbot/message answered 405, and the
+// rehydrate GET answered 200 with the SPA's index.html, which does not even
+// look like a failure. Routing is not a portable fix either: Azure's linked
+// backend needs a Standard SKU, so a Free-tier deployment cannot express it.
+//
+// The cross-site pieces this relies on are already in place: every fetch below
+// passes `credentials: "include"`, the server sets the chatbot cookies with
+// SameSite=None in production, and the API's ALLOWED_ORIGIN names the front end.
+const SEND_URL = `${API_BASE_URL}/chatbot/message`;
+const DELETE_URL = `${API_BASE_URL}/chatbot/conversations/me`;
+
+/** Shape `seedMessages` accepts — ids are minted here, not by the caller. */
+export type SeedMessage = {
+  role: "user" | "assistant";
+  content: string;
+  sourcesCited?: SourceCitationWire[];
+};
 
 const GENERIC_ERROR_MESSAGE =
   "Ocurrió un error al contactar al asistente. Por favor intenta nuevamente.";
 const TOO_LARGE_MESSAGE = "Tu mensaje es demasiado largo. Por favor acórtalo.";
+const RATE_LIMITED_MESSAGE =
+  "Estás enviando consultas muy seguido. Por favor espera un momento y vuelve a intentar.";
 const DEGRADED_MESSAGE =
   "El asistente no está disponible en este momento. Por favor intenta nuevamente en unos minutos.";
+
+/**
+ * Read the `message` an API error response carries, or null when it carries
+ * none. The 413 and quota-429 branches need it: the server writes a specific,
+ * user-facing Spanish string for each and the widget should show that rather
+ * than a fixed one. The 5xx branch deliberately does not read it.
+ */
+const readServerError = async (
+  response: Response
+): Promise<{ code?: string; message?: string } | null> => {
+  try {
+    return (await response.json()) as { code?: string; message?: string };
+  } catch {
+    return null;
+  }
+};
+
+const readServerMessage = async (response: Response): Promise<string | null> =>
+  (await readServerError(response))?.message ?? null;
+
+/**
+ * Turn a 4xx into something the user can act on.
+ *
+ * The server already tells these apart; the widget used to collapse every one
+ * of them but 413 into GENERIC_ERROR_MESSAGE. 413 itself has three distinct
+ * causes server-side — oversized message, oversized history, turn cap — and
+ * only the first is fixed by shortening the message, so a fixed "acórtalo"
+ * was actively wrong advice for the other two.
+ */
+type ClientErrorOutcome = {
+  message: string;
+  /**
+   * Seconds the caller must wait before a retry can succeed. Present ONLY for
+   * the burst limiter, the one refusal where waiting is the remedy and the
+   * server says exactly how long. A token budget clears in twenty-four hours,
+   * so a countdown there would be theatre; its message names the real remedy.
+   */
+  retryAfterSeconds?: number;
+};
+
+const describeClientError = async (
+  response: Response
+): Promise<ClientErrorOutcome> => {
+  if (response.status === 429) {
+    // Two different refusals share this status and must not share copy, and the
+    // headers cannot tell them apart. @fastify/rate-limit writes `x-ratelimit-*`
+    // on every request it ADMITS, so a token-budget refusal raised later, in the
+    // handler, carries a reset value of its own. Verified against the deployed
+    // API: a `QUOTA_EXCEEDED` body arrived with `x-ratelimit-remaining: 1` and
+    // `x-ratelimit-reset: 31`. Keying on the header therefore told people to
+    // wait half a minute for an allowance that clears in twenty-four hours —
+    // worse than saying nothing, because they believed it and kept retrying.
+    //
+    // The body's `code` is the thing that actually differs. `QUOTA_EXCEEDED`
+    // carries Spanish copy naming the layer that refused — a personal daily
+    // budget, or a shared pool whose remedy is signing in — so it is shown
+    // verbatim. The burst limiter's own body is English text from the plugin
+    // and is never shown; its reset value becomes the Spanish countdown
+    // instead, which is the whole difference between "something broke" and
+    // "wait this long".
+    const error = await readServerError(response);
+    if (error?.code === "QUOTA_EXCEEDED" && error.message) {
+      return { message: error.message };
+    }
+
+    const reset = Number(response.headers.get("x-ratelimit-reset"));
+    if (Number.isFinite(reset) && reset > 0) {
+      return {
+        message: `Estás enviando consultas muy seguido. Por favor vuelve a intentar en ${reset} segundos.`,
+        retryAfterSeconds: reset,
+      };
+    }
+    return { message: error?.message ?? RATE_LIMITED_MESSAGE };
+  }
+  if (response.status === 413) {
+    return {
+      message: (await readServerMessage(response)) ?? TOO_LARGE_MESSAGE,
+    };
+  }
+  // The Zod body schema rejects content over the character cap before the
+  // handler runs, so an oversized message arrives here and not as a 413.
+  if (response.status === 400) return { message: TOO_LARGE_MESSAGE };
+  return { message: GENERIC_ERROR_MESSAGE };
+};
 
 type SsePayload = {
   id?: string;
@@ -75,6 +193,43 @@ export const useChatStream = () => {
   const abortRef = useRef<AbortController | null>(null);
   // Guards against setState after unmount once the aborted fetch/read settles.
   const mountedRef = useRef(true);
+
+  // Burst-limit cooldown. Without it the composer re-opened the instant a 429
+  // landed, and every impatient retry spent another slot of the very window
+  // the user was waiting out — which is how a one-minute wait becomes an
+  // unending one, since the limiter counts refused requests too.
+  //
+  // Kept in a ref as well as state because `sendMessage` has to read it
+  // without taking it as a dependency: the callback's identity is part of the
+  // widget's memoization, and a value that ticks every second would churn it.
+  // `cooldownUntil` changes only when a cooldown starts, so the interval below
+  // is created once per cooldown rather than once per tick.
+  const cooldownUntilRef = useRef<number | null>(null);
+  const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  const startCooldown = useCallback((seconds: number): void => {
+    cooldownUntilRef.current = Date.now() + seconds * 1000;
+    setCooldownUntil(cooldownUntilRef.current);
+    setCooldownSeconds(seconds);
+  }, []);
+
+  useEffect(() => {
+    if (cooldownUntil === null) return;
+    const tick = (): void => {
+      const remaining = Math.ceil((cooldownUntil - Date.now()) / 1000);
+      if (remaining <= 0) {
+        cooldownUntilRef.current = null;
+        setCooldownUntil(null);
+        setCooldownSeconds(0);
+        return;
+      }
+      setCooldownSeconds(remaining);
+    };
+    tick();
+    const timer = setInterval(tick, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownUntil]);
 
   // Abort any in-flight turn on unmount so a stalled request cannot outlive
   // the widget and fire state updates after it is gone. Re-set `mountedRef`
@@ -142,6 +297,38 @@ export const useChatStream = () => {
       const processEvent = (ev: SsePayload): SendMessageResult | null => {
         if (ev.id) lastEventIdRef.current = ev.id;
         if (ev.event === "done") {
+          // The terminal `done` payload carries the corpus chunks the assistant
+          // grounded this turn in (RAG). Optional: a non-tool turn omits it, and
+          // a foundation-era backend never sends it.
+          try {
+            const parsed = JSON.parse(ev.data) as { sources?: unknown };
+            if (parsed.sources !== undefined) {
+              // Validated rather than cast: the field crosses the wire, and an
+              // entry missing `cite_url` would reach MessageBubble as an
+              // undefined React key and a blank row. A bad payload degrades to
+              // "no citations" — the answer already streamed and is still good.
+              const result = SourceCitationWireArraySchema.safeParse(
+                parsed.sources
+              );
+              if (!result.success) {
+                // eslint-disable-next-line no-console
+                console.warn(
+                  "Malformed `sources` field on chatbot `done` event; rendering the turn without citations."
+                );
+              } else if (result.data.length > 0) {
+                const sources = result.data;
+                updateLastAssistant((msg) => ({
+                  ...msg,
+                  sourcesCited: sources,
+                }));
+              }
+            }
+          } catch {
+            // A malformed `done` payload must not fail an otherwise good turn —
+            // the text already streamed. Drop the citations and complete.
+            // eslint-disable-next-line no-console
+            console.warn("Malformed chatbot `done` event payload");
+          }
           return { kind: "completed" };
         }
         if (ev.event === "error") {
@@ -225,6 +412,13 @@ export const useChatStream = () => {
   const sendMessage = useCallback(
     async (content: string): Promise<void> => {
       if (!content.trim()) return;
+      // Refuse locally rather than spend a slot the server would refuse anyway.
+      if (
+        cooldownUntilRef.current !== null &&
+        Date.now() < cooldownUntilRef.current
+      ) {
+        return;
+      }
       // Reset per-turn scoped state — Last-Event-ID must only carry IDs
       // observed during the CURRENT turn's stream, never a stale one from
       // an earlier turn that completed or errored.
@@ -257,13 +451,28 @@ export const useChatStream = () => {
         CHATBOT_STREAM_OVERALL_TIMEOUT_MS
       );
 
+      // True while THIS turn is still the active one. `startNewConversation`
+      // nulls `abortRef` (and a newer send replaces it), so a turn it cancelled
+      // mid-flight cannot write state that belongs to the cleared/next thread.
+      // `stop()` deliberately leaves `abortRef` pointing here, so a user-stopped
+      // turn still resolves to "truncated" with its partial content.
+      const isCurrentTurn = (): boolean => abortRef.current === controller;
+
       const attempt = async (): Promise<{
         response: Response | null;
         transportError: boolean;
       }> => {
-        const headers: Record<string, string> = {
+        const headers = await buildChatbotHeaders({
           "content-type": "application/json",
-        };
+        });
+        // Resolving the token is an await, so Stop (or a timeout, or unmount)
+        // can land between here and the fetch below. Real `fetch` rejects
+        // immediately on an already-aborted signal, which the caller reads as
+        // a cancel; returning that outcome directly is the same answer without
+        // opening a request nobody is waiting for.
+        if (controller.signal.aborted) {
+          return { response: null, transportError: true };
+        }
         if (lastEventIdRef.current) {
           // Forward-compatibility plumbing only: the foundation backend
           // does not consume Last-Event-ID (it always streams from the
@@ -272,12 +481,19 @@ export const useChatStream = () => {
           // contract change.
           headers["Last-Event-ID"] = lastEventIdRef.current;
         }
+        // Read at send time rather than captured when the hook mounted: a
+        // turn that opened a new thread has already written the id back, and
+        // "Nueva conversación" may have cleared it since. Omitting the field
+        // is what asks the server for a fresh conversation.
+        const conversationId = readConversationId();
+        const body: { content: string; conversationId?: string } = { content };
+        if (conversationId !== null) body.conversationId = conversationId;
         try {
           const response = await fetch(SEND_URL, {
             method: "POST",
             credentials: "include",
             headers,
-            body: JSON.stringify({ content }),
+            body: JSON.stringify(body),
             signal: controller.signal,
           });
           return { response, transportError: false };
@@ -333,6 +549,16 @@ export const useChatStream = () => {
           return;
         }
 
+        // Before branching on status: the server commits the conversation and
+        // the user's message before it ever calls the model, so a turn that
+        // ends in 503 still created a thread. Storing the id only on success
+        // would abandon it and open a second one on the retry. Reads null when
+        // the failure happened before a conversation existed, and when a proxy
+        // strips the header or CORS does not expose it — in which case the next
+        // turn starts fresh, which is the same behaviour as a first visit.
+        const attachedId = response.headers.get(CHATBOT_CONVERSATION_ID_HEADER);
+        if (attachedId) writeConversationId(attachedId);
+
         if (!response.ok) {
           // 5xx means the backend itself is failing, so treat it like a
           // transport failure: increment the unavailability counter and let it
@@ -340,15 +566,6 @@ export const useChatStream = () => {
           // errors (the backend answered fine), so they reset the counter.
           if (response.status >= 500) {
             consecutiveFailuresRef.current += 1;
-            let serverMessage = GENERIC_ERROR_MESSAGE;
-            if (response.status === 503) {
-              try {
-                const json = (await response.json()) as { message?: string };
-                if (json.message) serverMessage = json.message;
-              } catch {
-                // fall through to generic
-              }
-            }
             if (consecutiveFailuresRef.current >= 2) {
               setState("degraded");
               updateLastAssistant((msg) => ({
@@ -359,27 +576,28 @@ export const useChatStream = () => {
               return;
             }
             setState("error");
+            // The widget composes its own copy for 5xx instead of reading the
+            // body: in production `buildErrorResponse` replaces the message of
+            // every 5xx with a fixed English string, so showing the server's
+            // would put "An unexpected error occurred" in a Spanish-only UI.
+            // 4xx messages survive that masking, which is why the branch below
+            // still reads them.
             updateLastAssistant((msg) => ({
               ...msg,
-              content: serverMessage,
+              content: GENERIC_ERROR_MESSAGE,
               error: true,
             }));
             return;
           }
           consecutiveFailuresRef.current = 0;
-          if (response.status === 413) {
-            setState("error");
-            updateLastAssistant((msg) => ({
-              ...msg,
-              content: TOO_LARGE_MESSAGE,
-              error: true,
-            }));
-            return;
+          const clientError = await describeClientError(response);
+          if (clientError.retryAfterSeconds !== undefined) {
+            startCooldown(clientError.retryAfterSeconds);
           }
           setState("error");
           updateLastAssistant((msg) => ({
             ...msg,
-            content: GENERIC_ERROR_MESSAGE,
+            content: clientError.message,
             error: true,
           }));
           return;
@@ -388,6 +606,9 @@ export const useChatStream = () => {
         consecutiveFailuresRef.current = 0;
         const result = await consumeStream(response, controller);
         if (!mountedRef.current) return;
+        // A `startNewConversation` during the stream already reset the thread;
+        // applying this turn's terminal state would re-dirty the cleared UI.
+        if (!isCurrentTurn()) return;
 
         switch (result.kind) {
           case "completed":
@@ -421,7 +642,7 @@ export const useChatStream = () => {
         }
       }
     },
-    [consumeStream, nextMessageId, updateLastAssistant]
+    [consumeStream, nextMessageId, startCooldown, updateLastAssistant]
   );
 
   const deleteHistory = useCallback(async (): Promise<void> => {
@@ -429,8 +650,12 @@ export const useChatStream = () => {
       const response = await fetch(DELETE_URL, {
         method: "DELETE",
         credentials: "include",
+        headers: await buildChatbotHeaders(),
       });
       if (response.status === 204) {
+        // The rows are gone server-side, so a retained id would point at
+        // nothing and make the next rehydrate a pointless 404.
+        clearConversationId();
         setMessages([]);
         setState("empty");
         lastEventIdRef.current = undefined;
@@ -451,5 +676,80 @@ export const useChatStream = () => {
     abortRef.current?.abort();
   }, []);
 
-  return { state, messages, sendMessage, deleteHistory, stop };
+  /**
+   * Replace the visible thread with a persisted conversation loaded on mount
+   * (see `useConversationRehydrate`). Ids are minted from this hook's own
+   * counter rather than accepted from the caller: two id sources could collide
+   * on `assistant-1` and let React reconcile a fresh bubble onto a seeded
+   * node — the very hazard the counter exists to prevent.
+   *
+   * The seed LOSES every race against the live thread. Rehydration is one
+   * mount-time round-trip, so a fast typist on a slow API can send a turn while
+   * it is still in flight; replacing the thread then would drop the user's
+   * message and orphan the in-flight assistant bubble, whose deltas
+   * `updateLastAssistant` would silently discard on the id check. Both guards
+   * are load-bearing: the ref catches a turn whose append has not committed
+   * yet, and the `prev.length` check inside the updater catches an already
+   * populated thread (including one seeded by StrictMode's double effect).
+   */
+  const seedMessages = useCallback(
+    (loaded: SeedMessage[]): void => {
+      if (loaded.length === 0) return;
+      if (inFlightAssistantIdRef.current !== null) return;
+      // Minted outside the updater: `nextMessageId` bumps a ref, and updaters
+      // must stay pure (StrictMode double-invokes them). A rejected seed just
+      // burns a few counter values, which costs nothing — the counter only has
+      // to be unique, never contiguous.
+      const seeded = loaded.map((m) => {
+        const message: ChatbotMessage = {
+          id: nextMessageId(m.role),
+          role: m.role,
+          content: m.content,
+        };
+        if (m.role === "assistant" && m.sourcesCited?.length) {
+          message.sourcesCited = m.sourcesCited;
+        }
+        return message;
+      });
+      setMessages((prev) => (prev.length > 0 ? prev : seeded));
+    },
+    [nextMessageId]
+  );
+
+  /**
+   * Start a fresh thread. Prior turns stay persisted server-side — this is NOT
+   * a delete.
+   *
+   * Dropping the stored conversation id is the whole mechanism: POST /message
+   * continues the thread the client names, so sending no id makes the next
+   * turn open a new conversation, and a later reload has nothing to rehydrate.
+   * Any in-flight turn is aborted so it cannot stream into the cleared view.
+   */
+  const startNewConversation = useCallback((): void => {
+    // Null the ref BEFORE aborting: `isCurrentTurn()` in the in-flight
+    // sendMessage reads it after its await resumes, and must observe that this
+    // turn is no longer current.
+    const inFlight = abortRef.current;
+    abortRef.current = null;
+    inFlight?.abort();
+    inFlightAssistantIdRef.current = null;
+    clearConversationId();
+    setMessages([]);
+    setState("empty");
+    lastEventIdRef.current = undefined;
+    consecutiveFailuresRef.current = 0;
+  }, []);
+
+  return {
+    state,
+    messages,
+    // Seconds left before a retry can succeed, or 0. Only ever set by the
+    // burst limiter — see ClientErrorOutcome.retryAfterSeconds.
+    cooldownSeconds,
+    sendMessage,
+    deleteHistory,
+    stop,
+    seedMessages,
+    startNewConversation,
+  };
 };

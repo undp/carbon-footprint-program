@@ -21,12 +21,18 @@ import AddIcon from "@mui/icons-material/Add";
 import DragHandleIcon from "@mui/icons-material/DragHandle";
 import { useTheme } from "@mui/material/styles";
 import { CHATBOT_MAX_USER_INPUT_CHARS } from "@repo/types";
-import { APP_LOCALE, CHATBOT_INTRODUCED_KEY } from "@/config/constants";
+import {
+  APP_LOCALE,
+  CHATBOT_AI_DISCLAIMER,
+  CHATBOT_INTRODUCED_KEY,
+  CHATBOT_PRIVACY_NOTICE,
+} from "@/config/constants";
 import { BaseActionButton } from "@/components/BaseActionButton";
 import { ChatbotIcon } from "./ChatbotIcon";
 import { MessageBubble } from "./MessageBubble";
 import { useChatStream } from "./useChatStream";
 import { useChatbotSize } from "./useChatbotSize";
+import { useConversationRehydrate } from "./useConversationRehydrate";
 
 // Counter stays hidden during normal use; appears once the draft approaches
 // the cap so the user is not surprised by a hard stop.
@@ -67,7 +73,22 @@ export function ChatbotWidget() {
     return window.location.pathname === "/" && !hasBeenIntroduced();
   });
   const [draft, setDraft] = useState("");
-  const { state, messages, sendMessage, deleteHistory, stop } = useChatStream();
+  const {
+    state,
+    messages,
+    cooldownSeconds,
+    sendMessage,
+    stop,
+    seedMessages,
+    startNewConversation,
+  } = useChatStream();
+  // `deleteHistory` is intentionally not wired to any control: the DELETE
+  // endpoint stays available for API / data-deletion requests, but the widget
+  // offers only "Nueva conversación", which detaches from the thread without
+  // destroying it.
+  const { historyLoading } = useConversationRehydrate({
+    onLoaded: seedMessages,
+  });
   const listRef = useRef<HTMLDivElement | null>(null);
   const inputRef = useRef<HTMLTextAreaElement | null>(null);
   const numberFormatter = useMemo(() => new Intl.NumberFormat(APP_LOCALE), []);
@@ -131,6 +152,9 @@ export function ChatbotWidget() {
   }
 
   const isBusy = state === "loading" || state === "streaming";
+  // A burst limit is running out: the send path is closed until it clears, so
+  // the user cannot spend the next window's slots retrying into a refusal.
+  const isCoolingDown = cooldownSeconds > 0;
 
   const draftLength = draft.length;
   const draftRatio = draftLength / CHATBOT_MAX_USER_INPUT_CHARS;
@@ -147,7 +171,7 @@ export function ChatbotWidget() {
     // button: the IconButton is disabled while busy, but the keyboard
     // path can still re-enter handleSend before React applies the
     // disabled prop on the next render.
-    if (isBusy) return;
+    if (isBusy || isCoolingDown) return;
     const content = draft.trim();
     if (!content) return;
     markIntroduced();
@@ -243,7 +267,7 @@ export function ChatbotWidget() {
             onClick={() => {
               if (isBusy) return;
               markIntroduced();
-              void deleteHistory();
+              startNewConversation();
               // Return focus to the input so the user can immediately
               // start a new message; the click would otherwise leave
               // focus on this IconButton.
@@ -276,7 +300,9 @@ export function ChatbotWidget() {
           bgcolor: theme.palette.background.default,
         }}
       >
-        {messages.length === 0 ? (
+        {/* Suppressed while the rehydrate is in flight, so a persisted thread
+            does not flash "¿En qué puedo ayudarte?" before the seed lands. */}
+        {messages.length === 0 && !historyLoading ? (
           <Box
             display="flex"
             alignItems="center"
@@ -306,7 +332,11 @@ export function ChatbotWidget() {
             maxRows={3}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Escribe tu pregunta…"
+            placeholder={
+              isCoolingDown
+                ? `Puedes volver a preguntar en ${cooldownSeconds} s`
+                : "Escribe tu pregunta…"
+            }
             // Never disabled — kept enabled in every state (including
             // "degraded") so the user can always retry in place without the
             // destructive "Nueva conversación", and so streaming never blurs
@@ -334,7 +364,7 @@ export function ChatbotWidget() {
           <IconButton
             color="primary"
             onClick={() => void handleSend()}
-            disabled={!draft.trim() || isBusy}
+            disabled={!draft.trim() || isBusy || isCoolingDown}
             aria-label="Enviar mensaje"
           >
             <SendIcon />
@@ -356,6 +386,28 @@ export function ChatbotWidget() {
             {numberFormatter.format(CHATBOT_MAX_USER_INPUT_CHARS)}
           </Typography>
         ) : null}
+      </Box>
+      {/* Both notices are unconditional and undismissable: a disclaimer the
+          user can close is one they will not be reading on the turn that
+          matters. The retention line states the 30-day ceiling rather than the
+          7-day anonymous window — overstating retention is harmless, while
+          understating it would be a privacy assurance the system does not
+          keep. See the constants for the full reasoning. */}
+      <Box
+        sx={{
+          px: 1,
+          pb: 0.5,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {CHATBOT_AI_DISCLAIMER}
+        </Typography>
+        <Typography variant="caption" color="text.secondary" textAlign="center">
+          {CHATBOT_PRIVACY_NOTICE}
+        </Typography>
       </Box>
     </Paper>
   );

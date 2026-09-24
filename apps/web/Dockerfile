@@ -33,6 +33,11 @@ ARG VITE_OIDC_POST_LOGOUT_REDIRECT_URI
 ARG VITE_IS_DEMO_APP="false"
 ARG VITE_APP_VERSION="dev"
 ARG VITE_LOCAL_BYPASS_REQUIRED_FIELDS="false"
+# Mounts the chatbot widget. Defaults to "false" so an image built without it
+# behaves as the platform does with no AI — the DPG optionality guarantee. Must
+# agree with the API's CHATBOT_ENABLED: widget on with the API off mounts a
+# widget whose every request 404s.
+ARG VITE_CHATBOT_ENABLED="false"
 
 # Vite reads from process.env via loadEnv, so expose ARGs as ENV during build
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
@@ -43,7 +48,8 @@ ENV VITE_API_BASE_URL=$VITE_API_BASE_URL \
     VITE_OIDC_POST_LOGOUT_REDIRECT_URI=$VITE_OIDC_POST_LOGOUT_REDIRECT_URI \
     VITE_IS_DEMO_APP=$VITE_IS_DEMO_APP \
     VITE_APP_VERSION=$VITE_APP_VERSION \
-    VITE_LOCAL_BYPASS_REQUIRED_FIELDS=$VITE_LOCAL_BYPASS_REQUIRED_FIELDS
+    VITE_LOCAL_BYPASS_REQUIRED_FIELDS=$VITE_LOCAL_BYPASS_REQUIRED_FIELDS \
+    VITE_CHATBOT_ENABLED=$VITE_CHATBOT_ENABLED
 
 # Install deps using only the pruned lockfile + package.json files.
 # This layer is cached and only re-runs when dependencies change.
