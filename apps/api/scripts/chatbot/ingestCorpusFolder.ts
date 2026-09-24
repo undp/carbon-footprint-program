@@ -79,9 +79,14 @@ type Options = {
 };
 
 type PlannedDocument = CorpusDocument & {
-  /** ACTIVE with this exact content: nothing to do. */
+  /** ACTIVE with this exact content and embedding model: nothing to do. */
   isActive: boolean;
-  /** An earlier run ingested this content but never activated it. */
+  /**
+   * ACTIVE with this exact content but embedded by another model. Its vectors
+   * are not comparable with the ones this run writes, so it is re-ingested.
+   */
+  hasOtherModel: boolean;
+  /** An earlier run ingested this content, with this model, but never activated it. */
   pendingDraftId?: bigint;
 };
 
@@ -416,15 +421,20 @@ const main = async (argv: string[]): Promise<number> => {
     for (const document of documents) {
       const existing = await prisma.chatbotCorpusSource.findMany({
         where: { name: document.label, version: document.version },
-        select: { id: true, status: true },
+        select: { id: true, status: true, embeddingModel: true },
       });
+      const active = existing.find(
+        (source) => source.status === CorpusSourceStatus.ACTIVE
+      );
       planned.push({
         ...document,
-        isActive: existing.some(
-          (source) => source.status === CorpusSourceStatus.ACTIVE
-        ),
+        isActive: active?.embeddingModel === embeddingModel,
+        hasOtherModel:
+          active !== undefined && active.embeddingModel !== embeddingModel,
         pendingDraftId: existing.find(
-          (source) => source.status === CorpusSourceStatus.DRAFT
+          (source) =>
+            source.status === CorpusSourceStatus.DRAFT &&
+            source.embeddingModel === embeddingModel
         )?.id,
       });
     }
@@ -442,12 +452,57 @@ const main = async (argv: string[]): Promise<number> => {
         ? "sin cambios"
         : document.pendingDraftId !== undefined
           ? "DRAFT sin activar"
-          : "por ingerir";
+          : document.hasOtherModel
+            ? "otro modelo"
+            : "por ingerir";
       process.stdout.write(`  ${status.padEnd(17)}  ${document.label}\n`);
     }
     process.stdout.write(
-      `\n  ${toIngest.length} por ingerir · ${pendingDrafts.length} DRAFT sin activar · ${unchanged} sin cambios\n\n`
+      `\n  ${toIngest.length} por ingerir · ${pendingDrafts.length} DRAFT sin activar · ${unchanged} sin cambios\n`
     );
+
+    // Warnings about what is already in the database. Retrieval compares
+    // vectors by cosine distance across every ACTIVE source, so a source
+    // embedded by another model does not fail — it silently returns the
+    // wrong chunks. The runbook calls this the most dangerous corpus failure.
+    const reembedded = planned.filter((document) => document.hasOtherModel);
+    if (reembedded.length > 0) {
+      process.stdout.write(
+        `\n  ⚠ ${reembedded.length} documentos ya activos se generaron con otro modelo de embeddings\n` +
+          `    ("otro modelo" arriba): se re-ingieren con "${embeddingModel}" y la versión\n` +
+          "    anterior queda OUTDATED al activar.\n"
+      );
+    }
+    const activeOutsideCorpus = await prisma.chatbotCorpusSource.findMany({
+      where: {
+        status: CorpusSourceStatus.ACTIVE,
+        name: { notIn: planned.map((document) => document.label) },
+      },
+      select: { name: true, version: true, embeddingModel: true },
+      orderBy: { name: "asc" },
+    });
+    if (activeOutsideCorpus.length > 0) {
+      process.stdout.write(
+        `\n  ⚠ Hay ${activeOutsideCorpus.length} fuentes activas que no están en el corpus; esta\n` +
+          "    ingesta no las toca y seguirán respondiendo:\n"
+      );
+      for (const source of activeOutsideCorpus) {
+        process.stdout.write(
+          `      ${source.name} (${source.version}, modelo ${source.embeddingModel ?? "desconocido"})\n`
+        );
+      }
+      const otherModelCount = activeOutsideCorpus.filter(
+        (source) => source.embeddingModel !== embeddingModel
+      ).length;
+      if (otherModelCount > 0) {
+        process.stdout.write(
+          `    ${otherModelCount} de ellas usan otro modelo que "${embeddingModel}": sus vectores no\n` +
+            "    son comparables con los nuevos y la búsqueda devolverá chunks incorrectos\n" +
+            '    sin ningún error. Desactívalas o re-ingiérelas (runbook, "Re-embed playbook").\n'
+        );
+      }
+    }
+    process.stdout.write("\n");
 
     if (!validAppUrl) {
       throw new CorpusFolderError(

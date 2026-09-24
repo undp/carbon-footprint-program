@@ -621,7 +621,10 @@ Each document's `--version` is a hash of its content, so a re-run skips everythi
 
 To validate without ingesting, run `pnpm chatbot:ingest-corpus:check` (shorthand for `--check`): it runs step 1, prints the environment and the per-document plan, and exits `0` when everything is ready — no prompts and no database writes, so it also works in CI or over a non-interactive SSH session. The one external call it makes is step 1's test embedding. A missing app URL fails the check instead of being asked for.
 
-The script only adds and replaces sources: removing a document from `corpus/` leaves its `ACTIVE` source in the database.
+The plan also looks at what the database already holds, because retrieval compares vectors across every `ACTIVE` source and a source embedded by another model fails silently (see the re-embed playbook below):
+
+- a corpus document that is `ACTIVE` with unchanged content but another `embedding_model` is marked `otro modelo` and re-ingested, instead of skipped;
+- `ACTIVE` sources that are not in `corpus/` — a removed document, the `v05-sample` fixture — are listed, because the script only adds and replaces sources and they keep answering. Those embedded by another model get a louder warning; deactivate or re-ingest them.
 
 ### Ingesting a single document
 

@@ -2,7 +2,11 @@ import { describe, it, expect, beforeAll, afterAll, inject } from "vitest";
 import { execSync } from "node:child_process";
 import { resolve } from "node:path";
 import { PrismaClient, generatePrismaAdapter } from "@repo/database";
-import { CorpusSourceStatus } from "@repo/database/enums";
+import {
+  CorpusSourceScope,
+  CorpusSourceStatus,
+  CorpusSourceType,
+} from "@repo/database/enums";
 import { getPerFileDatabaseUrl } from "@test/setup/perFileDatabase.js";
 
 const REPO_ROOT = resolve(import.meta.dirname, "../../../../../..");
@@ -154,5 +158,39 @@ describe("ingest-corpus CLI — integration", () => {
 
     expect(output).toContain("El corpus ya está al día");
     expect(await prisma.chatbotCorpusSource.count()).toBe(3);
+  }, 120_000);
+
+  // Also builds on the ingested corpus: the warnings are about what the
+  // database already holds.
+  it("--check warns about active sources a run would leave inconsistent", async () => {
+    // A source outside the corpus, embedded by another model...
+    await prisma.chatbotCorpusSource.create({
+      data: {
+        name: "Fuente antigua",
+        version: "v01",
+        sourceType: CorpusSourceType.PDF,
+        scope: CorpusSourceScope.GLOBAL,
+        status: CorpusSourceStatus.ACTIVE,
+        embeddingModel: "text-embedding-ada-002",
+        citeLabel: "Fuente antigua",
+        citeUrl: "https://example.org/antigua",
+      },
+    });
+    // ...and a corpus document whose content is unchanged but whose vectors
+    // came from another model.
+    await prisma.chatbotCorpusSource.updateMany({
+      where: { name: "Subcategoría C1 — Otras fuentes" },
+      data: { embeddingModel: "otro-modelo" },
+    });
+
+    const output = runIngestCorpus(["--app-url", APP_URL, "--check"]);
+
+    expect(output).toMatch(/otro modelo\s+Subcategoría C1 — Otras fuentes/);
+    expect(output).toContain("1 por ingerir");
+    expect(output).toContain("1 fuentes activas que no están en el corpus");
+    expect(output).toContain(
+      "Fuente antigua (v01, modelo text-embedding-ada-002)"
+    );
+    expect(output).toContain("sus vectores no");
   }, 120_000);
 });
