@@ -67,6 +67,11 @@ interface UseEmissionFactorColumnsParams {
   onDelete: (row: EmissionFactorForm) => void;
   onOpenGEIBreakdown: (rowIndex: number) => void;
   getValues: () => EmissionFactorForm[];
+  /**
+   * The factors as the server holds them. The source lock reads these, never
+   * the form, so an unsaved edit of one row cannot move the lock of another.
+   */
+  getPersistedRows: () => EmissionFactorForm[];
   subcategories: SubcategoryOption[];
   rateUnits: RateMeasurementUnit[];
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
@@ -217,6 +222,7 @@ export const useEmissionFactorColumns = ({
   onDelete,
   onOpenGEIBreakdown,
   getValues,
+  getPersistedRows,
   subcategories,
   rateUnits,
   dimensionOptionsMap,
@@ -550,7 +556,7 @@ export const useEmissionFactorColumns = ({
           const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
 
-          const lockedSource = resolveLockedSource(getValues(), formRow);
+          const lockedSource = resolveLockedSource(getPersistedRows(), formRow);
           const isSourceLocked = lockedSource !== undefined;
 
           return (
@@ -639,7 +645,7 @@ export const useEmissionFactorColumns = ({
     [
       viewOnly,
       getFormRow,
-      getValues,
+      getPersistedRows,
       isEditing,
       onCellChange,
       onStartEditRow,

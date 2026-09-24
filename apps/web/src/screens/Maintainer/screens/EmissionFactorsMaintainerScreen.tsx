@@ -505,6 +505,16 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     () => form.getValues("emissionFactors"),
     [form]
   );
+  // The source lock reads the factors as the server holds them, so the getter
+  // changes only when the query refetches — never while the form is edited.
+  const persistedEmissionFactors = useMemo(
+    () => (emissionFactors ?? []).map(toFormEmissionFactor),
+    [emissionFactors]
+  );
+  const getPersistedEmissionFactors = useCallback(
+    () => persistedEmissionFactors,
+    [persistedEmissionFactors]
+  );
   const columns = useEmissionFactorColumns({
     editingRowId,
     viewOnly: scope.isViewOnly,
@@ -515,6 +525,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     onDelete: handleDelete,
     onOpenGEIBreakdown: handleOpenGEIBreakdown,
     getValues: getEmissionFactorValues,
+    getPersistedRows: getPersistedEmissionFactors,
     subcategories: subcategoryOptions,
     rateUnits: rateUnitOptions,
     dimensionOptionsMap,

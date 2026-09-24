@@ -1,26 +1,9 @@
 import type { EmissionFactorForm } from "@repo/types";
 
-const isPersisted = (id: string) => !id.startsWith("temp_");
-
-/**
- * Orders the rows of a group so the first one is its anchor: the row whose
- * source the rest adopt.
- *
- * Persisted rows come before new ones — their source is already in the
- * catalogue and is what the server will compare against — and ties break by id,
- * compared numerically so `9` precedes `10` and the oldest `temp_<timestamp>`
- * precedes the newer ones. Row order in the grid is deliberately not used: it
- * changes with sorting and pagination, and an anchor that moves is an anchor
- * that rewrites the group every time the maintainer sorts a column.
- */
-const compareByAnchorPrecedence = (
-  a: EmissionFactorForm,
-  b: EmissionFactorForm
-): number => {
-  if (isPersisted(a.id) !== isPersisted(b.id))
-    return isPersisted(a.id) ? -1 : 1;
-  return a.id.localeCompare(b.id, undefined, { numeric: true });
-};
+type PersistedFactor = Pick<
+  EmissionFactorForm,
+  "id" | "subcategoryId" | "year" | "source"
+>;
 
 /**
  * The source a new or edited factor is forced to carry, when the catalogue
@@ -33,36 +16,48 @@ const compareByAnchorPrecedence = (
  * locked value back into the form — save it silently, over a source the server
  * would have accepted.
  *
- * The group's source is resolved through a single anchor rather than through
- * "any other row of the group". Any other row makes the lock mutual: two rows
- * of one group holding different sources each read the other as their lock, so
- * each writes the other's source into its own field, the values swap on every
- * render and neither ever settles. The snackbar follows the swap — the
- * announced replacement alternates between `A→B` and `B→A`, so the guard that
- * silences a repeat never matches. With one anchor per group the anchor itself
- * is free and every other row converges on it in a single pass.
+ * The lock reads the **persisted** factors, the server's rows, never the form.
+ * Every row with at least one persisted sibling in its group is locked, and the
+ * value is the group's persisted source. Two earlier readings failed:
+ *  - "any other row" of the form made the lock mutual. Two rows of one group
+ *    holding different sources each read the other as their lock and wrote it
+ *    into their own field, so the values swapped on every render and never
+ *    settled.
+ *  - an anchor — the lowest persisted id, left free — stopped the swap but left
+ *    that row editable. What the admin typed into it reached its siblings
+ *    through the same write-back and ended in a 409, since the server still
+ *    held the old source for them. And a low-id row moved into another year
+ *    became that group's anchor, imposing its source instead of adopting the
+ *    group's.
+ * Persisted values do not move while the form is edited, and the server keeps
+ * one source per group, so there is nothing to swap and no anchor to need. A
+ * row moved to another year adopts its destination group's source, because its
+ * own persisted entry still sits in the group it left.
  *
- * Returns `undefined` when nothing fixes the source yet, which is what leaves
- * the cell free to be typed: for the anchor of the group, and when the anchor
- * has no source yet — a blank lock would show a padlock over an empty cell and
- * forbid typing the very value it is waiting for. A row with no subcategory or
- * no year yet locks nothing either: an incomplete row has no group to belong to.
+ * The group's source is taken from its lowest id. On a consistent group every
+ * row agrees and the choice does not matter; on one left inconsistent by older
+ * data it keeps every row converging on the same value instead of trading.
+ *
+ * Returns `undefined` when nothing fixes the source yet, which leaves the cell
+ * free to be typed: a group with no persisted sibling — only new rows, whose
+ * first save is what fixes the source — or a row with no subcategory or no year
+ * yet, which has no group to belong to.
  */
 export const resolveLockedSource = (
-  rows: EmissionFactorForm[],
-  row: EmissionFactorForm | undefined
+  persistedRows: PersistedFactor[],
+  row: Pick<EmissionFactorForm, "id" | "subcategoryId" | "year"> | undefined
 ): string | undefined => {
   if (!row?.subcategoryId || row.year == null) return undefined;
 
-  const [anchor] = rows
+  const group = persistedRows
     .filter(
       (candidate) =>
         candidate.subcategoryId === row.subcategoryId &&
         candidate.year === row.year
     )
-    .sort(compareByAnchorPrecedence);
+    .sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
 
-  if (!anchor || anchor.id === row.id) return undefined;
+  if (!group.some((candidate) => candidate.id !== row.id)) return undefined;
 
-  return anchor.source || undefined;
+  return group[0].source || undefined;
 };

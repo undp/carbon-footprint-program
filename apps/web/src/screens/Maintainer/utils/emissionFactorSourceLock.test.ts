@@ -26,87 +26,96 @@ const factor = (
 });
 
 describe("resolveLockedSource", () => {
-  it("locks nothing when the subcategory has no other factor", () => {
+  it("locks nothing when the group has no persisted sibling", () => {
     const row = factor({ id: "1" });
 
     expect(resolveLockedSource([row], row)).toBeUndefined();
   });
 
-  it("takes the source of another factor of the same subcategory and year", () => {
-    const existing = factor({ id: "1", source: "IPCC" });
-    const row = factor({ id: "2", source: "" });
+  it("takes the source of a persisted sibling of the same subcategory and year", () => {
+    const persisted = [factor({ id: "1", source: "IPCC" })];
+    const row = factor({ id: "temp_1758000000000", source: "" });
 
-    expect(resolveLockedSource([existing, row], row)).toBe("IPCC");
+    expect(resolveLockedSource(persisted, row)).toBe("IPCC");
   });
 
   it("does not reach across years", () => {
-    const existing = factor({ id: "1", source: "DEFRA 2025", year: 2025 });
+    const persisted = [factor({ id: "1", source: "DEFRA 2025", year: 2025 })];
     const row = factor({ id: "2", source: "DEFRA 2026", year: 2026 });
 
-    expect(resolveLockedSource([existing, row], row)).toBeUndefined();
+    expect(resolveLockedSource(persisted, row)).toBeUndefined();
   });
 
   it("does not reach across subcategories", () => {
-    const existing = factor({ id: "1", subcategoryId: "sub-2" });
+    const persisted = [factor({ id: "1", subcategoryId: "sub-2" })];
     const row = factor({ id: "2", source: "" });
 
-    expect(resolveLockedSource([existing, row], row)).toBeUndefined();
-  });
-
-  it("ignores the row itself", () => {
-    const row = factor({ id: "1", source: "IPCC" });
-
-    expect(resolveLockedSource([row], row)).toBeUndefined();
+    expect(resolveLockedSource(persisted, row)).toBeUndefined();
   });
 
   it("locks nothing while the row has no subcategory yet", () => {
-    const existing = factor({ id: "1", source: "IPCC" });
+    const persisted = [factor({ id: "1", source: "IPCC" })];
     const row = factor({ id: "2", subcategoryId: "", source: "" });
 
-    expect(resolveLockedSource([existing, row], row)).toBeUndefined();
+    expect(resolveLockedSource(persisted, row)).toBeUndefined();
   });
 
-  it("does not lock two rows of the same group to each other", () => {
-    // The mutual lock is what made the pair swap sources on every render: each
-    // row read the other as its lock and wrote it into its own field.
-    const first = factor({ id: "1", source: "IPCC" });
-    const second = factor({ id: "2", source: "DEFRA 2025" });
-    const rows = [first, second];
+  it("locks every row that has a persisted sibling, the lowest id included", () => {
+    // The anchor version left row 5 editable: what the admin typed into it
+    // reached rows 7 and 9 through the write-back and ended in a 409.
+    const persisted = [
+      factor({ id: "5", source: "DEFRA 2025" }),
+      factor({ id: "7", source: "DEFRA 2025" }),
+      factor({ id: "9", source: "DEFRA 2025" }),
+    ];
 
-    expect(resolveLockedSource(rows, first)).toBeUndefined();
-    expect(resolveLockedSource(rows, second)).toBe("IPCC");
+    for (const row of persisted)
+      expect(resolveLockedSource(persisted, row)).toBe("DEFRA 2025");
   });
 
-  it("anchors on the persisted row, not on a new one", () => {
-    const added = factor({ id: "temp_1758000000000", source: "Propia" });
-    const persisted = factor({ id: "5", source: "IPCC" });
-    // New rows are prepended, so the grid order puts the new one first.
-    const rows = [added, persisted];
+  it("ignores a draft typed into a sibling", () => {
+    // Only persisted rows are read, so an unsaved edit of row 5 cannot move
+    // the lock of row 7 — the write-back has nothing new to copy.
+    const persisted = [
+      factor({ id: "5", source: "DEFRA 2025" }),
+      factor({ id: "7", source: "DEFRA 2025" }),
+    ];
+    const draftOfSeven = factor({ id: "7", source: "Borrador" });
 
-    expect(resolveLockedSource(rows, added)).toBe("IPCC");
-    expect(resolveLockedSource(rows, persisted)).toBeUndefined();
+    expect(resolveLockedSource(persisted, draftOfSeven)).toBe("DEFRA 2025");
   });
 
-  it("compares ids numerically so 9 anchors over 10", () => {
-    const ninth = factor({ id: "9", source: "IPCC" });
-    const tenth = factor({ id: "10", source: "DEFRA 2025" });
+  it("makes a row moved to another year adopt the group it joins", () => {
+    // Row 3 has the lowest id. Under the anchor it became the 2026 group's
+    // anchor and imposed "IPCC" on it; its persisted entry still sits in 2025,
+    // so it now reads the 2026 group's source instead.
+    const persisted = [
+      factor({ id: "3", source: "IPCC", year: 2025 }),
+      factor({ id: "8", source: "DEFRA 2026", year: 2026 }),
+    ];
+    const movedRow = factor({ id: "3", source: "IPCC", year: 2026 });
 
-    expect(resolveLockedSource([tenth, ninth], tenth)).toBe("IPCC");
+    expect(resolveLockedSource(persisted, movedRow)).toBe("DEFRA 2026");
+    // Row 8 is still the only persisted row of 2026, so it stays free: the
+    // move has not been saved, and nothing it types reaches row 3's lock.
+    expect(resolveLockedSource(persisted, persisted[1])).toBeUndefined();
   });
 
-  it("anchors on the oldest new row when the group has no persisted one", () => {
-    const older = factor({ id: "temp_1758000000000", source: "Propia" });
-    const newer = factor({ id: "temp_1758000009999", source: "" });
-    const rows = [newer, older];
+  it("converges an inconsistent persisted group on one value instead of swapping", () => {
+    // The swap that looped: two rows of one group, two sources. Both now read
+    // the same value, so the write-back settles after one pass.
+    const persisted = [
+      factor({ id: "10", source: "DEFRA 2025" }),
+      factor({ id: "9", source: "IPCC" }),
+    ];
 
-    expect(resolveLockedSource(rows, newer)).toBe("Propia");
-    expect(resolveLockedSource(rows, older)).toBeUndefined();
+    expect(resolveLockedSource(persisted, persisted[0])).toBe("IPCC");
+    expect(resolveLockedSource(persisted, persisted[1])).toBe("IPCC");
   });
 
-  it("locks nothing while the anchor has no source yet", () => {
-    const anchor = factor({ id: "temp_1758000000000", source: "" });
+  it("leaves a group of new rows free", () => {
     const row = factor({ id: "temp_1758000009999", source: "" });
 
-    expect(resolveLockedSource([anchor, row], row)).toBeUndefined();
+    expect(resolveLockedSource([], row)).toBeUndefined();
   });
 });
