@@ -597,7 +597,33 @@ Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. An
 
 ## Chatbot corpus ingestion and activation
 
-The corpus that backs the educational mode (`Modo A`) is ingested via two CLI scripts under `apps/api/scripts/chatbot/`:
+### Ingesting the whole corpus folder
+
+The repository's `corpus/` folder holds every document the assistant should know: third-party PDFs, plus symlinks to the category and subcategory explanations the platform itself shows. `corpus/manifest.json` gives each PDF its label, scope and citation URL. Ingest all of it with one command:
+
+```bash
+pnpm --filter api chatbot:ingest-corpus
+```
+
+It runs in three steps:
+
+1. **Requirements** — reads the manifest and every document (a broken symlink fails here), validates the API environment, connects to the database, and checks for `pgvector` and the corpus tables. With `EMBEDDING_PROVIDER=azure-openai` it then uses the **Azure CLI** (`az`, logged in with `az login`) to check the Azure side:
+   - the account behind `AZURE_OPENAI_ENDPOINT` exists in the active subscription (`az account set` to switch);
+   - the embeddings deployment exists and runs a `text-embedding-3` model, the only family that accepts the 1024 dimensions the column needs;
+   - with `AZURE_OPENAI_API_KEY` set, the account accepts keys (`disableLocalAuth` off); without it, your identity holds a role whose data actions include embeddings — checked against the role's permissions, so custom roles count, and Owner/Contributor do not. On failure it prints the `az role assignment create` command that fixes it.
+
+   Last, it sends one test embedding. That covers what the CLI cannot: the identity the API actually authenticates as (`DefaultAzureCredential` prefers `AZURE_CLIENT_SECRET` and friends over the `az` session, and the script warns when they are set) and the network path to the endpoint.
+
+2. **Confirmation** — prints the environment it found (database with the password masked, embedding provider, endpoint, deployment, authentication mode, embedding model, app URL) and the plan for every document, then asks whether it is correct.
+3. **Ingest** — runs `chatbot:ingest` for each new or changed document, then asks before running `chatbot:activate` on the resulting drafts.
+
+Each document's `--version` is a hash of its content, so a re-run skips everything already `ACTIVE` and unchanged, and offers to activate drafts a previous run left behind. Explanations are cited as `<app-url>#<file>` — there is no public page per explanation, so the link opens the app and the label carries the meaning. The app URL defaults to the first `https` origin in `ALLOWED_ORIGIN`; pass `--app-url` to override it, and `--yes` to run without prompts (it confirms the environment **and** activates).
+
+The script only adds and replaces sources: removing a document from `corpus/` leaves its `ACTIVE` source in the database.
+
+### Ingesting a single document
+
+The command above drives two CLI scripts under `apps/api/scripts/chatbot/`, which can also be run by hand:
 
 ```bash
 # 1. Ingest a document — creates a DRAFT source plus chunks plus an audit row.
