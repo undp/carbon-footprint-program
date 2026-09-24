@@ -12,6 +12,12 @@ export const EmissionFactorDuplicateError = createError(
   409
 );
 
+export const EmissionFactorInUseError = createError(
+  "EMISSION_FACTOR_IN_USE",
+  "This emission factor is referenced by %s active line(s) of claimed footprints and cannot be modified or deleted",
+  409
+);
+
 export const SubcategoryNotFoundForEmissionFactorError = createError(
   "SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR",
   "Subcategory not found",

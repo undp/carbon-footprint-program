@@ -20,6 +20,10 @@ export const deleteEmissionFactorRoute = defineRoute<{
     response: {
       200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
+      // The service refuses to delete a factor a live line depends on, exactly
+      // as the update route does. Undeclared, the generated contract says this
+      // endpoint never returns 409 while the other one does, for one rule.
+      409: ApiErrorResponseSchema,
     },
   },
   access: { mode: "private" },

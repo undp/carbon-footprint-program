@@ -8,6 +8,10 @@ import {
   type GetAllEmissionFactorsResponse,
 } from "@repo/types";
 import { parseGasDetails } from "../mappers.js";
+import {
+  activeLineReferenceWhere,
+  unclaimedLineReferenceWhere,
+} from "../helpers.js";
 
 export const getAllEmissionFactorsService = async (
   prismaClient: PrismaClient,
@@ -93,6 +97,46 @@ export const getAllEmissionFactorsService = async (
     ],
   });
 
+  // How many live lines depend on each factor, so the maintainer can leave a
+  // factor in use inert instead of offering an edit the API will refuse. The
+  // predicate is shared with the guard rather than restated, because the grid
+  // and the API have to agree on it — see `activeLineReferenceWhere`.
+  //
+  // A separate `groupBy` scoped to the factors on screen, not a filtered
+  // relation count folded into the query above. Prisma compiles that form into
+  // an uncorrelated `GROUP BY emission_factor_id` derived table with no
+  // predicate on that column, so it aggregates the whole junction table however
+  // few factors the version has — and that table is the one thing here whose
+  // size follows end-user traffic rather than catalogue size, because line
+  // inputs are versioned and nothing prunes it. Scoping it by id costs one
+  // round trip on a listing that already takes five, and it is the query the
+  // index on `carbon_inventory_line_factor(emission_factor_id)` serves.
+  const factorIds = emissionFactors.map(({ id }) => id);
+  const countBy = async (
+    where: Prisma.CarbonInventoryLineFactorWhereInput
+  ): Promise<Map<string | undefined, number>> => {
+    const rows = await prismaClient.carbonInventoryLineFactor.groupBy({
+      by: ["emissionFactorId"],
+      where: { emissionFactorId: { in: factorIds }, ...where },
+      _count: { _all: true },
+    });
+    return new Map(
+      rows.map(({ emissionFactorId, _count }) => [
+        emissionFactorId?.toString(),
+        _count._all,
+      ])
+    );
+  };
+
+  // Two counts, because they mean different things to the maintainer: the first
+  // is what makes the factor immutable, the second is what an edit or a delete
+  // will step on without being stopped by it.
+  const [referencedLineCountById, unclaimedReferencedLineCountById] =
+    await Promise.all([
+      countBy(activeLineReferenceWhere),
+      countBy(unclaimedLineReferenceWhere),
+    ]);
+
   return emissionFactors.map((ef) => ({
     id: ef.id.toString(),
     value: ef.value.toString(),
@@ -107,5 +151,8 @@ export const getAllEmissionFactorsService = async (
     rateMeasurementUnitId: ef.rateMeasurementUnit.id.toString(),
     rateMeasurementUnitName: ef.rateMeasurementUnit.name,
     gasDetails: parseGasDetails(ef.gasDetails, ef.id),
+    referencedLineCount: referencedLineCountById.get(ef.id.toString()) ?? 0,
+    unclaimedReferencedLineCount:
+      unclaimedReferencedLineCountById.get(ef.id.toString()) ?? 0,
   }));
 };

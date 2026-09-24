@@ -8,6 +8,7 @@ import {
 import {
   EmissionFactorNotFoundError,
   EmissionFactorDuplicateError,
+  EmissionFactorInUseError,
   RateMeasurementUnitNotFoundError,
 } from "../errors.js";
 import { parseGasDetails } from "../mappers.js";
@@ -15,6 +16,8 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
+  countActiveLineReferences,
+  detachFactorFromUnclaimedLines,
   validateSourceConsistency,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
@@ -46,6 +49,7 @@ export const updateEmissionFactorService = async (
           year: true,
           dimensionValue1Id: true,
           dimensionValue2Id: true,
+          rateMeasurementUnitId: true,
           gasDetails: true,
           value: true,
         },
@@ -55,7 +59,27 @@ export const updateEmissionFactorService = async (
         throw new EmissionFactorNotFoundError(id);
       }
 
+      // Before any validation and any write: a factor a footprint depends on is
+      // immutable, whatever the field. The gas breakdown is not an exception —
+      // the maintainer's breakdown modal reaches this same service with only
+      // `gasDetails` in the payload.
+      //
+      // TODO: the check and the write are not atomic. `syncCarbonInventoryLines`
+      // can attach a line between them, both at READ COMMITTED, so an edit can
+      // land on a factor that became referenced a moment ago — which is what
+      // happens today on every path, unguarded. Closing it means a
+      // `SELECT … FOR UPDATE` on the factor row taken by both paths: one
+      // statement, and it costs the same later.
+      const referencedLineCount = await countActiveLineReferences(
+        tx,
+        emissionFactorId
+      );
+      if (referencedLineCount > 0) {
+        throw new EmissionFactorInUseError(referencedLineCount.toString());
+      }
+
       const effectiveYear = data.year ?? existing.year;
+      const effectiveSource = data.source ?? existing.source;
 
       if (
         data.source !== undefined ||
@@ -69,7 +93,7 @@ export const updateEmissionFactorService = async (
         await validateSourceConsistency(
           tx,
           targetSubcategoryId,
-          data.source ?? existing.source,
+          effectiveSource,
           effectiveYear,
           emissionFactorId
         );
@@ -143,18 +167,22 @@ export const updateEmissionFactorService = async (
       const dim2Changed = data.dimensionValue2Name !== undefined;
       const yearChanged = data.year !== undefined;
 
-      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
-        const effectiveSubcategoryId =
-          updateData.subcategoryId != null
-            ? BigInt(updateData.subcategoryId as bigint)
-            : existing.subcategoryId;
-        const effectiveDim1Id = dim1Changed
-          ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
-          : existing.dimensionValue1Id;
-        const effectiveDim2Id = dim2Changed
-          ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
-          : existing.dimensionValue2Id;
+      const effectiveSubcategoryId =
+        updateData.subcategoryId != null
+          ? BigInt(updateData.subcategoryId as bigint)
+          : existing.subcategoryId;
+      const effectiveDim1Id = dim1Changed
+        ? ((updateData.dimensionValue1Id as bigint | null) ?? null)
+        : existing.dimensionValue1Id;
+      const effectiveDim2Id = dim2Changed
+        ? ((updateData.dimensionValue2Id as bigint | null) ?? null)
+        : existing.dimensionValue2Id;
+      const effectiveRateMeasurementUnitId =
+        updateData.rateMeasurementUnitId != null
+          ? BigInt(updateData.rateMeasurementUnitId as bigint)
+          : existing.rateMeasurementUnitId;
 
+      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
         await checkDuplicateEmissionFactor(
           tx,
           effectiveSubcategoryId,
@@ -163,6 +191,55 @@ export const updateEmissionFactorService = async (
           effectiveYear,
           emissionFactorId
         );
+      }
+
+      // The guard above only proves that no *claimed* footprint depends on the
+      // factor -- unclaimed ones are excluded from it by design -- so their
+      // lines can still be holding a snapshot at this point. When the edit
+      // moves the factor out of the context those lines were offered it in,
+      // the capture selector stops listing it: `getCarbonInventoryMethodology`
+      // filters by the footprint's year, and the front matches the line's
+      // subcategory, dimensions and rate unit. The line would then paint a
+      // blank "Fuente factor" beside a populated "Factor", and its next save
+      // would go wrong either way: a year or subcategory that no longer
+      // matches is refused by the sync with a 422, on a line the user may not
+      // even have touched, while a moved rate unit, dimension or source is
+      // accepted and freezes the stale reference again. Detaching lands those
+      // lines where the delete path already lands them: quantity and unit
+      // survive, and the line asks for a factor again.
+      //
+      // The source is in the list for a reason that is easy to miss: the
+      // snapshot freezes the source string, and the capture screen builds the
+      // "Fuente factor" options from the sources of the factors it is offered.
+      // Rename the source and the line is left holding one that is no longer
+      // among them. `validateSourceConsistency` does not stand in the way,
+      // since it only rejects a source that disagrees with another active
+      // factor of the same subcategory and year -- a factor alone in its
+      // subcategory and year can be renamed freely.
+      //
+      // `value` is deliberately not in the list. A snapshot that keeps the old
+      // value while the catalogue moves on is the whole point of freezing it.
+      //
+      // A dimension value that becomes null widens the factor's reach instead
+      // of narrowing it -- the front reads a null dimension as "applies to
+      // any" -- so it leaves its lines alone. The reverse, null to a value, is
+      // counted as narrowing even though the lines already carrying that value
+      // would have kept it: the detach works per factor, not per line, and
+      // asking a few anonymous lines to re-pick the same factor is the cheap
+      // side of that trade.
+      const narrows = (next: bigint | null, current: bigint | null): boolean =>
+        next !== null && next !== current;
+
+      const leavesItsLinesBehind =
+        effectiveSubcategoryId !== existing.subcategoryId ||
+        effectiveYear !== existing.year ||
+        effectiveSource !== existing.source ||
+        effectiveRateMeasurementUnitId !== existing.rateMeasurementUnitId ||
+        narrows(effectiveDim1Id, existing.dimensionValue1Id) ||
+        narrows(effectiveDim2Id, existing.dimensionValue2Id);
+
+      if (leavesItsLinesBehind) {
+        await detachFactorFromUnclaimedLines(tx, emissionFactorId);
       }
 
       await tx.emissionFactor.update({

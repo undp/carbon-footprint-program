@@ -12,28 +12,28 @@ const AZURE_TEST_CONFIG = {
 } as const;
 
 const MINIO_TEST_CONFIG = {
-  // Pulled from Chainguard. This is the second registry this image has moved
-  // to: Docker Hub stopped serving `minio/minio` publicly (401 on the registry,
-  // 404 on the Hub API), and quay.io — MinIO's own registry, taken as the
-  // replacement — now answers the pull with "500 unauthorized: access to the
-  // requested resource is not authorized", which fails the storage-minio CI leg
-  // before a single test runs. It is not a flake: a re-run of the same job
-  // reproduced it exactly.
+  // Chainguard's build, because MinIO no longer publishes a publicly pullable
+  // image anywhere. Docker Hub's `minio/minio` went first (registry 401, Hub
+  // API 404), so this pointed at quay.io — MinIO's own registry, same artifact,
+  // a source swap rather than an image swap. On 2026-09-24 that closed too:
+  // `quay.io/api/v1/repository/minio/minio` answers 401 where a public repo
+  // answers 200, and neither the tag nor the pinned digest resolves any more.
+  // The storage-minio leg then failed at global setup, before a single test,
+  // with the Docker daemon's "(HTTP code 500) … unauthorized".
   //
-  // Unlike the Hub-to-quay move, this IS an image swap. Chainguard builds MinIO
-  // from source on its own base, so the artifact differs even though the server
-  // is the same: it runs as an unprivileged user and its entrypoint is the
-  // `minio` binary, so the `server /data` command below is passed as arguments
-  // to it rather than replacing it.
+  // This one IS an image swap: a different vendor's build of the same server,
+  // and a newer release than the one pinned before. It runs under the same
+  // `server /data` command and the same root-credential environment, and its
+  // non-root user (65532) writes to `/data` without help.
   //
-  // Digest-pinned as everything else here is, but the guarantee is weaker: the
-  // free tier serves `:latest` only — no release tags — and garbage-collects the
-  // digests behind it, so this pin has to be refreshed when the pull starts
-  // failing rather than bumped alongside a version. That is the cost of the
-  // move, and the reason to revisit it once MinIO publishes somewhere pullable
-  // again.
+  // Digest-pinned for reproducibility, but note the tag: Chainguard's free
+  // tier publishes only `latest`, so there is no version to pin beside the
+  // digest, and old digests are garbage-collected rather than kept forever.
+  // Expect to bump this. Mirroring the image into the organization's own
+  // registry is the durable fix, tracked in
+  // https://github.com/undp/carbon-footprint-program/issues/662.
   image:
-    "cgr.dev/chainguard/minio:latest@sha256:7abc41a42aa78685a2fa48a9088e539625114ac4fc236ce5d58e92ca12f6b960",
+    "chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
