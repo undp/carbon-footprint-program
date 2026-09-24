@@ -39,24 +39,57 @@ La plataforma trabaja con **cantidades agregadas a nivel organización**, no por
 
 Factores referenciales (DEFRA 2025):
 
-| Tipo                 | Combustible | Factor (kg CO₂e/km) |
-| :------------------- | :---------- | ------------------: |
-| Auto                 | Gasolina    |               0.173 |
-| Auto                 | Diésel      |               0.166 |
-| Auto                 | Eléctrico   |               0.047 |
-| Auto                 | Híbrido     |               0.110 |
-| Moto                 | Gasolina    |               0.114 |
-| Moto                 | Eléctrico   |               0.030 |
-| Bus urbano           | No aplica   |               0.117 |
-| Bus interurbano      | No aplica   |               0.027 |
-| Metro                | No aplica   |               0.041 |
-| Tren cercanías       | No aplica   |               0.035 |
-| Tren larga distancia | No aplica   |               0.035 |
-| Taxi/Ride-share      | Gasolina    |               0.149 |
-| Taxi/Ride-share      | Eléctrico   |               0.060 |
-| Taxi/Ride-share      | Híbrido     |               0.110 |
-| Bici                 | No aplica   |               0.000 |
-| Caminata             | No aplica   |               0.000 |
+| Tipo                 | Combustible | Factor (kg CO₂e/km) | El factor es por... |
+| :------------------- | :---------- | ------------------: | :------------------ |
+| Auto                 | Gasolina    |               0.173 | vehículo            |
+| Auto                 | Diésel      |               0.166 | vehículo            |
+| Auto                 | Eléctrico   |               0.047 | vehículo            |
+| Auto                 | Híbrido     |               0.110 | vehículo            |
+| Moto                 | Gasolina    |               0.114 | vehículo            |
+| Moto                 | Eléctrico   |               0.030 | vehículo            |
+| Bus urbano           | No aplica   |               0.117 | pasajero            |
+| Bus interurbano      | No aplica   |               0.027 | pasajero            |
+| Metro                | No aplica   |               0.041 | pasajero            |
+| Tren cercanías       | No aplica   |               0.035 | pasajero            |
+| Tren larga distancia | No aplica   |               0.035 | pasajero            |
+| Taxi/Ride-share      | Gasolina    |               0.149 | pasajero            |
+| Taxi/Ride-share      | Eléctrico   |               0.060 | vehículo            |
+| Taxi/Ride-share      | Híbrido     |               0.110 | vehículo            |
+| Bici                 | No aplica   |               0.000 | persona             |
+| Caminata             | No aplica   |               0.000 | persona             |
+
+### 🔑 Las tres dudas más frecuentes
+
+**1️⃣ ¿Ingreso los kilómetros de una persona o de todas?**
+
+De **todas**, y son los del **año completo**. La cantidad es siempre el total anual recorrido por todas las personas que usaron ese modo. La plataforma no multiplica por el número de empleados: ese cálculo lo haces tú antes de escribir la cantidad.
+
+**2️⃣ ¿Multiplico por el número de personas? Depende del modo.**
+
+Esta es la duda que produce los errores más grandes, en las dos direcciones:
+
+- 🚌 **Bus, 🚇 metro, 🚂 tren y 🚕 taxi a gasolina:** el factor es **por pasajero**. Multiplica la distancia por el número de personas. Si 10 empleados hacen 15 km diarios en metro durante 200 días, ingresas **30.000 km**.
+- 🚗 **Auto, 🏍️ moto y taxi eléctrico o híbrido:** el factor es **por vehículo**, no por ocupante. Cuentas los kilómetros que recorrió **cada vehículo una sola vez**, sin importar cuánta gente iba dentro.
+
+💡 El taxi a gasolina usa el factor DEFRA **por pasajero-km**, que ya considera la ocupación promedio del taxi. Por eso, si dos empleados comparten un taxi a gasolina, cuentas los km **de cada uno**.
+
+**3️⃣ ¿Y si dos empleados comparten el auto?**
+
+Ese auto se cuenta **una sola vez**. Dos personas que viajan juntas en un auto generan las emisiones de **un** auto, no de dos: el factor ya es del vehículo completo. Al revés también importa — quien viaja solo carga con todas las emisiones de su vehículo, no con una fracción.
+
+> ⚠️ El efecto es grande. Diez empleados que llegan cada uno en su auto son diez vehículos; los mismos diez repartidos en tres autos compartidos son **tres**. Si cuentas "10 personas × su distancia" en un modo por vehículo, sobreestimas más del triple.
+
+### 🧮 La fórmula práctica para obtener la cantidad
+
+> **Bus / metro / tren / taxi a gasolina** (factor por pasajero):
+> $Cantidad$ = $km\ ida\ y\ vuelta \times días\ presenciales\ al\ año \times N°\ de\ personas$
+>
+> **Auto / moto / taxi eléctrico o híbrido** (factor por vehículo):
+> $Cantidad$ = $km\ ida\ y\ vuelta \times días\ presenciales\ al\ año \times N°\ de\ vehículos$
+
+En los modos por vehículo, **N° de vehículos** es la cantidad de autos, motos o taxis eléctricos o híbridos que efectivamente se movieron — no la cantidad de personas que viajaron en ellos.
+
+💡 Cuenta siempre **ida y vuelta**: si la casa está a 11 km del trabajo, cada día presencial son 22 km.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -81,6 +114,9 @@ La fuente más confiable es una **encuesta interna** anual. Pregunta a cada empl
 - ¿Cuántos km hay (ida y vuelta) entre tu casa y el trabajo?
 - ¿Cuántos días a la semana asistes presencialmente?
 - Si usa auto/moto/taxi: ¿qué combustible o variante?
+- Si usa auto o moto: **¿viajas solo o compartes el vehículo?** Y si compartes, ¿con cuántas personas y quién conduce?
+
+💡 La última pregunta es la que permite contar vehículos en lugar de personas en los modos por vehículo. Sin ella tendrás que asumir un factor de ocupación y declararlo como supuesto.
 
 ⚠️ Si la encuesta tiene baja tasa de respuesta, extrapola con los datos disponibles y declara el supuesto.
 
@@ -106,12 +142,12 @@ La distancia promedio al trabajo en grandes ciudades de la región suele estar e
 
 Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega una línea con:
 
-| Campo       | Qué debes ingresar                             |       Ejemplo |
-| :---------- | :--------------------------------------------- | ------------: |
-| Tipo        | Modo de transporte                             |          Auto |
-| Combustible | Combustible o variante (o "No aplica")         |      Gasolina |
-| Unidad      | km                                             |            km |
-| Cantidad    | Total anual agregado de la flota laboral en km | 72.000 km/año |
+| Campo       | Qué debes ingresar                                                                                                   |   Ejemplo |
+| :---------- | :------------------------------------------------------------------------------------------------------------------- | --------: |
+| Tipo        | Modo de transporte                                                                                                   |      Auto |
+| Combustible | Combustible o variante (o "No aplica")                                                                               |  Gasolina |
+| Unidad      | Unidad de distancia (km)                                                                                             |        km |
+| Cantidad    | Distancia total del año: km ida y vuelta × días presenciales × personas (o × vehículos si el factor es por vehículo) | 20.328 km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**, salvo que uses factores propios.
 
@@ -121,17 +157,35 @@ Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega
 
 ### 📌 Ejemplo práctico
 
-Supongamos una **consultora de 15 empleados** en modalidad híbrida (3 días presencial):
+Supongamos una **consultora de 15 empleados** en modalidad híbrida (3 días presencial), con una encuesta que arrojó:
 
-- Distancia promedio ida y vuelta: 22 km
-- Días presenciales/año: 3 días/semana × 44 semanas = 132 días
-- Modo: 70% auto gasolina, 30% bus urbano
+- Distancia promedio ida y vuelta: **22 km**
+- Días presenciales al año: 3 días/semana × 44 semanas = **132 días**
+- 8 personas llegan en **auto a gasolina**, y de ellas **dos comparten un auto** → son **7 autos**
+- 5 personas llegan en **bus urbano**
+- 2 personas llegan en **bici**
 
-> Auto/Gasolina: $15 \times 0,7 \times 22\ km \times 132\ días \times 0,173\ kg/km$ ≈ **5.276 kg CO₂e**
+Primero se calcula la **cantidad** de cada línea. Fíjate en qué se multiplica en cada caso:
+
+| Línea                  | Cálculo de la cantidad            |  Cantidad |
+| :--------------------- | :-------------------------------- | --------: |
+| Auto / Gasolina        | 22 km × 132 días × **7 autos**    | 20.328 km |
+| Bus urbano / No aplica | 22 km × 132 días × **5 personas** | 14.520 km |
+| Bici / No aplica       | 22 km × 132 días × **2 personas** |  5.808 km |
+
+Esas tres cantidades son los números que escribes en el campo **Cantidad**, una línea por combinación. Después la plataforma calcula las emisiones:
+
+| Línea                  | Cantidad (km) | Factor (kg CO₂e/km) |     Emisiones |
+| :--------------------- | ------------: | ------------------: | ------------: |
+| Auto / Gasolina        |        20.328 |               0,173 | 3.517 kg CO₂e |
+| Bus urbano / No aplica |        14.520 |               0,117 | 1.699 kg CO₂e |
+| Bici / No aplica       |         5.808 |               0,000 |     0 kg CO₂e |
+
+**Total commuting: ~5.216 kg CO₂e al año (~5,2 ton CO₂e)**
+
+> 💡 Mira la línea del auto. Se multiplicó por **7 autos**, no por las 8 personas que llegan en auto, porque el factor es del vehículo. Contar las 8 personas habría dado 23.232 km y **502 kg CO₂e de más** en esa sola línea — y el error crece con cada auto compartido.
 >
-> Bus urbano/No aplica: $15 \times 0,3 \times 22\ km \times 132\ días \times 0,117\ kg/km$ ≈ **1.530 kg CO₂e**
->
-> **Total commuting: ~6.806 kg CO₂e**
+> 💡 La bici se declara igual, aunque su factor sea 0: deja registrado cuánta gente ya se mueve sin emitir.
 
 ⚠️ Es importante que las **unidades coincidan**: el factor está en kg CO₂e/km, la cantidad debe estar en km.
 
@@ -139,6 +193,9 @@ Supongamos una **consultora de 15 empleados** en modalidad híbrida (3 días pre
 
 ## 📝 Notas importantes
 
+> - **Pasajero-km vs vehículo-km:** bus, metro, tren y taxi a gasolina se multiplican por el número de personas; auto, moto y taxi eléctrico o híbrido no. Es el error más común al declarar esta sub-categoría, y el que un verificador detecta primero
+> - **Auto compartido:** un vehículo con dos ocupantes se cuenta **una vez**. Y quien viaja solo carga con **todas** las emisiones de su vehículo, no con una fracción — es el mismo factor completo del auto
+> - **Toda la distancia del año, ida y vuelta:** la cantidad es el total anual de todas las personas (o de todos los vehículos) en ese modo, contando los dos tramos de cada día
 > - **Diferencia con Alcance 1:** si el empleado se mueve en un **vehículo corporativo**, eso es Alcance 1 (combustión móvil), no commuting. Solo cuenta acá si usa **medios propios o de terceros**.
 > - **Diferencia con Viajes de negocios:** commuting es el desplazamiento **cotidiano casa-trabajo**. Los viajes laborales puntuales (a otra ciudad, a un cliente, etc.) van en **Viajes de negocios — Traslado**.
 > - **Trabajo remoto:** las emisiones del teletrabajo se reportan en la sub-categoría **"Trabajo remoto de empleados"**, no aquí.
