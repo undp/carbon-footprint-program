@@ -23,14 +23,16 @@
 --
 -- 2. "Transporte y distribución de bienes aguas arriba" and
 -- 3. "... aguas abajo" -- both stated the calculation as
---    "peso transportado x distancia", the shape that produces the most common
---    error found in verification: summing every weight, summing every distance
---    and multiplying the two. Both now compute ton-km per trip and sum the
---    ton-km, group trips that share a route, and close the example by showing
---    the inflated figure the wrong order produces (about 6x upstream, about
---    200x downstream). The totals and emissions of both examples are unchanged
---    -- the trips were chosen to add up to the same numbers -- so only the
---    method being taught is different.
+--    "peso transportado x distancia" for every mode and asked for ton-km on
+--    every line, but the catalogue prices trucks and vans per vehicle-km
+--    (kg/km) and only rail, sea and air per ton-km (kg/km-ton). Both now say
+--    per mode what goes into "Cantidad": ton-km computed per trip and summed
+--    for rail, sea and air -- never the summed weights times the summed
+--    distances, the most common error found in verification -- and the km the
+--    vehicle drove for trucks and vans, without multiplying by the weight. The
+--    reference table and the worked examples use the catalogue's own mode names
+--    and factors, and each example closes by showing the inflated figure each
+--    wrong order produces.
 --
 -- Same shape as 20260825150000_update_business_travel_transport_explanation,
 -- whose treatment of the passenger-km/vehicle-km question these guides now
@@ -189,7 +191,7 @@ Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega
 | :---------- | :------------------------------------------------------------------------------------------------------------------- | -------: |
 | Tipo        | Modo de transporte                                                                                                   |     Auto |
 | Combustible | Combustible o variante (o "No aplica")                                                                               | Gasolina |
-| Unidad      | Unidad de distancia (km, m o mi)                                                                                     |       km |
+| Unidad      | Unidad de distancia (km)                                                                                             |       km |
 | Cantidad    | Distancia total del año: km ida y vuelta × días presenciales × personas (o × vehículos si el factor es por vehículo) | 8.712 km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**, salvo que uses factores propios.
@@ -290,26 +292,37 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, tu empresa probablem
 
 ## ¿Cómo es el cálculo de emisiones?
 
-Misma lógica que el transporte downstream:
+Misma lógica que el transporte downstream. Lo que ingresas en **Cantidad** depende del transporte, porque cada factor está expresado en una unidad distinta:
 
-> $CO₂e$ = $Peso\ transportado \times Distancia \times Factor\ por\ modo$
+| Transporte                                                | Unidad del factor | Qué ingresas en "Cantidad"                                        |
+| :-------------------------------------------------------- | :---------------- | :---------------------------------------------------------------- |
+| Tren de carga, barco (contenedores o granel), avión       | kg CO₂e/ton-km    | **ton-km**: peso × distancia de cada viaje, sumado                |
+| Camión (refrigerado o no), van (eléctrica o a combustión) | kg CO₂e/km        | **km**: distancia recorrida por el vehículo en cada viaje, sumada |
 
-(unidad estándar: **ton-km**)
+> $CO₂e$ = $Cantidad \times Factor$
 
-| Modo de transporte          | Factor referencial           |
-| :-------------------------- | :--------------------------- |
-| Camión liviano (<3,5 ton)   | 0,25 kg CO₂e/ton-km          |
-| Camión pesado (>16 ton)     | 0,07 kg CO₂e/ton-km          |
-| Tren de carga               | 0,03 kg CO₂e/ton-km          |
-| Marítimo (contenedores)     | 0,015 kg CO₂e/ton-km         |
-| Aéreo (carga internacional) | 0,5 kg CO₂e/ton-km           |
-| Refrigerado (cold chain)    | +30-50% sobre el factor base |
+En la plataforma, la unidad ton-km aparece como **km-ton**.
 
-💡 El **modo aéreo** es por lejos el más intensivo: ~30x más que marítimo.
+| Transporte                       | Factor referencial     |
+| :------------------------------- | :--------------------- |
+| Camión no refrigerado            | 0,2115 kg CO₂e/km      |
+| Camión refrigerado               | 0,2482 kg CO₂e/km      |
+| Van con motor a combustión       | 0,06183 kg CO₂e/km     |
+| Van eléctrica                    | 0,03758 kg CO₂e/km     |
+| Tren de carga                    | 0,02779 kg CO₂e/ton-km |
+| Contenedores por barco           | 0,01612 kg CO₂e/ton-km |
+| Granel por barco                 | 0,00353 kg CO₂e/ton-km |
+| Avión: Short haul (<2500km)      | 0,2051 kg CO₂e/ton-km  |
+| Avión: Medium haul (2500-5000km) | 0,1351 kg CO₂e/ton-km  |
+| Avión: Long haul (<5000km)       | 0,1351 kg CO₂e/ton-km  |
 
-### 🔑 La duda que produce los errores más grandes
+Fuente: DEFRA 2025. El valor que se aplica a tu huella aparece en el campo **"Factor kgCO₂e/unidad"** al elegir el transporte.
 
-**¿Sumo todos los pesos y todas las distancias, y después multiplico?**
+💡 El **modo aéreo** es por lejos el más intensivo por tonelada: su factor es ~8 a 13 veces el del barco en contenedores.
+
+### 🔑 Las dudas que producen los errores más grandes
+
+**Tren, barco o avión: ¿sumo todos los pesos y todas las distancias, y después multiplico?**
 
 **No.** El ton-km se calcula **viaje por viaje** y después se suman los ton-km:
 
@@ -317,16 +330,24 @@ Misma lógica que el transporte downstream:
 >
 > ❌ **Incorrecto:** $(\sum peso) \times (\sum distancia)$
 
-La forma incorrecta multiplica cada kilo por kilómetros que ese kilo nunca recorrió, y el resultado se infla varias veces. En el ejemplo del final, hacerlo así da **casi 6 veces** la cantidad real.
+La forma incorrecta multiplica cada kilo por kilómetros que ese kilo nunca recorrió, y el resultado se infla varias veces. En el ejemplo del final, hacerlo así da **4 veces** la cantidad real.
 
-💡 Sí puedes agrupar viajes que comparten la misma ruta: si hiciste 8 envíos de 0,25 ton por los mismos 1.400 km, calcula $0,25 \times 1.400 = 350$ ton-km y multiplícalo por 8. Lo que no se puede es usar **una** distancia contra el peso total cuando las rutas son distintas.
+💡 Sí puedes agrupar viajes que comparten la misma ruta: si hiciste 4 embarques de 2,5 ton por los mismos 19.000 km, calcula $2,5 \times 19.000 = 47.500$ ton-km y multiplícalo por 4. Lo que no se puede es usar **una** distancia contra el peso total cuando las rutas son distintas.
+
+**Camión o van: ¿multiplico los km por el peso?**
+
+**No.** El factor ya corresponde al **vehículo completo**, así que la cantidad son solo los km que recorrió. El peso de la carga no entra en el cálculo.
+
+⚠️ Como el factor asigna a tu empresa todo el viaje, úsalo cuando el vehículo lleva solo tu carga. Si tu carga comparte vehículo con la de otras empresas (courier, carga consolidada), pide al proveedor o transportista el detalle de emisiones de tus envíos.
 
 ### 🧮 La fórmula práctica para obtener la cantidad
 
-> Por cada ruta o modo:
-> $ton\text{-}km\ de\ la\ ruta$ = $peso\ por\ viaje\ (ton) \times distancia\ del\ viaje\ (km) \times N°\ de\ viajes$
+> Por cada ruta:
 >
-> Y la cantidad de la línea es la **suma** de los ton-km de las rutas que comparten modo y sub-modo.
+> - Tren, barco o avión: $ton\text{-}km\ de\ la\ ruta$ = $peso\ por\ viaje\ (ton) \times distancia\ del\ viaje\ (km) \times N°\ de\ viajes$
+> - Camión o van: $km\ de\ la\ ruta$ = $distancia\ por\ viaje\ (km) \times N°\ de\ viajes$
+>
+> Y la cantidad de la línea es la **suma** de las rutas que comparten el mismo transporte.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -360,9 +381,9 @@ Las fuentes principales:
 
 Datos mínimos:
 
-- **Peso total recibido** (kg o ton) por origen
-- **Distancia** desde el origen (geo-distancia o real)
-- **Modo** de transporte
+- **Transporte** de cada viaje (camión, van, tren, barco o avión)
+- **Distancia** de cada viaje desde el origen (geo-distancia o real)
+- **Peso** de cada viaje, solo para tren, barco y avión
 
 ---
 
@@ -380,7 +401,7 @@ _Ejemplo:_ Insumo importado desde Asia hasta un puerto sudamericano = **~19.000 
 
 Si compras a un proveedor en otra ciudad del mismo país (ej. distancia ~500 km), puedes estimar:
 
-> 1 envío × peso × ~500 km × factor camión pesado
+> N° de viajes × ~500 km × factor del camión (sin multiplicar por el peso)
 
 ---
 
@@ -396,12 +417,11 @@ Si tu incoterm es CIF (Cost, Insurance, Freight), el flete está incluido en el 
 
 Debes rellenar los siguientes campos:
 
-| Campo              | Qué debes ingresar                                                                      |                                     Ejemplo |
-| :----------------- | :-------------------------------------------------------------------------------------- | ------------------------------------------: |
-| Modo de transporte | Tipo de transporte                                                                      |            Terrestre, Aéreo, Marítimo, Tren |
-| Sub-modo           | Detalle                                                                                 | Camión liviano, Carga marítima, Carga aérea |
-| Unidad             | Unidad declarada                                                                        |                               ton-km, kg-km |
-| Cantidad           | Suma de los ton-km de cada viaje del año (peso del viaje × distancia del viaje, sumado) |                              190.000 ton-km |
+| Campo      | Qué debes ingresar                                                                                           |                                       Ejemplo |
+| :--------- | :----------------------------------------------------------------------------------------------------------- | --------------------------------------------: |
+| Transporte | Tipo de transporte                                                                                           | Contenedores por barco, Camión no refrigerado |
+| Unidad     | **km-ton** para tren, barco y avión; **km** para camión y van                                                |                                    km-ton, km |
+| Cantidad   | Tren, barco y avión: suma de los ton-km de cada viaje. Camión y van: suma de los km recorridos en cada viaje |                     190.000 km-ton, 11.200 km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -429,44 +449,48 @@ Accede a la calculadora en **modo experto**. En el paso 3, selecciona el checkbo
 
 Supongamos un **taller textil** que durante el año recibe, en **varios viajes**:
 
-- **Tela desde Asia**, vía marítima, 19.000 km por viaje: **4 embarques de 2,5 ton** cada uno
-- **Hilados desde un país vecino**, camión pesado, 1.400 km por viaje: **8 viajes de 0,25 ton** cada uno
+- **Tela desde Asia**, en contenedores por barco, 19.000 km por viaje: **4 embarques de 2,5 ton** cada uno
+- **Hilados desde un país vecino**, en camión no refrigerado, 1.400 km por viaje: **8 camiones completos de 10 ton** cada uno
 - **Equipos importados**, vía aérea, 7.000 km: **1 envío de 0,2 ton**
 
-Primero el ton-km **de cada viaje**, y luego el total de la ruta:
+Primero la cantidad de cada ruta:
 
-| Ruta          | Modo      | Peso por viaje | Distancia | ton-km por viaje | Viajes | ton-km de la ruta |
-| :------------ | :-------- | -------------: | --------: | ---------------: | -----: | ----------------: |
-| Asia          | Marítimo  |        2,5 ton | 19.000 km |           47.500 |      4 |           190.000 |
-| País vecino   | Terrestre |       0,25 ton |  1.400 km |              350 |      8 |             2.800 |
-| Internacional | Aéreo     |        0,2 ton |  7.000 km |            1.400 |      1 |             1.400 |
+| Ruta          | Transporte                 | Cálculo                        |       Cantidad |
+| :------------ | :------------------------- | :----------------------------- | -------------: |
+| Asia          | Contenedores por barco     | 2,5 ton × 19.000 km × 4 viajes | 190.000 km-ton |
+| País vecino   | Camión no refrigerado      | 1.400 km × 8 viajes            |      11.200 km |
+| Internacional | Avión: Long haul (<5000km) | 0,2 ton × 7.000 km × 1 viaje   |   1.400 km-ton |
 
-Esos totales de ruta son los que escribes en el campo **Cantidad**, una línea por modo y sub-modo. Después la plataforma calcula las emisiones:
+Esas cantidades son las que escribes en el campo **Cantidad**, una línea por transporte. Después la plataforma calcula las emisiones:
 
-| Ruta          | Modo      | Cantidad (ton-km) | Factor |     Emisiones |
-| :------------ | :-------- | ----------------: | -----: | ------------: |
-| Asia          | Marítimo  |           190.000 |  0,015 | 2.850 kg CO₂e |
-| País vecino   | Terrestre |             2.800 |   0,07 |   196 kg CO₂e |
-| Internacional | Aéreo     |             1.400 |    0,5 |   700 kg CO₂e |
+| Ruta          | Transporte                 |       Cantidad |  Factor |     Emisiones |
+| :------------ | :------------------------- | -------------: | ------: | ------------: |
+| Asia          | Contenedores por barco     | 190.000 km-ton | 0,01612 | 3.063 kg CO₂e |
+| País vecino   | Camión no refrigerado      |      11.200 km |  0,2115 | 2.369 kg CO₂e |
+| Internacional | Avión: Long haul (<5000km) |   1.400 km-ton |  0,1351 |   189 kg CO₂e |
 
-**Total sub-categoría: ~3.746 kg CO₂e al año (~3,7 ton CO₂e)**
+**Total sub-categoría: ~5.621 kg CO₂e al año (~5,6 ton CO₂e)**
 
-> ⚠️ **Así se vería el error.** Si sumaras todos los pesos (2,5×4 + 0,25×8 + 0,2 = **12,2 ton**) y todas las distancias (19.000×4 + 1.400×8 + 7.000 = **94.200 km**) y los multiplicaras, obtendrías **1.149.240 ton-km** en vez de los 194.200 reales: casi **6 veces** la cantidad correcta, y una huella igual de inflada. Es el error que más se encuentra al revisar esta sub-categoría.
+> ⚠️ **Así se vería el error.**
 >
-> 💡 Los 200 kg aéreos generan casi tanto como las 10 toneladas marítimas. Para este negocio, **reducir importaciones aéreas** es la mayor palanca.
+> - **Barco:** si sumaras todos los pesos (4 × 2,5 = **10 ton**) y todas las distancias (4 × 19.000 = **76.000 km**) y los multiplicaras, obtendrías **760.000 ton-km** en vez de los 190.000 reales: **4 veces** la cantidad correcta, y una huella igual de inflada. Es el error que más se encuentra al revisar esta sub-categoría.
+> - **Camión:** si multiplicaras los km por el peso (11.200 km × 10 ton = **112.000**), la cantidad saldría **10 veces** mayor, porque el factor ya cubre el camión completo.
+>
+> 💡 Los 8 viajes en camión emiten **tres cuartos** de lo que emiten los 4 embarques desde Asia, con casi 7 veces menos distancia. Para este negocio, **reducir el número de viajes en camión** (camiones llenos, menos despachos) es una palanca tan relevante como el modo.
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
+Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton en la plataforma). Si está en kg CO₂e/km, la cantidad debe estar en km.
 
 ---
 
 ## 📝 Notas importantes
 
-> - **El ton-km se calcula viaje por viaje** y después se suma. Sumar todos los pesos y todas las distancias para multiplicarlas al final infla la cantidad varias veces
+> - **En tren, barco y avión, el ton-km se calcula viaje por viaje** y después se suma. Sumar todos los pesos y todas las distancias para multiplicarlas al final infla la cantidad varias veces
+> - **En camión y van, la cantidad son los km recorridos**, sin multiplicar por el peso
 > - **Diferencia clave con Alcance 1:** si transportas insumos con **flota propia**, eso es Alcance 1, no aquí
 > - **Diferencia con downstream:** acá entran insumos. Los productos que **salen** de tu empresa hacia clientes van en _Transporte y distribución aguas abajo_
 > - **No dupliques con productos comprados:** el factor de "productos comprados" cubre la producción **hasta la puerta del proveedor**. El transporte desde ahí hasta tu empresa va aquí
-> - **Aéreo:** factor ~30x mayor que marítimo. Para insumos pesados o volumétricos, conviene marítimo cuando es posible
+> - **Aéreo:** factor ~8 a 13 veces el del barco en contenedores. Para insumos pesados o volumétricos, conviene marítimo cuando es posible
 > - **Cold chain:** insumos refrigerados (alimentos, biotecnología, fármacos) tienen factor mayor
 > - **Incoterms:** define con tu proveedor quién paga el flete y de dónde a dónde — ayuda a delimitar lo que reportas
 > - **Si compras a un proveedor local pero el insumo viene importado**, idealmente reporta **toda** la cadena de transporte (importación + último tramo)
@@ -516,24 +540,35 @@ Si la respuesta a **una o más de estas preguntas es SÍ**, tu empresa probablem
 
 ## ¿Cómo es el cálculo de emisiones?
 
-El cálculo combina peso, distancia y modo de transporte:
+Lo que ingresas en **Cantidad** depende del transporte, porque cada factor está expresado en una unidad distinta:
 
-> $CO₂e$ = $Peso\ transportado \times Distancia \times Factor\ por\ modo$
+| Transporte                                                | Unidad del factor | Qué ingresas en "Cantidad"                                        |
+| :-------------------------------------------------------- | :---------------- | :---------------------------------------------------------------- |
+| Tren de carga, barco (contenedores o granel), avión       | kg CO₂e/ton-km    | **ton-km**: peso × distancia de cada despacho, sumado             |
+| Camión (refrigerado o no), van (eléctrica o a combustión) | kg CO₂e/km        | **km**: distancia recorrida por el vehículo en cada viaje, sumada |
 
-(unidad estándar: **ton-km**)
+> $CO₂e$ = $Cantidad \times Factor$
 
-| Modo de transporte        | Factor referencial           |
-| :------------------------ | :--------------------------- |
-| Camión liviano (<3,5 ton) | 0,25 kg CO₂e/ton-km          |
-| Camión pesado (>16 ton)   | 0,07 kg CO₂e/ton-km          |
-| Tren de carga             | 0,03 kg CO₂e/ton-km          |
-| Marítimo (carga general)  | 0,015 kg CO₂e/ton-km         |
-| Aéreo (carga)             | 0,6 kg CO₂e/ton-km           |
-| Refrigerado (cold chain)  | +30-50% sobre el factor base |
+En la plataforma, la unidad ton-km aparece como **km-ton**.
 
-### 🔑 La duda que produce los errores más grandes
+| Transporte                       | Factor referencial     |
+| :------------------------------- | :--------------------- |
+| Camión no refrigerado            | 0,2115 kg CO₂e/km      |
+| Camión refrigerado               | 0,2482 kg CO₂e/km      |
+| Van con motor a combustión       | 0,06183 kg CO₂e/km     |
+| Van eléctrica                    | 0,03758 kg CO₂e/km     |
+| Tren de carga                    | 0,02779 kg CO₂e/ton-km |
+| Contenedores por barco           | 0,01612 kg CO₂e/ton-km |
+| Granel por barco                 | 0,00353 kg CO₂e/ton-km |
+| Avión: Short haul (<2500km)      | 0,2051 kg CO₂e/ton-km  |
+| Avión: Medium haul (2500-5000km) | 0,1351 kg CO₂e/ton-km  |
+| Avión: Long haul (<5000km)       | 0,1351 kg CO₂e/ton-km  |
 
-**¿Sumo todos los pesos y todas las distancias, y después multiplico?**
+Fuente: DEFRA 2025. El valor que se aplica a tu huella aparece en el campo **"Factor kgCO₂e/unidad"** al elegir el transporte.
+
+### 🔑 Las dudas que producen los errores más grandes
+
+**Tren, barco o avión: ¿sumo todos los pesos y todas las distancias, y después multiplico?**
 
 **No.** El ton-km se calcula **despacho por despacho** y después se suman los ton-km:
 
@@ -543,14 +578,22 @@ El cálculo combina peso, distancia y modo de transporte:
 
 La forma incorrecta multiplica cada kilo por kilómetros que ese kilo nunca recorrió. En una operación con muchos despachos el resultado se infla cientos de veces.
 
-💡 Sí puedes agrupar despachos que **comparten la misma distancia**: si hiciste 160 entregas de 5 ton a 200 km, calcula $5 \times 200 = 1.000$ ton-km y multiplícalo por 160. Lo que no se puede es usar **una** distancia promedio contra el peso total cuando las rutas son muy distintas entre sí — ahí conviene separar por ruta o por rango de distancia.
+💡 Sí puedes agrupar despachos que **comparten la misma distancia**: si hiciste 6 envíos aéreos de 2,5 ton a 2.000 km, calcula $2,5 \times 2.000 = 5.000$ ton-km y multiplícalo por 6. Lo que no se puede es usar **una** distancia promedio contra el peso total cuando las rutas son muy distintas entre sí — ahí conviene separar por ruta o por rango de distancia.
+
+**Camión o van: ¿multiplico los km por el peso?**
+
+**No.** El factor ya corresponde al **vehículo completo**, así que la cantidad son solo los km que recorrió. El peso de la carga no entra en el cálculo.
+
+⚠️ Como el factor asigna a tu empresa todo el viaje, úsalo cuando el vehículo lleva solo tu carga. Si tu carga comparte vehículo con la de otras empresas (courier, carga consolidada), pide al proveedor el reporte de emisiones de tu cuenta (Opción 3).
 
 ### 🧮 La fórmula práctica para obtener la cantidad
 
-> Por cada ruta o modo:
-> $ton\text{-}km\ de\ la\ ruta$ = $peso\ por\ despacho\ (ton) \times distancia\ del\ despacho\ (km) \times N°\ de\ despachos$
+> Por cada ruta:
 >
-> Y la cantidad de la línea es la **suma** de los ton-km de las rutas que comparten modo y sub-modo.
+> - Tren, barco o avión: $ton\text{-}km\ de\ la\ ruta$ = $peso\ por\ despacho\ (ton) \times distancia\ del\ despacho\ (km) \times N°\ de\ despachos$
+> - Camión o van: $km\ de\ la\ ruta$ = $distancia\ por\ viaje\ (km) \times N°\ de\ viajes$
+>
+> Y la cantidad de la línea es la **suma** de las rutas que comparten el mismo transporte.
 
 💡 **Al final de la página hay un ejemplo ilustrativo.**
 
@@ -583,9 +626,9 @@ Las fuentes principales:
 
 Datos mínimos a recolectar:
 
-- **Peso total transportado** (kg o ton)
-- **Distancia promedio** o ton-km totales
-- **Modo de transporte** (terrestre, aéreo, marítimo)
+- **Transporte** de cada despacho (camión, van, tren, barco o avión)
+- **Distancia** de cada despacho o viaje
+- **Peso** de cada despacho, solo para tren, barco y avión
 
 ---
 
@@ -593,9 +636,11 @@ Datos mínimos a recolectar:
 
 #### **Opción 1:** Estimación por peso y distancia promedio
 
-> $ton{\text -}km\ totales$ = $N°\ envíos \times peso\ promedio \times distancia\ promedio$
+> Tren, barco o avión: $ton{\text -}km\ totales$ = $N°\ envíos \times peso\ promedio \times distancia\ promedio$
+>
+> Camión o van: $km\ totales$ = $N°\ viajes \times distancia\ promedio\ por\ viaje$
 
-_Ejemplo:_ 5.000 envíos/año × 3 kg promedio × 100 km = 1.500.000 kg-km = **1.500 ton-km**
+_Ejemplo:_ 50 envíos aéreos/año × 0,3 ton promedio × 1.000 km = **15.000 ton-km**
 
 ---
 
@@ -619,12 +664,11 @@ Couriers grandes (DHL, FedEx, UPS, entre otros) pueden entregar reporte de huell
 
 Debes rellenar los siguientes campos:
 
-| Campo              | Qué debes ingresar                                                     |                                    Ejemplo |
-| :----------------- | :--------------------------------------------------------------------- | -----------------------------------------: |
-| Modo de transporte | Tipo de transporte                                                     |                 Terrestre, Aéreo, Marítimo |
-| Sub-modo           | Detalle                                                                | Camión liviano, Camión pesado, Carga aérea |
-| Unidad             | Unidad declarada                                                       |                   ton-km, km, moneda local |
-| Cantidad           | Suma de los ton-km de cada despacho del año (peso × distancia, sumado) |                             160.000 ton-km |
+| Campo      | Qué debes ingresar                                                                                              |                                            Ejemplo |
+| :--------- | :-------------------------------------------------------------------------------------------------------------- | -------------------------------------------------: |
+| Transporte | Tipo de transporte                                                                                              | Camión no refrigerado, Avión: Short haul (<2500km) |
+| Unidad     | **km-ton** para tren, barco y avión; **km** para camión y van                                                   |                                         km-ton, km |
+| Cantidad   | Tren, barco y avión: suma de los ton-km de cada despacho. Camión y van: suma de los km recorridos en cada viaje |                           30.000 km-ton, 32.000 km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**
 
@@ -652,41 +696,45 @@ Accede a la calculadora en **modo experto**. En el paso 3, selecciona el checkbo
 
 Supongamos una **fábrica de alimentos** que durante el año despacha:
 
-- **160 entregas de 5 ton** a clientes, terrestre en camión pesado, **200 km** por entrega
-- **6 exportaciones de 2,5 ton** vía aérea a un mercado regional, **2.500 km** por envío
+- **160 entregas de 5 ton** a clientes, cada una en su propio camión no refrigerado, **200 km** recorridos por entrega
+- **6 exportaciones de 2,5 ton** vía aérea a un mercado regional, **2.000 km** por envío
 
-Primero el ton-km **de cada despacho**, y luego el total de la ruta:
+Primero la cantidad de cada ruta:
 
-| Ruta              | Modo      | Peso por despacho | Distancia | ton-km por despacho | Despachos | ton-km de la ruta |
-| :---------------- | :-------- | ----------------: | --------: | ------------------: | --------: | ----------------: |
-| Clientes locales  | Terrestre |             5 ton |    200 km |               1.000 |       160 |           160.000 |
-| Exportación aérea | Aéreo     |           2,5 ton |  2.500 km |               6.250 |         6 |            37.500 |
+| Ruta              | Transporte                  | Cálculo                          |      Cantidad |
+| :---------------- | :-------------------------- | :------------------------------- | ------------: |
+| Clientes locales  | Camión no refrigerado       | 200 km × 160 viajes              |     32.000 km |
+| Exportación aérea | Avión: Short haul (<2500km) | 2,5 ton × 2.000 km × 6 despachos | 30.000 km-ton |
 
-Esos totales de ruta son los que escribes en el campo **Cantidad**, una línea por modo. Después la plataforma calcula las emisiones:
+Esas cantidades son las que escribes en el campo **Cantidad**, una línea por transporte. Después la plataforma calcula las emisiones:
 
-| Ruta              | Modo      | Cantidad (ton-km) | Factor |      Emisiones |
-| :---------------- | :-------- | ----------------: | -----: | -------------: |
-| Clientes locales  | Terrestre |           160.000 |   0,07 | 11.200 kg CO₂e |
-| Exportación aérea | Aéreo     |            37.500 |    0,6 | 22.500 kg CO₂e |
+| Ruta              | Transporte                  |      Cantidad | Factor |     Emisiones |
+| :---------------- | :-------------------------- | ------------: | -----: | ------------: |
+| Clientes locales  | Camión no refrigerado       |     32.000 km | 0,2115 | 6.768 kg CO₂e |
+| Exportación aérea | Avión: Short haul (<2500km) | 30.000 km-ton | 0,2051 | 6.153 kg CO₂e |
 
-**Total sub-categoría: ~33.700 kg CO₂e al año (33,7 ton CO₂e)**
+**Total sub-categoría: ~12.921 kg CO₂e al año (~12,9 ton CO₂e)**
 
-> ⚠️ **Así se vería el error.** Sumar todos los pesos (800 + 15 = **815 ton**) y todas las distancias (160×200 + 6×2.500 = **47.000 km**) y multiplicarlas da **38.305.000 ton-km** frente a los 197.500 reales: casi **200 veces** la cantidad correcta. Cuantos más despachos, peor es.
+> ⚠️ **Así se vería el error.**
 >
-> 💡 Las 15 toneladas aéreas emiten el **doble** que las 800 toneladas terrestres. El modo pesa mucho más que el tonelaje.
+> - **Avión:** sumar todos los pesos (6 × 2,5 = **15 ton**) y todas las distancias (6 × 2.000 = **12.000 km**) y multiplicarlos da **180.000 ton-km** frente a los 30.000 reales: **6 veces** la cantidad correcta. Cuantos más despachos, peor es.
+> - **Camión:** multiplicar los km por el peso (32.000 km × 5 ton = **160.000**) da **5 veces** la cantidad correcta, porque el factor ya cubre el camión completo.
+>
+> 💡 Las 15 toneladas aéreas emiten **casi lo mismo** que las 800 toneladas que viajan en camión. El modo pesa mucho más que el tonelaje.
 
 ⚠️ Es importante que las **unidades coincidan**.  
-Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km.
+Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton en la plataforma). Si está en kg CO₂e/km, la cantidad debe estar en km.
 
 ---
 
 ## 📝 Notas importantes
 
-> - **El ton-km se calcula despacho por despacho** y después se suma. Sumar todos los pesos y todas las distancias para multiplicarlas al final infla la cantidad de forma dramática
+> - **En tren, barco y avión, el ton-km se calcula despacho por despacho** y después se suma. Sumar todos los pesos y todas las distancias para multiplicarlas al final infla la cantidad de forma dramática
+> - **En camión y van, la cantidad son los km recorridos**, sin multiplicar por el peso
 > - **Diferencia clave con Alcance 1:** si transportas con **flota propia o leasing operativo**, eso va en Alcance 1 (combustiones móviles), no aquí
 > - **Diferencia con upstream:** acá se reporta lo que **sale** de tu empresa hacia el cliente. Lo que **entra** desde proveedores se reporta en _Transporte y distribución aguas arriba_
 > - **Productos refrigerados** tienen factor mayor (cold chain) por consumo del equipo de refrigeración del transporte
-> - **Aéreo es ~10x más intensivo** que terrestre por ton-km. Reducir aéreo es la mayor palanca de mitigación
+> - **Aéreo es el modo más intensivo por tonelada:** su factor es ~8 a 13 veces el del barco en contenedores. Reducir aéreo es la mayor palanca de mitigación
 > - **Si vendes FOB (Free On Board):** técnicamente el cliente asume el transporte. Aún así, reportarlo voluntariamente da visibilidad de la huella total de tu cadena
 > - **Last mile (entrega a domicilio):** suele ser intensivo por uso de camionetas pequeñas — ojo si tienes mucho B2C
 > - Guarda **reportes de los proveedores logísticos**, **facturas** y **planillas internas** como respaldo
