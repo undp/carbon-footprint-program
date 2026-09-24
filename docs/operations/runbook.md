@@ -600,13 +600,21 @@ Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. An
 The corpus that backs the educational mode (`Modo A`) is ingested via two CLI scripts under `apps/api/scripts/chatbot/`:
 
 ```bash
-# 1. Ingest a PDF — creates a DRAFT source plus chunks plus an audit row.
+# 1. Ingest a document — creates a DRAFT source plus chunks plus an audit row.
 pnpm --filter api chatbot:ingest path/to/document.pdf \
   --label "GHG Protocol Corporate Standard" \
   --version v05 \
   --source-type PDF \
   --scope GLOBAL \
   --cite-url "https://ghgprotocol.org/corporate-standard"
+
+# Markdown works the same way — only the extension and --source-type change.
+pnpm --filter api chatbot:ingest path/to/document.md \
+  --label "Guía de inventarios" \
+  --version v01 \
+  --source-type MD \
+  --scope NATIONAL \
+  --cite-url "https://example.org/guia-inventarios"
 
 # 2. Activate — atomically flips the DRAFT to ACTIVE and any prior ACTIVE
 #    of the same (name, scope) to OUTDATED.
