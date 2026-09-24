@@ -92,7 +92,7 @@ describe("DimensionVariablesModal — removing variables", () => {
       .getAllByRole("button")
       .filter((b) => b.querySelector('[data-testid="DeleteOutlinedIcon"]'));
 
-  it("allows removing a value no active emission factor points at", () => {
+  it("allows removing values the API does not report as in use", () => {
     renderModal({
       variables: [
         { id: "1", value: "Excavadora", inUse: false },
@@ -103,7 +103,7 @@ describe("DimensionVariablesModal — removing variables", () => {
     expect(trashButtons().every((b) => !b.hasAttribute("disabled"))).toBe(true);
   });
 
-  it("blocks only the values an active emission factor points at", () => {
+  it("blocks only the values the API reports as in use", () => {
     renderModal({
       variables: [
         { id: "1", value: "Excavadora", inUse: true },

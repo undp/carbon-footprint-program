@@ -64,9 +64,10 @@ const DimensionVariablesModalContent: FC<
     [localVars]
   );
 
-  // The API flags each value an active emission factor points at. That is the
-  // real constraint on removal: a factor elsewhere in the subcategory — or on
-  // the other dimension — pins nothing this dimension owns.
+  // The API flags each value that an active emission factor, a live capture or
+  // an active reduction initiative references. That is the real constraint on
+  // removal: a factor elsewhere in the subcategory — or on the other
+  // dimension — pins nothing this dimension owns.
   const hasVariablesInUse = useMemo(
     () => localVars.some((v) => !v.id.startsWith("new_") && !!v.inUse),
     [localVars]
