@@ -4,6 +4,8 @@ import type {
   EmissionCaptureFormValues,
   EmissionCaptureFormLine,
 } from "../types/EmissionCaptureTypes";
+import type { MethodologyEmissionFactor } from "../types";
+import { isSelectedFactorAvailable } from "../components/EmissionEditor/services/emissionFactorService";
 
 /**
  * Whether the methodology came back with no emission factor at all.
@@ -56,6 +58,34 @@ export function resolveEmptyCatalogueNotice(
   if (!hasNoCatalogueFactors(categories)) return null;
 
   return year == null ? "NO_YEAR" : "YEAR_NOT_LOADED";
+}
+
+/**
+ * Whether a saved line points at a catalogue factor its subcategory no longer
+ * offers.
+ *
+ * The factors offered come filtered by the footprint's year and by status, so a
+ * factor deleted, re-dated or otherwise retired since the line froze it is not
+ * among them — and the line would still send its id back on the next save,
+ * which the sync refuses with a 422. Reloading does not help, because the id
+ * comes from the snapshot the line saved, so capture drops it on load instead.
+ *
+ * Only a catalogue reference qualifies. A manual factor carries no id, and a
+ * direct total takes no factor at all; neither is touched.
+ */
+export function hasUnavailableCatalogueFactor(
+  line: Pick<
+    EmissionCaptureFormLine,
+    "baseFactorId" | "isManualTotalEmissions"
+  >,
+  offeredFactors: Pick<
+    MethodologyEmissionFactor,
+    "id" | "originalEmissionFactorId"
+  >[]
+): boolean {
+  if (line.isManualTotalEmissions) return false;
+  if (!line.baseFactorId) return false;
+  return !isSelectedFactorAvailable(offeredFactors, line.baseFactorId);
 }
 
 export function shouldShowSubcategory(
