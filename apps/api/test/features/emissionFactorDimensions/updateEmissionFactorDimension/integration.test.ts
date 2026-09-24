@@ -26,6 +26,7 @@ import {
   CarbonInventoryLineStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  InventoryStatus,
 } from "@repo/types";
 import type { UpdateEmissionFactorDimensionResponse } from "@repo/types";
 import type { FastifyInstance } from "fastify";
@@ -373,6 +374,65 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
         inventory.id,
         subcategory.id,
         { status: CarbonInventoryLineStatus.DELETED }
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { values: { remove: [value.id.toString()] } },
+      });
+
+      expect(response.statusCode).toBe(200);
+    });
+
+    it("should return 409 when removing a position-2 value an active capture selects", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimension({ position: 2 });
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Spare Value",
+      });
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection2Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+        payload: { values: { remove: [value.id.toString()] } },
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
+    });
+
+    it("should allow removing a value whose only capture belongs to a deleted inventory", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimension();
+      await createTestEmissionFactorDimensionValue(prisma, dimension.id, {
+        value: "Spare Value",
+      });
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.DELETED,
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
       );
       await createCarbonInventoryLineInput(prisma, line.id, {
         selection1Id: value.id,
