@@ -142,7 +142,7 @@ Quantities below are written exactly as they must be typed — no thousand separ
 
 **Productos comprados**
 
-| Material       | Destino                | Unidad    | Cantidad |
+| Material       | Origen                 | Unidad    | Cantidad |
 | -------------- | ---------------------- | --------- | -------- |
 | Plástico       | Primera mano           | toneladas | 85       |
 | Papel y cartón | Con material reciclado | toneladas | 140      |
