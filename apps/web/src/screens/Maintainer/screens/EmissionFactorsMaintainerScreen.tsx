@@ -17,11 +17,15 @@ import {
   type EmissionFactorFormRow,
 } from "../hooks/useEmissionFactorsForm";
 import { useEmissionFactorColumns } from "../hooks/useEmissionFactorColumns";
+import {
+  resolveEmissionFactorRowLock,
+  type EmissionFactorRowLock,
+} from "../utils/emissionFactorRowLock";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
 import { useMaintainerFormSync } from "../hooks/useMaintainerFormSync";
 import { useMaintainerExitEditMode } from "../hooks/useMaintainerExitEditMode";
 import { useMaintainerMethodologyScope } from "../hooks/useMaintainerMethodologyScope";
-import { type EmissionFactorForm } from "@repo/types";
+import { type EmissionFactorForm, MethodologyVersionStatus } from "@repo/types";
 import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MaintainerScreenLayout } from "../components/MaintainerScreenLayout";
 import { MaintainerDataGrid } from "../components/MaintainerDataGrid";
@@ -64,10 +68,17 @@ const gasDetailsEqual = (
 //    import and the filter below anyway.
 //
 // 2. A year filter on the grid. It only starts hurting once a second year
-//    exists, which is the same moment the bulk import is needed, and it is
-//    riskier here than it looks: rows are addressed by field-array index
-//    (`handleCellChange(rowIndex, …)`), so filtering what is visible while
-//    editing by index is a classic source of edits landing on the wrong row.
+//    exists, which is the same moment the bulk import is needed.
+//
+//    The risk originally recorded here — that rows are addressed by field-array
+//    index, so filtering what is visible while editing lands edits on the wrong
+//    row — does not hold for this grid, and the note is kept corrected rather
+//    than repeated. Every cell resolves its index by id through `getFormRow`,
+//    against the unfiltered form array, and `MaintainerDataGrid` already
+//    filters by Fuse while a row is being edited, re-inserting that row when
+//    the query would hide it. The `year` column is filterable as it stands,
+//    under a toolbar that renders a filter panel. It stays deferred because it
+//    is orthogonal to everything else here, not because it is dangerous.
 export const EmissionFactorsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -210,6 +221,36 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     toFormData,
   });
 
+  // --- Who may be written ---
+
+  // Both counts come off the server listing rather than the form: they are
+  // facts about the catalogue, not fields of the row being edited. The first
+  // locks the row; the second only warns before a delete.
+  const referenceCountsById = useMemo(
+    () =>
+      new Map(
+        emissionFactors?.map(
+          ({ id, referencedLineCount, unclaimedReferencedLineCount }) => [
+            id,
+            { referencedLineCount, unclaimedReferencedLineCount },
+          ]
+        ) ?? []
+      ),
+    [emissionFactors]
+  );
+
+  const getRowLock = useCallback(
+    (rowId: string): EmissionFactorRowLock => {
+      const counts = referenceCountsById.get(rowId);
+      return resolveEmissionFactorRowLock(
+        scope.canEditEmissionFactors,
+        counts?.referencedLineCount,
+        counts?.unclaimedReferencedLineCount
+      );
+    },
+    [scope.canEditEmissionFactors, referenceCountsById]
+  );
+
   // --- Row editing callbacks ---
 
   const handleStopEditRow = useCallback(async (): Promise<boolean> => {
@@ -283,6 +324,25 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.value !== original.value ||
       !gasDetailsEqual(row.gasDetails, original.gasDetails);
 
+    // The server refuses an update to a factor a live line depends on. Say so
+    // here rather than sending a request that is already known to fail, and not
+    // from a disabled button — the rule is asserted on the write path itself.
+    //
+    // Conditioned on there being something to write. A row can become locked
+    // while it is open: saving the GEI breakdown invalidates the listing
+    // without closing the row, so the refetch can bring back a count the row
+    // did not have when it was opened. Refusing unconditionally would then
+    // refuse to close a row nobody edited, and because `handleStartEditRow`
+    // bails when this returns false, no other row could be opened either — the
+    // grid would be stuck until the maintainer hit Cancelar and lost the edit.
+    if (hasRealChanges && !getRowLock(row.id).canEdit) {
+      void enqueueSnackbar({
+        message: "Este factor de emisión está en uso y no se puede modificar",
+        variant: "error",
+      });
+      return false;
+    }
+
     try {
       if (hasRealChanges) {
         await updateMutation.mutateAsync({
@@ -324,6 +384,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     enqueueSnackbar,
     emissionFactors,
     setEditingRowId,
+    getRowLock,
   ]);
 
   const handleCancelEditRow = useCallback(() => {
@@ -377,6 +438,14 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   const handleDelete = useCallback(
     async (row: EmissionFactorFormRow) => {
+      if (!getRowLock(row.id).canEdit) {
+        void enqueueSnackbar({
+          message: "Este factor de emisión está en uso y no se puede eliminar",
+          variant: "error",
+        });
+        return;
+      }
+
       try {
         const rows = form.getValues("emissionFactors");
         const index = rows.findIndex((currentRow) => currentRow.id === row.id);
@@ -425,6 +494,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       deleteMutation,
       enqueueSnackbar,
       setEditingRowId,
+      getRowLock,
     ]
   );
 
@@ -458,6 +528,19 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
       const row = form.getValues(`emissionFactors.${rowIndex}`);
       if (row && !isNewRow(row.id)) {
+        // The breakdown reaches the same guarded service as any other field, so
+        // a factor in use refuses it too. Undo the optimistic form write rather
+        // than leaving the modal's value on a row that will never save it.
+        if (!getRowLock(row.id).canEdit) {
+          handleCellChange(rowIndex, "gasDetails", previousGasDetails);
+          void enqueueSnackbar({
+            message:
+              "Este factor de emisión está en uso y no se puede modificar",
+            variant: "error",
+          });
+          return;
+        }
+
         try {
           await updateMutation.mutateAsync({
             emissionFactorId: row.id,
@@ -484,6 +567,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       isNewRow,
       updateMutation,
       enqueueSnackbar,
+      getRowLock,
     ]
   );
 
@@ -511,7 +595,8 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   );
   const columns = useEmissionFactorColumns({
     editingRowId,
-    viewOnly: scope.isViewOnly,
+    canEdit: scope.canEditEmissionFactors,
+    getRowLock,
     onCellChange: handleCellChange,
     onStartEditRow: handleStartEditRow,
     onStopEditRow: handleStopEditRow,
@@ -533,6 +618,10 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     geiModal.rowIndex >= 0
       ? Number(form.getValues(`emissionFactors.${geiModal.rowIndex}.value`))
       : 0;
+  const geiRowId =
+    geiModal.rowIndex >= 0
+      ? form.getValues(`emissionFactors.${geiModal.rowIndex}.id`)
+      : undefined;
 
   const isDataReady =
     !isLoadingEmissionFactors &&
@@ -566,6 +655,12 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       errorMessage={errorMessage}
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null || !isDataReady}
+      canEdit={scope.canEditEmissionFactors}
+      editModeNote={
+        scope.targetMethodology?.status === MethodologyVersionStatus.PUBLISHED
+          ? "Metodología activa: lo que guardes queda disponible de inmediato para las huellas de ese año."
+          : undefined
+      }
       onExitEditMode={handleExitEditMode}
       exitEditModeOpen={exitEditModeOpen}
       onExitEditModeOpenChange={setExitEditModeOpen}
@@ -579,7 +674,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           open={geiModal.open}
           gasDetails={geiGasDetails ?? EMPTY_GAS_DETAILS}
           declaredValue={geiDeclaredValue}
-          readOnly={scope.isViewOnly}
+          readOnly={!geiRowId || !getRowLock(geiRowId).canEdit}
           onSave={handleSaveGEIBreakdown}
           onClose={() => setGeiModal({ open: false, rowIndex: -1 })}
         />

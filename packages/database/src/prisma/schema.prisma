@@ -866,6 +866,18 @@ model CarbonInventoryLineFactor {
   updater                 User?                    @relation("carbon_inventory_line_factor_updated_by", fields: [updatedById], references: [id])
 
   @@unique([lineInputId])
+  // Postgres does not index a foreign key on its own, and every guarded update
+  // or delete of an emission factor takes a point lookup on this column before
+  // it does anything else (see the `guard-emission-factor-edits-by-usage`
+  // change). The table gains a row on every line save, because line inputs are
+  // versioned, so that lookup degrades with use rather than staying small.
+  //
+  // The maintainer listing reads it too, through a `groupBy` scoped to the
+  // factors on screen. That scoping is the point: expressed instead as a
+  // filtered relation count inside the listing query, Prisma compiles it into
+  // an uncorrelated `GROUP BY emission_factor_id` derived table with no
+  // predicate on the column, which no index can restrict.
+  @@index([emissionFactorId])
   @@map("carbon_inventory_line_factor")
 }
 

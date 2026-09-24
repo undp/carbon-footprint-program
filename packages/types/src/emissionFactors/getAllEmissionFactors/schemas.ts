@@ -35,5 +35,29 @@ export const GetAllEmissionFactorsResponseSchema = z.array(
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
     rateMeasurementUnitName: RateMeasurementUnitBaseSchema.shape.name,
     gasDetails: GasDetailsSchema,
+    // How many active lines depend on this factor. A factor is immutable while
+    // any of them does, and the API enforces that; this is what lets the
+    // maintainer stop offering an edit that would be refused, and say by how
+    // many lines. It is as fresh as the last read — the 409 is the authority.
+    referencedLineCount: z
+      .number()
+      .int()
+      .min(0)
+      .describe(
+        "How many active carbon inventory lines reference this emission factor"
+      ),
+    // How many of the lines depending on this factor sit under a footprint
+    // nobody has claimed — created through the open calculator and never
+    // attached to a user or an organization. These never block: no actor can
+    // delete such a footprint, so counting them would let anonymous traffic
+    // freeze the live catalogue. They are reported so the maintainer can be
+    // warned about what a delete will step on.
+    unclaimedReferencedLineCount: z
+      .number()
+      .int()
+      .min(0)
+      .describe(
+        "How many lines referencing this factor belong to unclaimed anonymous footprints"
+      ),
   })
 );

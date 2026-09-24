@@ -1,0 +1,16 @@
+-- Index the emission factor a line snapshot points at.
+--
+-- Postgres does not index a foreign key on its own, and `emission_factor_id`
+-- had no index: the only one on this table is UNIQUE("line_input_id").
+--
+-- Two readers need it. The maintainer listing counts, per emission factor, the
+-- active line inputs referencing it, which is a correlated subquery per row
+-- over the whole catalogue. Each guarded update or delete of a factor runs the
+-- same lookup once. Without the index both are sequential scans, and this
+-- table gains a row on every line save because line inputs are versioned, so
+-- the cost grows with use.
+--
+-- Plain CREATE INDEX rather than CONCURRENTLY: Prisma runs a migration inside a
+-- transaction, and the table is small enough today that the lock is not worth
+-- splitting the migration for. No data is read or written.
+CREATE INDEX "carbon_inventory_line_factor_emission_factor_id_idx" ON "carbon_inventory_line_factor" ("emission_factor_id");

@@ -6,11 +6,15 @@ export const EDIT_MODE_TOOLBAR_HEIGHT = 64;
 
 interface EditModeToolbarProps {
   methodologyName: string;
+  /** Shown under the name when the mode needs qualifying — see the published
+   * methodology, where a change reaches capture as soon as it is saved. */
+  note?: string;
   onExitClick: () => void;
 }
 
 export const EditModeToolbar: FC<EditModeToolbarProps> = ({
   methodologyName,
+  note,
   onExitClick,
 }) => (
   <Paper
@@ -33,6 +37,11 @@ export const EditModeToolbar: FC<EditModeToolbarProps> = ({
       <Typography variant="body2" fontWeight={600}>
         Editando: {methodologyName}
       </Typography>
+      {note && (
+        <Typography variant="caption" color="text.secondary">
+          {note}
+        </Typography>
+      )}
     </Box>
     <Button
       size="small"
