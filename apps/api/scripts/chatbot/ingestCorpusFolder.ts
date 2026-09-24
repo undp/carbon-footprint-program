@@ -10,6 +10,11 @@ import {
   resolveCiteUrl,
   type CorpusDocument,
 } from "./corpusManifest.js";
+import {
+  AzureAccessError,
+  validateAzureAccess,
+  type AzureAccessSummary,
+} from "./azureAccess.js";
 
 const API_ROOT = resolve(import.meta.dirname, "../..");
 const DEFAULT_CORPUS_DIR = resolve(API_ROOT, "../../corpus");
@@ -206,9 +211,27 @@ const main = async (argv: string[]): Promise<number> => {
     }
     ok("Tablas del corpus (migraciones aplicadas)");
 
+    // The environment module already guarantees the endpoint and deployment
+    // are set whenever the provider is azure-openai.
+    const usesAzure = environment.EMBEDDING_PROVIDER === "azure-openai";
+    let azureAccess: AzureAccessSummary | undefined;
+    if (usesAzure) {
+      azureAccess = validateAzureAccess(
+        {
+          endpoint: environment.AZURE_OPENAI_ENDPOINT ?? "",
+          deploymentName:
+            environment.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME ?? "",
+          usesApiKey: Boolean(environment.AZURE_OPENAI_API_KEY),
+        },
+        ok
+      );
+    }
+
     // A real round trip to the embeddings deployment: catches a wrong
     // endpoint, deployment name, or missing role before any document is
     // parsed, and reports the model that will be written on every chunk.
+    // It also covers what the Azure CLI checks cannot: the identity the API
+    // actually authenticates as, and the network path to the endpoint.
     const { getEmbeddingProvider } =
       await import("@/features/chatbot/embeddingProvider/index.js");
     let embeddingModel: string;
@@ -247,13 +270,14 @@ const main = async (argv: string[]): Promise<number> => {
       );
     }
 
-    const usesAzure = environment.EMBEDDING_PROVIDER === "azure-openai";
     const rows: Array<[string, string]> = [
       ["NODE_ENV", process.env.NODE_ENV ?? "<no definida>"],
       ["DATABASE_URL", maskDatabaseUrl(process.env.DATABASE_URL ?? "")],
       ["EMBEDDING_PROVIDER", environment.EMBEDDING_PROVIDER],
-      ...(usesAzure
+      ...(azureAccess
         ? ([
+            ["Suscripción Azure", azureAccess.subscription],
+            ["Cuenta Azure OpenAI", azureAccess.accountName],
             ["AZURE_OPENAI_ENDPOINT", environment.AZURE_OPENAI_ENDPOINT ?? ""],
             [
               "AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME",
@@ -267,7 +291,7 @@ const main = async (argv: string[]): Promise<number> => {
               "Autenticación",
               environment.AZURE_OPENAI_API_KEY
                 ? "API key (AZURE_OPENAI_API_KEY)"
-                : "DefaultAzureCredential (az login / identidad administrada)",
+                : `DefaultAzureCredential (az login como ${azureAccess.signedInAs})`,
             ],
           ] satisfies Array<[string, string]>)
         : []),
@@ -414,5 +438,9 @@ main(process.argv.slice(2))
   .catch((err: unknown) => {
     const message = err instanceof Error ? err.message : String(err);
     process.stderr.write(`\n  ✗ ${message}\n`);
-    process.exit(err instanceof CorpusFolderError ? 2 : 1);
+    process.exit(
+      err instanceof CorpusFolderError || err instanceof AzureAccessError
+        ? 2
+        : 1
+    );
   });
