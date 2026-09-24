@@ -193,6 +193,44 @@ const main = async (argv: string[]): Promise<number> => {
   );
   ok("Variables de ambiente del API válidas");
 
+  // The environment module falls back to "mock" when EMBEDDING_PROVIDER is
+  // unset, and checks the Azure variables only when CHATBOT_ENABLED=true —
+  // yet seeding the corpus before switching the chatbot on is a supported
+  // workflow. Either gap lets a misconfigured run through (a silent mock
+  // writes noise into a real database), so the provider has to be chosen
+  // explicitly and its variables present.
+  if (!process.env.EMBEDDING_PROVIDER?.trim()) {
+    throw new CorpusFolderError(
+      'EMBEDDING_PROVIDER no está definida y el API usaría "mock" por defecto. ' +
+        'Define "azure-openai" para un corpus real, o "mock" explícitamente para probar el flujo.'
+    );
+  }
+  let azureTarget: { endpoint: string; deploymentName: string } | undefined;
+  if (environment.EMBEDDING_PROVIDER === "azure-openai") {
+    const endpoint = environment.AZURE_OPENAI_ENDPOINT;
+    const deploymentName = environment.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME;
+    if (!endpoint || !deploymentName) {
+      const missing = [
+        ...(endpoint ? [] : ["AZURE_OPENAI_ENDPOINT"]),
+        ...(deploymentName ? [] : ["AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME"]),
+      ];
+      throw new CorpusFolderError(
+        `EMBEDDING_PROVIDER="azure-openai" necesita: ${missing.join(", ")}.`
+      );
+    }
+    if (!isHttpsUrl(endpoint)) {
+      throw new CorpusFolderError(
+        `AZURE_OPENAI_ENDPOINT debe ser una URL https (ej. https://<cuenta>.openai.azure.com/); se recibió "${endpoint}".`
+      );
+    }
+    azureTarget = { endpoint, deploymentName };
+    ok(
+      `Proveedor de embeddings azure-openai: ${endpoint} (deployment ${deploymentName})`
+    );
+  } else {
+    ok('Proveedor de embeddings "mock", definido explícitamente');
+  }
+
   if (environment.IS_PROD && environment.EMBEDDING_PROVIDER === "mock") {
     throw new CorpusFolderError(
       'EMBEDDING_PROVIDER="mock" no puede ingerir con NODE_ENV=production: sus ' +
@@ -234,16 +272,11 @@ const main = async (argv: string[]): Promise<number> => {
     }
     ok("Tablas del corpus (migraciones aplicadas)");
 
-    // The environment module already guarantees the endpoint and deployment
-    // are set whenever the provider is azure-openai.
-    const usesAzure = environment.EMBEDDING_PROVIDER === "azure-openai";
     let azureAccess: AzureAccessSummary | undefined;
-    if (usesAzure) {
+    if (azureTarget) {
       azureAccess = validateAzureAccess(
         {
-          endpoint: environment.AZURE_OPENAI_ENDPOINT ?? "",
-          deploymentName:
-            environment.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME ?? "",
+          ...azureTarget,
           usesApiKey: Boolean(environment.AZURE_OPENAI_API_KEY),
         },
         ok

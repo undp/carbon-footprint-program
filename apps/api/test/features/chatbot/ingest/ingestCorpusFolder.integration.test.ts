@@ -15,7 +15,10 @@ describe("ingest-corpus CLI — integration", () => {
   let prisma: PrismaClient;
   let databaseUrl: string;
 
-  const runIngestCorpus = (flags: string[]): string =>
+  const runIngestCorpus = (
+    flags: string[],
+    envOverrides: Record<string, string> = {}
+  ): string =>
     execSync(
       [
         "pnpm",
@@ -35,6 +38,7 @@ describe("ingest-corpus CLI — integration", () => {
           EMBEDDING_PROVIDER: "mock",
           // Keeps the app-URL fallback out of play: only --app-url counts.
           ALLOWED_ORIGIN: "",
+          ...envOverrides,
         },
         // The CLI's own failure messages go to stderr; keep them out of the
         // test output.
@@ -77,6 +81,40 @@ describe("ingest-corpus CLI — integration", () => {
       /Se necesita una URL https/
     );
     expect(await prisma.chatbotCorpusSource.count()).toBe(0);
+  }, 120_000);
+
+  it("--check refuses an EMBEDDING_PROVIDER left to its mock default", () => {
+    expect(() =>
+      runIngestCorpus(["--app-url", APP_URL, "--check"], {
+        EMBEDDING_PROVIDER: "",
+      })
+    ).toThrow(/EMBEDDING_PROVIDER no está definida/);
+  }, 120_000);
+
+  // The API checks these only with CHATBOT_ENABLED=true; the script has to
+  // catch them for a corpus seeded before the chatbot is switched on.
+  it("--check names every Azure variable azure-openai is missing", () => {
+    expect(() =>
+      runIngestCorpus(["--app-url", APP_URL, "--check"], {
+        EMBEDDING_PROVIDER: "azure-openai",
+        CHATBOT_ENABLED: "false",
+        AZURE_OPENAI_ENDPOINT: "",
+        AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: "",
+      })
+    ).toThrow(
+      /necesita: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME/
+    );
+  }, 120_000);
+
+  it("--check rejects an endpoint that is not an https URL", () => {
+    expect(() =>
+      runIngestCorpus(["--app-url", APP_URL, "--check"], {
+        EMBEDDING_PROVIDER: "azure-openai",
+        CHATBOT_ENABLED: "false",
+        AZURE_OPENAI_ENDPOINT: "oai-dev.openai.azure.com",
+        AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: "embeddings",
+      })
+    ).toThrow(/AZURE_OPENAI_ENDPOINT debe ser una URL https/);
   }, 120_000);
 
   it("ingests and activates every document in the corpus folder", async () => {

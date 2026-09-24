@@ -607,7 +607,7 @@ pnpm chatbot:ingest-corpus
 
 It runs in three steps:
 
-1. **Requirements** — reads the manifest and every document (a broken symlink fails here), validates the API environment, connects to the database, and checks for `pgvector` and the corpus tables. With `EMBEDDING_PROVIDER=azure-openai` it then uses the **Azure CLI** (`az`, logged in with `az login`) to check the Azure side:
+1. **Requirements** — reads the manifest and every document (a broken symlink fails here), validates the API environment, connects to the database, and checks for `pgvector` and the corpus tables. `EMBEDDING_PROVIDER` must be set explicitly — left unset, the API silently falls back to `mock` — and with `azure-openai`, `AZURE_OPENAI_ENDPOINT` (an `https` URL) and `AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME` must be present. The API itself checks those two only when `CHATBOT_ENABLED=true`, which a corpus seeded before switching the chatbot on does not have. With `azure-openai` it then uses the **Azure CLI** (`az`, logged in with `az login`) to check the Azure side:
    - the account behind `AZURE_OPENAI_ENDPOINT` exists in the active subscription (`az account set` to switch);
    - the embeddings deployment exists and runs a `text-embedding-3` model, the only family that accepts the 1024 dimensions the column needs;
    - with `AZURE_OPENAI_API_KEY` set, the account accepts keys (`disableLocalAuth` off); without it, your identity holds a role whose data actions include embeddings — checked against the role's permissions, so custom roles count, and Owner/Contributor do not. On failure it prints the `az role assignment create` command that fixes it.
