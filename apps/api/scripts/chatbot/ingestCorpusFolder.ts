@@ -167,12 +167,22 @@ const heading = (message: string): void => {
  * through exactly the validation, transaction, and audit trail an operator
  * would get invoking it by hand. `--import tsx` rather than the `tsx` binary
  * keeps the spawn shell-free on Windows, where the binary is a `.cmd`.
+ *
+ * `--disable-warning=Warning` silences process warnings that carry no type of
+ * their own. The one that matters is pg's notice about `sslmode=require` in
+ * DATABASE_URL: it prints once per process, so the two children per document
+ * repeated it seventy times over a full corpus. This process still prints it
+ * once, in step 1, and typed warnings (deprecations and the like) still show.
  */
 const runCli = (script: string, args: string[]): boolean =>
-  spawnSync(process.execPath, ["--import", "tsx", script, ...args], {
-    cwd: API_ROOT,
-    stdio: "inherit",
-  }).status === 0;
+  spawnSync(
+    process.execPath,
+    ["--disable-warning=Warning", "--import", "tsx", script, ...args],
+    {
+      cwd: API_ROOT,
+      stdio: "inherit",
+    }
+  ).status === 0;
 
 const main = async (argv: string[]): Promise<number> => {
   const options = parseArgs(argv);
