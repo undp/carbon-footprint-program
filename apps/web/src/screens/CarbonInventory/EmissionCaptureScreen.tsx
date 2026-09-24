@@ -292,7 +292,10 @@ export const EmissionCaptureScreen: FC = () => {
     [selectedCategoryData, watchedSubcategories]
   );
   const { isPending: isExpertModeHintPending } =
-    useExpertModeOnboardingHighlight(isExpertModeAvailable);
+    useExpertModeOnboardingHighlight(
+      isExpertModeAvailable,
+      selectedCategoryData !== undefined
+    );
 
   // The per-line actions only exist once a source is captured, so the hints
   // that introduce them wait for a visible line in the selected category.

@@ -19,6 +19,10 @@ export interface OnboardingSpotlightSpec {
    * at doesn't exist here at all. Resolves the hint immediately (see
    * `isPending`) instead of leaving whatever queued behind it waiting forever.
    * Defaults to true.
+   *
+   * The ruling is final for the mount, and it is only taken once `isBlocked`
+   * is false. So a condition that is merely "not yet" — data still loading —
+   * belongs in `isBlocked`, or the hint is ruled out before it could apply.
    */
   isApplicable?: boolean;
   /**
@@ -106,13 +110,20 @@ export const useOnboardingSpotlight = ({
     // hint to a user who already dismissed it. Once `hasRunRef` is set the
     // highlight is live or finished, and `onDismiss` owns `isPending`.
     if (hasRunRef.current || !ready) return undefined;
+    // Not its turn yet: stay pending so the queue behind it holds too. This is
+    // checked BEFORE the hint is resolved, not after: a hint already seen, or
+    // one that doesn't apply, would otherwise release its queue while the hint
+    // ahead of it is still on screen — and the next one would open on top.
+    if (isBlocked) return undefined;
     if (isCompletedRef.current(key) || !isApplicable) {
       // Resolved without showing anything — release whatever queued behind it.
+      // Final for this mount: the queue has already moved past this hint, so
+      // `isApplicable` turning true later (a category switch) must not fire a
+      // popover that would land on top of the next one.
+      hasRunRef.current = true;
       setIsPending(false);
       return undefined;
     }
-    // Still its turn to wait: stay pending so the queue behind it holds too.
-    if (isBlocked) return undefined;
     hasRunRef.current = true;
     return runOnboardingHighlight({
       find: findOnboardingTarget(targetId),

@@ -171,6 +171,18 @@ describe("useOnboardingSpotlight", () => {
 
       expect(runHighlightMock).toHaveBeenCalledTimes(1);
     });
+
+    it("keeps an already-seen hint pending until its turn comes", () => {
+      // Resolving it while blocked would release the queue behind it while the
+      // hint ahead is still on screen, and the next one would open on top.
+      const { result, rerender } = setup({ completed: [KEY], isBlocked: true });
+      expect(result.current.isPending).toBe(true);
+
+      rerender({ isBlocked: false });
+
+      expect(result.current.isPending).toBe(false);
+      expect(runHighlightMock).not.toHaveBeenCalled();
+    });
   });
 
   describe("isApplicable", () => {
@@ -179,6 +191,30 @@ describe("useOnboardingSpotlight", () => {
       const { result } = setup({ isApplicable: false });
       expect(runHighlightMock).not.toHaveBeenCalled();
       expect(result.current.isPending).toBe(false);
+    });
+
+    it("stays ruled out when it becomes applicable later in the visit", () => {
+      // The queue behind it has already moved on, so firing now would land on
+      // top of whichever hint took its place.
+      const { rerender } = setup({ isApplicable: false });
+
+      rerender({ isApplicable: true });
+
+      expect(runHighlightMock).not.toHaveBeenCalled();
+    });
+
+    it("is not ruled out while it is blocked", () => {
+      // "Not applicable yet" — data still loading — has to wait in `isBlocked`
+      // instead of being taken as final.
+      const { result, rerender } = setup({
+        isApplicable: false,
+        isBlocked: true,
+      });
+      expect(result.current.isPending).toBe(true);
+
+      rerender({ isApplicable: true, isBlocked: false });
+
+      expect(runHighlightMock).toHaveBeenCalledTimes(1);
     });
   });
 

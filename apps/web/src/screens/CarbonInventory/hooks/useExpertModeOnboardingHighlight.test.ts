@@ -16,7 +16,7 @@ beforeEach(() => {
 
 describe("useExpertModeOnboardingHighlight", () => {
   it("spotlights the expert-mode checkbox under its own key", () => {
-    renderHook(() => useExpertModeOnboardingHighlight(true));
+    renderHook(() => useExpertModeOnboardingHighlight(true, true));
     expect(spotlightMock).toHaveBeenCalledWith(
       expect.objectContaining({
         key: OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE,
@@ -27,12 +27,22 @@ describe("useExpertModeOnboardingHighlight", () => {
   });
 
   it("is not applicable where expert mode is not offered", () => {
-    // Not applicable rather than blocked: the per-line hints queue behind this
-    // one, and a screen without the checkbox must release them, not stall.
-    renderHook(() => useExpertModeOnboardingHighlight(false));
+    // Not applicable rather than blocked once the data is in: the per-line
+    // hints queue behind this one, and a screen without the checkbox must
+    // release them, not stall.
+    renderHook(() => useExpertModeOnboardingHighlight(false, true));
     expect(spotlightMock).toHaveBeenCalledWith(
-      expect.objectContaining({ isApplicable: false })
+      expect.objectContaining({ isApplicable: false, isBlocked: false })
     );
-    expect(spotlightMock.mock.calls[0][0]).not.toHaveProperty("isBlocked");
+  });
+
+  it("holds its ruling while the category data is still loading", () => {
+    // Before the data loads expert mode reads as unavailable only because
+    // there is nothing to look at. Ruling then would release the queue for
+    // good, and the data arriving would open two popovers at once.
+    renderHook(() => useExpertModeOnboardingHighlight(false, false));
+    expect(spotlightMock).toHaveBeenCalledWith(
+      expect.objectContaining({ isBlocked: true })
+    );
   });
 });

@@ -13,9 +13,18 @@ import {
  * behind the returned `isPending`. Where expert mode isn't offered at all the
  * hint is not applicable rather than merely waiting, so that queue is released
  * right away instead of stalling on a hint that will never show.
+ *
+ * That ruling waits for the category data. Before it loads,
+ * `isExpertModeAvailable` is false only because there is nothing to look at
+ * yet — `ready` tracks the completion state, not the emission-capture query,
+ * and an anonymous session is ready as soon as OIDC settles, without waiting on
+ * any query at all. Ruling then would
+ * release the queue for good, and the data arriving would open this popover
+ * and the attachments one in the same render.
  */
 export const useExpertModeOnboardingHighlight = (
-  isExpertModeAvailable: boolean
+  isExpertModeAvailable: boolean,
+  isCategoryDataLoaded: boolean
 ): OnboardingSpotlight =>
   useOnboardingSpotlight({
     key: OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE,
@@ -24,4 +33,5 @@ export const useExpertModeOnboardingHighlight = (
     description:
       "Marca esta casilla para registrar un único total de emisiones (tCO₂e) sin cargar fuente por fuente. No es obligatoria: si tienes el detalle, déjala desmarcada y agrega cada fuente de emisión.",
     isApplicable: isExpertModeAvailable,
+    isBlocked: !isCategoryDataLoaded,
   });
