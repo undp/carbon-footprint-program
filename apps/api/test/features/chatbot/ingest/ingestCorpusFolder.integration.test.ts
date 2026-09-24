@@ -15,7 +15,7 @@ describe("ingest-corpus CLI — integration", () => {
   let prisma: PrismaClient;
   let databaseUrl: string;
 
-  const runIngestCorpus = (): string =>
+  const runIngestCorpus = (flags: string[]): string =>
     execSync(
       [
         "pnpm",
@@ -24,9 +24,7 @@ describe("ingest-corpus CLI — integration", () => {
         "chatbot:ingest-corpus",
         "--corpus-dir",
         CORPUS_FIXTURE_REL_PATH,
-        "--app-url",
-        APP_URL,
-        "--yes",
+        ...flags,
       ].join(" "),
       {
         cwd: REPO_ROOT,
@@ -35,7 +33,12 @@ describe("ingest-corpus CLI — integration", () => {
           ...process.env,
           DATABASE_URL: databaseUrl,
           EMBEDDING_PROVIDER: "mock",
+          // Keeps the app-URL fallback out of play: only --app-url counts.
+          ALLOWED_ORIGIN: "",
         },
+        // The CLI's own failure messages go to stderr; keep them out of the
+        // test output.
+        stdio: "pipe",
       }
     );
 
@@ -58,8 +61,26 @@ describe("ingest-corpus CLI — integration", () => {
     await prisma.$disconnect();
   });
 
+  // The --check tests run first, against the empty database the ingest test
+  // below then fills.
+  it("--check validates and shows the plan without writing anything", async () => {
+    const output = runIngestCorpus(["--app-url", APP_URL, "--check"]);
+
+    expect(output).toContain("Todo listo para ingerir");
+    expect(output).toContain("3 por ingerir");
+    expect(await prisma.chatbotCorpusSource.count()).toBe(0);
+    expect(await prisma.chatbotCorpusIngestRun.count()).toBe(0);
+  }, 120_000);
+
+  it("--check fails when the app URL is missing", async () => {
+    expect(() => runIngestCorpus(["--check"])).toThrow(
+      /Se necesita una URL https/
+    );
+    expect(await prisma.chatbotCorpusSource.count()).toBe(0);
+  }, 120_000);
+
   it("ingests and activates every document in the corpus folder", async () => {
-    runIngestCorpus();
+    runIngestCorpus(["--app-url", APP_URL, "--yes"]);
 
     const sources = await prisma.chatbotCorpusSource.findMany({
       select: { name: true, version: true, status: true, citeUrl: true },
@@ -91,7 +112,7 @@ describe("ingest-corpus CLI — integration", () => {
 
   // Depends on the previous test's corpus: the point is the second run.
   it("skips unchanged documents on a second run", async () => {
-    const output = runIngestCorpus();
+    const output = runIngestCorpus(["--app-url", APP_URL, "--yes"]);
 
     expect(output).toContain("El corpus ya está al día");
     expect(await prisma.chatbotCorpusSource.count()).toBe(3);

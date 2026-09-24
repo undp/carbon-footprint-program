@@ -619,6 +619,8 @@ It runs in three steps:
 
 Each document's `--version` is a hash of its content, so a re-run skips everything already `ACTIVE` and unchanged, and offers to activate drafts a previous run left behind. Explanations are cited as `<app-url>#<file>` — there is no public page per explanation, so the link opens the app and the label carries the meaning. The app URL defaults to the first `https` origin in `ALLOWED_ORIGIN`; pass `--app-url` to override it, and `--yes` to run without prompts (it confirms the environment **and** activates).
 
+To validate without ingesting, run `pnpm chatbot:ingest-corpus --check`: it runs step 1, prints the environment and the per-document plan, and exits `0` when everything is ready — no prompts and no database writes, so it also works in CI or over a non-interactive SSH session. The one external call it makes is step 1's test embedding. A missing app URL fails the check instead of being asked for.
+
 The script only adds and replaces sources: removing a document from `corpus/` leaves its `ACTIVE` source in the database.
 
 ### Ingesting a single document

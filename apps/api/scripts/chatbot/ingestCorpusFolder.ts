@@ -22,7 +22,7 @@ const INGEST_SCRIPT = resolve(import.meta.dirname, "ingestCorpus.ts");
 const ACTIVATE_SCRIPT = resolve(import.meta.dirname, "activateCorpusSource.ts");
 
 const USAGE = `\
-Uso: pnpm chatbot:ingest-corpus [--app-url <https-url>] [--corpus-dir <ruta>] [--yes]
+Uso: pnpm chatbot:ingest-corpus [--app-url <https-url>] [--corpus-dir <ruta>] [--yes | --check]
 
 Ingesta todos los documentos de la carpeta corpus/ en tres pasos:
   1. Valida los requisitos (manifest, base de datos, pgvector, proveedor de embeddings).
@@ -41,9 +41,17 @@ Argumentos:
                        la raíz: el comando corre con ese directorio de trabajo.
   --yes                No preguntar: confirma la configuración y activa todo.
                        Necesario si no hay una terminal interactiva.
+  --check              Solo valida: corre el paso 1, muestra la configuración y
+                       el plan, y sale sin preguntar ni escribir en la base de
+                       datos. Sale con 0 si todo está listo para ingerir.
 `;
 
-type Options = { appUrl?: string; corpusDir: string; assumeYes: boolean };
+type Options = {
+  appUrl?: string;
+  corpusDir: string;
+  assumeYes: boolean;
+  checkOnly: boolean;
+};
 
 type PlannedDocument = CorpusDocument & {
   /** ACTIVE with this exact content: nothing to do. */
@@ -64,11 +72,19 @@ const parseArgs = (argv: string[]): Options => {
     process.stdout.write(USAGE);
     process.exit(0);
   }
-  const options: Options = { corpusDir: DEFAULT_CORPUS_DIR, assumeYes: false };
+  const options: Options = {
+    corpusDir: DEFAULT_CORPUS_DIR,
+    assumeYes: false,
+    checkOnly: false,
+  };
   for (let i = 0; i < argv.length; i++) {
     const flag = argv[i];
     if (flag === "--yes") {
       options.assumeYes = true;
+      continue;
+    }
+    if (flag === "--check") {
+      options.checkOnly = true;
       continue;
     }
     const value = argv[i + 1];
@@ -80,6 +96,11 @@ const parseArgs = (argv: string[]): Options => {
     else
       throw new CorpusFolderError(`Argumento desconocido: ${flag}\n\n${USAGE}`);
     i++;
+  }
+  if (options.assumeYes && options.checkOnly) {
+    throw new CorpusFolderError(
+      "--yes y --check se excluyen: --yes ingesta y activa, --check no escribe nada."
+    );
   }
   return options;
 };
@@ -143,7 +164,7 @@ const main = async (argv: string[]): Promise<number> => {
   // -------------------------------------------------------------------------
   heading("1. Validando requisitos");
 
-  if (!options.assumeYes && !process.stdin.isTTY) {
+  if (!options.assumeYes && !options.checkOnly && !process.stdin.isTTY) {
     throw new CorpusFolderError(
       "No hay una terminal interactiva para confirmar. Vuelve a correr con --yes."
     );
@@ -259,18 +280,16 @@ const main = async (argv: string[]): Promise<number> => {
       environment.ALLOWED_ORIGIN?.split(",")
         .map((origin) => origin.trim())
         .find(isHttpsUrl);
-    if (!appUrl && !options.assumeYes) {
+    if (!appUrl && !options.assumeYes && !options.checkOnly) {
       appUrl = (
         await prompt.question(
           "URL pública (https) de la app, para citar las explicaciones: "
         )
       ).trim();
     }
-    if (!appUrl || !isHttpsUrl(appUrl)) {
-      throw new CorpusFolderError(
-        `Se necesita una URL https para citar las explicaciones; se recibió "${appUrl ?? ""}". Usa --app-url.`
-      );
-    }
+    // Reported after the summary rather than here, so --check still shows
+    // the whole configuration and plan when this is the only thing missing.
+    const validAppUrl = appUrl && isHttpsUrl(appUrl) ? appUrl : undefined;
 
     const rows: Array<[string, string]> = [
       ["NODE_ENV", process.env.NODE_ENV ?? "<no definida>"],
@@ -298,7 +317,7 @@ const main = async (argv: string[]): Promise<number> => {
           ] satisfies Array<[string, string]>)
         : []),
       ["Modelo de embeddings", embeddingModel],
-      ["URL de la app (citas)", appUrl],
+      ["URL de la app (citas)", validAppUrl ?? "<falta: usa --app-url>"],
     ];
     const labelWidth = Math.max(...rows.map(([label]) => label.length));
     for (const [label, value] of rows) {
@@ -349,6 +368,17 @@ const main = async (argv: string[]): Promise<number> => {
       `\n  ${toIngest.length} por ingerir · ${pendingDrafts.length} DRAFT sin activar · ${unchanged} sin cambios\n\n`
     );
 
+    if (!validAppUrl) {
+      throw new CorpusFolderError(
+        `Se necesita una URL https para citar las explicaciones; se recibió "${appUrl ?? ""}". Usa --app-url.`
+      );
+    }
+    if (options.checkOnly) {
+      process.stdout.write(
+        "✓ Todo listo para ingerir. No se escribió nada (--check).\n"
+      );
+      return 0;
+    }
     if (toIngest.length === 0 && pendingDrafts.length === 0) {
       process.stdout.write("El corpus ya está al día. Nada que hacer.\n");
       return 0;
@@ -385,7 +415,7 @@ const main = async (argv: string[]): Promise<number> => {
         "--scope",
         document.scope,
         "--cite-url",
-        resolveCiteUrl(document.citation, appUrl),
+        resolveCiteUrl(document.citation, validAppUrl),
       ]);
       const draft = succeeded
         ? await prisma.chatbotCorpusSource.findFirst({
