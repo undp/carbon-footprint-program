@@ -6,9 +6,10 @@ interface YearWithoutFactorsAlertProps {
 }
 
 /**
- * Step 1's notice for a year the catalogue does not cover. It sits beside the
- * year select so the choice and its cost are read together, before the capture
- * step shows every «Fuente» selector empty.
+ * Step 1's notice for a year the catalogue does not cover. It heads the step,
+ * above its title, so the cost of the choice is read before the form rather
+ * than found partway down it — and well before the capture step shows every
+ * «Fuente» selector empty.
  */
 export const YearWithoutFactorsAlert: FC<YearWithoutFactorsAlertProps> = ({
   year,

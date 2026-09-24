@@ -359,6 +359,9 @@ export const BusinessProfilingScreen: FC = () => {
         >
           <Box className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <Box className="flex flex-col gap-6 rounded-lg bg-white p-6 pb-2">
+              {yearWithoutFactors !== null && (
+                <YearWithoutFactorsAlert year={yearWithoutFactors} />
+              )}
               <StepHeader
                 title="Paso 1: Perfilamiento"
                 description={`La información de tu ${VOCAB.organization.noun.singular} nos ayudará a sugerir automáticamente las fuentes y actividades más relevantes según tu rubro.`}
@@ -384,9 +387,6 @@ export const BusinessProfilingScreen: FC = () => {
                     required
                   />
                 </Box>
-                {yearWithoutFactors !== null && (
-                  <YearWithoutFactorsAlert year={yearWithoutFactors} />
-                )}
                 <Divider />
                 <Box className="mt-6 flex flex-1 flex-row gap-6">
                   <FormTextField
