@@ -2774,7 +2774,7 @@
               },
               {
                 "code": "Productos comprados_Destino",
-                "name": "Destino",
+                "name": "Origen",
                 "position": 2,
                 "isRequired": true,
                 "values": [
