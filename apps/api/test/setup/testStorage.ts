@@ -12,16 +12,28 @@ const AZURE_TEST_CONFIG = {
 } as const;
 
 const MINIO_TEST_CONFIG = {
-  // Pulled from quay.io, not Docker Hub: the `minio/minio` repository on Hub
-  // stopped being publicly pullable (the registry answers 401 and the Hub API
-  // 404), which failed the storage-minio CI leg with "pull access denied …
-  // repository does not exist". quay.io is MinIO's own public registry and
-  // serves the identical artifact — the digest below is unchanged, so this is
-  // a source swap, not an image swap.
+  // Chainguard's build, because MinIO no longer publishes a publicly pullable
+  // image anywhere. Docker Hub's `minio/minio` went first (registry 401, Hub
+  // API 404), so this pointed at quay.io — MinIO's own registry, same artifact,
+  // a source swap rather than an image swap. On 2026-09-24 that closed too:
+  // `quay.io/api/v1/repository/minio/minio` answers 401 where a public repo
+  // answers 200, and neither the tag nor the pinned digest resolves any more.
+  // The storage-minio leg then failed at global setup, before a single test,
+  // with the Docker daemon's "(HTTP code 500) … unauthorized".
   //
-  // Digest-pinned for reproducibility; bump the tag and digest together.
+  // This one IS an image swap: a different vendor's build of the same server,
+  // and a newer release than the one pinned before. It runs under the same
+  // `server /data` command and the same root-credential environment, and its
+  // non-root user (65532) writes to `/data` without help.
+  //
+  // Digest-pinned for reproducibility, but note the tag: Chainguard's free
+  // tier publishes only `latest`, so there is no version to pin beside the
+  // digest, and old digests are garbage-collected rather than kept forever.
+  // Expect to bump this. Mirroring the image into the organization's own
+  // registry is the durable fix, tracked in
+  // https://github.com/undp/carbon-footprint-program/issues/662.
   image:
-    "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "chainguard/minio:latest@sha256:bd014394a80898e68c149f2311fdf8d5a2c2f3bb2c33b9327ae6d02b4b065ae1",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
