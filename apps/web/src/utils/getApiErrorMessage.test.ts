@@ -168,6 +168,10 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   // Emission factors
   ["EMISSION_FACTOR_NOT_FOUND", "El factor de emisión no fue encontrado."],
   [
+    "INVALID_EMISSION_FACTOR_REFERENCE",
+    "El catálogo de factores cambió mientras editabas. Recarga la página para ver los factores disponibles.",
+  ],
+  [
     "EMISSION_FACTOR_DUPLICATE",
     "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
   ],
@@ -181,7 +185,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   ],
   [
     "EMISSION_FACTOR_SOURCE_CONFLICT",
-    "Todos los factores de emisión activos de esta sub-categoría deben usar la misma fuente.",
+    "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   ],
   [
     "EMISSION_FACTOR_GAS_DETAILS_MISMATCH",

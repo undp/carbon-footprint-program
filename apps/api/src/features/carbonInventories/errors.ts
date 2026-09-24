@@ -101,3 +101,23 @@ export const CarbonInventoryAlreadyHasOrganizationError = createError(
   "Carbon inventory %s already has an associated organization",
   422
 );
+
+/**
+ * Why a line's reference to a catalogue factor was refused. Travels as
+ * `details.reason` so a client can tell the three apart without parsing the
+ * message.
+ */
+export const EmissionFactorReferenceIssue = {
+  DELETED: "DELETED",
+  YEAR_MISMATCH: "YEAR_MISMATCH",
+  SUBCATEGORY_MISMATCH: "SUBCATEGORY_MISMATCH",
+} as const;
+
+export type EmissionFactorReferenceIssue =
+  (typeof EmissionFactorReferenceIssue)[keyof typeof EmissionFactorReferenceIssue];
+
+export const InvalidEmissionFactorReferenceError = createError(
+  "INVALID_EMISSION_FACTOR_REFERENCE",
+  "Emission factor %s cannot be used on this line: %s",
+  422
+);

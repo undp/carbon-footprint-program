@@ -13,6 +13,7 @@ import {
   validateCarbonInventoryIsEditable,
   resolveInventoryOrganizationDataReferences,
 } from "../helpers.js";
+import { clearCatalogueFactorsOfLines } from "./helpers.js";
 
 export const updateCarbonInventoryService = async (
   prismaClient: PrismaClient,
@@ -27,6 +28,7 @@ export const updateCarbonInventoryService = async (
       ...carbonInventoryWithSubmissionsMinimalSelect,
       organizationId: true,
       organizationData: true,
+      year: true,
     },
   });
 
@@ -103,10 +105,22 @@ export const updateCarbonInventoryService = async (
     updateData.updatedById = user ? BigInt(user.id) : null;
   }
 
+  // A footprint is only offered the factors of its own year, so changing the
+  // year invalidates every frozen catalogue factor it holds. The change and the
+  // clearing have to land together or not at all — a committed year with the old
+  // factors still attached is the state this whole rule exists to prevent.
+  const yearChanged = data.year !== undefined && data.year !== inventory.year;
+
   try {
-    const item = await prismaClient.carbonInventory.update({
-      where: { id: BigInt(id) },
-      data: updateData,
+    const item = await prismaClient.$transaction(async (tx) => {
+      if (yearChanged) {
+        await clearCatalogueFactorsOfLines(tx, BigInt(id));
+      }
+
+      return await tx.carbonInventory.update({
+        where: { id: BigInt(id) },
+        data: updateData,
+      });
     });
     const references = await resolveInventoryOrganizationDataReferences(
       prismaClient,

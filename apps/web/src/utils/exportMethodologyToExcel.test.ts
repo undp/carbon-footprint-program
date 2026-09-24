@@ -82,6 +82,7 @@ const fullMethodology: GetMethodologyExportResponse = {
             {
               id: "400",
               source: "IPCC 2006",
+              year: 2025,
               value: "2.5",
               gasDetails: {
                 CO2_FOSSIL: 2.5,
@@ -104,6 +105,7 @@ const fullMethodology: GetMethodologyExportResponse = {
               id: "401",
               // Empty source → display "-"; non-numeric value → kept as text.
               source: "",
+              year: 2026,
               value: "N/A",
               gasDetails: {
                 CO2_FOSSIL: 0,
@@ -301,6 +303,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(5).numFmt).toBe(NUMBER_FORMAT);
     expect(row.getCell(6).value).toBe("kgCO₂e/kWh");
     expect(row.getCell(7).value).toBe("IPCC 2006");
+    expect(row.getCell(8).value).toBe(2025);
   });
 
   it("applies the number format to every gas-detail column", async () => {
@@ -310,9 +313,9 @@ describe("buildMethodologyWorkbook", () => {
     );
     const row = sheet.getRow(2);
 
-    expect(row.getCell(8).value).toBe(2.5); // CO₂ fósil
-    expect(row.getCell(9).value).toBe(0.001); // CH₄
-    for (let col = 8; col <= 14; col++) {
+    expect(row.getCell(9).value).toBe(2.5); // CO₂ fósil
+    expect(row.getCell(10).value).toBe(0.001); // CH₄
+    for (let col = 9; col <= 15; col++) {
       expect(row.getCell(col).numFmt).toBe(NUMBER_FORMAT);
     }
   });
@@ -330,6 +333,7 @@ describe("buildMethodologyWorkbook", () => {
     expect(row.getCell(5).numFmt).not.toBe(NUMBER_FORMAT);
     expect(row.getCell(6).value).toBe("kgCO₂e/MWh");
     expect(row.getCell(7).value).toBe("-"); // empty source
+    expect(row.getCell(8).value).toBe(2026); // the year stands on its own
     // Only the two factors of the populated subcategory produce rows.
     expect(sheet.rowCount).toBe(3);
   });

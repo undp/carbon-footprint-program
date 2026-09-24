@@ -24,6 +24,7 @@ export const UpdateEmissionFactorRequestSchema = z
       EmissionFactorDimensionBaseSchema.shape.name.nullable(),
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
     source: z.string().min(1),
+    year: EmissionFactorBaseSchema.shape.year,
     gasDetails: GasDetailsSchema,
     value: z.number(),
   })
@@ -37,6 +38,7 @@ export const UpdateEmissionFactorResponseSchema = EmissionFactorBaseSchema.pick(
     id: true,
     value: true,
     source: true,
+    year: true,
   }
 ).extend({
   subcategoryId: SubcategoryBaseSchema.shape.id,

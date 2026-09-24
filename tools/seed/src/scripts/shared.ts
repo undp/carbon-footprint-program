@@ -76,6 +76,10 @@ export const FullMethodologyDataSchema = z.array(
                     .nullable(),
                   rateMeasurementUnitAbbreviation: z.string().min(1),
                   source: z.string().min(1),
+                  // The footprint year the factor is valid for. Required: the
+                  // base catalogue is born dated, so no factor can be seeded
+                  // without saying which year it serves.
+                  year: z.int(),
                   value: z.number(),
                 })
               )

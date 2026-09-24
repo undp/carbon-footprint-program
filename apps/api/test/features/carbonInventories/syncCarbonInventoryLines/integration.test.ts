@@ -37,6 +37,11 @@ import {
   createTestFile,
 } from "@test/factories/fileFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
+import {
+  createTestEmissionFactor,
+  getTestRateMeasurementUnitId,
+  SEEDED_CATALOGUE_YEAR,
+} from "@test/factories/emissionFactorFactory.js";
 import { syncCarbonInventoryLinesService } from "@/features/carbonInventories/syncCarbonInventoryLines/service.js";
 import { CarbonInventoryNotFoundError } from "@/features/carbonInventories/errors.js";
 
@@ -246,7 +251,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       // Get a subcategory with dimensions
@@ -322,6 +327,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
             dimensionValue2Id: null,
             rateMeasurementUnitId: rateMeasurementUnit.id,
             source: "DEFRA 2025",
+            year: 2025,
             gasDetails: {},
             value: new Prisma.Decimal("2.31"),
             status: EmissionFactorStatus.ACTIVE,
@@ -638,7 +644,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       const carbonInventory = await createInventoryFromPattern(
         prisma,
         carbonInventoryPatterns.simplifiedDraft,
-        { methodologyVersionId: methodologyId }
+        { methodologyVersionId: methodologyId, year: SEEDED_CATALOGUE_YEAR }
       );
 
       // Any active catalog factor of this methodology works — the test only
@@ -646,6 +652,8 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       let emissionFactor = await prisma.emissionFactor.findFirst({
         where: {
           status: EmissionFactorStatus.ACTIVE,
+          // Of the footprint's year, or the sync would reconcile it away.
+          year: SEEDED_CATALOGUE_YEAR,
           subcategory: { category: { methodologyVersionId: methodologyId } },
         },
       });
@@ -664,6 +672,7 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
             dimensionValue2Id: null,
             rateMeasurementUnitId: rateUnit.id,
             source: "DEFRA 2025",
+            year: 2025,
             gasDetails: {},
             value: new Prisma.Decimal("2.31"),
             status: EmissionFactorStatus.ACTIVE,
@@ -1414,6 +1423,698 @@ describe("POST /api/carbon-inventories/:id/lines/sync - Integration Tests", () =
       });
 
       expect(response.statusCode).toBe(400);
+    });
+  });
+
+  describe("Year reconciliation", () => {
+    /**
+     * A footprint of `footprintYear`, one subcategory of the seeded
+     * methodology, and a catalogue factor dated `factorYear` for it.
+     */
+    async function buildYearScenario(
+      footprintYear: number | null,
+      factorYear: number
+    ) {
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { methodologyVersionId: methodologyId, year: footprintYear }
+      );
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const factor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        rateUnitId,
+        {
+          source: `DEFRA ${factorYear.toString()}`,
+          year: factorYear,
+          value: "2.5",
+        }
+      );
+
+      return { carbonInventory, subcategoryId: subcategoryIds[0], factor };
+    }
+
+    const lineItem = (
+      subcategoryId: bigint,
+      overrides: Record<string, unknown>
+    ) => ({
+      subcategoryId: String(subcategoryId),
+      dimensionValue1Id: null,
+      dimensionValue2Id: null,
+      measurementUnitId: null,
+      quantity: 10,
+      factorSource: null,
+      baseFactorId: null,
+      appliedFactorValue: null,
+      appliedFactorRateMeasurementUnitId: null,
+      manualTotalEmissions: null,
+      comment: null,
+      inputType: "SIMPLIFIED",
+      ...overrides,
+    });
+
+    /**
+     * The refusal every stale reference gets: a 422 naming its reason in
+     * `details`, so a client can tell the three apart without parsing the
+     * message.
+     */
+    const expectRefused = (
+      response: { statusCode: number; body: string },
+      reason: string
+    ) => {
+      expect(response.statusCode).toBe(422);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("INVALID_EMISSION_FACTOR_REFERENCE");
+      expect(body.details?.reason).toBe(reason);
+    };
+
+    const countLines = (carbonInventoryId: bigint) =>
+      prisma.carbonInventoryLine.count({ where: { carbonInventoryId } });
+
+    const readSnapshot = async (lineId: string) => {
+      const input = await prisma.carbonInventoryLineInput.findFirstOrThrow({
+        where: { lineId: BigInt(lineId), isActive: true },
+        include: { factor: true, result: true },
+      });
+      return input;
+    };
+
+    it("refuses a created line whose factor is of another year", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2026, 2024);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 1500,
+              factorSource: "DEFRA 2024",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              comment: "Stale factor",
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "YEAR_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+    it("reconciles a snapshot that lost its factor id but kept a catalogue source", async () => {
+      // The shape a line damaged before PR 647 round-trips with: the payload
+      // echoes `baseFactorId: null` while the source is a real catalogue one.
+      // Reading it as manual would persist it forever — no later save sees a
+      // factor id to check, and the non-null source keeps the completeness
+      // rules from flagging the line.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2026,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 1500,
+              factorSource: "DEFRA 2025",
+              baseFactorId: null,
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.quantity).toBe(1500);
+      expect(created.factorSource).toBeNull();
+
+      const input = await readSnapshot(created.id);
+      expect(input.factor).toBeNull();
+      expect(input.result).toBeNull();
+    });
+
+    it("refuses a factor that belongs to another subcategory", async () => {
+      // Only a crafted payload reaches this: the selector never offers a
+      // factor of a subcategory other than the line's. Nothing else ties
+      // `baseFactorId` to the line, so without the check the value and source
+      // of an unrelated factor would be frozen onto it verbatim.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const foreignFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[1],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9" }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: foreignFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "SUBCATEGORY_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+    it("applies the subcategory check to an update as well", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const methodologyId = await getTestMethodologyVersionId(prisma);
+      const subcategoryIds = await getSubcategoryIds(prisma, methodologyId);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const foreignFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[1],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9" }
+      );
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: foreignFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "SUBCATEGORY_MISMATCH");
+      // The line keeps the factor it froze before the refused update.
+      const input = await readSnapshot(lineId);
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+      expect(input.result).not.toBeNull();
+    });
+    it("refuses a factor the maintainer has deleted", async () => {
+      // Same subcategory and same year as the footprint, so only the status
+      // explains the reconciliation. A client holding a page opened before the
+      // factor was retired sends exactly this.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const deletedFactor = await createTestEmissionFactor(
+        prisma,
+        subcategoryId,
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "9.9", status: "DELETED" }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: deletedFactor.id.toString(),
+              appliedFactorValue: 9.9,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "DELETED");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+    it("applies the status check to an update as well", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+      // The line froze the factor while it was still in the catalogue.
+      expect((await readSnapshot(lineId)).factor).not.toBeNull();
+
+      await prisma.emissionFactor.update({
+        where: { id: factor.id },
+        data: { status: "DELETED" },
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "DELETED");
+      // The line keeps the snapshot it froze while the factor was in the
+      // catalogue: the refused update replaced nothing.
+      const input = await readSnapshot(lineId);
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+      expect(input.result).not.toBeNull();
+    });
+    it("keeps a direct-total line, whose emissions were typed rather than computed", async () => {
+      // A direct total carries no factor id either, and must not be swept up
+      // with the damaged snapshots: the number is the user's own.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2026,
+        2025
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: null,
+              manualTotalEmissions: 500000,
+              inputType: "DIRECT",
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.manualTotalEmissions).toBe(500000);
+
+      const input = await readSnapshot(created.id);
+      expect(input.result).not.toBeNull();
+    });
+
+    it("returns 404 when a created line references a factor that does not exist", async () => {
+      // 404 when the referenced row does not exist, 422 when it exists but
+      // cannot be used here — the same split the endpoint applies to a
+      // subcategory. Factors are only ever soft-deleted, so no stale page
+      // produces this id: only a forged payload does.
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2025,
+        2025
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: "999999999",
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("EMISSION_FACTOR_NOT_FOUND");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+
+    it("returns 404 when an update references a factor that does not exist", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2025, 2025);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const createResponse = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+      expect(createResponse.statusCode).toBe(200);
+      const lineId = (
+        JSON.parse(createResponse.body) as SyncCarbonInventoryLinesResponse
+      ).created[0].id;
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: lineId,
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 300,
+              factorSource: "DEFRA 2025",
+              baseFactorId: "999999999",
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(404);
+      const body = JSON.parse(response.body) as ApiErrorResponse;
+      expect(body.code).toBe("EMISSION_FACTOR_NOT_FOUND");
+      // The line keeps the input and the factor it had before the refusal.
+      const input = await readSnapshot(lineId);
+      expect(input.quantity?.toString()).toBe("100");
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+    });
+
+    it("refuses the whole payload when one of its factors is stale", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2026, 2024);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const factorOfFootprintYear = await createTestEmissionFactor(
+        prisma,
+        subcategoryId,
+        rateUnitId,
+        { source: "DEFRA 2024", year: 2026, value: "3.5" }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 100,
+              factorSource: "DEFRA 2024",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+            lineItem(subcategoryId, {
+              quantity: 200,
+              factorSource: "DEFRA 2024",
+              baseFactorId: factorOfFootprintYear.id.toString(),
+              appliedFactorValue: 3.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "YEAR_MISMATCH");
+      // The valid line is refused with the stale one: the save is all or
+      // nothing, so the user redoes one selection instead of finding half of
+      // what they sent persisted.
+      expect(await countLines(carbonInventory.id)).toBe(0);
+    });
+    it("refuses an update that points at a factor of another year", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2026, 2024);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryId
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        quantity: new Prisma.Decimal(5),
+        isActive: true,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [],
+          update: [
+            {
+              id: line.id.toString(),
+              dimensionValue1Id: null,
+              dimensionValue2Id: null,
+              measurementUnitId: null,
+              quantity: 20,
+              factorSource: "DEFRA 2024",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              manualTotalEmissions: null,
+              comment: null,
+              inputType: "SIMPLIFIED",
+              addFileUuids: [],
+              removeFileIds: [],
+            },
+          ],
+          delete: [],
+        },
+      });
+
+      expectRefused(response, "YEAR_MISMATCH");
+      // The line keeps the input it had: the update sent 20, the seed was 5.
+      const input = await readSnapshot(line.id.toString());
+      expect(input.quantity?.toString()).toBe("5");
+    });
+    it("persists the snapshot and the result for a factor of the footprint's year", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(2026, 2026);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 4,
+              factorSource: "DEFRA 2026",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.factorValue).toBe(2.5);
+      expect(created.baseFactorId).toBe(factor.id.toString());
+
+      const input = await readSnapshot(created.id);
+      expect(input.factor?.emissionFactorId).toBe(factor.id);
+      expect(input.result?.totalEmissions.toString()).toBe("10");
+    });
+
+    it("leaves a manual-factor line untouched whatever the footprint's year", async () => {
+      const { carbonInventory, subcategoryId } = await buildYearScenario(
+        2026,
+        2024
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 3,
+              factorSource: "Otro",
+              baseFactorId: null,
+              appliedFactorValue: 7,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+              inputType: "EXPERT",
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as SyncCarbonInventoryLinesResponse;
+      const created = body.created[0];
+      expect(created.factorSource).toBe("Otro");
+      expect(created.factorValue).toBe(7);
+
+      const input = await readSnapshot(created.id);
+      expect(input.manualFactor?.toString()).toBe("7");
+      expect(input.manualFactorSource).toBe("Otro");
+      expect(input.factor?.emissionFactorId).toBeNull();
+      expect(input.result?.totalEmissions.toString()).toBe("21");
+    });
+
+    it("refuses a catalogue factor on a footprint with no year at all", async () => {
+      const { carbonInventory, subcategoryId, factor } =
+        await buildYearScenario(null, 2025);
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      const response = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/lines/sync`,
+        payload: {
+          create: [
+            lineItem(subcategoryId, {
+              quantity: 1,
+              factorSource: "DEFRA 2025",
+              baseFactorId: factor.id.toString(),
+              appliedFactorValue: 2.5,
+              appliedFactorRateMeasurementUnitId: rateUnitId.toString(),
+            }),
+          ],
+          update: [],
+          delete: [],
+        },
+      });
+
+      // A footprint with no year is offered no factor, so any catalogue
+      // factor is of another year.
+      expectRefused(response, "YEAR_MISMATCH");
+      // Checked before the transaction opens, so nothing is written.
+      expect(await countLines(carbonInventory.id)).toBe(0);
     });
   });
 

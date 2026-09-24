@@ -8,6 +8,7 @@ import {
   LineId,
 } from "../types/EmissionCaptureTypes";
 import { SubcategoryWithLines } from "../types/EmissionCaptureTypes";
+import { hasUnavailableCatalogueFactor } from "../utils/emissionCaptureValidation";
 
 type Params = {
   data: EmissionCaptureMergedData;
@@ -215,6 +216,31 @@ export const useEmissionCaptureForm = ({ data }: Params) => {
         }
       }
     });
+    // STEP 5: drop the catalogue factors the footprint is no longer offered.
+    // A factor deleted, re-dated or moved since a line froze it is missing from
+    // the methodology — filtered by year and status — while the line still
+    // carries its id from the snapshot, and the sync refuses that id. Reloading
+    // cannot fix it, so it is dropped here: the line comes back asking for a
+    // factor, keeping its quantity and unit. The change is marked dirty on
+    // purpose, so the next save persists it and the server stops counting a
+    // total the screen no longer shows. Manual factors and direct totals are
+    // left alone by `hasUnavailableCatalogueFactor`.
+    data?.categories.forEach((category) => {
+      category.subcategories.forEach((subcategory) => {
+        const lines = getValues(`subcategories.${subcategory.id}.lines`) ?? {};
+        Object.entries(lines).forEach(([lineId, line]) => {
+          if (!line || line.isNew || line.isDeleted) return;
+          if (!hasUnavailableCatalogueFactor(line, subcategory.emissionFactors))
+            return;
+          const path =
+            `subcategories.${subcategory.id}.lines.${lineId}` as const;
+          setValue(`${path}.baseFactorId`, null, { shouldDirty: true });
+          setValue(`${path}.factorValue`, null, { shouldDirty: true });
+          setValue(`${path}.factorSource`, null, { shouldDirty: true });
+        });
+      });
+    });
+
     // `dirtyFields` is intentionally excluded: reconciliation must run only when
     // the server data (`data`) changes. The effect READS dirty state (to detect a
     // mode change) but must not be RE-TRIGGERED by it. react-hook-form reassigns

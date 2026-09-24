@@ -7,6 +7,7 @@ import { CarbonInventoryLayout, FooterButton } from "./layout";
 import { Routes } from "@/interfaces";
 import { DevTool } from "@hookform/devtools";
 import {
+  ConfirmDialog,
   FormAutocompleteField,
   FormSelectField,
   FormTextField,
@@ -18,7 +19,7 @@ import {
   CarbonInventoryNavigationButton,
 } from "./components";
 import { useCarbonInventory } from "@/api/query";
-import { EXIT_DIALOG_CONTENT } from "./constants";
+import { EXIT_DIALOG_CONTENT, YEAR_CHANGE_DIALOG_CONTENT } from "./constants";
 import { useBusinessProfilingForm } from "./hooks/useBusinessProfilingForm";
 import { useBusinessProfilingSubmit } from "./hooks/useBusinessProfilingSubmit";
 import { useBusinessProfilingLabels } from "./hooks/useBusinessProfilingLabels";
@@ -36,6 +37,7 @@ import { useCommonNavigation } from "./hooks/useCommonNavigation";
 import { VOCAB } from "@/config/vocab";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import capitalize from "lodash-es/capitalize";
+import { toSafeString } from "@/utils/string";
 
 const YEARS = Array.from(
   { length: CALCULATOR_YEARS_RANGE_FROM_CURRENT },
@@ -86,11 +88,24 @@ export const BusinessProfilingScreen: FC = () => {
   const {
     control,
     handleSubmit,
+    resetField,
     selectedSectorId,
     selectedSubsectorId,
     selectedActivityId,
     formState: { isDirty },
   } = useBusinessProfilingForm({ existingInventory });
+
+  // What «Mantener el año actual» restores. `resetField` puts the stored year
+  // back and clears the dirty mark of that field alone, so the edits the user
+  // made elsewhere survive and the next «Siguiente» saves them without asking
+  // again. A footprint with no stored year has nothing to keep — the field is
+  // required, and blanking it would block the form the user is trying to leave.
+  const keepCurrentYear = useCallback(() => {
+    if (existingInventory?.year == null) return;
+    resetField("year", {
+      defaultValue: toSafeString(existingInventory.year),
+    });
+  }, [existingInventory, resetField]);
 
   const {
     selectedSector,
@@ -138,18 +153,27 @@ export const BusinessProfilingScreen: FC = () => {
     });
   }, [navigate, inventoryId]);
 
-  const { submit, isSubmitting } = useBusinessProfilingSubmit({
+  const {
+    submit,
+    isSubmitting,
+    yearChangeConfirmation: advanceYearChangeConfirmation,
+  } = useBusinessProfilingSubmit({
     inventoryId,
     onSuccess: goNext,
+    onKeepYear: keepCurrentYear,
   });
 
   const goToListOrLanding = user ? goToList : goToLanding;
 
-  const { submit: submitAndExit, isSubmitting: isSubmittingAndExiting } =
-    useBusinessProfilingSubmit({
-      inventoryId,
-      onSuccess: goToListOrLanding,
-    });
+  const {
+    submit: submitAndExit,
+    isSubmitting: isSubmittingAndExiting,
+    yearChangeConfirmation: exitYearChangeConfirmation,
+  } = useBusinessProfilingSubmit({
+    inventoryId,
+    onSuccess: goToListOrLanding,
+    onKeepYear: keepCurrentYear,
+  });
 
   useInventoryErrorHandler(inventoryError);
 
@@ -393,6 +417,26 @@ export const BusinessProfilingScreen: FC = () => {
         onClose={() => setIsExitDialogOpen(false)}
         onConfirm={goToListOrLanding}
         {...exitDialogProps}
+      />
+
+      {/* One per exit that saves the year. The condition lives in
+          useBusinessProfilingSubmit, so each instance only opens for the submit
+          it belongs to. */}
+      <ConfirmDialog
+        open={advanceYearChangeConfirmation.isOpen}
+        onClose={advanceYearChangeConfirmation.cancel}
+        onConfirm={advanceYearChangeConfirmation.confirm}
+        isLoading={isSubmitting}
+        variant="error"
+        {...YEAR_CHANGE_DIALOG_CONTENT}
+      />
+      <ConfirmDialog
+        open={exitYearChangeConfirmation.isOpen}
+        onClose={exitYearChangeConfirmation.cancel}
+        onConfirm={exitYearChangeConfirmation.confirm}
+        isLoading={isSubmittingAndExiting}
+        variant="error"
+        {...YEAR_CHANGE_DIALOG_CONTENT}
       />
     </>
   );

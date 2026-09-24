@@ -14,12 +14,14 @@ import {
   getCompatibleRateUnitId,
   getAvailableFactors,
   getAvailableSources,
+  isSelectedFactorAvailable,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
 import { useEmissionCaptureSubmit } from "../../../hooks/useEmissionCaptureSubmit";
 import { useEmissionCaptureActions } from "../../../hooks/useEmissionCaptureActions";
 import { CUSTOM_FACTOR_SOURCES } from "@/config/constants";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 import { MethodologyEmissionFactor, RateMeasurementUnit } from "../../../types";
 
 interface UseEmissionEditorFormParams {
@@ -159,6 +161,33 @@ export const useEmissionEditorForm = ({
     [setValue]
   );
 
+  /**
+   * Drops the factor a line holds while keeping the rate unit its measurement
+   * unit implies.
+   *
+   * `resetFactorValueFields` nulls that unit too, which is what its other
+   * caller needs — the measurement unit just changed there, so the compatible
+   * rate unit went with it. When the factor is what changed, the unit did not:
+   * it is derived from the line, `getCompatibleRateUnitId` hands back the same
+   * value on the next pass, and clearing it only makes the «Otro» path recompute
+   * what was already on screen.
+   */
+  const clearFactorSelection = useCallback(
+    (
+      subcategoryId: SubcategoryId,
+      lineId: LineId,
+      compatibleRateUnitId: string | null
+    ) => {
+      resetFactorValueFields(subcategoryId, lineId);
+      setValue(
+        `subcategories.${subcategoryId}.lines.${lineId}.factorRateMeasurementUnitId`,
+        compatibleRateUnitId,
+        { shouldDirty: true }
+      );
+    },
+    [resetFactorValueFields, setValue]
+  );
+
   const resetFactorRelatedFields = useCallback(
     (subcategoryId: SubcategoryId, lineId: LineId) => {
       setValue(
@@ -231,6 +260,11 @@ export const useEmissionEditorForm = ({
         console.warn(
           "There are no available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
+        // No factor backs the new source, so the previous selection is dropped
+        // rather than left behind: `baseFactorId` now survives a reload (the
+        // capture payload echoes it back), so keeping it would persist a
+        // snapshot whose factor identity contradicts its own source.
+        clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -239,6 +273,16 @@ export const useEmissionEditorForm = ({
         console.warn(
           "There are multiple available factors for the selected parameters and source. Cannot auto-fill a factor value."
         );
+        // Ambiguous: nothing can be auto-filled. The factor the line already
+        // holds is kept when it is still one of the candidates — this runs on
+        // every cell edit through `tryToLoadDetermineFactorPlatform`, so
+        // dropping it because a sibling factor happens to share its source
+        // would lose a valid selection while editing an unrelated field. Only
+        // a selection that is no longer among them is cleared.
+        if (
+          !isSelectedFactorAvailable(sourceFilteredFactors, line.baseFactorId)
+        )
+          clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -250,6 +294,9 @@ export const useEmissionEditorForm = ({
         console.warn(
           "The available factor has an invalid value. Cannot auto-fill a factor value."
         );
+        // The factor exists but cannot be applied, which is no better than not
+        // having found one.
+        clearFactorSelection(subcategoryId, lineId, compatibleRateUnitId);
         return;
       }
 
@@ -269,7 +316,14 @@ export const useEmissionEditorForm = ({
         { shouldDirty: true }
       );
     },
-    [emissionFactors, rateMeasurementUnits, setValue, subcategoryId, getValues]
+    [
+      emissionFactors,
+      rateMeasurementUnits,
+      setValue,
+      subcategoryId,
+      getValues,
+      clearFactorSelection,
+    ]
   );
 
   const determineAutoLoadFactorSource = useCallback(
@@ -515,10 +569,17 @@ export const useEmissionEditorForm = ({
         );
         // eslint-disable-next-line no-console
         console.error("EmissionEditor error:", err);
-        // Display snackbar to alert user about the failure
-        enqueueSnackbar("Ocurrió un error al cambiar el modo de emisiones.", {
-          variant: "error",
-        });
+        // Display snackbar to alert user about the failure. The API's own
+        // message when it has one: this submit sends every line, not only the
+        // edited ones, so a factor the catalogue has since retired is refused
+        // here too, and the user needs to hear that a reload fixes it.
+        enqueueSnackbar(
+          getApiErrorMessage(
+            err,
+            "Ocurrió un error al cambiar el modo de emisiones."
+          ),
+          { variant: "error" }
+        );
       } finally {
         setIsLocalTotalManualEmissionsModeActive(null);
         setIsTotalManualEmissionsModeLoading(false);

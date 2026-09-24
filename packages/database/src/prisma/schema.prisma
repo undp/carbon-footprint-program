@@ -665,6 +665,10 @@ model EmissionFactorDimensionValue {
   @@map("emission_factor_dimension_value")
 }
 
+// TODO: a DRAFT state was deferred (it would decouple loading a year's set from
+// publishing it). Introducing one also means changing the partial unique index on
+// `emission_factor` from WHERE "status" <> 'DELETED' to WHERE "status" = 'ACTIVE',
+// or two drafts of the same key would collide before either is published.
 enum EmissionFactorStatus {
   ACTIVE
   DELETED
@@ -679,6 +683,11 @@ model EmissionFactor {
   dimensionValue2Id     BigInt?                       @map("dimension_value_2_id")
   rateMeasurementUnitId BigInt                        @map("rate_measurement_unit_id")
   source                String
+  // The footprint year this factor is valid for. Required and without a
+  // default: an omitted year would assert "unknown" rather than
+  // "time-invariant", which is the distinction the column exists to force.
+  // Independent of `source`, which is a free-text label naming the edition.
+  year                  Int
   gasDetails            Json                          @map("gas_details") @db.JsonB
   value                 Decimal                       @db.Decimal(28, 10)
   status                EmissionFactorStatus          @default(ACTIVE)
@@ -694,7 +703,9 @@ model EmissionFactor {
   updater               User?                         @relation("emission_factor_updated_by", fields: [updatedById], references: [id])
   lineFactors           CarbonInventoryLineFactor[]
 
-  // Partial unique index (status <> 'DELETED') managed in migration SQL
+  // Partial unique index managed in migration SQL:
+  // ("subcategory_id", "dimension_value_1_id", "dimension_value_2_id", "source", "year")
+  // WHERE status <> 'DELETED'
   @@map("emission_factor")
 }
 

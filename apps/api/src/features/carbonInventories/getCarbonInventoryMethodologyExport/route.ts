@@ -17,7 +17,7 @@ export const getCarbonInventoryMethodologyExportRoute = defineRoute<{
     summary:
       "Get the methodology export payload for the inventory's methodology version",
     description:
-      "Returns the full methodology hierarchy of the version applied to the inventory so the web client can render the methodology workbook bundled in the ZIP. Response shape matches the admin `GET /methodologies/:id/export` byte-for-byte.",
+      "Returns the full methodology hierarchy of the version applied to the inventory so the web client can render the methodology workbook bundled in the ZIP. Response shape matches the admin `GET /methodologies/:id/export` byte-for-byte; the emission factors are scoped to the inventory's year, so the workbook lists what its capture screen offers. An inventory with no year yet gets the whole catalogue.",
     params: GetCarbonInventoryMethodologyExportParamsSchema,
     response: {
       200: GetCarbonInventoryMethodologyExportResponseSchema,

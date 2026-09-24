@@ -26,7 +26,7 @@ export const RateMeasurementUnitNotFoundError = createError(
 
 export const EmissionFactorSourceConflictError = createError(
   "EMISSION_FACTOR_SOURCE_CONFLICT",
-  "All active emission factors for this subcategory must share the same source. Existing source: %s",
+  "All active emission factors for this subcategory and year must share the same source. Existing source: %s",
   409
 );
 

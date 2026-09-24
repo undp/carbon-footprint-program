@@ -13,6 +13,8 @@ import { useRateMeasurementUnits } from "@/api/query/measurementUnits/useRateMea
 import {
   useEmissionFactorsForm,
   toFormEmissionFactor,
+  createNewEmissionFactorRow,
+  type EmissionFactorFormRow,
 } from "../hooks/useEmissionFactorsForm";
 import { useEmissionFactorColumns } from "../hooks/useEmissionFactorColumns";
 import { useMaintainerEditingState } from "../hooks/useMaintainerEditingState";
@@ -51,6 +53,21 @@ const gasDetailsEqual = (
   left.SF6 === right.SF6 &&
   left.NF3 === right.NF3;
 
+// TODO: two things about the year column were deliberately deferred.
+//
+// 1. A year that has fallen outside the offered window renders blank. The cell
+//    is a MUI `Select`, which paints a value that is not among its options as
+//    empty and warns on the console. Adding that row's own year as an extra
+//    option fixes it in a few lines. It does not bite while the catalogue is
+//    dated 2025 and the window reaches back four years — only once the window
+//    slides past 2025, by which time this grid will have been through the bulk
+//    import and the filter below anyway.
+//
+// 2. A year filter on the grid. It only starts hurting once a second year
+//    exists, which is the same moment the bulk import is needed, and it is
+//    riskier here than it looks: rows are addressed by field-array index
+//    (`handleCellChange(rowIndex, …)`), so filtering what is visible while
+//    editing by index is a classic source of edits landing on the wrong row.
 export const EmissionFactorsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
@@ -214,6 +231,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       });
       return false;
     }
+    // Validation refuses a row without a year, so this only narrows the type
+    // for the requests below.
+    if (row.year === null) return false;
 
     if (isNewRow(row.id)) {
       try {
@@ -223,6 +243,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
           dimensionValue2Name: row.dimensionValue2Name || null,
           rateMeasurementUnitId: row.rateMeasurementUnitId,
           source: row.source,
+          year: row.year,
           gasDetails: row.gasDetails,
           value: row.value,
         });
@@ -256,6 +277,9 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       row.dimensionValue2Name !== original.dimensionValue2Name ||
       row.rateMeasurementUnitId !== original.rateMeasurementUnitId ||
       row.source !== original.source ||
+      // Without the year here, correcting only the year closes the row with no
+      // error and saves nothing.
+      row.year !== original.year ||
       row.value !== original.value ||
       !gasDetailsEqual(row.gasDetails, original.gasDetails);
 
@@ -269,6 +293,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
             dimensionValue2Name: row.dimensionValue2Name || null,
             rateMeasurementUnitId: row.rateMeasurementUnitId,
             source: row.source,
+            year: row.year,
             gasDetails: row.gasDetails,
             value: row.value,
           },
@@ -343,16 +368,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
 
   const handleAddRow = useCallback(() => {
     const tempId = `temp_${Date.now()}`;
-    fieldArray.prepend({
-      id: tempId,
-      subcategoryId: "",
-      dimensionValue1Name: null,
-      dimensionValue2Name: null,
-      rateMeasurementUnitId: "",
-      source: "",
-      value: 0,
-      gasDetails: EMPTY_GAS_DETAILS,
-    });
+    fieldArray.prepend(createNewEmissionFactorRow(tempId));
     setPaginationModel((prev) =>
       prev.page === 0 ? prev : { ...prev, page: 0 }
     );
@@ -360,7 +376,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   }, [fieldArray, setEditingRowId]);
 
   const handleDelete = useCallback(
-    async (row: EmissionFactorForm) => {
+    async (row: EmissionFactorFormRow) => {
       try {
         const rows = form.getValues("emissionFactors");
         const index = rows.findIndex((currentRow) => currentRow.id === row.id);
@@ -483,6 +499,16 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     () => form.getValues("emissionFactors"),
     [form]
   );
+  // The source lock reads the factors as the server holds them, so the getter
+  // changes only when the query refetches — never while the form is edited.
+  const persistedEmissionFactors = useMemo(
+    () => (emissionFactors ?? []).map(toFormEmissionFactor),
+    [emissionFactors]
+  );
+  const getPersistedEmissionFactors = useCallback(
+    () => persistedEmissionFactors,
+    [persistedEmissionFactors]
+  );
   const columns = useEmissionFactorColumns({
     editingRowId,
     viewOnly: scope.isViewOnly,
@@ -493,6 +519,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
     onDelete: handleDelete,
     onOpenGEIBreakdown: handleOpenGEIBreakdown,
     getValues: getEmissionFactorValues,
+    getPersistedRows: getPersistedEmissionFactors,
     subcategories: subcategoryOptions,
     rateUnits: rateUnitOptions,
     dimensionOptionsMap,
@@ -558,7 +585,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         />
       }
     >
-      <MaintainerDataGrid<EmissionFactorForm>
+      <MaintainerDataGrid<EmissionFactorFormRow>
         editingRowId={editingRowId}
         cellMaxHeight={60}
         searchable={{
@@ -586,7 +613,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
         columns={columns}
         rows={currentRows}
         loading={!isDataReady}
-        getRowId={(row: EmissionFactorForm) => row.id}
+        getRowId={(row: EmissionFactorFormRow) => row.id}
         hideFooter={false}
         pageSizeOptions={[25, 50, 100]}
         paginationModel={paginationModel}

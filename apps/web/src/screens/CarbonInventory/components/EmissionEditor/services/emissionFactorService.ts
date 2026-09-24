@@ -45,6 +45,24 @@ export const getAvailableFactors = (
   );
 };
 
+/**
+ * Whether the factor a line already holds is still one of the candidates for
+ * its source. Converted factors carry a composite id (`123-1`), so the
+ * comparison is against the original factor's id — the same one the capture
+ * payload sends back as `baseFactorId`.
+ */
+export const isSelectedFactorAvailable = (
+  availableFactors: Pick<
+    MethodologyEmissionFactor,
+    "id" | "originalEmissionFactorId"
+  >[],
+  baseFactorId: string | null | undefined
+): boolean =>
+  !!baseFactorId &&
+  availableFactors.some(
+    (factor) => (factor.originalEmissionFactorId ?? factor.id) === baseFactorId
+  );
+
 export const getAvailableSources = (
   availableFactors: MethodologyEmissionFactor[]
 ): string[] => {

@@ -11,19 +11,29 @@ import { createTestApp } from "@test/factories/appFactory.js";
 import {
   buildExpectedOrganizationData,
   cleanupCarbonInventoryTestData,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineFactor,
+  createCarbonInventoryLineInput,
+  createCarbonInventoryLineResult,
+  getSubcategoryIds,
   seedCarbonInventory,
 } from "@test/factories/carbonInventorySeeder.js";
+import {
+  createTestEmissionFactor,
+  getTestRateMeasurementUnitId,
+} from "@test/factories/emissionFactorFactory.js";
 import { getTestMethodologyVersionId } from "@test/factories/methodologyFactory.js";
 import {
   createTestOrganization,
   cleanupTestOrganization,
 } from "@test/factories/organizationFactory.js";
 import {
+  CarbonInventoryLineStatus,
   InventoryStatus,
   type UpdateCarbonInventoryResponse,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
-import type { PrismaClient } from "@repo/database";
+import { Prisma, type PrismaClient } from "@repo/database";
 import {
   VALIDATION_ERROR_CODE,
   type ApiErrorResponse,
@@ -400,6 +410,338 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(body.usageMode).toBe("EXPERT");
       expect(body.isEditable).toBe(false);
       expect(body.preselectedNodesId).toBe("999");
+    });
+  });
+
+  describe("Year change clears the catalogue factors", () => {
+    /**
+     * A 2025 footprint holding, on one subcategory:
+     *  - a catalogue-backed line with a snapshot and a result;
+     *  - a manual-factor line (custom source, no `emissionFactorId`);
+     *  - a parked (`OUTDATED`) catalogue-backed line, the shape
+     *    `toggleManualTotalEmissions` leaves behind;
+     *  - a line edited since it was captured, which still references its
+     *    factor and so must be treated as catalogue-backed;
+     *  - a snapshot damaged before PR 647 preserved the factor identity: no
+     *    `emissionFactorId`, but a real catalogue source. The migration only
+     *    clears these on footprints of another year, so the ones on 2025
+     *    footprints arrive here intact and must not be mistaken for manual.
+     */
+    async function buildFootprintWithFrozenFactors() {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        methodologyVersionId,
+      });
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const factor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "2.5" }
+      );
+
+      const seedLine = async (options: {
+        status?: CarbonInventoryLineStatus;
+        emissionFactorId: bigint | null;
+        appliedFactorSource: string;
+        manual?: boolean;
+      }) => {
+        const line = await createCarbonInventoryLine(
+          prisma,
+          carbonInventory.id,
+          subcategoryIds[0],
+          { status: options.status ?? CarbonInventoryLineStatus.ACTIVE }
+        );
+        const input = await createCarbonInventoryLineInput(prisma, line.id, {
+          quantity: new Prisma.Decimal(10),
+          manualFactor: options.manual ? new Prisma.Decimal(4) : undefined,
+          isActive: true,
+        });
+        await createCarbonInventoryLineFactor(prisma, input.id, {
+          appliedFactorValue: new Prisma.Decimal(options.manual ? 4 : 2.5),
+          appliedFactorRateUnitId: rateUnitId,
+          emissionFactorId: options.emissionFactorId,
+          appliedFactorSource: options.appliedFactorSource,
+        });
+        await createCarbonInventoryLineResult(prisma, input.id, 25);
+        return { line, input };
+      };
+
+      const catalogue = await seedLine({
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      const manual = await seedLine({
+        emissionFactorId: null,
+        appliedFactorSource: "Otro",
+        manual: true,
+      });
+      const parked = await seedLine({
+        status: CarbonInventoryLineStatus.OUTDATED,
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      const edited = await seedLine({
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      const damaged = await seedLine({
+        emissionFactorId: null,
+        appliedFactorSource: "DEFRA 2025",
+      });
+
+      return {
+        carbonInventory,
+        subcategoryId: subcategoryIds[0],
+        factor,
+        catalogue,
+        manual,
+        parked,
+        edited,
+        damaged,
+      };
+    }
+
+    const readInput = async (lineId: bigint) =>
+      prisma.carbonInventoryLineInput.findFirstOrThrow({
+        where: { lineId, isActive: true },
+        include: { factor: true, result: true },
+      });
+
+    it("clears every catalogue factor and its result, keeping the rest of the line", async () => {
+      const { carbonInventory, catalogue, manual, parked, edited, damaged } =
+        await buildFootprintWithFrozenFactors();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateCarbonInventoryResponse;
+      expect(body.year).toBe(2026);
+
+      const clearedInput = await readInput(catalogue.line.id);
+      expect(clearedInput.factor).toBeNull();
+      expect(clearedInput.result).toBeNull();
+      // Everything else the line held is intact, and no replacement factor was
+      // chosen for it.
+      expect(clearedInput.quantity?.toString()).toBe("10");
+      const clearedLine = await prisma.carbonInventoryLine.findUniqueOrThrow({
+        where: { id: catalogue.line.id },
+        select: { status: true, subcategoryId: true },
+      });
+      expect(clearedLine.status).toBe(CarbonInventoryLineStatus.ACTIVE);
+
+      // A parked line is cleared too: it can be reactivated without passing
+      // through line synchronization, which would carry a stale factor back
+      // into an active footprint.
+      const parkedInput = await readInput(parked.line.id);
+      expect(parkedInput.factor).toBeNull();
+      expect(parkedInput.result).toBeNull();
+
+      // A line edited since capture keeps its factor id, so it is cleared like
+      // any other catalogue-backed line rather than mistaken for a manual one.
+      const editedInput = await readInput(edited.line.id);
+      expect(editedInput.factor).toBeNull();
+      expect(editedInput.result).toBeNull();
+
+      // A snapshot that lost its factor id but kept a catalogue source is
+      // cleared like any other catalogue-backed line. Keying on the id alone
+      // would read it as manual and leave it here permanently: it round-trips
+      // as `baseFactorId: null`, so no later save would reconcile it either.
+      const damagedInput = await readInput(damaged.line.id);
+      expect(damagedInput.factor).toBeNull();
+      expect(damagedInput.result).toBeNull();
+
+      // The manual factor survives untouched, value and source included.
+      const manualInput = await readInput(manual.line.id);
+      expect(manualInput.factor?.appliedFactorSource).toBe("Otro");
+      expect(manualInput.factor?.appliedFactorValue.toString()).toBe("4");
+      expect(manualInput.manualFactor?.toString()).toBe("4");
+      expect(manualInput.result).not.toBeNull();
+    });
+
+    it("clears the snapshots a duplicated footprint inherited when its year changes", async () => {
+      const { carbonInventory } = await buildFootprintWithFrozenFactors();
+
+      const duplicated = await app.inject({
+        method: "POST",
+        url: `/api/carbon-inventories/${carbonInventory.id}/duplicate`,
+      });
+      expect(duplicated.statusCode).toBe(200);
+      const copyId = BigInt((JSON.parse(duplicated.body) as { id: string }).id);
+
+      const snapshotsOf = (id: bigint) =>
+        prisma.carbonInventoryLineFactor.findMany({
+          where: {
+            lineInput: { isActive: true, line: { carbonInventoryId: id } },
+          },
+          select: { emissionFactorId: true, appliedFactorSource: true },
+        });
+
+      // The copy inherits every snapshot verbatim — four of the five lines,
+      // since duplication copies ACTIVE lines only and one of them is parked.
+      expect(await snapshotsOf(copyId)).toHaveLength(4);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${copyId.toString()}`,
+        payload: { year: 2026 },
+      });
+      expect(response.statusCode).toBe(200);
+
+      // Only the manual one is left, and the original footprint is untouched.
+      const remaining = await snapshotsOf(copyId);
+      expect(remaining).toHaveLength(1);
+      expect(remaining[0].emissionFactorId).toBeNull();
+      expect(remaining[0].appliedFactorSource).toBe("Otro");
+
+      const remainingResults = await prisma.carbonInventoryLineResult.count({
+        where: {
+          lineInput: { isActive: true, line: { carbonInventoryId: copyId } },
+        },
+      });
+      expect(remainingResults).toBe(1);
+
+      expect(await snapshotsOf(carbonInventory.id)).toHaveLength(5);
+    });
+
+    it("keeps the typed total of a direct line when its snapshot is cleared", async () => {
+      const methodologyVersionId = await getTestMethodologyVersionId(prisma);
+      const carbonInventory = await seedCarbonInventory(prisma, {
+        usageMode: "SIMPLIFIED",
+        year: 2025,
+        methodologyVersionId,
+      });
+      const subcategoryIds = await getSubcategoryIds(
+        prisma,
+        methodologyVersionId
+      );
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+      const factor = await createTestEmissionFactor(
+        prisma,
+        subcategoryIds[0],
+        rateUnitId,
+        { source: "DEFRA 2025", year: 2025, value: "2.5" }
+      );
+
+      // A DIRECT line carrying a catalogue snapshot: the total was typed by
+      // hand, the snapshot came along with it.
+      const line = await createCarbonInventoryLine(
+        prisma,
+        carbonInventory.id,
+        subcategoryIds[0]
+      );
+      const input = await createCarbonInventoryLineInput(prisma, line.id, {
+        inputType: "DIRECT",
+        directTotalEmissions: new Prisma.Decimal(1200),
+        isActive: true,
+      });
+      await createCarbonInventoryLineFactor(prisma, input.id, {
+        appliedFactorValue: new Prisma.Decimal(2.5),
+        appliedFactorRateUnitId: rateUnitId,
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      await createCarbonInventoryLineResult(prisma, input.id, 1200);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const updated = await readInput(line.id);
+      // The snapshot goes, like any other of another year.
+      expect(updated.factor).toBeNull();
+      // The typed total stays. Removing it would leave the number on the input
+      // and out of every total, which reads as a line silently worth zero.
+      expect(updated.directTotalEmissions?.toString()).toBe("1200");
+      expect(Number(updated.result?.totalEmissions)).toBe(1200);
+    });
+
+    it("leaves the frozen factors alone when the year does not change", async () => {
+      const { carbonInventory, catalogue } =
+        await buildFootprintWithFrozenFactors();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2025, name: "Same year, new name" },
+      });
+
+      expect(response.statusCode).toBe(200);
+
+      const input = await readInput(catalogue.line.id);
+      expect(input.factor).not.toBeNull();
+      expect(input.result).not.toBeNull();
+    });
+
+    it("keeps the superseded input versions as they are", async () => {
+      const { carbonInventory, catalogue, factor } =
+        await buildFootprintWithFrozenFactors();
+      const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+      // Turn the line's snapshot into history: deactivate it and give the line
+      // a fresh active input with its own snapshot, the shape a save leaves.
+      await prisma.carbonInventoryLineInput.update({
+        where: { id: catalogue.input.id },
+        data: { isActive: false },
+      });
+      const activeInput = await createCarbonInventoryLineInput(
+        prisma,
+        catalogue.line.id,
+        { quantity: new Prisma.Decimal(10), isActive: true }
+      );
+      await createCarbonInventoryLineFactor(prisma, activeInput.id, {
+        appliedFactorValue: new Prisma.Decimal(2.5),
+        appliedFactorRateUnitId: rateUnitId,
+        emissionFactorId: factor.id,
+        appliedFactorSource: "DEFRA 2025",
+      });
+      await createCarbonInventoryLineResult(prisma, activeInput.id, 25);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+      expect(response.statusCode).toBe(200);
+
+      // The active input lost its snapshot and its result...
+      expect(
+        await prisma.carbonInventoryLineFactor.findUnique({
+          where: { lineInputId: activeInput.id },
+        })
+      ).toBeNull();
+      expect(
+        await prisma.carbonInventoryLineResult.findUnique({
+          where: { lineInputId: activeInput.id },
+        })
+      ).toBeNull();
+
+      // ...while the superseded version keeps both: every reader filters
+      // `isActive: true`, so they are audit trail nothing consults.
+      const supersededFactor =
+        await prisma.carbonInventoryLineFactor.findUnique({
+          where: { lineInputId: catalogue.input.id },
+        });
+      expect(supersededFactor).not.toBeNull();
+      const supersededResult =
+        await prisma.carbonInventoryLineResult.findUnique({
+          where: { lineInputId: catalogue.input.id },
+        });
+      expect(supersededResult).not.toBeNull();
     });
   });
 

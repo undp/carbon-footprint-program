@@ -46,7 +46,12 @@ export const createEmissionFactorService = async (
         throw new SubcategoryNotFoundForEmissionFactorError();
       }
 
-      await validateSourceConsistency(tx, subcategory.id, data.source);
+      await validateSourceConsistency(
+        tx,
+        subcategory.id,
+        data.source,
+        data.year
+      );
 
       // Find-or-create dimension values if provided
       let dimensionValue1Id: bigint | null = null;
@@ -74,7 +79,8 @@ export const createEmissionFactorService = async (
         tx,
         subcategory.id,
         dimensionValue1Id,
-        dimensionValue2Id
+        dimensionValue2Id,
+        data.year
       );
 
       const emissionFactor = await tx.emissionFactor.create({
@@ -84,6 +90,7 @@ export const createEmissionFactorService = async (
           dimensionValue2Id,
           rateMeasurementUnitId: BigInt(data.rateMeasurementUnitId),
           source: data.source,
+          year: data.year,
           gasDetails: data.gasDetails,
           value: new Prisma.Decimal(data.value),
           status: EmissionFactorStatus.ACTIVE,
@@ -102,6 +109,7 @@ export const createEmissionFactorService = async (
         id: emissionFactor.id.toString(),
         value: emissionFactor.value.toString(),
         source: emissionFactor.source,
+        year: emissionFactor.year,
         subcategoryId: emissionFactor.subcategory.id.toString(),
         subcategoryName: emissionFactor.subcategory.name,
         dimensionValue1Id:

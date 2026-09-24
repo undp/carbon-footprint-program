@@ -7,6 +7,7 @@ import {
 } from "../types/EmissionCaptureTypes";
 import { mapLinesToSyncRequest } from "../utils/emissionCaptureTransformers";
 import { VOCAB } from "@/config/vocab";
+import { getApiErrorMessage } from "@/utils/getApiErrorMessage";
 
 interface Params {
   inventoryId: string;
@@ -102,10 +103,14 @@ export const useEmissionCaptureSubmit = ({
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error("Error al guardar las líneas de emisión:", error);
+        // The API's own message when it has one: a refused factor reference
+        // tells the user the catalogue changed and to reload, which the
+        // generic sentence would hide behind "try again".
         if (resultFeedbackWithSnackbar)
-          enqueueSnackbar("Error al guardar la huella", {
-            variant: "error",
-          });
+          enqueueSnackbar(
+            getApiErrorMessage(error, "Error al guardar la huella"),
+            { variant: "error" }
+          );
         if (throwOnError) throw error;
       }
     },

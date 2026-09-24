@@ -22,15 +22,16 @@ Cada Factor está asociado a una Sub-categoría, una Unidad de Medida de tasa, u
 
 Campos y validaciones:
 
-| Columna       | Reglas                                                                                                           |
-| ------------- | ---------------------------------------------------------------------------------------------------------------- |
-| Sub-categoría | Obligatoria. Debe pertenecer a la Metodología activa en el selector.                                             |
-| Variable 1    | Obligatoria si la Sub-categoría declara una primera dimensión requerida; deshabilitada (no aplica) en otro caso. |
-| Variable 2    | Obligatoria si la Sub-categoría declara una segunda dimensión requerida; deshabilitada (no aplica) en otro caso. |
-| Valor         | Obligatorio. Número no negativo y distinto de 0.                                                                 |
-| Unidad        | Obligatoria. Debe corresponder a una unidad de tasa compatible con la Sub-categoría.                             |
-| Desglose GEI  | Valores no negativos por gas (CO₂ fósil, CH₄, N₂O, HFC, PFC, SF₆, NF₃). Se edita en un modal.                    |
-| Fuente        | Obligatoria. Texto libre con la referencia bibliográfica o regulatoria del factor.                               |
+| Columna       | Reglas                                                                                                                                                                                     |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Sub-categoría | Obligatoria. Debe pertenecer a la Metodología activa en el selector.                                                                                                                       |
+| Variable 1    | Obligatoria si la Sub-categoría declara una primera dimensión requerida; deshabilitada (no aplica) en otro caso.                                                                           |
+| Variable 2    | Obligatoria si la Sub-categoría declara una segunda dimensión requerida; deshabilitada (no aplica) en otro caso.                                                                           |
+| Valor         | Obligatorio. Número no negativo y distinto de 0.                                                                                                                                           |
+| Unidad        | Obligatoria. Debe corresponder a una unidad de tasa compatible con la Sub-categoría.                                                                                                       |
+| Desglose GEI  | Valores no negativos por gas (CO₂ fósil, CH₄, N₂O, HFC, PFC, SF₆, NF₃). Se edita en un modal.                                                                                              |
+| Fuente        | Obligatoria. Texto libre con la referencia bibliográfica o regulatoria del factor. Todos los Factores activos de una misma Sub-categoría deben compartir la Fuente dentro de un mismo Año. |
+| Año           | Obligatorio. Año de huella para el que el Factor es válido. El selector ofrece desde cuatro años atrás hasta el próximo. Una huella sólo recibe Factores de su mismo año.                  |
 
 ### Editar Factor de Emisión
 

@@ -121,6 +121,95 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
     expect(body.categories[0].subcategories[0].emissionFactors).toHaveLength(1);
   });
 
+  it("lists only the factors of the footprint's year", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      status: MethodologyVersionStatus.PUBLISHED,
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Energía",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Electricidad",
+    });
+    const rateMeasurementUnitId = await getTestRateMeasurementUnitId(prisma);
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Source 2025", year: 2025 }
+    );
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Source 2024", year: 2024 }
+    );
+
+    const inventory = await createInventoryFromPattern(
+      prisma,
+      carbonInventoryPatterns.simplifiedDraft,
+      { methodologyVersionId: methodology.id, year: 2024 }
+    );
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/carbon-inventories/${inventory.id}/methodology-export`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetCarbonInventoryMethodologyExportResponse;
+    const factors = body.categories[0].subcategories[0].emissionFactors;
+    expect(factors).toHaveLength(1);
+    expect(factors[0].year).toBe(2024);
+    expect(factors[0].source).toBe("Test - Source 2024");
+  });
+
+  it("keeps every year when the footprint has no year yet", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      status: MethodologyVersionStatus.PUBLISHED,
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Energía",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Electricidad",
+    });
+    const rateMeasurementUnitId = await getTestRateMeasurementUnitId(prisma);
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Source 2025", year: 2025 }
+    );
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Source 2024", year: 2024 }
+    );
+
+    const inventory = await createInventoryFromPattern(
+      prisma,
+      carbonInventoryPatterns.simplifiedDraft,
+      { methodologyVersionId: methodology.id }
+    );
+
+    const response = await app.inject({
+      method: "GET",
+      url: `/api/carbon-inventories/${inventory.id}/methodology-export`,
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(
+      response.body
+    ) as GetCarbonInventoryMethodologyExportResponse;
+    expect(body.categories[0].subcategories[0].emissionFactors).toHaveLength(2);
+  });
+
   it("returns 200 when the methodology version is UNPUBLISHED", async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       status: MethodologyVersionStatus.UNPUBLISHED,
@@ -298,6 +387,9 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
       { source: "Test - Parity Source", value: "1.23" }
     );
 
+    // Deliberately undated: parity is over the response shape, and the bodies
+    // are equal row for row only while the footprint has no year to scope the
+    // factors to. The scoped case is its own test above.
     const inventory = await createInventoryFromPattern(
       prisma,
       carbonInventoryPatterns.simplifiedDraft,

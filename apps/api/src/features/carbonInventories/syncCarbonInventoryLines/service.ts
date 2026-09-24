@@ -8,9 +8,12 @@ import {
 } from "@repo/types";
 import { mapLineToResponse, type LineWithInputs } from "../mappers.js";
 import {
+  assertFactorReferenceIsValid,
   createLineInput,
   createLineFactor,
   createLineResult,
+  findReferencedEmissionFactors,
+  isFactorKeptOnLine,
   linkFilesToCarbonInventoryLine,
   unlinkFilesFromCarbonInventoryLine,
 } from "./helper.js";
@@ -37,6 +40,7 @@ export const syncCarbonInventoryLinesService = async (
     where: { id: carbonInventoryId },
     select: {
       methodologyVersionId: true,
+      year: true,
       ...carbonInventoryWithSubmissionsMinimalSelect,
     },
   });
@@ -80,13 +84,15 @@ export const syncCarbonInventoryLinesService = async (
     ...request.delete.map((item) => BigInt(item.id)),
   ];
 
+  const subcategoryIdByLineId = new Map<string, string>();
+
   if (lineIdsToValidate.length > 0) {
     const existingLines = await prismaClient.carbonInventoryLine.findMany({
       where: {
         id: { in: lineIdsToValidate },
         status: CarbonInventoryLineStatus.ACTIVE, // Only consider active lines
       },
-      select: { id: true, carbonInventoryId: true },
+      select: { id: true, carbonInventoryId: true, subcategoryId: true },
     });
 
     const existingLineMap = new Map(
@@ -102,8 +108,38 @@ export const syncCarbonInventoryLinesService = async (
           carbonInventoryId.toString(),
           line.carbonInventoryId.toString()
         );
+      subcategoryIdByLineId.set(item.id, line.subcategoryId.toString());
     }
   }
+
+  // Read every factor the payload references and refuse the request if any of
+  // them does not exist (404) or is one this footprint cannot use — deleted, of
+  // another year, or of another subcategory (422). Checked before the
+  // transaction opens, so a refused save writes nothing. The footprint was read before too and stays there:
+  // these transactions run at READ COMMITTED and the interleaving with a
+  // concurrent year change is accepted — it needs two people editing the same
+  // footprint at once.
+  const referencedFactors = await findReferencedEmissionFactors(prismaClient, [
+    ...request.create,
+    ...request.update,
+  ]);
+
+  for (const createItem of request.create)
+    assertFactorReferenceIsValid(
+      createItem,
+      referencedFactors,
+      carbonInventory.year,
+      createItem.subcategoryId
+    );
+  for (const updateItem of request.update)
+    assertFactorReferenceIsValid(
+      updateItem,
+      referencedFactors,
+      carbonInventory.year,
+      // Present for every id in `request.update`: the validation above throws
+      // `LineNotFoundError` before reaching here otherwise.
+      subcategoryIdByLineId.get(updateItem.id) ?? ""
+    );
 
   // Execute all operations in a transaction
   const createdLineIds: bigint[] = [];
@@ -136,8 +172,20 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      await createLineFactor(tx, newInput.id, createItem, userId);
-      await createLineResult(tx, newInput.id, createItem, inputType, userId);
+      // Every unknown or stale reference was refused above. What is still
+      // left off the line is a damaged snapshot: no snapshot and no result, so
+      // the cell comes back empty and the line reads as unfinished.
+      const keepsFactor = isFactorKeptOnLine(createItem);
+      if (keepsFactor)
+        await createLineFactor(tx, newInput.id, createItem, userId);
+      await createLineResult(
+        tx,
+        newInput.id,
+        createItem,
+        inputType,
+        userId,
+        keepsFactor
+      );
 
       if (createItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(
@@ -169,8 +217,17 @@ export const syncCarbonInventoryLinesService = async (
         inputType,
         userId
       );
-      await createLineFactor(tx, newInput.id, updateItem, userId);
-      await createLineResult(tx, newInput.id, updateItem, inputType, userId);
+      const keepsFactor = isFactorKeptOnLine(updateItem);
+      if (keepsFactor)
+        await createLineFactor(tx, newInput.id, updateItem, userId);
+      await createLineResult(
+        tx,
+        newInput.id,
+        updateItem,
+        inputType,
+        userId,
+        keepsFactor
+      );
 
       if (updateItem.addFileUuids.length > 0) {
         await linkFilesToCarbonInventoryLine(
