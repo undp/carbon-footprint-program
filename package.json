@@ -32,7 +32,8 @@
     "db:provision": "pnpm --filter=@repo/database prod:deploy && pnpm db:seed",
     "db:seed": "turbo run seed --filter=@repo/seed",
     "db:promote-superadmin": "pnpm --filter=@repo/database promote-superadmin",
-    "db:drop:worktree": "pnpm --filter=@repo/database db:drop:worktree"
+    "db:drop:worktree": "pnpm --filter=@repo/database db:drop:worktree",
+    "chatbot:ingest-corpus": "pnpm --filter=api chatbot:ingest-corpus"
   },
   "devDependencies": {
     "cpy-cli": "^7.0.0",

@@ -22,7 +22,7 @@ const INGEST_SCRIPT = resolve(import.meta.dirname, "ingestCorpus.ts");
 const ACTIVATE_SCRIPT = resolve(import.meta.dirname, "activateCorpusSource.ts");
 
 const USAGE = `\
-Uso: pnpm --filter api chatbot:ingest-corpus [--app-url <https-url>] [--corpus-dir <ruta>] [--yes]
+Uso: pnpm chatbot:ingest-corpus [--app-url <https-url>] [--corpus-dir <ruta>] [--yes]
 
 Ingesta todos los documentos de la carpeta corpus/ en tres pasos:
   1. Valida los requisitos (manifest, base de datos, pgvector, proveedor de embeddings).
@@ -37,6 +37,8 @@ Argumentos:
                        como <url>#<archivo>. Default: el primer origen de
                        ALLOWED_ORIGIN si es https; si no, se pregunta.
   --corpus-dir <ruta>  Carpeta del corpus (default: corpus/ en la raíz del repo).
+                       Una ruta relativa se resuelve desde apps/api, no desde
+                       la raíz: el comando corre con ese directorio de trabajo.
   --yes                No preguntar: confirma la configuración y activa todo.
                        Necesario si no hay una terminal interactiva.
 `;

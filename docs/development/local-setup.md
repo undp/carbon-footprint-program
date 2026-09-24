@@ -422,7 +422,7 @@ pnpm --filter api chatbot:ingest test/fixtures/chatbot/ghg-protocol-sample.pdf \
 pnpm --filter api chatbot:activate <source-id>
 ```
 
-To load the real corpus instead — every document in the repository's `corpus/` folder — run `pnpm --filter api chatbot:ingest-corpus`. It validates the setup, asks you to confirm the environment it found, and ingests and activates everything; see the [runbook](../operations/runbook.md#ingesting-the-whole-corpus-folder). The explanations are cited against an `https` app URL, so pass `--app-url` when your `ALLOWED_ORIGIN` is `http://localhost`.
+To load the real corpus instead — every document in the repository's `corpus/` folder — run `pnpm chatbot:ingest-corpus`. It validates the setup, asks you to confirm the environment it found, and ingests and activates everything; see the [runbook](../operations/runbook.md#ingesting-the-whole-corpus-folder). The explanations are cited against an `https` app URL, so pass `--app-url` when your `ALLOWED_ORIGIN` is `http://localhost`.
 
 `--source-type` accepts `PDF` and `MD`, and has to agree with the file's extension — the CLI refuses the mismatch, because `source_type` is what retrieval filters on. Paths are relative to `apps/api` under `pnpm --filter api`, not the repo root. Ingest leaves the source in `DRAFT`, which retrieval ignores — nothing is answerable until `chatbot:activate` runs. Full corpus operations, including the re-embed playbook, are in the [runbook](../operations/runbook.md).
 

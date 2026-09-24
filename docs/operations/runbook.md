@@ -602,7 +602,7 @@ Rotating `COOKIE_SECRET` invalidates all signed `chatbot_session_id` cookies. An
 The repository's `corpus/` folder holds every document the assistant should know: third-party PDFs, plus symlinks to the category and subcategory explanations the platform itself shows. `corpus/manifest.json` gives each PDF its label, scope and citation URL. Ingest all of it with one command:
 
 ```bash
-pnpm --filter api chatbot:ingest-corpus
+pnpm chatbot:ingest-corpus
 ```
 
 It runs in three steps:

@@ -9,7 +9,7 @@ The documents the assistant answers from.
 To add a document, drop it here and list it in `manifest.json`. To ingest everything:
 
 ```bash
-pnpm --filter api chatbot:ingest-corpus
+pnpm chatbot:ingest-corpus
 ```
 
 See the [runbook](../docs/operations/runbook.md#ingesting-the-whole-corpus-folder).
