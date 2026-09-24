@@ -12,16 +12,28 @@ const AZURE_TEST_CONFIG = {
 } as const;
 
 const MINIO_TEST_CONFIG = {
-  // Pulled from quay.io, not Docker Hub: the `minio/minio` repository on Hub
-  // stopped being publicly pullable (the registry answers 401 and the Hub API
-  // 404), which failed the storage-minio CI leg with "pull access denied …
-  // repository does not exist". quay.io is MinIO's own public registry and
-  // serves the identical artifact — the digest below is unchanged, so this is
-  // a source swap, not an image swap.
+  // Pulled from Chainguard. This is the second registry this image has moved
+  // to: Docker Hub stopped serving `minio/minio` publicly (401 on the registry,
+  // 404 on the Hub API), and quay.io — MinIO's own registry, taken as the
+  // replacement — now answers the pull with "500 unauthorized: access to the
+  // requested resource is not authorized", which fails the storage-minio CI leg
+  // before a single test runs. It is not a flake: a re-run of the same job
+  // reproduced it exactly.
   //
-  // Digest-pinned for reproducibility; bump the tag and digest together.
+  // Unlike the Hub-to-quay move, this IS an image swap. Chainguard builds MinIO
+  // from source on its own base, so the artifact differs even though the server
+  // is the same: it runs as an unprivileged user and its entrypoint is the
+  // `minio` binary, so the `server /data` command below is passed as arguments
+  // to it rather than replacing it.
+  //
+  // Digest-pinned as everything else here is, but the guarantee is weaker: the
+  // free tier serves `:latest` only — no release tags — and garbage-collects the
+  // digests behind it, so this pin has to be refreshed when the pull starts
+  // failing rather than bumped alongside a version. That is the cost of the
+  // move, and the reason to revisit it once MinIO publishes somewhere pullable
+  // again.
   image:
-    "quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z@sha256:14cea493d9a34af32f524e538b8346cf79f3321eff8e708c1e2960462bd8936e",
+    "cgr.dev/chainguard/minio:latest@sha256:7abc41a42aa78685a2fa48a9088e539625114ac4fc236ce5d58e92ca12f6b960",
   bucket: "test-files",
   accessKey: "minioadmin",
   secretKey: "minioadmin",
