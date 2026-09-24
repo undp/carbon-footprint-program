@@ -112,6 +112,13 @@ describe("Emission factor usage guard - Integration Tests", () => {
        * always stamps a creator, so it is cleared afterwards.
        */
       claimed?: boolean;
+      /**
+       * Emissions typed by hand instead of computed. The line becomes `DIRECT`
+       * and still carries a catalogue snapshot, which is what the capture
+       * payload produces: `mapCommonFields` sends `baseFactorId` and
+       * `appliedFactorValue` whatever the input type.
+       */
+      directTotalEmissions?: number;
     }
   ) {
     const inventory = await createCarbonInventory(prisma, {
@@ -132,7 +139,16 @@ describe("Emission factor usage guard - Integration Tests", () => {
       context.subcategory.id,
       { status: options?.lineStatus ?? CarbonInventoryLineStatus.ACTIVE }
     );
+    const isDirect = options?.directTotalEmissions !== undefined;
     const input = await createCarbonInventoryLineInput(prisma, line.id, {
+      ...(isDirect
+        ? {
+            inputType: "DIRECT" as const,
+            directTotalEmissions: new Prisma.Decimal(
+              options.directTotalEmissions ?? 0
+            ),
+          }
+        : {}),
       quantity: new Prisma.Decimal(10),
       isActive: options?.inputIsActive ?? true,
     });
@@ -143,8 +159,14 @@ describe("Emission factor usage guard - Integration Tests", () => {
       appliedFactorSource: context.factor.source,
     });
     // The computed emissions travel with the snapshot, so a test that checks
-    // one is detached has to be able to check the other went with it.
-    await createCarbonInventoryLineResult(prisma, input.id, 15);
+    // one is detached has to be able to check the other went with it. A direct
+    // line's result holds the number that was typed, not one derived from the
+    // factor, which is exactly what must survive the detach.
+    await createCarbonInventoryLineResult(
+      prisma,
+      input.id,
+      options?.directTotalEmissions ?? 15
+    );
 
     return { inventory, line, input };
   }
@@ -154,6 +176,9 @@ describe("Emission factor usage guard - Integration Tests", () => {
 
   const countResults = (lineInputId: bigint) =>
     prisma.carbonInventoryLineResult.count({ where: { lineInputId } });
+
+  const readResult = (lineInputId: bigint) =>
+    prisma.carbonInventoryLineResult.findFirst({ where: { lineInputId } });
 
   const readFactor = (factor: EmissionFactor) =>
     prisma.emissionFactor.findUniqueOrThrow({ where: { id: factor.id } });
@@ -445,6 +470,27 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect(await countResults(input.id)).toBe(0);
     });
 
+    it("keeps a direct line's typed total when the factor moves", async () => {
+      const context = await createUnusedFactor("Update Direct");
+      const { input } = await referenceFactor(context, {
+        claimed: false,
+        directTotalEmissions: 42,
+      });
+      const before = await readResult(input.id);
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { year: 2026 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect((await readResult(input.id))?.totalEmissions.toString()).toBe(
+        before?.totalEmissions.toString()
+      );
+    });
+
     // The snapshot is a frozen copy on purpose: correcting a value must not
     // rewrite the footprints that already reported the old one, and the factor
     // keeps its place in the selector, so the line has nothing to re-pick.
@@ -516,6 +562,36 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect(response.statusCode).toBe(200);
       expect(await countSnapshots(context.factor.id)).toBe(0);
       expect(await countResults(input.id)).toBe(0);
+    });
+
+    // A direct total was typed, not computed from the factor, so the snapshot
+    // goes and the number the user entered stays. `createLineResult` makes the
+    // same carve-out on the synchronization path and
+    // `clearCatalogueFactorsOfLines` on the year-change path. If this one
+    // disagreed, `direct_total_emissions` would survive on the input while the
+    // result row vanished: the editor would keep showing the total and
+    // `carbon_inventory_subtotals_view` would count the line as zero.
+    it("keeps a direct line's typed total while taking its snapshot", async () => {
+      const context = await createUnusedFactor("Detach Direct");
+      const { input } = await referenceFactor(context, {
+        claimed: false,
+        directTotalEmissions: 42,
+      });
+      const before = await readResult(input.id);
+
+      expect(await countSnapshots(context.factor.id)).toBe(1);
+      expect(before).not.toBeNull();
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      expect(await countSnapshots(context.factor.id)).toBe(0);
+      expect((await readResult(input.id))?.totalEmissions.toString()).toBe(
+        before?.totalEmissions.toString()
+      );
     });
 
     it("keeps what the line kept: subcategory, unit and quantity", async () => {

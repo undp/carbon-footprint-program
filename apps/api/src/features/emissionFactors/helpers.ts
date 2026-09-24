@@ -1,4 +1,4 @@
-import type { Prisma } from "@repo/database";
+import { InputType, type Prisma } from "@repo/database";
 import {
   CarbonInventoryLineStatus,
   EmissionFactorDimensionStatus,
@@ -275,6 +275,18 @@ export async function countActiveLineReferences(
  * applied when dating the catalogue left footprints holding factors their year
  * would no longer offer. Same situation, different trigger.
  *
+ * A direct total is the one thing that does not go with the snapshot. It was
+ * typed, not computed, so the snapshot a `DIRECT` line happens to carry says
+ * nothing about it -- `mapCommonFields` sends `baseFactorId` and
+ * `appliedFactorValue` whatever the input type, and `createLineFactor` freezes
+ * them without looking at it, so such a line is ordinary rather than exotic.
+ * `createLineResult` protects the same invariant on the synchronization path
+ * and `clearCatalogueFactorsOfLines` on the year-change path; all three have to
+ * agree or a delete erases a number the user entered by hand while
+ * `direct_total_emissions` survives on the input: the editor keeps showing it
+ * and `carbon_inventory_subtotals_view` counts the line as zero and unfinished.
+ * The snapshot itself still goes, as it does everywhere else.
+ *
  * Scope is exactly `unclaimedLineReferenceWhere`, and it is safe because the
  * guard has already refused the delete if any claimed footprint depends on the
  * factor — so nothing anybody owns is touched. Superseded inputs, deleted lines
@@ -287,18 +299,27 @@ export async function detachFactorFromUnclaimedLines(
 ): Promise<void> {
   const snapshots = await tx.carbonInventoryLineFactor.findMany({
     where: { emissionFactorId, ...unclaimedLineReferenceWhere },
-    select: { id: true, lineInputId: true },
+    select: {
+      id: true,
+      lineInputId: true,
+      lineInput: { select: { inputType: true } },
+    },
   });
 
   if (snapshots.length === 0) return;
 
-  const lineInputIds = snapshots.map(({ lineInputId }) => lineInputId);
-
   // Results first: the emissions they hold were computed from the snapshot, so
-  // leaving them would report a total the line can no longer explain.
-  await tx.carbonInventoryLineResult.deleteMany({
-    where: { lineInputId: { in: lineInputIds } },
-  });
+  // leaving them would report a total the line can no longer explain. A direct
+  // total was not computed from it and stays, as the doc block above explains.
+  const computedLineInputIds = snapshots
+    .filter(({ lineInput }) => lineInput.inputType !== InputType.DIRECT)
+    .map(({ lineInputId }) => lineInputId);
+
+  if (computedLineInputIds.length > 0) {
+    await tx.carbonInventoryLineResult.deleteMany({
+      where: { lineInputId: { in: computedLineInputIds } },
+    });
+  }
   await tx.carbonInventoryLineFactor.deleteMany({
     where: { id: { in: snapshots.map(({ id }) => id) } },
   });
