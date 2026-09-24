@@ -112,6 +112,10 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     typeof details?.valueName === "string"
       ? `No se puede eliminar la variable "${details.valueName}": hay capturas o iniciativas de reducción activas que la usan.`
       : "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.",
+  DIMENSION_IN_USE: (details) =>
+    typeof details?.valueName === "string"
+      ? `No se puede eliminar la dimensión: la variable "${details.valueName}" está en uso por capturas o iniciativas de reducción activas.`
+      : "No se puede eliminar la dimensión: alguna de sus variables está en uso por capturas o iniciativas de reducción activas.",
 
   // Reduction plan initiatives
   REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS:

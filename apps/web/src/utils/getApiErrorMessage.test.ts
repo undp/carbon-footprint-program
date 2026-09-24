@@ -422,6 +422,32 @@ describe("getApiErrorMessage — DIMENSION_VALUE_IN_USE", () => {
   });
 });
 
+describe("getApiErrorMessage — DIMENSION_IN_USE", () => {
+  const CODE = "DIMENSION_IN_USE";
+  const GENERIC =
+    "No se puede eliminar la dimensión: alguna de sus variables está en uso por capturas o iniciativas de reducción activas.";
+
+  it("names the variable that blocks the deletion", () => {
+    expect(
+      getApiErrorMessage(
+        httpErrorWithCode(CODE, { valueName: "Excavadora" }),
+        FALLBACK
+      )
+    ).toBe(
+      'No se puede eliminar la dimensión: la variable "Excavadora" está en uso por capturas o iniciativas de reducción activas.'
+    );
+  });
+
+  it.each<readonly [string, Record<string, unknown> | undefined]>([
+    ["details are missing", undefined],
+    ["valueName is not a string", { valueName: 42 }],
+  ])("falls back to the generic sentence when %s", (_label, details) => {
+    expect(getApiErrorMessage(httpErrorWithCode(CODE, details), FALLBACK)).toBe(
+      GENERIC
+    );
+  });
+});
+
 describe("getApiErrorMessage — PARENT_NOT_ACTIVE", () => {
   const CODE = "PARENT_NOT_ACTIVE";
   const GENERIC =

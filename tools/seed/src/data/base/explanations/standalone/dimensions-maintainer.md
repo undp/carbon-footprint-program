@@ -33,7 +33,7 @@ Al hacer clic en una fila se habilita su edición. Se pueden modificar el nombre
 
 ### Eliminar dimensión
 
-Desde el botón de acciones se puede eliminar una dimensión, con confirmación que advierte de la eliminación de todos los factores de emisión asociados. Si la subcategoría tiene dos dimensiones, solo se permite eliminar la posición 2; la posición 1 únicamente puede eliminarse cuando es la única de la subcategoría.
+Desde el botón de acciones se puede eliminar una dimensión, con confirmación que advierte de la eliminación de todos los factores de emisión asociados. Si la subcategoría tiene dos dimensiones, solo se permite eliminar la posición 2; la posición 1 únicamente puede eliminarse cuando es la única de la subcategoría. Tampoco se puede eliminar una dimensión si alguna de sus variables está en uso por capturas o iniciativas de reducción activas.
 
 ### Gestionar variables
 
