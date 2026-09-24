@@ -105,3 +105,50 @@ describe("chunkText — carried-over overlap", () => {
     }
   });
 });
+
+// Markdown arrives through `readMarkdown` with its syntax intact, so `#`
+// headings are the only section signal the chunker gets — the numbered-marker
+// pattern that PDF text carries (`3 ALCANCE`) never matches a line that starts
+// with a hash.
+describe("chunkText — Markdown headings", () => {
+  const markdownDocument = [
+    "# Guía de inventarios",
+    uniqueSentences(40, 0),
+    "",
+    "## Alcance uno",
+    uniqueSentences(40, 100),
+    "",
+    "### Emisiones fugitivas",
+    uniqueSentences(40, 200),
+  ].join("\n");
+
+  it("advances the section title as ATX headings go by", () => {
+    const chunks = chunkText(markdownDocument);
+
+    const titles = new Set(chunks.map((c) => c.sectionTitle));
+    expect(titles.size).toBeGreaterThan(1);
+    expect(chunks.at(-1)?.sectionTitle).toBe("Emisiones fugitivas");
+  });
+
+  it("strips the hash marks from the title and keeps them in the content", () => {
+    const chunks = chunkText(markdownDocument);
+
+    // The title is metadata — `section_title` in the database — where the
+    // markup is noise. The chunk the model reads keeps the heading verbatim,
+    // so the level (## vs ###) survives where it is still informative.
+    for (const chunk of chunks) {
+      expect(chunk.sectionTitle?.startsWith("#")).not.toBe(true);
+    }
+    expect(chunks.some((c) => c.content.includes("## Alcance uno"))).toBe(true);
+  });
+
+  it("does not fall back to sentence blocks on a heading-only document", () => {
+    // The fallback fires when no heading matched at all, and it drops every
+    // section title. A Markdown document reaching it would ingest with
+    // `section_title = NULL` on every chunk — silent, and only visible in the
+    // database.
+    const chunks = chunkText(markdownDocument);
+
+    expect(chunks.every((c) => c.sectionTitle !== null)).toBe(true);
+  });
+});
