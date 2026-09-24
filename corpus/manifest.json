@@ -1,0 +1,20 @@
+{
+  "documents": [
+    {
+      "file": "GHG.pdf",
+      "label": "GHG Protocol Corporate Standard",
+      "scope": "GLOBAL",
+      "citeUrl": "https://ghgprotocol.org/corporate-standard"
+    },
+    {
+      "file": "AR6_secciones_relevantes.pdf",
+      "label": "IPCC AR6 GT I — Resumen para responsables de políticas",
+      "scope": "GLOBAL",
+      "citeUrl": "https://www.ipcc.ch/report/ar6/wg1/"
+    }
+  ],
+  "explanations": [
+    { "dir": "categories", "labelPrefix": "Categoría", "scope": "GLOBAL" },
+    { "dir": "subcategories", "labelPrefix": "Subcategoría", "scope": "GLOBAL" }
+  ]
+}
