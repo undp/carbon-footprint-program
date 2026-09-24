@@ -52,7 +52,7 @@ Factores referenciales (DEFRA 2025):
 | Metro                | No aplica   |               0.041 | pasajero            |
 | Tren cercanías       | No aplica   |               0.035 | pasajero            |
 | Tren larga distancia | No aplica   |               0.035 | pasajero            |
-| Taxi/Ride-share      | Gasolina    |               0.149 | vehículo            |
+| Taxi/Ride-share      | Gasolina    |               0.149 | pasajero            |
 | Taxi/Ride-share      | Eléctrico   |               0.060 | vehículo            |
 | Taxi/Ride-share      | Híbrido     |               0.110 | vehículo            |
 | Bici                 | No aplica   |               0.000 | persona             |
@@ -68,8 +68,10 @@ De **todas**, y son los del **año completo**. La cantidad es siempre el total a
 
 Esta es la duda que produce los errores más grandes, en las dos direcciones:
 
-- 🚌 **Bus, 🚇 metro y 🚂 tren:** el factor es **por pasajero**. Multiplica la distancia por el número de personas. Si 10 empleados hacen 15 km diarios en metro durante 200 días, ingresas **30.000 km**.
-- 🚗 **Auto, 🏍️ moto y 🚕 taxi:** el factor es **por vehículo**, no por ocupante. Cuentas los kilómetros que recorrió **cada vehículo una sola vez**, sin importar cuánta gente iba dentro.
+- 🚌 **Bus, 🚇 metro, 🚂 tren y 🚕 taxi a gasolina:** el factor es **por pasajero**. Multiplica la distancia por el número de personas. Si 10 empleados hacen 15 km diarios en metro durante 200 días, ingresas **30.000 km**.
+- 🚗 **Auto, 🏍️ moto y taxi eléctrico o híbrido:** el factor es **por vehículo**, no por ocupante. Cuentas los kilómetros que recorrió **cada vehículo una sola vez**, sin importar cuánta gente iba dentro.
+
+💡 El taxi a gasolina usa el factor DEFRA **por pasajero-km**, que ya considera la ocupación promedio del taxi. Por eso, si dos empleados comparten un taxi a gasolina, cuentas los km **de cada uno**.
 
 **3️⃣ ¿Y si dos empleados comparten el auto?**
 
@@ -79,13 +81,13 @@ Ese auto se cuenta **una sola vez**. Dos personas que viajan juntas en un auto g
 
 ### 🧮 La fórmula práctica para obtener la cantidad
 
-> **Bus / metro / tren** (factor por pasajero):
+> **Bus / metro / tren / taxi a gasolina** (factor por pasajero):
 > $Cantidad$ = $km\ ida\ y\ vuelta \times días\ presenciales\ al\ año \times N°\ de\ personas$
 >
-> **Auto / moto / taxi** (factor por vehículo):
+> **Auto / moto / taxi eléctrico o híbrido** (factor por vehículo):
 > $Cantidad$ = $km\ ida\ y\ vuelta \times días\ presenciales\ al\ año \times N°\ de\ vehículos$
 
-En los modos por vehículo, **N° de vehículos** es la cantidad de autos, motos o taxis que efectivamente se movieron — no la cantidad de personas que viajaron en ellos.
+En los modos por vehículo, **N° de vehículos** es la cantidad de autos, motos o taxis eléctricos o híbridos que efectivamente se movieron — no la cantidad de personas que viajaron en ellos.
 
 💡 Cuenta siempre **ida y vuelta**: si la casa está a 11 km del trabajo, cada día presencial son 22 km.
 
@@ -191,7 +193,7 @@ Esas tres cantidades son los números que escribes en el campo **Cantidad**, una
 
 ## 📝 Notas importantes
 
-> - **Pasajero-km vs vehículo-km:** bus, metro y tren se multiplican por el número de personas; auto, moto y taxi no. Es el error más común al declarar esta sub-categoría, y el que un verificador detecta primero
+> - **Pasajero-km vs vehículo-km:** bus, metro, tren y taxi a gasolina se multiplican por el número de personas; auto, moto y taxi eléctrico o híbrido no. Es el error más común al declarar esta sub-categoría, y el que un verificador detecta primero
 > - **Auto compartido:** un vehículo con dos ocupantes se cuenta **una vez**. Y quien viaja solo carga con **todas** las emisiones de su vehículo, no con una fracción — es el mismo factor completo del auto
 > - **Toda la distancia del año, ida y vuelta:** la cantidad es el total anual de todas las personas (o de todos los vehículos) en ese modo, contando los dos tramos de cada día
 > - **Diferencia con Alcance 1:** si el empleado se mueve en un **vehículo corporativo**, eso es Alcance 1 (combustión móvil), no commuting. Solo cuenta acá si usa **medios propios o de terceros**.

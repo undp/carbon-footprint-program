@@ -41,8 +41,10 @@ La plataforma trabaja con **cantidades agregadas a nivel organización**, no via
 
 Depende del modo, porque el factor no está construido igual en todos:
 
-- ✈️ **Avión, 🚌 bus y 🚂 tren:** el factor es **por pasajero** (kg CO₂e por pasajero-km). Debes **multiplicar la distancia por el número de personas que viajaron**. Si 3 personas volaron 1.000 km, ingresas **3.000 km**.
-- 🚗 **Auto y 🚕 taxi:** el factor es **por vehículo** (kg CO₂e por km recorrido por el vehículo). Ingresas **los km del vehículo una sola vez**, sin importar cuántos ocupantes iban. Si 3 personas compartieron un taxi de 20 km, ingresas **20 km**, no 60.
+- ✈️ **Avión, 🚌 bus, 🚂 tren y 🚕 taxi:** el factor es **por pasajero** (kg CO₂e por pasajero-km). Debes **multiplicar la distancia por el número de personas que viajaron**. Si 3 personas volaron 1.000 km, ingresas **3.000 km**; si 3 personas compartieron un taxi de 20 km, ingresas **60 km**.
+- 🚗 **Auto:** el factor es **por vehículo** (kg CO₂e por km recorrido por el vehículo). Ingresas **los km del vehículo una sola vez**, sin importar cuántos ocupantes iban. Si 3 personas compartieron un auto arrendado por 200 km, ingresas **200 km**, no 600.
+
+💡 El taxi usa el factor DEFRA **por pasajero-km**, que ya considera la ocupación promedio del taxi. Por eso se multiplica por personas, igual que el bus.
 
 **2️⃣ ¿El viaje es solo ida o ida y vuelta?**
 
@@ -50,10 +52,10 @@ Se cuenta **toda la distancia efectivamente recorrida**: si el viaje fue ida y v
 
 ### 🧮 La fórmula práctica para obtener la cantidad
 
-> **Avión / bus / tren:**  
+> **Avión / bus / tren / taxi:**  
 > $Cantidad$ = $km\ por\ tramo \times N°\ de\ tramos \times N°\ de\ personas \times N°\ de\ viajes$
 >
-> **Auto / taxi:**  
+> **Auto:**  
 > $Cantidad$ = $km\ por\ tramo \times N°\ de\ tramos \times N°\ de\ viajes$ (sin multiplicar por ocupantes)
 
 Donde **N° de tramos** = 2 en un viaje de ida y vuelta, 1 si fue solo ida.
@@ -70,7 +72,7 @@ Donde **N° de tramos** = 2 en un viaje de ida y vuelta, 1 si fue solo ida.
 | Transporte en avión: Long haul (>6 hrs) Business    |              0,3165 | pasajero            |
 | Transporte en Bus                                   |              0,1038 | pasajero            |
 | Transporte en Tren                                  |              0,0354 | pasajero            |
-| Transporte en Taxi                                  |              0,1480 | vehículo            |
+| Transporte en Taxi                                  |              0,1480 | pasajero            |
 | Transporte en auto                                  |              0,1730 | vehículo            |
 
 💡 **La clase ya viene incluida en la opción.** No debes aplicar ningún multiplicador extra por Business: el factor de Business ya es más alto que el de Economy (entre ~1,5× y ~2,9× según el tramo), porque un asiento premium ocupa el espacio de varios asientos económicos.
@@ -188,7 +190,7 @@ Supongamos una **consultora** que durante el año tuvo:
 - **Visitas a clientes en la región:** 4 viajes de 1 persona, 2.100 km por tramo, ida y vuelta, Economy (medium haul)
 - **Vuelos domésticos:** 3 viajes de 2 personas, 620 km por tramo, ida y vuelta, Economy (short haul)
 - **Bus interurbano:** 1 viaje de 5 personas, 225 km por tramo, ida y vuelta
-- **Taxis en destino:** 600 km recorridos por los vehículos durante el año (varios viajes, algunos compartidos entre colegas)
+- **Taxis en destino:** 20 viajes de 30 km, con 2 personas en cada uno
 - **Auto arrendado:** 800 km recorridos por el vehículo
 
 Primero se calcula la **cantidad** de cada línea:
@@ -199,7 +201,7 @@ Primero se calcula la **cantidad** de cada línea:
 | Avión Medium haul Economy | 2.100 km × 2 tramos × 1 persona × 4 viajes      | 16.800 km |
 | Avión Short haul Economy  | 620 km × 2 tramos × 2 personas × 3 viajes       |  7.440 km |
 | Bus                       | 225 km × 2 tramos × 5 personas × 1 viaje        |  2.250 km |
-| Taxi                      | km del vehículo (sin multiplicar por ocupantes) |    600 km |
+| Taxi                      | 30 km × 1 tramo × 2 personas × 20 viajes        |  1.200 km |
 | Auto                      | km del vehículo (sin multiplicar por ocupantes) |    800 km |
 
 Y luego las emisiones:
@@ -210,15 +212,15 @@ Y luego las emisiones:
 | Avión Medium haul Economy |        16.800 |              0,1170 | 1.966 kg CO₂e |
 | Avión Short haul Economy  |         7.440 |              0,1257 |   935 kg CO₂e |
 | Bus                       |         2.250 |              0,1038 |   234 kg CO₂e |
-| Taxi                      |           600 |              0,1480 |    89 kg CO₂e |
+| Taxi                      |         1.200 |              0,1480 |   178 kg CO₂e |
 | Auto                      |           800 |              0,1730 |   138 kg CO₂e |
 
-**Total: ~9.581 kg CO₂e al año (~9,6 ton CO₂e)**
+**Total: ~9.670 kg CO₂e al año (~9,7 ton CO₂e)**
 
 > 💡 Fíjate en los dos efectos que más confunden:
 >
-> - El congreso internacional pesa el **65% del total** no porque el vuelo sea el más caro por km (de hecho es el factor aéreo **más bajo**), sino porque **3 personas × 2 tramos × 9.500 km** genera 57.000 pasajeros-km.
-> - Los taxis compartidos aportan poco justamente porque **no se multiplican por ocupantes**: el factor ya es del vehículo completo.
+> - El congreso internacional pesa el **64% del total** no porque el vuelo sea el más caro por km (de hecho es el factor aéreo **más bajo**), sino porque **3 personas × 2 tramos × 9.500 km** genera 57.000 pasajeros-km.
+> - El auto arrendado se ingresa con los km del vehículo aunque viajen varias personas, porque su factor es del vehículo completo. El taxi, en cambio, se multiplica por las personas: su factor es por pasajero.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
@@ -227,7 +229,7 @@ Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
 
 ## 📝 Notas importantes
 
-> - **Pasajero-km vs vehículo-km:** avión, bus y tren se multiplican por el número de pasajeros; auto y taxi no. Es el error más común al declarar esta sub-categoría
+> - **Pasajero-km vs vehículo-km:** avión, bus, tren y taxi se multiplican por el número de pasajeros; el auto no. Es el error más común al declarar esta sub-categoría
 > - **Cuenta ida y vuelta:** salvo que el viaje haya sido efectivamente solo de ida, la distancia se duplica
 > - **En Economy, los vuelos cortos tienen factor mayor por km** que los largos: el despegue y aterrizaje son las fases más intensivas y se reparten en menos kilómetros
 > - **La clase ya está en el factor:** Business no se multiplica aparte. En vuelos medium y long haul el factor Business casi triplica al Economy, así que **bajar de clase es una palanca real de reducción**
