@@ -6,7 +6,6 @@ import {
   EmissionFactorDimensionValueStatus,
   SubcategoryStatus,
   IconNameSchema,
-  EmissionFactorStatus,
 } from "@repo/types";
 import { z } from "zod";
 import {
@@ -17,6 +16,7 @@ import {
   CarbonInventoryNotFoundError,
   MethodologyNotFoundError,
 } from "../errors.js";
+import { offerableEmissionFactorWhere } from "../helpers.js";
 
 type JSONType = z.infer<ReturnType<typeof z.json>>;
 
@@ -40,42 +40,7 @@ const buildEmissionFactorWhere = (
 ): Prisma.EmissionFactorWhereInput => {
   if (footprintYear === null) return { id: { in: [] } };
 
-  return {
-    status: EmissionFactorStatus.ACTIVE,
-    year: footprintYear,
-    AND: [
-      {
-        OR: [
-          { dimensionValue1Id: null },
-          {
-            dimensionValue1: {
-              is: {
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-                dimension: {
-                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                },
-              },
-            },
-          },
-        ],
-      },
-      {
-        OR: [
-          { dimensionValue2Id: null },
-          {
-            dimensionValue2: {
-              is: {
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-                dimension: {
-                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                },
-              },
-            },
-          },
-        ],
-      },
-    ],
-  };
+  return { ...offerableEmissionFactorWhere(), year: footprintYear };
 };
 
 export const getCarbonInventoryMethodologyService = async (

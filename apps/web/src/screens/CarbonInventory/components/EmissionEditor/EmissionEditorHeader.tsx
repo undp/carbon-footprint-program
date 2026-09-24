@@ -42,7 +42,26 @@ interface EmissionEditorHeaderProps extends Pick<
   manualModeLinePendingFilesCount?: number;
   manualModeLineLinkedFilesCount?: number;
   hasEmissionFactors?: boolean;
+  footprintYear?: number | null;
 }
+
+/**
+ * Why a subcategory has no factors to offer, stated without blaming the
+ * subcategory for it.
+ *
+ * A factor serves the footprints of its own year, so the same subcategory is
+ * empty or full depending on the year the footprint is dated to — and a
+ * catalogue edition lands in pieces (the DEFRA set for year N publishes around
+ * the middle of N, national grid factors for N during N + 1), so a year can be
+ * covered enough to be offered at step 1 and still leave most subcategories
+ * empty for months. Naming the year is what tells the two apart.
+ */
+const buildNoEmissionFactorsMessage = (
+  footprintYear?: number | null
+): string =>
+  footprintYear
+    ? `No hay factores precargados para esta subcategoría en el año seleccionado (${footprintYear.toString()}). Puedes ingresar un factor propio o registrar el total de emisiones`
+    : "No hay factores precargados disponibles para esta subcategoría. Puedes ingresar un factor propio o registrar el total de emisiones";
 
 export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   name,
@@ -65,6 +84,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
   manualModeLinePendingFilesCount = 0,
   manualModeLineLinkedFilesCount = 0,
   hasEmissionFactors,
+  footprintYear,
 }) => {
   const { openExplanationContent } = useExplanationDialog();
   const IconComponent = CATEGORY_ICON_MAP[icon];
@@ -107,7 +127,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
             />
             {!hasEmissionFactors && (
               <Tooltip
-                title="No hay factores precargados disponibles para esta subcategoría. Puedes ingresar un factor propio o registrar el total de emisiones"
+                title={buildNoEmissionFactorsMessage(footprintYear)}
                 placement="top"
               >
                 <WarningRounded

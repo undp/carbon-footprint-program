@@ -48,19 +48,22 @@ const MIGRATION_SQL_PATH = path.join(
 /**
  * The clearing statements of the year migration, read from the migration itself
  * so the assertions below can never drift from the SQL that ships.
+ *
+ * Comments are stripped before the statements are split, not after: the
+ * migration explains itself at length, and a `;` inside one of those sentences
+ * would otherwise cut a statement in two and drop the half that no longer
+ * starts with `DELETE FROM` -- a silent loss, since what is left still parses
+ * and still passes every assertion made about it.
  */
 function readMigrationClearingStatements(): string[] {
-  const sql = readFileSync(MIGRATION_SQL_PATH, "utf8");
+  const sql = readFileSync(MIGRATION_SQL_PATH, "utf8")
+    .split("\n")
+    .filter((line) => !line.trimStart().startsWith("--"))
+    .join("\n");
 
   return sql
     .split(";")
-    .map((statement) =>
-      statement
-        .split("\n")
-        .filter((line) => !line.trimStart().startsWith("--"))
-        .join("\n")
-        .trim()
-    )
+    .map((statement) => statement.trim())
     .filter((statement) => statement.startsWith("DELETE FROM"));
 }
 

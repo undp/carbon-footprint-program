@@ -6,6 +6,9 @@ import {
 } from "@repo/database";
 import { OrganizationRole } from "@repo/database/enums";
 import {
+  EmissionFactorDimensionStatus,
+  EmissionFactorDimensionValueStatus,
+  EmissionFactorStatus,
   FileType,
   type GetAllCategoriesResponse,
   IconName,
@@ -82,6 +85,64 @@ export const carbonInventoryBaseSelect = {
 export type InventoryBase = Prisma.CarbonInventoryGetPayload<{
   select: typeof carbonInventoryBaseSelect;
 }>;
+
+/**
+ * What makes an emission factor offerable to a footprint, year aside.
+ *
+ * A factor is reachable from the capture grid only through its dimension
+ * selections, so one hanging off a deleted value — or off a value whose whole
+ * dimension was deleted — can never be picked, however active the factor
+ * itself is.
+ *
+ * Shared rather than written twice so the years `getEmissionFactorYears`
+ * advertises cannot drift from the factors `getCarbonInventoryMethodology`
+ * hands out: a year is worth offering exactly when it has a factor this clause
+ * admits. Each consumer adds its own year and methodology-version filters —
+ * one pins a single year, the other asks which years exist.
+ *
+ * A function rather than a shared object: both consumers spread it, and a
+ * spread copies one level, so a module-scope object would hand every request of
+ * the process's lifetime the same `AND` array. Nothing mutates it today, but
+ * the obvious way to give a third consumer one extra clause is to push onto
+ * that array, and the drift this clause exists to prevent would reappear as a
+ * cross-request one with no local symptom.
+ */
+export const offerableEmissionFactorWhere =
+  (): Prisma.EmissionFactorWhereInput => ({
+    status: EmissionFactorStatus.ACTIVE,
+    AND: [
+      {
+        OR: [
+          { dimensionValue1Id: null },
+          {
+            dimensionValue1: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+      {
+        OR: [
+          { dimensionValue2Id: null },
+          {
+            dimensionValue2: {
+              is: {
+                status: EmissionFactorDimensionValueStatus.ACTIVE,
+                dimension: {
+                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
+                },
+              },
+            },
+          },
+        ],
+      },
+    ],
+  });
 
 /**
  * Validates that a carbon inventory is in an editable state.

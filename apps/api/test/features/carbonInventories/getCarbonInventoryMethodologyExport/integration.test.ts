@@ -30,6 +30,7 @@ import {
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
   getTestRateMeasurementUnitId,
+  TEST_EMISSION_FACTOR_YEAR,
 } from "@test/factories/emissionFactorFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
 import type {
@@ -97,10 +98,15 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
       }
     );
 
+    // Dated to the factor's year: this export describes what the footprint can
+    // capture with, so one of another year would carry no factors at all.
     const inventory = await createInventoryFromPattern(
       prisma,
       carbonInventoryPatterns.simplifiedDraft,
-      { methodologyVersionId: methodology.id }
+      {
+        methodologyVersionId: methodology.id,
+        year: TEST_EMISSION_FACTOR_YEAR,
+      }
     );
 
     const response = await app.inject({
@@ -360,7 +366,11 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
     expect(body.code).toBe("FORBIDDEN");
   });
 
-  it("returns a response body byte-identical to the admin export endpoint", async () => {
+  // The two exports answer different questions -- the admin one describes the
+  // catalogue, this one describes what a footprint can capture with -- so they
+  // agree only while every factor belongs to the footprint's year. The test
+  // below this one pins the divergence.
+  it("returns a response body byte-identical to the admin export endpoint when the catalogue is all of the footprint's year", async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       status: MethodologyVersionStatus.PUBLISHED,
     });
@@ -393,7 +403,10 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
     const inventory = await createInventoryFromPattern(
       prisma,
       carbonInventoryPatterns.simplifiedDraft,
-      { methodologyVersionId: methodology.id }
+      {
+        methodologyVersionId: methodology.id,
+        year: TEST_EMISSION_FACTOR_YEAR,
+      }
     );
 
     const [adminResp, userResp] = await Promise.all([
@@ -416,5 +429,70 @@ describe("GET /api/carbon-inventories/:id/methodology-export - Integration Tests
       userResp.body
     ) as GetCarbonInventoryMethodologyExportResponse;
     expect(userBody).toEqual(adminBody);
+  });
+
+  it("keeps only the factors of the footprint's year while the admin export keeps every year", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      status: MethodologyVersionStatus.PUBLISHED,
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Year Scoped Export",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Year Scoped Subcategory",
+    });
+    const rateMeasurementUnitId = await getTestRateMeasurementUnitId(prisma);
+    const nextYear = TEST_EMISSION_FACTOR_YEAR + 1;
+
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Scoped Source", value: "1.00" }
+    );
+    await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateMeasurementUnitId,
+      { source: "Test - Scoped Source", value: "2.00", year: nextYear }
+    );
+
+    const inventory = await createInventoryFromPattern(
+      prisma,
+      carbonInventoryPatterns.simplifiedDraft,
+      {
+        methodologyVersionId: methodology.id,
+        year: TEST_EMISSION_FACTOR_YEAR,
+      }
+    );
+
+    const [adminResp, userResp] = await Promise.all([
+      app.inject({
+        method: "GET",
+        url: `/api/methodologies/${methodology.id.toString()}/export`,
+      }),
+      app.inject({
+        method: "GET",
+        url: `/api/carbon-inventories/${inventory.id}/methodology-export`,
+      }),
+    ]);
+
+    const adminBody = JSON.parse(
+      adminResp.body
+    ) as GetMethodologyExportResponse;
+    const userBody = JSON.parse(
+      userResp.body
+    ) as GetCarbonInventoryMethodologyExportResponse;
+
+    // The catalogue holds both years; the document handed to the footprint
+    // describes only the one it can capture with.
+    expect(
+      adminBody.categories[0].subcategories[0].emissionFactors
+    ).toHaveLength(2);
+    const scopedFactors =
+      userBody.categories[0].subcategories[0].emissionFactors;
+    expect(scopedFactors).toHaveLength(1);
+    expect(scopedFactors[0].year).toBe(TEST_EMISSION_FACTOR_YEAR);
   });
 });

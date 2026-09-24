@@ -132,3 +132,12 @@
 - [x] 14.3 Run `pnpm test:web`.
 - [ ] 14.4 Before rolling out, take the `pg_dump` from 1.3 and announce the deployment window. While the migration has run and the previous container is still serving, creating an emission factor from the maintainer fails against the new `NOT NULL` column, and that container's `sync` still accepts a factor of any year, so it can write back what the migration just cleared. Both are accepted rather than closed with a maintenance window.
 - [ ] 14.5 After the deployment settles, run a verification query listing every `carbon_inventory_line_factor` on an active input whose factor's year differs from its footprint's year. It should return nothing; anything it returns is residue written during the window, which would otherwise sit unnoticed until someone happened to save that subcategory again. Record the result.
+
+## 15. Footprint year selector
+
+- [x] 15.1 Expose the years a footprint's catalogue covers (`GET /carbon-inventories/:id/emission-factor-years`), scoped to the footprint's methodology version and sharing `offerableEmissionFactorWhere` with the capture query so the two cannot drift.
+- [x] 15.2 Build the step 1 options from that endpoint instead of `CALCULATOR_YEARS_RANGE_FROM_CURRENT`, merging in the year the footprint already carries so a required field never renders blank.
+- [x] 15.3 Keep the declarable window in the expert mode only, and state on the field when the selected year has no factors behind it.
+- [x] 15.4 Report an empty catalogue through the layout's error slot with a support channel and a disabled "Siguiente", and a failed read as a retryable error distinct from it.
+- [x] 15.5 Name the footprint's year in the capture warning, so a subcategory empty for the year is not read as a subcategory with no factors at all.
+- [x] 15.6 Narrow `CALCULATOR_YEARS_RANGE_FROM_CURRENT`'s documented role to the declarable window, since it no longer builds the guided selector.

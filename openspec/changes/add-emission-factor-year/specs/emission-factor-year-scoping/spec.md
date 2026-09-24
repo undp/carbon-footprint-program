@@ -8,7 +8,7 @@
 
 The existing catalogue SHALL be dated by migration to the year it serves, without rewriting any `source` string, so each row keeps its edition in the name while stating its validity in the column.
 
-The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the footprint year selector so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The request schemas SHALL enforce only a wide static bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
+The maintainer SHALL offer `[currentYear - 4 .. currentYear + 1]` in its year field, sharing its lower bound with the window of years a footprint may be declared for, so that every declarable footprint year is datable, with one year of forward slack for sets published ahead of their validity. The footprint year selector no longer derives its options from that window in the guided mode — it reads the catalogue — so the bound is stated here in its own right: it is how far back a footprint is worth reporting, which is also what the expert mode offers beyond the catalogue. The request schemas SHALL enforce only a wide static bound, so that a factor does not become uneditable merely because the sliding window moved past its year.
 
 #### Scenario: A factor is offered only to footprints of its own year
 
@@ -80,6 +80,48 @@ The migration SHALL record, in a comment, that erasing the factors of a submitte
 - **GIVEN** a line of a 2024 footprint whose snapshot has no factor reference but whose frozen source names a catalogue source
 - **WHEN** the migration runs
 - **THEN** that snapshot and its result SHALL be removed, AND no attempt SHALL have been made to re-link it to a factor
+
+### Requirement: The footprint year selector offers the years the catalogue covers
+
+The year field of business profiling SHALL build its options from the years the footprint's own methodology version has offerable factors for, not from the calendar. A year SHALL be offered when picking it leaves something to capture with; the calendar cannot know that.
+
+The year the footprint already carries SHALL always be among the options, whatever the catalogue covers, so that a footprint dated to a year the catalogue has dropped is not silently re-dated by a required field that renders its value as blank.
+
+In the expert usage mode the options SHALL also include the window of declarable years, so that a footprint may be dated to a year whose catalogue has not been loaded yet. The guided mode SHALL NOT offer it: a year with no factors behind it is a dead end its user cannot diagnose.
+
+Whenever the selected year is not one the catalogue covers, the field SHALL say so and SHALL name the consequence — that the capture step will arrive without factors. It SHALL NOT block the choice.
+
+A methodology whose catalogue covers no year at all SHALL be reported as the dead end it is: the step SHALL NOT offer a year, SHALL NOT let the user advance, and SHALL name a channel a visitor can use, since the step runs before sign-in. A failed read of the catalogue SHALL be reported as a retryable error instead, distinct from an empty catalogue.
+
+#### Scenario: The options come from the catalogue
+
+- **GIVEN** a methodology whose factors cover 2025 only, and a footprint with no year yet
+- **WHEN** its user opens business profiling in the guided mode
+- **THEN** the year field SHALL offer 2025 and nothing else
+
+#### Scenario: A footprint keeps its own year among the options
+
+- **GIVEN** a footprint dated 2026 and a catalogue covering 2025 only
+- **WHEN** its user opens business profiling
+- **THEN** the year field SHALL offer both years, AND SHALL state that 2026 has no factors and that capture will arrive empty
+
+#### Scenario: The expert mode may date a footprint ahead of the catalogue
+
+- **GIVEN** a catalogue covering 2025 only
+- **WHEN** an expert-mode footprint's user opens the year field
+- **THEN** the declarable years SHALL be offered alongside 2025, AND picking one SHALL succeed with the consequence stated
+
+#### Scenario: An empty catalogue is a dead end, not an empty dropdown
+
+- **GIVEN** a methodology with no offerable factor for any year
+- **WHEN** a user opens business profiling
+- **THEN** the step SHALL explain that no year can be measured yet and name a support channel, AND advancing SHALL be disabled
+
+#### Scenario: A failed catalogue read is not an empty catalogue
+
+- **GIVEN** a methodology whose year list cannot be read because the request fails
+- **WHEN** a user opens business profiling
+- **THEN** the step SHALL report a retryable error rather than stating that the methodology has no factors
 
 ### Requirement: A line keeps its factor identity through editing
 

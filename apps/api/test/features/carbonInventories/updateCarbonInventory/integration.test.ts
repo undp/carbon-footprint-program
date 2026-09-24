@@ -449,7 +449,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       const seedLine = async (options: {
         status?: CarbonInventoryLineStatus;
         emissionFactorId: bigint | null;
-        appliedFactorSource: string;
+        appliedFactorSource: string | null;
         manual?: boolean;
       }) => {
         const line = await createCarbonInventoryLine(
@@ -491,9 +491,17 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         emissionFactorId: factor.id,
         appliedFactorSource: "DEFRA 2025",
       });
+      // A snapshot that lost its factor id but kept a catalogue source: a
+      // catalogue factor with a broken link, not a manual one.
       const damaged = await seedLine({
         emissionFactorId: null,
         appliedFactorSource: "DEFRA 2025",
+      });
+      // Neither an id nor a source. A manual factor is one whose source is
+      // custom, so this is not one, and the clearing sweeps it with the rest.
+      const untyped = await seedLine({
+        emissionFactorId: null,
+        appliedFactorSource: null,
       });
 
       return {
@@ -505,6 +513,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
         parked,
         edited,
         damaged,
+        untyped,
       };
     }
 
@@ -569,6 +578,54 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       expect(manualInput.result).not.toBeNull();
     });
 
+    it("clears a snapshot that lost its factor id but kept a catalogue source", async () => {
+      const { carbonInventory, damaged, manual } =
+        await buildFootprintWithFrozenFactors();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+      expect(response.statusCode).toBe(200);
+
+      // Recognising a manual factor by its null id alone would leave this one
+      // attached, and the footprint would keep a total computed from the
+      // previous year's factor -- the state the clearing exists to prevent.
+      const damagedInput = await readInput(damaged.line.id);
+      expect(damagedInput.factor).toBeNull();
+      expect(damagedInput.result).toBeNull();
+
+      // Told apart from an actual manual factor, which keeps its snapshot.
+      const manualInput = await readInput(manual.line.id);
+      expect(manualInput.factor?.appliedFactorSource).toBe("Otro");
+      expect(manualInput.result).not.toBeNull();
+    });
+
+    it("clears a snapshot that carries neither a factor id nor a source", async () => {
+      const { carbonInventory, untyped, manual } =
+        await buildFootprintWithFrozenFactors();
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/carbon-inventories/${carbonInventory.id}`,
+        payload: { year: 2026 },
+      });
+      expect(response.statusCode).toBe(200);
+
+      // Prisma's `notIn` does not match NULL, so this shape only goes if the
+      // predicate names it -- which is what keeps the clearing, the migration
+      // and `isFactorKeptOnLine` on one definition of catalogue-backed.
+      const untypedInput = await readInput(untyped.line.id);
+      expect(untypedInput.factor).toBeNull();
+      expect(untypedInput.result).toBeNull();
+
+      // Told apart from a manual factor, which is one with a custom source.
+      const manualInput = await readInput(manual.line.id);
+      expect(manualInput.factor?.appliedFactorSource).toBe("Otro");
+      expect(manualInput.result).not.toBeNull();
+    });
+
     it("clears the snapshots a duplicated footprint inherited when its year changes", async () => {
       const { carbonInventory } = await buildFootprintWithFrozenFactors();
 
@@ -587,9 +644,9 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
           select: { emissionFactorId: true, appliedFactorSource: true },
         });
 
-      // The copy inherits every snapshot verbatim — four of the five lines,
+      // The copy inherits every snapshot verbatim — five of the six lines,
       // since duplication copies ACTIVE lines only and one of them is parked.
-      expect(await snapshotsOf(copyId)).toHaveLength(4);
+      expect(await snapshotsOf(copyId)).toHaveLength(5);
 
       const response = await app.inject({
         method: "PATCH",
@@ -611,7 +668,7 @@ describe("PATCH /api/carbon-inventories/:id - Integration Tests", () => {
       });
       expect(remainingResults).toBe(1);
 
-      expect(await snapshotsOf(carbonInventory.id)).toHaveLength(5);
+      expect(await snapshotsOf(carbonInventory.id)).toHaveLength(6);
     });
 
     it("keeps the typed total of a direct line when its snapshot is cleared", async () => {

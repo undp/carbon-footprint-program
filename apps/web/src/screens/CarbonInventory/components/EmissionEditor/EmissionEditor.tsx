@@ -18,6 +18,7 @@ import { getColorPalette } from "@/utils/categoryColors";
 
 interface EmissionEditorProps {
   inventoryUsageMode: UsageMode;
+  footprintYear: number | null;
   subcategory: SubcategoryWithLines;
   categoryColor: string;
   inventoryId: string;
@@ -25,6 +26,7 @@ interface EmissionEditorProps {
 
 export const EmissionEditor: FC<EmissionEditorProps> = ({
   inventoryUsageMode,
+  footprintYear,
   subcategory,
   categoryColor,
   inventoryId,
@@ -137,6 +139,7 @@ export const EmissionEditor: FC<EmissionEditorProps> = ({
         manualModeLinePendingFilesCount={manualModeLinePendingFilesCount}
         manualModeLineLinkedFilesCount={manualModeLineLinkedFilesCount}
         hasEmissionFactors={subcategory.emissionFactors.length > 0}
+        footprintYear={footprintYear}
       />
 
       {/* unmountOnExit: in manual-total mode the grid must not stay mounted.
