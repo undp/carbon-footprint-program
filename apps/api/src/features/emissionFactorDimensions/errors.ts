@@ -48,9 +48,15 @@ export const DimensionValueNotFoundForRemovalError = createError(
   404
 );
 
-export const DimensionValuesCannotBeRemovedError = createError(
-  "DIMENSION_VALUES_CANNOT_BE_REMOVED",
-  "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos",
+export const DimensionValueInUseError = createError(
+  "DIMENSION_VALUE_IN_USE",
+  "No se puede eliminar la variable '%s': hay factores de emisión, capturas o iniciativas de reducción activas que la usan",
+  409
+);
+
+export const DimensionInUseError = createError(
+  "DIMENSION_IN_USE",
+  "No se puede eliminar la dimensión: la variable '%s' está en uso por capturas o iniciativas de reducción activas",
   409
 );
 

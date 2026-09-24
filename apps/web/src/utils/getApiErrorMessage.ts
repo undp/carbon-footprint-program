@@ -103,8 +103,6 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",
   DIMENSION_NOT_CONFIGURED: "La dimensión no está configurada.",
   DIMENSION_VALUE_NOT_FOUND: "La variable de la dimensión no fue encontrada.",
-  DIMENSION_VALUES_CANNOT_BE_REMOVED:
-    "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos.",
   DIMENSION_IS_REQUIRED_CHANGE_BLOCKED:
     "No se puede cambiar el campo 'requerido' porque existen factores de emisión activos para esta subcategoría.",
   DIMENSION_VALUE_NOT_FOUND_FOR_RENAME:
@@ -118,6 +116,16 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una variable con ese nombre en esta dimensión.",
   DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL:
     "La variable a eliminar no fue encontrada.",
+  // The server names the value: this 409 only surfaces when the modal's
+  // `inUse` flag was stale, so the trash gave no cue about which value it was.
+  DIMENSION_VALUE_IN_USE: (details) =>
+    typeof details?.valueName === "string"
+      ? `No se puede eliminar la variable "${details.valueName}": hay factores de emisión, capturas o iniciativas de reducción activas que la usan.`
+      : "No se puede eliminar la variable: hay factores de emisión, capturas o iniciativas de reducción activas que la usan.",
+  DIMENSION_IN_USE: (details) =>
+    typeof details?.valueName === "string"
+      ? `No se puede eliminar la dimensión: la variable "${details.valueName}" está en uso por capturas o iniciativas de reducción activas.`
+      : "No se puede eliminar la dimensión: alguna de sus variables está en uso por capturas o iniciativas de reducción activas.",
 
   // Reduction plan initiatives
   REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS:

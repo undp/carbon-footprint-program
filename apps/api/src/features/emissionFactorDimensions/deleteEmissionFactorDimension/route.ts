@@ -16,11 +16,12 @@ export const deleteEmissionFactorDimensionRoute = defineRoute<{
     tags: ["emission-factor-dimensions"],
     summary: "Delete an emission factor dimension",
     description:
-      "Delete a dimension and soft-delete all associated emission factors",
+      "Delete a dimension and soft-delete all associated emission factors. Refused (409) while a live capture or an active reduction initiative uses any of its values, or when it is position 1 of a subcategory that has two dimensions.",
     params: DeleteEmissionFactorDimensionParamsSchema,
     response: {
       200: z.null().describe("Successfully soft-deleted"),
       404: ApiErrorResponseSchema,
+      409: ApiErrorResponseSchema,
     },
   },
   access: { mode: "private" },

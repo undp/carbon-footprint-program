@@ -3,11 +3,13 @@ import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  ReductionPlanInitiativeStatus,
   SubcategoryStatus,
   User,
   type GetEmissionFactorDimensionsQuery,
   type GetEmissionFactorDimensionsResponse,
 } from "@repo/types";
+import { LIVE_CAPTURE_WHERE } from "../helpers.js";
 
 export const getEmissionFactorDimensionsService = async (
   prismaClient: PrismaClient,
@@ -57,6 +59,31 @@ export const getEmissionFactorDimensionsService = async (
                 select: { id: true },
                 take: 1,
               },
+              // A value is also pinned by what users captured with it and by
+              // the reduction initiatives built on it. Removing it cascades
+              // only over emission factors, so leaving these out would let a
+              // maintainer retire a value that active captures still point at
+              // — exactly what the maintainer help forbids.
+              lineInputsAsSelection1: {
+                where: LIVE_CAPTURE_WHERE,
+                select: { id: true },
+                take: 1,
+              },
+              lineInputsAsSelection2: {
+                where: LIVE_CAPTURE_WHERE,
+                select: { id: true },
+                take: 1,
+              },
+              reductionPlanInitiativesAsDimension1: {
+                where: { status: ReductionPlanInitiativeStatus.ACTIVE },
+                select: { id: true },
+                take: 1,
+              },
+              reductionPlanInitiativesAsDimension2: {
+                where: { status: ReductionPlanInitiativeStatus.ACTIVE },
+                select: { id: true },
+                take: 1,
+              },
             },
             orderBy: { value: "asc" },
           },
@@ -90,7 +117,11 @@ export const getEmissionFactorDimensionsService = async (
         value: v.value,
         inUse:
           v.emissionFactorsAsDimension1.length > 0 ||
-          v.emissionFactorsAsDimension2.length > 0,
+          v.emissionFactorsAsDimension2.length > 0 ||
+          v.lineInputsAsSelection1.length > 0 ||
+          v.lineInputsAsSelection2.length > 0 ||
+          v.reductionPlanInitiativesAsDimension1.length > 0 ||
+          v.reductionPlanInitiativesAsDimension2.length > 0,
       })),
     })),
   }));

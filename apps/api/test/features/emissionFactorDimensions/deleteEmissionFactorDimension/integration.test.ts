@@ -18,9 +18,15 @@ import {
   getTestRateMeasurementUnitId,
 } from "@test/factories/emissionFactorFactory.js";
 import {
+  createCarbonInventory,
+  createCarbonInventoryLine,
+  createCarbonInventoryLineInput,
+} from "@test/factories/carbonInventorySeeder.js";
+import {
   EmissionFactorDimensionStatus,
   EmissionFactorDimensionValueStatus,
   EmissionFactorStatus,
+  InventoryStatus,
 } from "@repo/types";
 import type { FastifyInstance } from "fastify";
 import type { PrismaClient } from "@repo/database";
@@ -273,6 +279,103 @@ describe("DELETE /api/emission-factor-dimensions/:id - Integration Tests", () =>
 
       expect(persistedDim1!.status).toBe(EmissionFactorDimensionStatus.ACTIVE);
       expect(persistedDim2!.status).toBe(EmissionFactorDimensionStatus.ACTIVE);
+    });
+
+    it("should return 409 when a live capture selects one of its values", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimensionWithEF();
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { valueName?: string };
+      };
+      expect(body.code).toBe("DIMENSION_IN_USE");
+      expect(body.details?.valueName).toBe("To Be Deleted");
+
+      const persistedDimension =
+        await prisma.emissionFactorDimension.findUnique({
+          where: { id: dimension.id },
+        });
+      const persistedValue =
+        await prisma.emissionFactorDimensionValue.findUnique({
+          where: { id: value.id },
+        });
+      expect(persistedDimension!.status).toBe(
+        EmissionFactorDimensionStatus.ACTIVE
+      );
+      expect(persistedValue!.status).toBe(
+        EmissionFactorDimensionValueStatus.ACTIVE
+      );
+    });
+
+    it("should return 409 when an active reduction initiative references one of its values", async () => {
+      const { subcategory, dimension2 } =
+        await buildSubcategoryWithTwoDimensions();
+      const value = await createTestEmissionFactorDimensionValue(
+        prisma,
+        dimension2.id,
+        { value: "Initiative Value" }
+      );
+      await prisma.reductionPlanInitiative.create({
+        data: {
+          subcategoryId: subcategory.id,
+          dimensionValue2Id: value.id,
+          title: "Test - Initiative",
+          description: "Test initiative referencing a dimension value",
+        },
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension2.id}`,
+      });
+
+      expect(response.statusCode).toBe(409);
+      const body = JSON.parse(response.body) as { code: string };
+      expect(body.code).toBe("DIMENSION_IN_USE");
+    });
+
+    it("should allow deleting a dimension whose only capture belongs to a deleted inventory", async () => {
+      const { methodology, subcategory, dimension, value } =
+        await buildTestDimensionWithEF();
+      const inventory = await createCarbonInventory(prisma, {
+        methodologyVersionId: methodology.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.DELETED,
+      });
+      const line = await createCarbonInventoryLine(
+        prisma,
+        inventory.id,
+        subcategory.id
+      );
+      await createCarbonInventoryLineInput(prisma, line.id, {
+        selection1Id: value.id,
+      });
+
+      const response = await app.inject({
+        method: "DELETE",
+        url: `/api/emission-factor-dimensions/${dimension.id}`,
+      });
+
+      expect(response.statusCode).toBe(200);
     });
   });
 });

@@ -839,6 +839,8 @@ model CarbonInventoryLineInput {
 
   // Enforced via DB constraint: UNIQUE(line_id) WHERE is_active = true
   // See migration: 20260101235319_add_unique_active_input_per_line_constraint
+  // Partial indexes: (selection_1_id) and (selection_2_id) WHERE is_active = true
+  // See migration: 20260924120000_add_dimension_value_usage_indexes
   @@map("carbon_inventory_line_input")
 }
 
@@ -1273,8 +1275,9 @@ model ReductionPlanInitiative {
   creator           User?                         @relation("reduction_plan_initiative_created_by", fields: [createdById], references: [id])
   updater           User?                         @relation("reduction_plan_initiative_updated_by", fields: [updatedById], references: [id])
 
-  // Partial unique index exists in SQL migration:
-  // ("subcategory_id", "title") WHERE status = 'ACTIVE'
+  // Partial indexes exist in SQL migration:
+  // ("subcategory_id", "title") WHERE status = 'ACTIVE' (unique)
+  // ("dimension_value_1_id") WHERE status = 'ACTIVE', ("dimension_value_2_id") WHERE status = 'ACTIVE'
 
   @@map("reduction_plan_initiative")
 }

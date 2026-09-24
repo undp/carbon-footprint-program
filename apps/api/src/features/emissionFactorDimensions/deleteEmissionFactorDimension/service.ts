@@ -5,11 +5,14 @@ import {
   EmissionFactorStatus,
   User,
 } from "@repo/types";
+import { attachDetails } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
   DimensionDeletionNotAllowedError,
+  DimensionInUseError,
   EmissionFactorDimensionNotFoundError,
 } from "../errors.js";
+import { findValueHeldByCapturesOrInitiatives } from "../helpers.js";
 
 export const deleteEmissionFactorDimensionService = async (
   prismaClient: PrismaClient,
@@ -53,6 +56,20 @@ export const deleteEmissionFactorDimensionService = async (
 
     if (activeDimensionCount > 1 && dimension.position === 1) {
       throw new DimensionDeletionNotAllowedError();
+    }
+
+    // Deleting the dimension retires every one of its values, so it must not
+    // orphan the captures and initiatives that hold them. Its emission factor
+    // cascade below is intended, unlike removing a single value.
+    const pinnedValue = await findValueHeldByCapturesOrInitiatives(tx, {
+      dimensionId,
+      status: EmissionFactorDimensionValueStatus.ACTIVE,
+    });
+
+    if (pinnedValue) {
+      throw attachDetails(new DimensionInUseError(pinnedValue.value), {
+        valueName: pinnedValue.value,
+      });
     }
 
     const valueIds = dimension.values.map((v) => v.id);

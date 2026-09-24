@@ -18,7 +18,8 @@ export const updateEmissionFactorDimensionRoute = defineRoute<{
   schema: {
     tags: ["emission-factor-dimensions"],
     summary: "Update an emission factor dimension",
-    description: "Update dimension metadata and/or add/remove dimension values",
+    description:
+      "Update dimension metadata and/or add/remove dimension values. Removing a value is refused (409) while an active emission factor, a live capture or an active reduction initiative references it.",
     params: UpdateEmissionFactorDimensionParamsSchema,
     body: UpdateEmissionFactorDimensionRequestSchema,
     response: {

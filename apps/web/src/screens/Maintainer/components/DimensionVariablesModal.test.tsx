@@ -85,3 +85,58 @@ describe("DimensionVariablesModal — several 'Otro' variables", () => {
     expect(screen.queryByText(WARNING)).not.toBeInTheDocument();
   });
 });
+
+describe("DimensionVariablesModal — removing variables", () => {
+  const trashButtons = () =>
+    screen
+      .getAllByRole("button")
+      .filter((b) => b.querySelector('[data-testid="DeleteOutlinedIcon"]'));
+
+  it("allows removing values the API does not report as in use", () => {
+    renderModal({
+      variables: [
+        { id: "1", value: "Excavadora", inUse: false },
+        { id: "2", value: "Grúa", inUse: false },
+      ],
+    });
+
+    expect(trashButtons().every((b) => !b.hasAttribute("disabled"))).toBe(true);
+  });
+
+  it("blocks only the values the API reports as in use", () => {
+    renderModal({
+      variables: [
+        { id: "1", value: "Excavadora", inUse: true },
+        { id: "2", value: "Grúa", inUse: false },
+      ],
+    });
+
+    const [first, second] = trashButtons();
+    expect(first).toBeDisabled();
+    expect(second).toBeEnabled();
+  });
+
+  it("does not block a value because a sibling is in use", () => {
+    renderModal({
+      variables: [
+        { id: "1", value: "Excavadora", inUse: true },
+        { id: "2", value: "Grúa" },
+      ],
+    });
+
+    expect(trashButtons()[1]).toBeEnabled();
+  });
+
+  it("explains the lock only when something is actually locked", () => {
+    const notice = /Algunas variables están en uso y no se pueden eliminar/i;
+
+    const { unmount } = renderModal({
+      variables: [{ id: "1", value: "Excavadora", inUse: false }],
+    });
+    expect(screen.queryByText(notice)).not.toBeInTheDocument();
+    unmount();
+
+    renderModal({ variables: [{ id: "1", value: "Excavadora", inUse: true }] });
+    expect(screen.getByText(notice)).toBeInTheDocument();
+  });
+});

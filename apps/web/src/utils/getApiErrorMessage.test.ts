@@ -199,10 +199,6 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "La variable de la dimensión no fue encontrada.",
   ],
   [
-    "DIMENSION_VALUES_CANNOT_BE_REMOVED",
-    "No se pueden eliminar variables de una dimensión que tiene factores de emisión activos.",
-  ],
-  [
     "DIMENSION_IS_REQUIRED_CHANGE_BLOCKED",
     "No se puede cambiar el campo 'requerido' porque existen factores de emisión activos para esta subcategoría.",
   ],
@@ -400,6 +396,58 @@ describe("getApiErrorMessage — RESTORE_ON_ACTIVE", () => {
   it("falls back to the generic sentence when details are absent", () => {
     expect(getApiErrorMessage(httpErrorWithCode(CODE), FALLBACK)).toBe(
       "El registro ya se encuentra activo."
+    );
+  });
+});
+
+describe("getApiErrorMessage — DIMENSION_VALUE_IN_USE", () => {
+  const CODE = "DIMENSION_VALUE_IN_USE";
+  const GENERIC =
+    "No se puede eliminar la variable: hay factores de emisión, capturas o iniciativas de reducción activas que la usan.";
+
+  it("names the variable the server reports", () => {
+    expect(
+      getApiErrorMessage(
+        httpErrorWithCode(CODE, { valueName: "Excavadora" }),
+        FALLBACK
+      )
+    ).toBe(
+      'No se puede eliminar la variable "Excavadora": hay factores de emisión, capturas o iniciativas de reducción activas que la usan.'
+    );
+  });
+
+  it.each<readonly [string, Record<string, unknown> | undefined]>([
+    ["details are missing", undefined],
+    ["valueName is not a string", { valueName: 42 }],
+  ])("falls back to the generic sentence when %s", (_label, details) => {
+    expect(getApiErrorMessage(httpErrorWithCode(CODE, details), FALLBACK)).toBe(
+      GENERIC
+    );
+  });
+});
+
+describe("getApiErrorMessage — DIMENSION_IN_USE", () => {
+  const CODE = "DIMENSION_IN_USE";
+  const GENERIC =
+    "No se puede eliminar la dimensión: alguna de sus variables está en uso por capturas o iniciativas de reducción activas.";
+
+  it("names the variable that blocks the deletion", () => {
+    expect(
+      getApiErrorMessage(
+        httpErrorWithCode(CODE, { valueName: "Excavadora" }),
+        FALLBACK
+      )
+    ).toBe(
+      'No se puede eliminar la dimensión: la variable "Excavadora" está en uso por capturas o iniciativas de reducción activas.'
+    );
+  });
+
+  it.each<readonly [string, Record<string, unknown> | undefined]>([
+    ["details are missing", undefined],
+    ["valueName is not a string", { valueName: 42 }],
+  ])("falls back to the generic sentence when %s", (_label, details) => {
+    expect(getApiErrorMessage(httpErrorWithCode(CODE, details), FALLBACK)).toBe(
+      GENERIC
     );
   });
 });

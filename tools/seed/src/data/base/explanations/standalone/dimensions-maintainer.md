@@ -33,11 +33,11 @@ Al hacer clic en una fila se habilita su edición. Se pueden modificar el nombre
 
 ### Eliminar dimensión
 
-Desde el botón de acciones se puede eliminar una dimensión, con confirmación que advierte de la eliminación de todos los factores de emisión asociados. Si la subcategoría tiene dos dimensiones, solo se permite eliminar la posición 2; la posición 1 únicamente puede eliminarse cuando es la única de la subcategoría.
+Desde el botón de acciones se puede eliminar una dimensión, con confirmación que advierte de la eliminación de todos los factores de emisión asociados. Si la subcategoría tiene dos dimensiones, solo se permite eliminar la posición 2; la posición 1 únicamente puede eliminarse cuando es la única de la subcategoría. Tampoco se puede eliminar una dimensión si alguna de sus variables está en uso por capturas o iniciativas de reducción activas.
 
 ### Gestionar variables
 
-El botón "Editar" (o "Ver" en modo lectura) abre el modal de variables. Permite agregar, renombrar y eliminar entradas. Cuando la subcategoría ya tiene factores de emisión activos, se permiten altas y renombramientos, pero no eliminaciones de variables existentes.
+El botón "Editar" (o "Ver" en modo lectura) abre el modal de variables. Permite agregar, renombrar y eliminar entradas. Una variable que esté en uso no se puede eliminar: el bloqueo se aplica variable por variable, y se activa cuando hay factores de emisión, capturas o iniciativas de reducción activas que la referencian. Las variables que nadie usa sí se pueden eliminar, aunque la subcategoría tenga factores de emisión en otras variables. Para eliminar una variable que solo usan factores de emisión, elimina primero esos factores desde el mantenedor de factores de emisión. Renombrar y agregar están siempre disponibles.
 
 ### La variable "Otro" siempre se muestra al final
 
