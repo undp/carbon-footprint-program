@@ -144,7 +144,7 @@ Por cada combinación de **Tipo × Combustible** que aplique a tu equipo, agrega
 | :---------- | :------------------------------------------------------------------------------------------------------------------- | -------: |
 | Tipo        | Modo de transporte                                                                                                   |     Auto |
 | Combustible | Combustible o variante (o "No aplica")                                                                               | Gasolina |
-| Unidad      | Unidad de distancia (km, m o mi)                                                                                     |       km |
+| Unidad      | Unidad de distancia (km)                                                                                             |       km |
 | Cantidad    | Distancia total del año: km ida y vuelta × días presenciales × personas (o × vehículos si el factor es por vehículo) | 8.712 km |
 
 ⚠️ El campo **"Fuente factor" no debes modificarlo**, salvo que uses factores propios.
