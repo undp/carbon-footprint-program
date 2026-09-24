@@ -321,8 +321,12 @@ describe("PATCH /api/emission-factor-dimensions/:id - Integration Tests", () => 
       });
 
       expect(response.statusCode).toBe(409);
-      const body = JSON.parse(response.body) as { code: string };
+      const body = JSON.parse(response.body) as {
+        code: string;
+        details?: { valueName?: string };
+      };
       expect(body.code).toBe("DIMENSION_VALUE_IN_USE");
+      expect(body.details?.valueName).toBe("Initial Value");
       const stored = await prisma.emissionFactorDimensionValue.findUnique({
         where: { id: value.id },
       });

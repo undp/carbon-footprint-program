@@ -106,8 +106,12 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
     "Ya existe una variable con ese nombre en esta dimensión.",
   DIMENSION_VALUE_NOT_FOUND_FOR_REMOVAL:
     "La variable a eliminar no fue encontrada.",
-  DIMENSION_VALUE_IN_USE:
-    "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.",
+  // The server names the value: this 409 only surfaces when the modal's
+  // `inUse` flag was stale, so the trash gave no cue about which value it was.
+  DIMENSION_VALUE_IN_USE: (details) =>
+    typeof details?.valueName === "string"
+      ? `No se puede eliminar la variable "${details.valueName}": hay capturas o iniciativas de reducción activas que la usan.`
+      : "No se puede eliminar la variable: hay capturas o iniciativas de reducción activas que la usan.",
 
   // Reduction plan initiatives
   REDUCTION_PLAN_INITIATIVE_TITLE_ALREADY_EXISTS:

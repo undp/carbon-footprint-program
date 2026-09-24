@@ -8,6 +8,7 @@ import {
   type UpdateEmissionFactorDimensionRequest,
   type UpdateEmissionFactorDimensionResponse,
 } from "@repo/types";
+import { attachDetails } from "@/errors/index.js";
 import { UserNotFoundError } from "../../users/errors.js";
 import {
   EmissionFactorDimensionNotFoundError,
@@ -123,7 +124,9 @@ export const updateEmissionFactorDimensionService = async (
         });
 
         if (pinnedValue) {
-          throw new DimensionValueInUseError(pinnedValue.value);
+          throw attachDetails(new DimensionValueInUseError(pinnedValue.value), {
+            valueName: pinnedValue.value,
+          });
         }
       }
 
