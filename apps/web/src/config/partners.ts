@@ -44,7 +44,7 @@ export const PARTNERS: Record<PartnerId, Partner> = {
   [PartnerId.SWEDEN]: {
     name: "Gobierno de Suecia",
     logoSrc: swedenLogo,
-    roleCaption: ["Con el apoyo de", "Suecia"],
+    roleCaption: ["Con el apoyo", "de"],
     brandColor: "#005293",
   },
   [PartnerId.UNDP]: {
