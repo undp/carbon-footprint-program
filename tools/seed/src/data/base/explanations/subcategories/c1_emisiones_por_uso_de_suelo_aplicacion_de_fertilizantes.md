@@ -128,7 +128,6 @@ Es decir, la aplicación de fertilizante habría generado:
 ## 📝 Notas importantes
 
 > - Si no aplicas fertilizantes con **N**, no debes declarar esta sección
-> - Si además declaras **suelos orgánicos drenados** en _Emisiones por uso de suelo — Agricultura_, no hay doble conteo: esa sub-categoría cubre las emisiones del propio suelo y esta, las del nitrógeno que aplicas
 > - Puedes asumir que el fertilizante comprado fue aplicado
 > - Revisa el **% del componente** en la ficha técnica del producto
 > - Guarda **facturas y respaldos técnicos** para auditorías o certificaciones

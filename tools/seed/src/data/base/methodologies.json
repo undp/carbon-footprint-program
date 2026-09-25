@@ -2622,7 +2622,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 566.16
+                "value": 560
               },
               {
                 "dimensionValue1": {
@@ -2743,7 +2743,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2026,
-                "value": 566.16
+                "value": 560
               },
               {
                 "dimensionValue1": {
@@ -2817,21 +2817,21 @@
           },
           {
             "name": "Emisiones por uso de suelo - Agricultura",
-            "description": "Emisiones de óxido nitroso de suelos orgánicos (turberas) drenados o manejados para cultivo. Las emisiones por fertilizantes se registran en \"Aplicación de fertilizantes\".",
+            "description": "Emisiones asociadas a actividades agrícolas y manejo del suelo. Incluye emisiones por laboreo, cultivos y cambios en el uso del suelo.",
             "position": 5,
             "emissionFactorDimensions": [
               {
-                "code": "Emisiones por uso de suelo - Agricultura_Tipo de suelo",
-                "name": "Tipo de suelo",
+                "code": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                "name": "Tipo de cultivo",
                 "position": 1,
                 "isRequired": true,
                 "values": [
                   {
-                    "name": "Suelo orgánico drenado - clima templado",
+                    "name": "Cultivo general clima templado",
                     "parentValue": null
                   },
                   {
-                    "name": "Suelo orgánico drenado - clima tropical",
+                    "name": "Cultivo general clima tropical",
                     "parentValue": null
                   },
                   {
@@ -2844,47 +2844,47 @@
             "emissionFactors": [
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de suelo",
-                  "valueName": "Suelo orgánico drenado - clima templado"
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima templado"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ha",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 3331.4286
+                "value": 3432
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de suelo",
-                  "valueName": "Suelo orgánico drenado - clima tropical"
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima tropical"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ha",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 6662.8571
+                "value": 6864
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de suelo",
-                  "valueName": "Suelo orgánico drenado - clima templado"
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima templado"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ha",
                 "source": "IPCC",
                 "year": 2026,
-                "value": 3331.4286
+                "value": 3432
               },
               {
                 "dimensionValue1": {
-                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de suelo",
-                  "valueName": "Suelo orgánico drenado - clima tropical"
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima tropical"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ha",
                 "source": "IPCC",
                 "year": 2026,
-                "value": 6662.8571
+                "value": 6864
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["ha"],
