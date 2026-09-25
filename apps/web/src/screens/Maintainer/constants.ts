@@ -14,6 +14,7 @@ export const NORMATIVA_OPTIONS: SelectOption[] = [
 
 // TODO: move to a database table and populate via seeds
 export const SOURCE_OPTIONS: SelectOption[] = [
+  { label: "DEFRA 2026", value: "DEFRA 2026" },
   { label: "DEFRA 2025", value: "DEFRA 2025" },
   { label: "HuellaChile", value: "HuellaChile" },
   { label: "EPA", value: "EPA" },
