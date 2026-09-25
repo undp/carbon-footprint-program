@@ -13,7 +13,9 @@ export type OnboardingFocus =
   | "new-huella"
   | "associate-org"
   | "self-declare"
-  | "emission-capture-expert-mode";
+  | "emission-capture-expert-mode"
+  | "emission-capture-line-attachments"
+  | "emission-capture-line-extra-info";
 
 const FOCUS_KEY = "onboarding:focus";
 

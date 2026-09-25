@@ -31,6 +31,8 @@ const PREFIX = "huella-latam:onboarding-complete:v1:";
  */
 export const ANONYMOUS_REACHABLE_KEYS: ReadonlySet<OnboardingKey> = new Set([
   OnboardingKeys.EMISSION_CAPTURE_EXPERT_MODE,
+  OnboardingKeys.EMISSION_CAPTURE_LINE_ATTACHMENTS,
+  OnboardingKeys.EMISSION_CAPTURE_LINE_EXTRA_INFO,
 ]);
 
 /**

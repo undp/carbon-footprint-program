@@ -40,6 +40,8 @@ import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { useConfirmDialog } from "@/hooks/useConfirmDialog";
 import { useInventoryErrorHandler } from "./hooks/useInventoryErrorHandler";
 import { useExpertModeOnboardingHighlight } from "./hooks/useExpertModeOnboardingHighlight";
+import { useLineAttachmentsOnboardingHighlight } from "./hooks/useLineAttachmentsOnboardingHighlight";
+import { useLineExtraInfoOnboardingHighlight } from "./hooks/useLineExtraInfoOnboardingHighlight";
 import capitalize from "lodash-es/capitalize";
 import { VOCAB } from "@/config/vocab";
 
@@ -289,7 +291,46 @@ export const EmissionCaptureScreen: FC = () => {
       ),
     [selectedCategoryData, watchedSubcategories]
   );
-  useExpertModeOnboardingHighlight(isExpertModeAvailable);
+  const { isPending: isExpertModeHintPending } =
+    useExpertModeOnboardingHighlight(
+      isExpertModeAvailable,
+      selectedCategoryData !== undefined
+    );
+
+  // The per-line actions only exist once a source is captured, so the hints
+  // that introduce them wait for a visible line in the selected category.
+  const hasCapturedLines = useMemo(
+    () =>
+      (selectedCategoryData?.subcategories ?? []).some((subcategory) => {
+        const formSubcategory = watchedSubcategories?.[subcategory.id];
+        return (
+          shouldShowSubcategory(subcategory, formSubcategory) &&
+          // A manual total doesn't count: its hidden line is created by the
+          // first keystroke in the total input, so counting it would open the
+          // overlay on top of that input while the user is still typing.
+          !formSubcategory?.isTotalManualEmissionsModeActive &&
+          Object.values(formSubcategory?.lines ?? {}).some(
+            // Only real lines count, same filter as `areAllSubcategoriesFilled`:
+            // RHF reconciliation can leave id-less partial objects behind, and
+            // one of those has no `isDeleted`, so it would pass as a captured
+            // source and send the hint chasing a row that never renders.
+            (line) => line && line.lineId && !line.isDeleted
+          )
+        );
+      }),
+    [selectedCategoryData, watchedSubcategories]
+  );
+  // One hint per button, chained so they arrive one at a time: expert mode,
+  // then "Adjuntar archivos", then "Agregar información adicional".
+  const { isPending: isAttachmentsHintPending } =
+    useLineAttachmentsOnboardingHighlight(
+      hasCapturedLines,
+      isExpertModeHintPending
+    );
+  useLineExtraInfoOnboardingHighlight(
+    hasCapturedLines,
+    isAttachmentsHintPending
+  );
 
   const isLoading = isEmissionCaptureLoading || !isReady;
 

@@ -226,6 +226,7 @@ export const EmissionEditorHeader: FC<EmissionEditorHeaderProps> = ({
         <Box className="flex items-center">
           <EmissionEditorActionsCell
             rowId="manual-mode-line"
+            isOnboardingTarget={false}
             categoryColor={categoryColor}
             disabled={isManualModeLoading}
             hasComment={manualModeLineHasComment}

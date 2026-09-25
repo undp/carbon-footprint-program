@@ -7,6 +7,7 @@ import {
 import { FC } from "react";
 import { getColorPalette } from "@/utils/categoryColors";
 import { AppActionButton } from "@/components";
+import { onboardingTargetProps } from "@/utils/onboardingHighlight";
 
 interface EmissionEditorActionsCellProps {
   rowId: string | number;
@@ -18,6 +19,13 @@ interface EmissionEditorActionsCellProps {
   hasComment?: boolean;
   pendingFilesCount?: number;
   linkedFilesCount?: number;
+  /**
+   * Whether the actions carry their onboarding ids. Off for the manual-total
+   * header: those hints are not triggered by a manual total, and since the
+   * resolver takes the first tagged element in the DOM, a tagged header above
+   * a detailed subcategory would pull the spotlight next to the total input.
+   */
+  isOnboardingTarget?: boolean;
 }
 
 export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
@@ -30,6 +38,7 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
   hasComment = false,
   pendingFilesCount = 0,
   linkedFilesCount = 0,
+  isOnboardingTarget = true,
 }) => {
   const totalFilesCount = pendingFilesCount + linkedFilesCount;
   const categoryColorPalette = categoryColor
@@ -47,8 +56,16 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
 
   return (
     <Box className="flex justify-center gap-3">
+      {/* Each action carries its own onboarding id: the two are introduced by
+          separate hints, and the highlight marks itself as followed on any
+          click inside the tagged element — so tagging the buttons rather than
+          the row keeps "Eliminar fuente" from burning a hint the user never
+          read. The ids repeat across rows harmlessly, the resolver takes the
+          first match. */}
       {uploadFiles && (
         <Badge
+          {...(isOnboardingTarget &&
+            onboardingTargetProps("emission-capture-line-attachments"))}
           badgeContent={totalFilesCount}
           invisible={totalFilesCount === 0}
           overlap="circular"
@@ -73,6 +90,8 @@ export const EmissionEditorActionsCell: FC<EmissionEditorActionsCellProps> = ({
       )}
       {updateComment && (
         <Badge
+          {...(isOnboardingTarget &&
+            onboardingTargetProps("emission-capture-line-extra-info"))}
           variant="dot"
           invisible={!hasComment}
           overlap="circular"
