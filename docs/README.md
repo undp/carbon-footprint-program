@@ -43,7 +43,9 @@ Start at [`country-implementation-guide/README.md`](./country-implementation-gui
 | [1. Institutional decisions](./country-implementation-guide/01-institutional-decisions.md)       | The 10 upfront decisions, roles, legal footing, budget and staffing                             |
 | [2. Seed content](./country-implementation-guide/02-seed-content.md)                             | Which seed files to replace, who owns each, critical points, factor years, validation gate      |
 | [3. Configuration and branding](./country-implementation-guide/03-configuration-and-branding.md) | Partners, logos, public pages and per-country constants baked into the image                    |
-| [4. Infrastructure](./country-implementation-guide/04-infrastructure.md)                         | Cloud vs on-premise, DBA and IdP setup, staging gate, first deploy on both paths, backups       |
+| [4. Infrastructure](./country-implementation-guide/04-infrastructure.md)                         | Choosing a path, IdP contract, staging gate, rollback, security references                      |
+| [4. On-premise path](./country-implementation-guide/04-path-on-premise.md)                       | Docker Compose deploy: IT request, DBA setup, env file, deploy sequence, backups                |
+| [4. Azure path](./country-implementation-guide/04-path-azure.md)                                 | Bicep deploy: IT request, configuration, deploy sequence, backups                               |
 | [5. Validation and go-live](./country-implementation-guide/05-validation-and-go-live.md)         | Legal obligations, transparency, personal data, review process, yearly cycle, upstream releases |
 | [6. Master checklist and timeline](./country-implementation-guide/06-checklist-and-timeline.md)  | Deliverable, owner and reference duration per phase                                             |
 

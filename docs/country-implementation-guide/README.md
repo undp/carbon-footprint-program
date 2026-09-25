@@ -51,7 +51,9 @@ emission factor catalogue.
 | 1   | [Institutional decisions](./01-institutional-decisions.md)       | The 10 upfront decisions, roles, legal footing (license, brand), budget and staffing                   |
 | 2   | [Seed content](./02-seed-content.md)                             | Which seed files to replace, who owns each, critical points, explanation rules and the validation gate |
 | 3   | [Configuration and branding](./03-configuration-and-branding.md) | Partners, logos, public pages and per-country values compiled into the image                           |
-| 4   | [Infrastructure](./04-infrastructure.md)                         | Cloud and on-premise paths, IT checklist, staging gate, first-deploy sequence, backups, field issues   |
+| 4   | [Infrastructure](./04-infrastructure.md)                         | Choosing a path, identity provider, staging gate, rollback, security references                        |
+|     | ↳ [On-premise path](./04-path-on-premise.md)                     | Docker Compose on the country's servers: IT request, DBA setup, env file, deploy, backups              |
+|     | ↳ [Azure path](./04-path-azure.md)                               | Bicep on Azure: IT request, configuration, deploy, backups                                             |
 | 5   | [Validation and go-live](./05-validation-and-go-live.md)         | Legal obligations, transparency, personal data, review process, pilot, yearly cycle, upstream releases |
 | 6   | [Master checklist and timeline](./06-checklist-and-timeline.md)  | Deliverable, owner and reference duration for each phase                                               |
 

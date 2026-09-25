@@ -96,8 +96,8 @@ hold several in a small country:
 
 Decision 7 must be closed early and with a confirmed budget. Assuming cloud hosting and discovering
 later that there is no subscription or payment method stalls login and file storage for weeks.
-On-premise deployment on the country's existing PostgreSQL works and is covered in
-[phase 4](./04-infrastructure.md).
+On-premise deployment on the country's existing PostgreSQL works and is covered in the
+[on-premise path](./04-path-on-premise.md).
 
 ---
 

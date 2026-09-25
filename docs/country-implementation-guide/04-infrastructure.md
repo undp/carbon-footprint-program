@@ -1,8 +1,10 @@
 # 4. Infrastructure
 
-The platform is a web frontend and an API (two containers on-premise; an App Service and a Static
-Web App on Azure), plus PostgreSQL, a file store and an OIDC identity provider. There are two documented paths; the choice follows from decision 7 in
-[phase 1](./01-institutional-decisions.md). The phase has two parts:
+The platform is a web frontend and an API, plus PostgreSQL, a file store and an OIDC identity
+provider. There are two ways to run it, each in its own document: pick one, and follow only that
+document for provisioning and deployment. This page holds what applies to both.
+
+The phase has two parts:
 
 - **4A. Provision** the servers, database, storage and identity provider. Runs in parallel with
   phases 2 and 3; 2–4 weeks if the country already has servers and an available DBA.
@@ -12,30 +14,32 @@ Web App on Azure), plus PostgreSQL, a file store and an OIDC identity provider. 
   [validation gate](./02-seed-content.md#validation-gate-before-seeding-production) and the
   [phase 3](./03-configuration-and-branding.md) configuration is final. About 2 weeks.
 
-A staging environment can be deployed during 4A with a draft seed. Because the seed only runs on an
-empty database, staging is wiped and re-seeded each time the draft changes; production is seeded
-once, in 4B, only after staging has passed with exactly the same seed and images.
-
-Staging runs the same compose file (or Bicep stack) as production with its **own** database, file
-bucket and OIDC client (its redirect URLs point at the staging domain); it never shares them with
-production. Because staging is wiped whenever the seed changes, it is not a training environment:
-if organizations need somewhere to practise, run a separate training instance seeded from the same
-final version.
-
 ← [3. Configuration and branding](./03-configuration-and-branding.md) · [Index](./README.md) · Next: [5. Validation and go-live](./05-validation-and-go-live.md) →
 
 ---
 
-## The two paths
+## Choose your path
 
-| Component                     | Cloud path (Azure)                                       | On-premise path (Docker Compose)                                                                             | Detailed guide                                                                                                                                       |
-| ----------------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Provisioning                  | Bicep ([`infra/`](../../infra/)), no hand-made resources | [`docker-compose.prod.yml`](../../docker-compose.prod.yml) on a country server                               | [`Deployment.md`](../infrastructure/Deployment.md), [`production-deployment.md`](../operations/production-deployment.md)                             |
-| Database                      | Azure Database for PostgreSQL Flexible Server            | Existing PostgreSQL ≥ 15 (project standard: 18) with pgvector                                                | [DBA contract](../operations/production-deployment.md#database-roles--privileges-dba-contract)                                                       |
-| Files (evidence, badges, T&C) | Azure Blob Storage                                       | MinIO or another S3-compatible store, or Azure Blob from on-premise                                          | [`FileStorage.md`](../infrastructure/FileStorage.md)                                                                                                 |
-| Identity                      | Entra External ID                                        | Keycloak ([`compose/keycloak.prod.yaml`](../../compose/keycloak.prod.yaml) overlay) or another OIDC provider | [`GenericOidcAuthenticationSetup.md`](../infrastructure/GenericOidcAuthenticationSetup.md), [`KeycloakSetup.md`](../infrastructure/KeycloakSetup.md) |
-| Images                        | Azure Container Registry                                 | Tarball built on another machine and loaded with `docker load` (works offline)                               | [Image delivery](../operations/production-deployment.md#image-delivery-build--save--load)                                                            |
-| Chatbot (optional)            | Azure OpenAI + embeddings                                | Needs egress to Azure OpenAI; without it, `CHATBOT_ENABLED=false`                                            | [`chatbot-ai-access-requirements.md`](../infrastructure/chatbot-ai-access-requirements.md)                                                           |
+The choice follows from decision 7 in [phase 1](./01-institutional-decisions.md).
+
+| If the country…                                                                                  | Follow                                                      |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Runs its own servers, has an existing PostgreSQL and a DBA, or must keep data inside the country | [On-premise path (Docker Compose)](./04-path-on-premise.md) |
+| Has an Azure subscription with a confirmed budget and payment method                             | [Azure path](./04-path-azure.md)                            |
+
+Both paths run the same application and pass through the same staging gate. What differs is who
+provisions what, how images reach the servers, and how backups work.
+
+## What both paths need
+
+- **An OIDC identity provider** that meets the contract below, with an SMTP relay: the platform
+  itself sends no email (members are added without invitations), but the IdP needs mail for
+  account verification and password recovery.
+- **A domain and a TLS certificate** for the web app and the API.
+- **A staging environment** separate from production (see below).
+- **Backups** of the database, the file store and the identity provider's user store, taken
+  together. The country sets its recovery targets (how much data it can lose, how long it can be
+  down) and tests a restore before go-live. Each path document explains how.
 
 Sizing baseline: the reference production design assumes about 200 daily active users and a peak
 of about 20 requests per second, concentrated in working hours. The API is stateless and scales
@@ -44,57 +48,6 @@ and is kept permanently, so plan storage growth year over year. Details:
 [`requirements.md`](../infrastructure/requirements.md),
 [`app-usage-assumptions.md`](../infrastructure/app-usage-assumptions.md) and
 [`infra cost estimation.pdf`](<../infra cost estimation.pdf>).
-
-## 4A. Provision: request to the national IT team
-
-- [ ] Application server with Docker Engine and Compose v2, or an Azure subscription with
-      permission to deploy Bicep.
-- [ ] PostgreSQL ≥ 15 with the `vector` extension created by the DBA (see below).
-- [ ] Two database users: a migration user (DDL) and an application user (read/write), with default
-      privileges (see below).
-- [ ] A file bucket or container with CORS allowing the web domain.
-- [ ] Two OIDC clients (API and frontend) with redirect URLs for the final domain.
-- [ ] An SMTP relay for the identity provider. The platform itself sends no email (members are
-      added without invitations), but the IdP needs mail for account verification and password
-      recovery.
-- [ ] Domain, TLS certificate and reverse proxy.
-- [ ] Network rules: application server to the database (5432), the file store and the identity
-      provider.
-- [ ] Backups for the database and the file store (see [backups](#backups-and-recovery)).
-
-### What the DBA runs once
-
-pgvector is mandatory even with the chatbot disabled: one migration unconditionally creates a
-`vector` column, so a database without the extension cannot migrate at all. On a self-managed
-server, install the OS package first (e.g. `postgresql-18-pgvector` on Debian/Ubuntu); on Azure the
-Bicep template already allows the extension. Creating it needs superuser, which the migration user
-must not have:
-
-```sql
-CREATE EXTENSION IF NOT EXISTS vector;
-```
-
-Tables belong to whoever runs the migrations. Default privileges let the application user reach
-every table future migrations create, so grants never need re-applying. Run them **before the
-first migration**:
-
-```sql
-GRANT CONNECT ON DATABASE <db-name> TO <app-user>;
-GRANT USAGE ON SCHEMA public TO <app-user>;
-ALTER DEFAULT PRIVILEGES FOR ROLE <migration-user> IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO <app-user>;
-ALTER DEFAULT PRIVILEGES FOR ROLE <migration-user> IN SCHEMA public
-  GRANT USAGE, SELECT ON SEQUENCES TO <app-user>;
-```
-
-If migrations already ran before the default privileges were set, or if the DBA does not set them,
-the DBA runs these grants: once for the tables that already exist, and, without default
-privileges, again after every migration and every backup restore:
-
-```sql
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO <app-user>;
-GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO <app-user>;
-```
 
 ### What the identity provider must provide
 
@@ -114,27 +67,16 @@ the email must be unique. **Choose the IdP for the long term:** switching to ano
 gives every user a new subject, and existing accounts can no longer be matched. A government SSO or
 digital-ID provider can be used if it meets the contract above.
 
-### Minimum production environment variables
+## Staging and training environments
 
-The env file (`.env.prod.dockercompose` on-premise) must set at least these. Values marked
-"build" are baked into the web image, so changing them means rebuilding it.
+Staging runs the same deployment as production with its **own** database, file bucket and OIDC
+client (its redirect URLs point at the staging domain); it never shares them with production. It
+can be deployed during 4A with a draft seed. Because the seed only runs on an empty database,
+staging is wiped and re-seeded each time the draft changes; production is seeded once, in 4B, only
+after staging has passed with exactly the same seed and images.
 
-| Variable                                                                                                                              | Purpose                                                                       |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `DATABASE_URL`                                                                                                                        | Application user's connection string (URL-encode special characters)          |
-| `MIGRATION_DATABASE_URL`                                                                                                              | Migration user's connection string; only the migrator needs it                |
-| `ALLOWED_ORIGIN`                                                                                                                      | Exact browser origin of the web app (scheme, host, port, no trailing slash)   |
-| `TRUST_PROXY`                                                                                                                         | The reverse proxy in front of the API, or `false` if there is none            |
-| `APP_VERSION`, `VITE_APP_VERSION` (build)                                                                                             | The release tag being deployed                                                |
-| `AUTH_PROVIDER=jwks`, `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`                                                                      | How the API validates tokens; production refuses to boot without them         |
-| `STORAGE_PROVIDER` + its block (`AZURE_STORAGE_*` or `MINIO_*`), `STORAGE_ORIGIN`                                                     | File store and the storage URL the browser reaches                            |
-| `VITE_API_BASE_URL`, `VITE_FRONT_BASE_URL` (build)                                                                                    | Browser-reachable API and web URLs                                            |
-| `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_SCOPES`, `VITE_OIDC_REDIRECT_URI`, `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (build) | The web app's OIDC client                                                     |
-| `CHATBOT_ENABLED`, `VITE_CHATBOT_ENABLED` (build)                                                                                     | `false` unless decision 9 enabled the chatbot, which then needs its own block |
-
-Compose stops at start-up if a required variable is missing, and the API refuses to boot if the
-selected storage provider's variables are incomplete. The template file documents each variable
-next to its value.
+Staging is therefore not a training environment: if organizations need somewhere to practise, run
+a separate training instance seeded from the same final version.
 
 ## Staging gate (before production)
 
@@ -163,100 +105,22 @@ production will receive:
 
 ## First production deploy sequence
 
-### On-premise (Docker Compose)
+Once the staging gate passes, deploy production with the sequence in your path document:
+[on-premise](./04-path-on-premise.md#first-production-deploy-sequence) or
+[Azure](./04-path-azure.md#first-production-deploy-sequence). Both end the same way:
 
-All commands use this alias, from the folder holding `docker-compose.prod.yml` and the filled env
-file:
+- **The first `SUPERADMIN`** signs in once through the IdP (which creates their user) and is then
+  promoted from outside the app. This bypasses the role audit trail; every later role change goes
+  through the UI.
+- **The other administrators** each sign in once, then the `SUPERADMIN` assigns them the system
+  `ADMIN` role in `/admin/users`.
 
-```bash
-alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.dockercompose'
-```
-
-1. Fill in `.env.prod.dockercompose` from `.env.prod.dockercompose.example`, including the storage
-   block. No real credentials go into documents, comments or the repository.
-2. **Build** on a machine with the country branch checked out (the `VITE_*` values are baked into
-   the web image):
-
-   ```bash
-   dcp build
-   dcp --profile migrate build migrate
-   docker save huella-latam-api:prod huella-latam-web:prod huella-latam-migrate:prod \
-     | gzip > huella-images-<tag>.tar.gz
-   ```
-
-3. **Load** on the deploy server: `docker load < huella-images-<tag>.tar.gz`.
-4. **Check** database connectivity: `docker run --rm postgres:18-alpine pg_isready -h <db-host> -p 5432`.
-5. **Migrate**: `dcp --profile migrate run --rm migrate`. Repeat on every release.
-6. **Seed once**: `dcp --profile seed run --rm seed`. It fails without writing anything if file
-   storage is not configured or unreachable, because it uploads the badges and the terms and
-   conditions.
-7. **Start**: `dcp up --no-build -d`, then `dcp ps` until both services are healthy.
-8. **Create the first `SUPERADMIN`**: the person signs in once through the IdP (which creates their
-   user), then promote them with the bundled script:
-
-   ```bash
-   dcp --profile migrate run --rm migrate sh -c \
-     "pnpm --filter @repo/database promote-superadmin <admin-email>"
-   ```
-
-   Or, equivalently, the DBA runs:
-
-   ```sql
-   UPDATE "user" SET role = 'SUPERADMIN', updated_at = now() WHERE email = '<admin-email>';
-   ```
-
-   Both bypass the role audit trail; every later role change goes through the UI.
-
-9. **Create the other administrators**: each person signs in once, then the `SUPERADMIN` assigns
-   the system `ADMIN` role in `/admin/users`.
-
-Every variable is described in
-[`../development/environment-variables.md`](../development/environment-variables.md).
-
-### Azure
-
-1. Configure `infra/.envrc` for the environment and deploy the Bicep stack with `infra/deploy.sh`
-   ([`Deployment.md`](../infrastructure/Deployment.md)).
-2. Register the OIDC clients and set the authentication values
-   ([`AzureAuthenticationSetup.md`](../infrastructure/AzureAuthenticationSetup.md)).
-3. **Migrate** with `infra/run-migrations.sh` after allowing your IP in the PostgreSQL firewall
-   ([`Migrations.md`](../infrastructure/Migrations.md)).
-4. **Seed once** from a machine with the country branch at the deployed tag, pointing at the Azure
-   database with the migration credentials and the storage variables set:
-
-   ```bash
-   export DATABASE_URL='postgresql://<migration-user>:<url-encoded-password>@<db-host>:5432/<db-name>?schema=public&sslmode=require'
-   export STORAGE_PROVIDER=azure_blob_storage
-   # plus AZURE_STORAGE_ACCOUNT_NAME, _CONTAINER_NAME, _TENANT_ID, _CLIENT_ID, _CLIENT_SECRET
-   pnpm install
-   pnpm --filter @repo/seed seed
-   ```
-
-5. **Deploy** the API with `infra/deploy-api.sh` ([`ApiDeployment.md`](../infrastructure/ApiDeployment.md))
-   and the frontend with `infra/deploy-web.sh`
-   ([`StaticWebAppDeployment.md`](../infrastructure/StaticWebAppDeployment.md)).
-6. **Create the first `SUPERADMIN` and the administrators** as in steps 8–9 above.
-
-## Backups and recovery
-
-The country sets its recovery targets (how much data it can lose, how long it can be down) and
-tests a restore before go-live. Back up three things together: the database, the file store and
-the identity provider's user store.
-
-| Path       | Database                                                                | Files                                       |
-| ---------- | ----------------------------------------------------------------------- | ------------------------------------------- |
-| Azure      | Automated backups and point-in-time restore (30 days recommended)       | Geo-redundant storage plus blob soft delete |
-| On-premise | The DBA's standard PostgreSQL backups (dumps or point-in-time recovery) | Bucket versioning or scheduled copies       |
-
-If the database was set up without default privileges, re-apply the grants above after any
-restore. Azure procedures are in the [runbook](../operations/runbook.md#backup).
-
-### Rolling back a release
+## Rolling back a release
 
 Migrations only move forward; there is no down-migration. Before migrating production for a new
 release, take a database backup (and note the file-store state). If the release fails, restore
-that backup and start the previous release's images again. Rehearse every upgrade in staging
-first, on a copy of production-like data.
+that backup and redeploy the previous release. Rehearse every upgrade in staging first, on a copy
+of production-like data.
 
 ## Security and privacy references
 
@@ -272,17 +136,6 @@ Government security and data-protection offices usually ask for these before pro
 
 Data residency follows decision 7: on-premise keeps data in the country; on Azure it stays in the
 region chosen at deploy time. With the chatbot enabled, prompts are sent to Azure OpenAI.
-
-## Issues already seen in the field
-
-| Symptom                                                   | Cause                                                             | Fix                                                                                                                                            |
-| --------------------------------------------------------- | ----------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| The API cannot read or write new tables after a migration | Tables are owned by the migration user                            | Default privileges (above), or re-apply the grants after every migration                                                                       |
-| Login fails with 401 behind a VPN or slow links           | Node's connection-attempt timeout is too short                    | Fixed in the API (2.5 s per attempt); run a recent release                                                                                     |
-| The web container stays "unhealthy"                       | The healthcheck used `localhost` (IPv6) against IPv4-only nginx   | Fixed in `docker-compose.prod.yml`; check if the country keeps its own compose file                                                            |
-| A migration fails and blocks all later ones (P3009)       | pgvector or privileges missing                                    | Fix the cause, mark the migration as rolled back and retry ([details](../operations/production-deployment.md#1-apply-migrations-every-deploy)) |
-| The browser cannot download files from MinIO              | The signed URL uses a host the browser cannot resolve             | Publish MinIO under a name resolvable from users' machines                                                                                     |
-| Compose uses a different value than the env file          | Variables exported in the shell (or direnv) override `--env-file` | Clean the shell before running                                                                                                                 |
 
 ---
 
