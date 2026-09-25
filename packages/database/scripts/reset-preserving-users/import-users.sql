@@ -1,8 +1,5 @@
--- Re-insert the users exported by export-users.sh into a database that was
--- just migrated and seeded. Part of docs/operations/migration-history-reset.md.
---
--- Run from the directory holding the CSVs, in one transaction:
---   psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f import-users.sql
+-- Re-insert the users exported by reset-preserving-users.sh into a database
+-- that was just migrated and seeded. Run from the directory holding the CSVs.
 --
 -- Ids are preserved so created_by/updated_by and the audit rows stay valid.
 -- The seed must not have created users (the base dataset creates none).

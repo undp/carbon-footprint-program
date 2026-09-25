@@ -1,14 +1,11 @@
 -- Empty the `public` schema so the consolidated migrations can be applied from
--- scratch. Part of docs/operations/migration-history-reset.md.
+-- scratch. Run by reset-preserving-users.sh.
 --
 -- Deliberately NOT `DROP SCHEMA public CASCADE`: that would also drop the
 -- pgvector extension, and on a deployment where the DBA created it (the
 -- migration user is not a superuser) the migration user could not create it
 -- again. Only views, tables (with their sequences, indexes and constraints) and
 -- enum types are dropped; extensions and their objects are left in place.
---
--- Run it as the MIGRATION user (the owner of the tables), in one transaction:
---   psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
 
 -- The CASCADE drops emit one NOTICE per dependent constraint; keep the output readable.
 SET client_min_messages = warning;

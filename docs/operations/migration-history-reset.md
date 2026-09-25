@@ -14,7 +14,7 @@ The migration history was consolidated from 40 migrations into 7, one per domain
 
 The resulting schema is identical to the one the old history produced (same tables, columns, constraints, indexes, views and enums; only the physical order of three columns changed), with one deliberate fix: `reduction_projects.subcategory_id` is now declared `onDelete: Restrict` in `schema.prisma`, matching the database. The migrations that only carried catalogue content (guides, dimension values, subcategory order, help texts) were dropped: the seed installs that content.
 
-**Every database that ran the old history must be reset once.** There is no automatic detection: running `migrate deploy` of this version against a database with the old history tries to apply `20260925000000_platform_base`, fails on its first statement (`type "system_role" already exists`) and records the failure, after which every deploy stops with **P3009**. The schema itself is left untouched (each migration runs in a transaction). The fix is to run this procedure, which drops `_prisma_migrations` along with everything else — no `migrate resolve` is needed.
+**Every database that ran the old history must be reset once.** There is no automatic detection: running `migrate deploy` of this version against a database with the old history tries to apply `20260925000000_platform_base`, fails on its first statement (`type "system_role" already exists`) and records the failure, after which every deploy stops with **P3009**. The schema itself is left untouched (each migration runs in a transaction). The fix is `pnpm db:restore:keep-users`, which drops `_prisma_migrations` along with everything else — no `migrate resolve` is needed.
 
 ## What is kept and what is lost
 
@@ -22,7 +22,7 @@ The resulting schema is identical to the one the old history produced (same tabl
 | -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
 | `user`: identity, IdP link (`idp_user_id`), system role, terms acceptance, last access | Organizations, their data and memberships (organization roles) — organizations register again |
 | `user_role_audit`: the history of system-role changes                                  | Carbon inventories, submissions, badges granted, reduction projects                           |
-| `user_onboarding_completion`: users do not see the onboarding tours again              | Chatbot conversations and the ingested corpus (re-ingest it, see step 6)                      |
+| `user_onboarding_completion`: users do not see the onboarding tours again              | Chatbot conversations and the ingested corpus (re-ingest it afterwards)                       |
 |                                                                                        | `user_access_log`                                                                             |
 |                                                                                        | Catalogue edits made through the maintainers — the seed restores the repository catalogue     |
 
@@ -30,74 +30,33 @@ A user's job position is matched again by country and name after the reseed; the
 
 Files already uploaded to object storage (submission attachments, line evidence) stay in the bucket without a `file` row. They are harmless; clean them up from the storage console if needed.
 
-## Prerequisites
+## Running it
 
-- A full `pg_dump` of the database, taken right before starting. It is the only rollback.
-- `psql` and `pg_dump` for the database. Without PostgreSQL client tools on the host, run every command below inside the image instead, from the scripts directory: `docker run --rm -it --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work -e MIGRATION_DATABASE_URL postgres:18 <command>` (add `--network host` when the database runs on the same host).
-- The **migration user** credentials (the owner of the tables). On-premise deployments: also the application user name, to re-apply grants.
-- Object storage configured for the seed (the base dataset uploads the badges and the terms & conditions PDF — see [Production Deployment](./production-deployment.md#2-seed-reference-data-first-deploy-only)).
-- The pgvector extension present in the database. The reset keeps it; do **not** drop the schema by hand, because on a deployment where the DBA created the extension the migration user cannot create it again.
-
-The scripts live in [`packages/database/scripts/reset-preserving-users/`](../../packages/database/scripts/reset-preserving-users/).
-
-## Procedure
-
-Stop the API first (`dcp stop api` on-premise), so no user signs in while the database is being rebuilt.
-
-Every step connects as the migration user. Set its connection string once, in the shell that runs the procedure (quote it: it may contain `&` or `?`):
+From the repository root, with `DATABASE_URL` pointing at the database to reset **as the owner of the tables** (on-premise: the migration user, not the application user) and the storage variables the seed needs (the base dataset uploads the badges and the terms & conditions PDF):
 
 ```bash
-export MIGRATION_DATABASE_URL='postgresql://<migration-user>:<password>@<host>:5432/<database>'
-cd packages/database/scripts/reset-preserving-users
+pnpm db:restore:keep-users
 ```
 
-### 1. Back up
+It asks for confirmation, then:
 
-```bash
-pg_dump "$MIGRATION_DATABASE_URL" --format=custom --file huella-before-reset.dump
-```
+1. backs up the database (`pg_dump`) and exports the users to a temporary directory outside the repository;
+2. empties the schema: every view, table and enum type in `public`, including `_prisma_migrations`, but not the pgvector extension (the migration user may not be allowed to create it again);
+3. runs `pnpm db:provision` — `migrate deploy` of the seven migrations, then the seed;
+4. re-inserts the users with their ids and lists any whose job position was not found.
 
-### 2. Export the users
+It needs `psql` and `pg_dump` besides the usual pnpm toolchain. Stop the API first (`dcp stop api` on-premise) so no one signs in halfway.
 
-```bash
-./export-users.sh ./users-export
-```
+**If it fails** after emptying the schema, it prints the directory holding the export. Fix the cause and resume with `pnpm db:restore:keep-users <that directory>`: it skips the export and redoes steps 2–4. Running it again without the directory refuses, because the emptied database has no users left to export.
 
-Check the row counts it prints against the application before going on. Keep `users-export/` private: it holds emails and IdP identifiers.
+The seed must not create users: the default `base` dataset creates none, while `testing` creates one and the re-insert then fails as a whole (nothing written).
 
-### 3. Empty the schema
+**Afterwards:**
 
-```bash
-psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
-```
-
-It drops every view, table and enum type in `public` — including `_prisma_migrations` — and leaves extensions in place. The final query must return no rows.
-
-### 4. Apply the migrations and seed
-
-Exactly as on a first deploy:
-
-- **On-premise (Docker Compose):** `dcp --profile migrate run --rm migrate`, then `dcp --profile seed run --rm seed`.
-- **Azure:** `infra/run-migrations.sh` (see [Migrations](../infrastructure/Migrations.md)), then the seed.
-- **Local development:** `pnpm db:restore` in `packages/database` does steps 3 and 4 in one go (and drops the extension, which a local superuser recreates); skip this procedure unless you want to keep your local users.
-
-### 5. Re-insert the users
-
-From the directory holding the CSVs:
-
-```bash
-cd users-export
-psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f ../import-users.sql
-```
-
-It fails as a whole — nothing written — if anything does not fit (for instance, a user the seed already created). The last result lists users whose job position was not found.
-
-On-premise, when the migration user is not the application user: **re-apply the grants** from the [DBA contract](./production-deployment.md#database-roles--privileges-dba-contract) now — every table is new and owned by the migration user.
-
-### 6. Restart and re-ingest
-
-Start the API (`dcp up --no-build -d`), sign in with an existing account and check that the system role is the expected one. If the chatbot is enabled, re-ingest the corpus with the `chatbot:ingest` / `chatbot:ingest-corpus` scripts of `apps/api`.
+- On-premise, when the migration user is not the application user: re-apply the grants from the [DBA contract](./production-deployment.md#database-roles--privileges-dba-contract) — every table is new and owned by the migration user.
+- Start the API, sign in with an existing account and check the system role. If the chatbot is enabled, re-ingest the corpus (`pnpm chatbot:ingest-corpus`).
+- Delete the temporary directory once the reset is verified: it holds a full backup and user emails.
 
 ## Rollback
 
-Restore the dump from step 1 with `pg_restore --clean --if-exists` and deploy the previous release: the old history is incompatible with this version.
+Restore the backup (`before-reset.dump` in the temporary directory) with `pg_restore --clean --if-exists` and deploy the previous release: the old history is incompatible with this version.
