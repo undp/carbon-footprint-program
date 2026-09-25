@@ -87,8 +87,8 @@ Parameters are seeded at database initialization from:
 Parameters can be updated directly in the database. There is no admin UI endpoint for updates in the current release.
 
 ```sql
-UPDATE "SystemParameter"
-SET value = 'MANUAL', "updatedAt" = now()
+UPDATE system_parameter
+SET value = 'MANUAL', updated_at = now()
 WHERE key = 'CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR';
 ```
 

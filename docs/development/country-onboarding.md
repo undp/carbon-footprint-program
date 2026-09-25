@@ -268,8 +268,8 @@ After seeding, create the first SUPERADMIN user by:
 2. Updating their role directly in the database:
 
 ```sql
-UPDATE "User"
-SET "systemRole" = 'SUPERADMIN', "updatedAt" = now()
+UPDATE "user"
+SET role = 'SUPERADMIN', updated_at = now()
 WHERE email = 'admin@example.co';
 ```
 
