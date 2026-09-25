@@ -1,9 +1,18 @@
 import { describe, it, expect, beforeAll, afterAll, inject } from "vitest";
 import { createTestApp } from "@test/factories/appFactory.js";
 import { getTestLoggedUser } from "@test/factories/userFactory.js";
-import { TEST_EMISSION_FACTOR_YEAR } from "@test/factories/emissionFactorFactory.js";
+import {
+  TEST_EMISSION_FACTOR_YEAR,
+  SEEDED_CATALOGUE_YEAR,
+} from "@test/factories/emissionFactorFactory.js";
+import {
+  createInventoryFromPattern,
+  carbonInventoryPatterns,
+  cleanupCarbonInventoryTestData,
+} from "@test/factories/carbonInventorySeeder.js";
 import type { FastifyInstance, InjectOptions } from "fastify";
 import { type PrismaClient, type User, SystemRole } from "@repo/database";
+import type { GetCarbonInventoryMethodologyResponse } from "@repo/types";
 
 // The ids never reach a service: the role check runs before it, so a
 // nonexistent id proves the route is closed without seeding anything. Bodies
@@ -98,4 +107,51 @@ describe("Emission factor routes - Authorization", () => {
       expect(response.statusCode).not.toBe(403);
     }
   );
+
+  // Footprint capture (calculator step 3) must not depend on the routes above:
+  // it reads dimensions from the inventory's methodology and factors from the
+  // inventory-scoped routes, which a USER who owns the footprint can reach.
+  describe("Calculator catalogue routes for a USER who owns the footprint", () => {
+    let carbonInventoryId: string;
+
+    beforeAll(async () => {
+      const carbonInventory = await createInventoryFromPattern(
+        prisma,
+        carbonInventoryPatterns.simplifiedDraft,
+        { year: SEEDED_CATALOGUE_YEAR }
+      );
+      carbonInventoryId = carbonInventory.id.toString();
+    });
+
+    afterAll(async () => {
+      await cleanupCarbonInventoryTestData(prisma);
+    });
+
+    it.each(["methodology", "emission-factors", "emission-factor-years"])(
+      "GET /api/carbon-inventories/:id/%s returns 200",
+      async (resource) => {
+        const response = await injectAs(SystemRole.USER, {
+          method: "GET",
+          url: `/api/carbon-inventories/${carbonInventoryId}/${resource}`,
+        });
+
+        expect(response.statusCode).toBe(200);
+      }
+    );
+
+    it("returns the catalogue's dimensions and factors to the USER", async () => {
+      const response = await injectAs(SystemRole.USER, {
+        method: "GET",
+        url: `/api/carbon-inventories/${carbonInventoryId}/methodology`,
+      });
+      const subcategories = response
+        .json<GetCarbonInventoryMethodologyResponse>()
+        .categories.flatMap((category) => category.subcategories);
+
+      expect(subcategories.some((s) => s.dimensions.length > 0)).toBe(true);
+      expect(subcategories.some((s) => s.emissionFactors.length > 0)).toBe(
+        true
+      );
+    });
+  });
 });
