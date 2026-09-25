@@ -75,6 +75,9 @@ Thumbs.db
 *.temp
 *.local
 
+# pnpm db:restore:keep-users: full database backup + exported users (emails). Never commit.
+/huella-reset.*/
+
 # Test coverage
 coverage/
 .vitest-reports/

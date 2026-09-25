@@ -40,7 +40,7 @@ pnpm db:restore:keep-users
 
 It asks for confirmation, then:
 
-1. backs up the database (`pg_dump`) and exports the users to a temporary directory outside the repository;
+1. backs up the database (`pg_dump`) and exports the users to a `huella-reset.XXXXXX/` directory at the repository root (readable only by you, and ignored by git and by the Docker build context);
 2. empties the schema: every view, table and enum type in `public`, including `_prisma_migrations`, but not the pgvector extension (the migration user may not be allowed to create it again);
 3. runs `pnpm db:provision` — `migrate deploy` of the seven migrations, then the seed;
 4. re-inserts the users with their ids and lists any whose job position was not found.
@@ -55,8 +55,8 @@ The seed must not create users: the default `base` dataset creates none, while `
 
 - On-premise, when the migration user is not the application user: re-apply the grants from the [DBA contract](./production-deployment.md#database-roles--privileges-dba-contract) — every table is new and owned by the migration user.
 - Start the API, sign in with an existing account and check the system role. If the chatbot is enabled, re-ingest the corpus (`pnpm chatbot:ingest-corpus`).
-- Delete the temporary directory once the reset is verified: it holds a full backup and user emails.
+- Delete the `huella-reset.XXXXXX/` directory once the reset is verified: it holds a full backup and user emails.
 
 ## Rollback
 
-Restore the backup (`before-reset.dump` in the temporary directory) with `pg_restore --clean --if-exists` and deploy the previous release: the old history is incompatible with this version.
+Restore the backup (`before-reset.dump` in the `huella-reset.XXXXXX/` directory) with `pg_restore --clean --if-exists` and deploy the previous release: the old history is incompatible with this version.

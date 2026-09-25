@@ -50,7 +50,9 @@ else
     exit 1
   fi
 
-  work=$(mktemp -d "${TMPDIR:-/tmp}/huella-reset.XXXXXX")
+  # At the repository root, ignored by git and Docker (.gitignore, .dockerignore): it holds
+  # a full backup and the users' emails. Private to the current user.
+  work=$(mktemp -d "$repo_root/huella-reset.XXXXXX")
   step "1/4 Backing up and exporting the users to $work"
 
   pg_dump "$psql_url" --format=custom --file "$work/before-reset.dump"
