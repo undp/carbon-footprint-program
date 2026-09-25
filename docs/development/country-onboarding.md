@@ -2,6 +2,8 @@
 
 This guide explains what needs to be configured to deploy Huella Latam in a new country. The platform is country-agnostic by design — all country-specific data lives in seed JSON files, not in application code.
 
+> For the end-to-end, phase-by-phase rollout (institutional decisions, which seed content to replace and who owns it, branding, infrastructure and go-live), start with the [Country Implementation Guide](../country-implementation-guide/README.md). This document stays the field-level reference for the seed files.
+
 ---
 
 ## Overview
