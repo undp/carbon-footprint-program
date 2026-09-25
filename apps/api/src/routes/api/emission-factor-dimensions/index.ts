@@ -4,14 +4,19 @@ import { getEmissionFactorDimensionsRoute } from "@/features/emissionFactorDimen
 import { createEmissionFactorDimensionRoute } from "@/features/emissionFactorDimensions/createEmissionFactorDimension/route.js";
 import { updateEmissionFactorDimensionRoute } from "@/features/emissionFactorDimensions/updateEmissionFactorDimension/route.js";
 import { deleteEmissionFactorDimensionRoute } from "@/features/emissionFactorDimensions/deleteEmissionFactorDimension/route.js";
+import { SystemRole } from "@repo/types";
 
 export default function emissionFactorDimensionsRoutes(
   fastify: FastifyZodInstance
 ) {
-  registerRoutes(fastify, [
-    getEmissionFactorDimensionsRoute,
-    createEmissionFactorDimensionRoute,
-    updateEmissionFactorDimensionRoute,
-    deleteEmissionFactorDimensionRoute,
-  ]);
+  registerRoutes(
+    fastify,
+    [
+      getEmissionFactorDimensionsRoute,
+      createEmissionFactorDimensionRoute,
+      updateEmissionFactorDimensionRoute,
+      deleteEmissionFactorDimensionRoute,
+    ],
+    { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
+  );
 }
