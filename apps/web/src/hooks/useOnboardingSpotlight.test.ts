@@ -193,14 +193,17 @@ describe("useOnboardingSpotlight", () => {
       expect(result.current.isPending).toBe(false);
     });
 
-    it("stays ruled out when it becomes applicable later in the visit", () => {
-      // The queue behind it has already moved on, so firing now would land on
-      // top of whichever hint took its place.
-      const { rerender } = setup({ isApplicable: false });
+    it("still fires when it becomes applicable later in the visit", () => {
+      // Review finding: every visit mounts on the first category, so ruling
+      // the hint out for the mount lost it for good whenever that category
+      // lacked its control.
+      const { result, rerender } = setup({ isApplicable: false });
 
       rerender({ isApplicable: true });
 
-      expect(runHighlightMock).not.toHaveBeenCalled();
+      expect(runHighlightMock).toHaveBeenCalledTimes(1);
+      // The queue it released stays released.
+      expect(result.current.isPending).toBe(false);
     });
 
     it("is not ruled out while it is blocked", () => {
@@ -215,6 +218,68 @@ describe("useOnboardingSpotlight", () => {
       rerender({ isApplicable: true, isBlocked: false });
 
       expect(runHighlightMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("one spotlight at a time", () => {
+    const OTHER_SPEC = {
+      key: OnboardingKeys.EMISSION_CAPTURE_LINE_ATTACHMENTS,
+      targetId: "emission-capture-line-attachments",
+      title: "Adjunta el respaldo de la fuente",
+      description: "Con este botón subes los archivos que respaldan la fuente.",
+    } as const satisfies OnboardingSpotlightSpec;
+
+    /** Two unrelated hints on one screen, with no queue between them. */
+    const setupPair = (initial: { isFirstApplicable: boolean }) => {
+      useOnboardingCompletionMock.mockReturnValue({
+        ready: true,
+        isCompleted: () => false,
+        complete: completeMock,
+      });
+      return renderHook(
+        ({ isFirstApplicable }: { isFirstApplicable: boolean }) => {
+          useOnboardingSpotlight({
+            ...BASE_SPEC,
+            isApplicable: isFirstApplicable,
+          });
+          useOnboardingSpotlight(OTHER_SPEC);
+        },
+        { initialProps: initial }
+      );
+    };
+
+    const opened = () =>
+      runHighlightMock.mock.calls.map(
+        ([spec]) => (spec as { debugLabel: string }).debugLabel
+      );
+
+    it("opens only the first of two hints that fire in the same commit", () => {
+      setupPair({ isFirstApplicable: true });
+      expect(opened()).toEqual([BASE_SPEC.targetId]);
+    });
+
+    it("holds a hint that becomes applicable while another is up", () => {
+      const { rerender } = setupPair({ isFirstApplicable: false });
+      expect(opened()).toEqual([OTHER_SPEC.targetId]);
+
+      rerender({ isFirstApplicable: true });
+      expect(opened()).toEqual([OTHER_SPEC.targetId]);
+
+      act(() => {
+        (
+          runHighlightMock.mock.calls[0][0] as { onDismiss: () => void }
+        ).onDismiss();
+      });
+      expect(opened()).toEqual([OTHER_SPEC.targetId, BASE_SPEC.targetId]);
+    });
+
+    it("frees the screen when the hint on it unmounts", () => {
+      const first = setupPair({ isFirstApplicable: true });
+      first.unmount();
+
+      setup({});
+
+      expect(runHighlightMock).toHaveBeenCalledTimes(2);
     });
   });
 

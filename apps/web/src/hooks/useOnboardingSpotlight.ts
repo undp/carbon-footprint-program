@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { OnboardingKey } from "@repo/types";
 import { useOnboardingCompletion } from "@/hooks/useOnboardingCompletion";
 import {
@@ -15,14 +15,16 @@ export interface OnboardingSpotlightSpec {
   title: string;
   description: string;
   /**
-   * False when the hint can never apply on this screen — the control it points
-   * at doesn't exist here at all. Resolves the hint immediately (see
-   * `isPending`) instead of leaving whatever queued behind it waiting forever.
+   * False while the control the hint points at doesn't exist in what the
+   * screen shows — e.g. a category without it. Releases the queue behind the
+   * hint (see `isPending`) instead of leaving it waiting, but does not retire
+   * the hint: if it turns true later in the visit (a category switch), the
+   * hint still fires, as soon as no other spotlight holds the screen.
    * Defaults to true.
    *
-   * The ruling is final for the mount, and it is only taken once `isBlocked`
-   * is false. So a condition that is merely "not yet" — data still loading —
-   * belongs in `isBlocked`, or the hint is ruled out before it could apply.
+   * It is only read once `isBlocked` is false. A condition that is merely
+   * "not yet" — data still loading — belongs in `isBlocked`, or the queue is
+   * released before this hint had its turn.
    */
   isApplicable?: boolean;
   /**
@@ -41,6 +43,11 @@ export interface OnboardingSpotlight {
    * to false as soon as it is resolved one way or another — dismissed,
    * followed, already seen, not applicable, or its target never rendered.
    *
+   * "Not applicable" does not stay final, so this is an ordering signal, not
+   * the stacking guard: a hint that fires later in the visit, after its queue
+   * moved on, is kept off a live popover by the shared active-spotlight store
+   * below.
+   *
    * Chain it into the next hint's `isBlocked` to show several hints on one
    * screen in order. It has to be reactive state rather than a completion
    * read: dismissing a hint persists completion and changes `isCompleted`'s
@@ -50,6 +57,32 @@ export interface OnboardingSpotlight {
    */
   isPending: boolean;
 }
+
+/**
+ * The spotlight on screen right now, shared by every `useOnboardingSpotlight`
+ * so no two ever open at once. A store rather than a per-hook `isOpen` state
+ * for two reasons. It is read synchronously: when a category switch makes two
+ * hints fire in the same commit, the second one's effect must already see the
+ * first one's claim, and a state update only lands on the next render. And it
+ * is subscribed to: a hint held back by it has to re-run its effect when the
+ * spotlight ends, which a plain module flag would never trigger.
+ */
+let activeSpotlight: OnboardingKey | null = null;
+const activeSpotlightListeners = new Set<() => void>();
+
+const setActiveSpotlight = (next: OnboardingKey | null) => {
+  activeSpotlight = next;
+  activeSpotlightListeners.forEach((listener) => listener());
+};
+
+const subscribeToActiveSpotlight = (listener: () => void) => {
+  activeSpotlightListeners.add(listener);
+  return () => {
+    activeSpotlightListeners.delete(listener);
+  };
+};
+
+const getActiveSpotlight = () => activeSpotlight;
 
 /**
  * One first-visit-only driver.js spotlight, persisted so it never comes back.
@@ -92,6 +125,14 @@ export const useOnboardingSpotlight = ({
   // Starts pending: until `ready`, whether this hint will show is unknown, and
   // a hint queued behind it must not jump ahead of that answer.
   const [isPending, setIsPending] = useState(true);
+  // Only "someone else holds the screen" is a dep, never the owner itself:
+  // claiming the store must not re-run this hint's own effect, whose cleanup
+  // would tear down the popover it just opened.
+  const activeKey = useSyncExternalStore(
+    subscribeToActiveSpotlight,
+    getActiveSpotlight
+  );
+  const isAnotherSpotlightOpen = activeKey !== null && activeKey !== key;
 
   // Latest-value refs so the highlight effect can call the current
   // `isCompleted`/`complete` without listing them as deps (see the block
@@ -115,17 +156,26 @@ export const useOnboardingSpotlight = ({
     // one that doesn't apply, would otherwise release its queue while the hint
     // ahead of it is still on screen — and the next one would open on top.
     if (isBlocked) return undefined;
-    if (isCompletedRef.current(key) || !isApplicable) {
+    const isAlreadySeen = isCompletedRef.current(key);
+    if (isAlreadySeen || !isApplicable) {
       // Resolved without showing anything — release whatever queued behind it.
-      // Final for this mount: the queue has already moved past this hint, so
-      // `isApplicable` turning true later (a category switch) must not fire a
-      // popover that would land on top of the next one.
-      hasRunRef.current = true;
+      // Only "already seen" is final. "Not applicable" leaves `hasRunRef`
+      // unset: every visit mounts on the first category, so ruling the hint
+      // out for the mount would lose it for good whenever that category lacks
+      // its control.
+      if (isAlreadySeen) hasRunRef.current = true;
       setIsPending(false);
       return undefined;
     }
+    // Read live, not through `activeKey`: a hint earlier in the same commit
+    // may have just claimed the screen, and this render has not seen it yet.
+    if (getActiveSpotlight() !== null) return undefined;
     hasRunRef.current = true;
-    return runOnboardingHighlight({
+    setActiveSpotlight(key);
+    const releaseScreen = () => {
+      if (getActiveSpotlight() === key) setActiveSpotlight(null);
+    };
+    const teardown = runOnboardingHighlight({
       find: findOnboardingTarget(targetId),
       title,
       description,
@@ -134,11 +184,27 @@ export const useOnboardingSpotlight = ({
       // Runs on every ending — user close, following the hint, teardown, and
       // the poll giving up on a target that never rendered — so a queued hint
       // is released even on the paths that persist nothing.
-      onDismiss: () => setIsPending(false),
+      onDismiss: () => {
+        releaseScreen();
+        setIsPending(false);
+      },
       onUserClose: () => completeRef.current(key),
       onFollow: () => completeRef.current(key),
     });
-  }, [ready, key, targetId, title, description, isApplicable, isBlocked]);
+    return () => {
+      teardown();
+      releaseScreen();
+    };
+  }, [
+    ready,
+    key,
+    targetId,
+    title,
+    description,
+    isApplicable,
+    isBlocked,
+    isAnotherSpotlightOpen,
+  ]);
 
   return { isPending };
 };

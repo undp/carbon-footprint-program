@@ -10,17 +10,18 @@ import {
  * least one subcategory where expert mode is available.
  *
  * It is the first hint of the emission-capture screen: the per-line hints queue
- * behind the returned `isPending`. Where expert mode isn't offered at all the
- * hint is not applicable rather than merely waiting, so that queue is released
- * right away instead of stalling on a hint that will never show.
+ * behind the returned `isPending`. In a category without expert mode the hint
+ * is not applicable rather than merely waiting, so that queue is released
+ * instead of stalling. It is not retired, though: every visit starts on the
+ * first category, and the hint still fires once the user reaches one that
+ * offers expert mode.
  *
  * That ruling waits for the category data. Before it loads,
  * `isExpertModeAvailable` is false only because there is nothing to look at
  * yet — `ready` tracks the completion state, not the emission-capture query,
  * and an anonymous session is ready as soon as OIDC settles, without waiting on
- * any query at all. Ruling then would
- * release the queue for good, and the data arriving would open this popover
- * and the attachments one in the same render.
+ * any query at all. Ruling then would release the queue before this hint had
+ * its turn, and the line hints could go first on a screen that offers it.
  */
 export const useExpertModeOnboardingHighlight = (
   isExpertModeAvailable: boolean,

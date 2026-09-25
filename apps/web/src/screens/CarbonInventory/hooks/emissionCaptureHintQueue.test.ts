@@ -111,8 +111,33 @@ describe("emission-capture hint queue", () => {
     expect(opened()).toEqual(["emission-capture-expert-mode"]);
   });
 
-  it("does not reopen a hint ruled out earlier in the visit", () => {
-    // A category without expert mode first, then one with it.
+  it("opens expert mode on a later category once the line hints are done", () => {
+    // Review finding: every visit mounts on category 1, so when it offers no
+    // expert mode the hint was ruled out for the mount and never shown.
+    const { rerender } = renderQueue({
+      isCategoryDataLoaded: true,
+      isExpertModeAvailable: false,
+      hasCapturedLines: true,
+    });
+    expect(opened()).toEqual(["emission-capture-line-attachments"]);
+    dismiss(0);
+    expect(opened()).toEqual([
+      "emission-capture-line-attachments",
+      "emission-capture-line-extra-info",
+    ]);
+    dismiss(1);
+
+    // Switch to a category that offers expert mode.
+    rerender(LOADED_WITH_LINES);
+
+    expect(opened()).toEqual([
+      "emission-capture-line-attachments",
+      "emission-capture-line-extra-info",
+      "emission-capture-expert-mode",
+    ]);
+  });
+
+  it("holds expert mode while a line hint is on screen", () => {
     const { rerender } = renderQueue({
       isCategoryDataLoaded: true,
       isExpertModeAvailable: false,
@@ -121,8 +146,39 @@ describe("emission-capture hint queue", () => {
     expect(opened()).toEqual(["emission-capture-line-attachments"]);
 
     rerender(LOADED_WITH_LINES);
-
     expect(opened()).toEqual(["emission-capture-line-attachments"]);
+
+    // Expert mode goes next: it is declared first, so it claims the screen
+    // before extra-info does.
+    dismiss(0);
+    expect(opened()).toEqual([
+      "emission-capture-line-attachments",
+      "emission-capture-expert-mode",
+    ]);
+
+    dismiss(1);
+    expect(opened()).toEqual([
+      "emission-capture-line-attachments",
+      "emission-capture-expert-mode",
+      "emission-capture-line-extra-info",
+    ]);
+  });
+
+  it("opens one hint when a category switch unblocks two at once", () => {
+    // Category 1 has neither expert mode nor lines, so the queue is released
+    // with nothing on screen. Category 2 has both: expert mode and the
+    // attachments hint unblock in the same render, before either one's
+    // `isPending` has updated.
+    const { rerender } = renderQueue({
+      isCategoryDataLoaded: true,
+      isExpertModeAvailable: false,
+      hasCapturedLines: false,
+    });
+    expect(opened()).toEqual([]);
+
+    rerender(LOADED_WITH_LINES);
+
+    expect(opened()).toEqual(["emission-capture-expert-mode"]);
   });
 
   it("moves on as soon as a hint is dismissed, without waiting for /me", () => {
