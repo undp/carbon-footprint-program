@@ -8,7 +8,8 @@
 #
 # usage: pnpm db:restore:keep-users              # full run
 #        pnpm db:restore:keep-users <export_dir> # resume a failed run from its export
-set -euo pipefail
+# -E: the ERR trap below must also fire for failures inside functions (run_psql).
+set -eEuo pipefail
 
 : "${DATABASE_URL:?set DATABASE_URL to the database to reset}"
 
@@ -44,9 +45,18 @@ if [[ $# -gt 0 ]]; then
   [[ -f $work/user.csv ]] || { echo "No user.csv in $work" >&2; exit 1; }
   step "1/4 Resuming from the export in $work"
 else
-  # A second run after a failed one would export the already emptied database.
-  if [[ $(run_psql -At -c 'SELECT count(*) FROM "user"') == 0 ]]; then
-    echo 'The database has no users to keep. To resume a failed run, pass its export directory.' >&2
+  # A second run after a failed one would export the already emptied database. A run that
+  # failed before the migrations recreated the table leaves no `user` table at all, so check
+  # for it first (counting a missing table is an error, not zero). Assigned rather than
+  # tested inline so a connection error still stops the script.
+  has_user_table=$(run_psql -At -c "SELECT to_regclass('public.\"user\"') IS NOT NULL")
+  user_count=0
+  if [[ $has_user_table == t ]]; then
+    user_count=$(run_psql -At -c 'SELECT count(*) FROM "user"')
+  fi
+  if [[ $user_count == 0 ]]; then
+    echo 'The database has no users to keep. To resume a failed run, pass its export directory:' >&2
+    echo '  pnpm db:restore:keep-users <repository root>/huella-reset.XXXXXX' >&2
     exit 1
   fi
 
@@ -80,8 +90,10 @@ step "3/4 Applying the migrations and seeding (pnpm db:provision)"
 pnpm --dir "$repo_root" db:provision
 
 step "4/4 Re-inserting the users"
-# import-users.sql reads the CSVs relative to the working directory.
-(cd "$work" && run_psql -1 -f "$here/import-users.sql")
+# import-users.sql reads the CSVs relative to the working directory. No subshell: with -E it
+# would inherit the ERR trap and a failure here would print the resume hint twice.
+cd "$work"
+run_psql -1 -f "$here/import-users.sql"
 
 cat <<EOF
 
