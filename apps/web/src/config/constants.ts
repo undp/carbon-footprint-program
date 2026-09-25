@@ -157,7 +157,7 @@ export const TRANSPARENCY_YEARS_RANGE_FROM_CURRENT = 5;
  * also drives the separators consumed by `react-number-format` inputs.
  *
  * Common values:
- *   "es-ES" — Spanish (Spain)         — "1.234,56"
+ *   "es-ES" — Spanish (Spain)         — "1234,56" / "12.345,67" (no grouping below 5 digits)
  *   "es-CL" — Spanish (Chile)         — "1.234,56"
  *   "es-MX" — Spanish (Mexico)        — "1,234.56"
  *   "en-US" — English (United States) — "1,234.56"
