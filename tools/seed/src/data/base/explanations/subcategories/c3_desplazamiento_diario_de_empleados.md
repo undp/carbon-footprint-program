@@ -37,26 +37,26 @@ La plataforma trabaja con **cantidades agregadas a nivel organización**, no por
 
 > $CO_2e$ = $Distancia\ anual\ agregada\ (km) \times Factor\ por\ Tipo\ y\ Combustible\ (kg\ CO_2e/km)$
 
-Factores referenciales (DEFRA 2025):
+El factor de cada combinación aparece en el campo **"Factor kgCO₂e/unidad"** al elegirla, y corresponde al año de tu huella. Lo que cambia entre modos es **a qué corresponde** el factor:
 
-| Tipo                 | Combustible | Factor (kg CO₂e/km) | El factor es por... |
-| :------------------- | :---------- | ------------------: | :------------------ |
-| Auto                 | Gasolina    |               0.173 | vehículo            |
-| Auto                 | Diésel      |               0.166 | vehículo            |
-| Auto                 | Eléctrico   |               0.047 | vehículo            |
-| Auto                 | Híbrido     |               0.110 | vehículo            |
-| Moto                 | Gasolina    |               0.114 | vehículo            |
-| Moto                 | Eléctrico   |               0.030 | vehículo            |
-| Bus urbano           | No aplica   |               0.117 | pasajero            |
-| Bus interurbano      | No aplica   |               0.027 | pasajero            |
-| Metro                | No aplica   |               0.041 | pasajero            |
-| Tren cercanías       | No aplica   |               0.035 | pasajero            |
-| Tren larga distancia | No aplica   |               0.035 | pasajero            |
-| Taxi/Ride-share      | Gasolina    |               0.149 | pasajero            |
-| Taxi/Ride-share      | Eléctrico   |               0.060 | vehículo            |
-| Taxi/Ride-share      | Híbrido     |               0.110 | vehículo            |
-| Bici                 | No aplica   |               0.000 | persona             |
-| Caminata             | No aplica   |               0.000 | persona             |
+| Tipo                 | Combustible | El factor es por... |
+| :------------------- | :---------- | :------------------ |
+| Auto                 | Gasolina    | vehículo            |
+| Auto                 | Diésel      | vehículo            |
+| Auto                 | Eléctrico   | vehículo            |
+| Auto                 | Híbrido     | vehículo            |
+| Moto                 | Gasolina    | vehículo            |
+| Moto                 | Eléctrico   | vehículo            |
+| Bus urbano           | No aplica   | pasajero            |
+| Bus interurbano      | No aplica   | pasajero            |
+| Metro                | No aplica   | pasajero            |
+| Tren cercanías       | No aplica   | pasajero            |
+| Tren larga distancia | No aplica   | pasajero            |
+| Taxi/Ride-share      | Gasolina    | pasajero            |
+| Taxi/Ride-share      | Eléctrico   | vehículo            |
+| Taxi/Ride-share      | Híbrido     | vehículo            |
+| Bici                 | No aplica   | persona (factor 0)  |
+| Caminata             | No aplica   | persona (factor 0)  |
 
 ### 🔑 Las tres dudas más frecuentes
 
@@ -177,13 +177,15 @@ Esas tres cantidades son los números que escribes en el campo **Cantidad**, una
 
 | Línea                  | Cantidad (km) | Factor (kg CO₂e/km) |     Emisiones |
 | :--------------------- | ------------: | ------------------: | ------------: |
-| Auto / Gasolina        |        20.328 |               0,173 | 3.517 kg CO₂e |
-| Bus urbano / No aplica |        14.520 |               0,117 | 1.699 kg CO₂e |
-| Bici / No aplica       |         5.808 |               0,000 |     0 kg CO₂e |
+| Auto / Gasolina        |        20.328 |             0,16152 | 3.283 kg CO₂e |
+| Bus urbano / No aplica |        14.520 |             0,12552 | 1.823 kg CO₂e |
+| Bici / No aplica       |         5.808 |             0,00000 |     0 kg CO₂e |
 
-**Total commuting: ~5.216 kg CO₂e al año (~5,2 ton CO₂e)**
+_(Factores ilustrativos; el factor real es gestionado por la plataforma según el tipo, el combustible y el año de tu huella)_
 
-> 💡 Mira la línea del auto. Se multiplicó por **7 autos**, no por las 8 personas que llegan en auto, porque el factor es del vehículo. Contar las 8 personas habría dado 23.232 km y **502 kg CO₂e de más** en esa sola línea — y el error crece con cada auto compartido.
+**Total commuting: ~5.106 kg CO₂e al año (~5,1 ton CO₂e)**
+
+> 💡 Mira la línea del auto. Se multiplicó por **7 autos**, no por las 8 personas que llegan en auto, porque el factor es del vehículo. Contar las 8 personas habría dado 23.232 km y **469 kg CO₂e de más** en esa sola línea — y el error crece con cada auto compartido.
 >
 > 💡 La bici se declara igual, aunque su factor sea 0: deja registrado cuánta gente ya se mueve sin emitir.
 

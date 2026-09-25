@@ -42,22 +42,9 @@ Misma lógica que el transporte downstream. Lo que ingresas en **Cantidad** depe
 
 En la plataforma, la unidad ton-km aparece como **km-ton**.
 
-| Transporte                       | Factor referencial     |
-| :------------------------------- | :--------------------- |
-| Camión no refrigerado            | 0,2115 kg CO₂e/km      |
-| Camión refrigerado               | 0,2482 kg CO₂e/km      |
-| Van con motor a combustión       | 0,06183 kg CO₂e/km     |
-| Van eléctrica                    | 0,03758 kg CO₂e/km     |
-| Tren de carga                    | 0,02779 kg CO₂e/ton-km |
-| Contenedores por barco           | 0,01612 kg CO₂e/ton-km |
-| Granel por barco                 | 0,00353 kg CO₂e/ton-km |
-| Avión: Short haul (<2500km)      | 0,2051 kg CO₂e/ton-km  |
-| Avión: Medium haul (2500-5000km) | 0,1351 kg CO₂e/ton-km  |
-| Avión: Long haul (<5000km)       | 0,1351 kg CO₂e/ton-km  |
+El factor de cada transporte aparece en el campo **"Factor kgCO₂e/unidad"** al elegirlo, y corresponde al año de tu huella.
 
-Fuente: DEFRA 2025. El valor que se aplica a tu huella aparece en el campo **"Factor kgCO₂e/unidad"** al elegir el transporte.
-
-💡 El **modo aéreo** es por lejos el más intensivo por tonelada: su factor es ~8 a 13 veces el del barco en contenedores.
+💡 El **modo aéreo** es por lejos el más intensivo por tonelada: su factor es ~55 a 80 veces el del barco en contenedores.
 
 ### 🔑 Las dudas que producen los errores más grandes
 
@@ -202,20 +189,22 @@ Primero la cantidad de cada ruta:
 
 Esas cantidades son las que escribes en el campo **Cantidad**, una línea por transporte. Después la plataforma calcula las emisiones:
 
-| Ruta          | Transporte                 |       Cantidad |  Factor |     Emisiones |
-| :------------ | :------------------------- | -------------: | ------: | ------------: |
-| Asia          | Contenedores por barco     | 190.000 km-ton | 0,01612 | 3.063 kg CO₂e |
-| País vecino   | Camión no refrigerado      |      11.200 km |  0,2115 | 2.369 kg CO₂e |
-| Internacional | Avión: Long haul (<5000km) |   1.400 km-ton |  0,1351 |   189 kg CO₂e |
+| Ruta          | Transporte                 |       Cantidad |  Factor |      Emisiones |
+| :------------ | :------------------------- | -------------: | ------: | -------------: |
+| Asia          | Contenedores por barco     | 190.000 km-ton | 0,01612 |  3.063 kg CO₂e |
+| País vecino   | Camión no refrigerado      |      11.200 km | 0,89743 | 10.051 kg CO₂e |
+| Internacional | Avión: Long haul (<5000km) |   1.400 km-ton | 0,89939 |  1.259 kg CO₂e |
 
-**Total sub-categoría: ~5.621 kg CO₂e al año (~5,6 ton CO₂e)**
+_(Factores ilustrativos; el factor real es gestionado por la plataforma según el transporte y el año de tu huella)_
+
+**Total sub-categoría: ~14.373 kg CO₂e al año (~14,4 ton CO₂e)**
 
 > ⚠️ **Así se vería el error.**
 >
 > - **Barco:** si sumaras todos los pesos (4 × 2,5 = **10 ton**) y todas las distancias (4 × 19.000 = **76.000 km**) y los multiplicaras, obtendrías **760.000 ton-km** en vez de los 190.000 reales: **4 veces** la cantidad correcta, y una huella igual de inflada. Es el error que más se encuentra al revisar esta sub-categoría.
 > - **Camión:** si multiplicaras los km por el peso (11.200 km × 10 ton = **112.000**), la cantidad saldría **10 veces** mayor, porque el factor ya cubre el camión completo.
 >
-> 💡 Los 8 viajes en camión emiten **tres cuartos** de lo que emiten los 4 embarques desde Asia, con casi 7 veces menos distancia. Para este negocio, **reducir el número de viajes en camión** (camiones llenos, menos despachos) es una palanca tan relevante como el modo.
+> 💡 Los 8 viajes en camión emiten **más de tres veces** lo que emiten los 4 embarques desde Asia, con casi 7 veces menos distancia. Para este negocio, **reducir el número de viajes en camión** (camiones llenos, menos despachos) es una palanca tan relevante como el modo.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton en la plataforma). Si está en kg CO₂e/km, la cantidad debe estar en km.
@@ -229,7 +218,7 @@ Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton
 > - **Diferencia clave con Alcance 1:** si transportas insumos con **flota propia**, eso es Alcance 1, no aquí
 > - **Diferencia con downstream:** acá entran insumos. Los productos que **salen** de tu empresa hacia clientes van en _Transporte y distribución aguas abajo_
 > - **No dupliques con productos comprados:** el factor de "productos comprados" cubre la producción **hasta la puerta del proveedor**. El transporte desde ahí hasta tu empresa va aquí
-> - **Aéreo:** factor ~8 a 13 veces el del barco en contenedores. Para insumos pesados o volumétricos, conviene marítimo cuando es posible
+> - **Aéreo:** factor ~55 a 80 veces el del barco en contenedores. Para insumos pesados o volumétricos, conviene marítimo cuando es posible
 > - **Cold chain:** insumos refrigerados (alimentos, biotecnología, fármacos) tienen factor mayor
 > - **Incoterms:** define con tu proveedor quién paga el flete y de dónde a dónde — ayuda a delimitar lo que reportas
 > - **Si compras a un proveedor local pero el insumo viene importado**, idealmente reporta **toda** la cadena de transporte (importación + último tramo)

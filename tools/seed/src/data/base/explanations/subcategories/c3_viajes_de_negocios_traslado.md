@@ -60,20 +60,22 @@ Se cuenta **toda la distancia efectivamente recorrida**: si el viaje fue ida y v
 
 Donde **N° de tramos** = 2 en un viaje de ida y vuelta, 1 si fue solo ida.
 
-### Factores de la plataforma (DEFRA 2025)
+### Factores de la plataforma
 
-| Opción de Transporte                                | Factor (kg CO₂e/km) | El factor es por... |
-| :-------------------------------------------------- | ------------------: | :------------------ |
-| Transporte en avión: Short haul (<3 hrs) Economy    |              0,1257 | pasajero            |
-| Transporte en avión: Short haul (<3 hrs) Business   |              0,1886 | pasajero            |
-| Transporte en avión: Medium haul (3-6 hrs) Economy  |              0,1170 | pasajero            |
-| Transporte en avión: Medium haul (3-6 hrs) Business |              0,3394 | pasajero            |
-| Transporte en avión: Long haul (>6 hrs) Economy     |              0,1091 | pasajero            |
-| Transporte en avión: Long haul (>6 hrs) Business    |              0,3165 | pasajero            |
-| Transporte en Bus                                   |              0,1038 | pasajero            |
-| Transporte en Tren                                  |              0,0354 | pasajero            |
-| Transporte en Taxi                                  |              0,1480 | pasajero            |
-| Transporte en auto                                  |              0,1730 | vehículo            |
+El factor de cada opción aparece en el campo **"Factor kgCO₂e/unidad"** al elegirla, y corresponde al año de tu huella. Lo que cambia entre opciones es **a qué corresponde** el factor:
+
+| Opción de Transporte                                | El factor es por... |
+| :-------------------------------------------------- | :------------------ |
+| Transporte en avión: Short haul (<3 hrs) Economy    | pasajero            |
+| Transporte en avión: Short haul (<3 hrs) Business   | pasajero            |
+| Transporte en avión: Medium haul (3-6 hrs) Economy  | pasajero            |
+| Transporte en avión: Medium haul (3-6 hrs) Business | pasajero            |
+| Transporte en avión: Long haul (>6 hrs) Economy     | pasajero            |
+| Transporte en avión: Long haul (>6 hrs) Business    | pasajero            |
+| Transporte en Bus                                   | pasajero            |
+| Transporte en Tren                                  | pasajero            |
+| Transporte en Taxi                                  | pasajero            |
+| Transporte en auto                                  | vehículo            |
 
 💡 **La clase ya viene incluida en la opción.** No debes aplicar ningún multiplicador extra por Business: el factor de Business ya es más alto que el de Economy (entre ~1,5× y ~2,9× según el tramo), porque un asiento premium ocupa el espacio de varios asientos económicos.
 
@@ -208,14 +210,16 @@ Y luego las emisiones:
 
 | Transporte                | Cantidad (km) | Factor (kg CO₂e/km) |     Emisiones |
 | :------------------------ | ------------: | ------------------: | ------------: |
-| Avión Long haul Economy   |        57.000 |              0,1091 | 6.219 kg CO₂e |
-| Avión Medium haul Economy |        16.800 |              0,1170 | 1.966 kg CO₂e |
-| Avión Short haul Economy  |         7.440 |              0,1257 |   935 kg CO₂e |
-| Bus                       |         2.250 |              0,1038 |   234 kg CO₂e |
-| Taxi                      |         1.200 |              0,1480 |   178 kg CO₂e |
-| Auto                      |           800 |              0,1730 |   138 kg CO₂e |
+| Avión Long haul Economy   |        57.000 |             0,10916 | 6.222 kg CO₂e |
+| Avión Medium haul Economy |        16.800 |             0,11704 | 1.966 kg CO₂e |
+| Avión Short haul Economy  |         7.440 |             0,12576 |   936 kg CO₂e |
+| Bus                       |         2.250 |             0,10151 |   228 kg CO₂e |
+| Taxi                      |         1.200 |             0,14861 |   178 kg CO₂e |
+| Auto                      |           800 |             0,16591 |   133 kg CO₂e |
 
-**Total: ~9.670 kg CO₂e al año (~9,7 ton CO₂e)**
+_(Factores ilustrativos; el factor real es gestionado por la plataforma según la opción de transporte y el año de tu huella)_
+
+**Total: ~9.664 kg CO₂e al año (~9,7 ton CO₂e)**
 
 > 💡 Fíjate en los dos efectos que más confunden:
 >
@@ -233,7 +237,7 @@ Si el factor está en kg CO₂e/km, la cantidad debe estar en km.
 > - **Cuenta ida y vuelta:** salvo que el viaje haya sido efectivamente solo de ida, la distancia se duplica
 > - **En Economy, los vuelos cortos tienen factor mayor por km** que los largos: el despegue y aterrizaje son las fases más intensivas y se reparten en menos kilómetros
 > - **La clase ya está en el factor:** Business no se multiplica aparte. En vuelos medium y long haul el factor Business casi triplica al Economy, así que **bajar de clase es una palanca real de reducción**
-> - **Radiative forcing index (RFI):** la plataforma aplica el factor DEFRA 2025 tal como está. Si tu metodología exige un ajuste adicional por el efecto de las emisiones en altitud, hazlo con la fuente de factor **"Otro"** en lugar de modificar la cantidad
+> - **Radiative forcing index (RFI):** la plataforma aplica el factor DEFRA del año de tu huella tal como está, que ya incluye el efecto de las emisiones en altitud. Si tu metodología exige un ajuste distinto por el efecto de las emisiones en altitud, hazlo con la fuente de factor **"Otro"** en lugar de modificar la cantidad
 > - **No dupliques con commuting:** commuting es el desplazamiento **diario** casa-trabajo. Esta sub-categoría es para **viajes específicos** por trabajo
 > - **No dupliques con Alcance 1:** si la empresa tiene **flota propia** de autos corporativos y los usa en viajes, eso es Alcance 1 (combustión móvil), no aquí
 > - **Vehículos arrendados (rent-a-car):** sí van aquí (no es flota propia)

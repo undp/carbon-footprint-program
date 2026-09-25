@@ -346,7 +346,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/GJ",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 5.05
+                "value": 5.05961
               },
               {
                 "dimensionValue1": null,
@@ -357,7 +357,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/GJ",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.42
+                "value": 0.42339
               },
               {
                 "dimensionValue1": null,
@@ -368,7 +368,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.188
+                "value": 0.18822
               },
               {
                 "dimensionValue1": null,
@@ -379,7 +379,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.011
+                "value": 0.01135
               },
               {
                 "dimensionValue1": null,
@@ -401,7 +401,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.33
+                "value": 0.33944
               },
               {
                 "dimensionValue1": null,
@@ -412,7 +412,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.33
+                "value": 0.33621
               },
               {
                 "dimensionValue1": null,
@@ -423,7 +423,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.35
+                "value": 0.35887
               },
               {
                 "dimensionValue1": null,
@@ -434,7 +434,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.25
+                "value": 0.25953
               },
               {
                 "dimensionValue1": null,
@@ -445,7 +445,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.28
+                "value": 0.28523
               },
               {
                 "dimensionValue1": null,
@@ -456,7 +456,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.23
+                "value": 0.23032
               },
               {
                 "dimensionValue1": null,
@@ -467,7 +467,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2
+                "value": 0.2027
               },
               {
                 "dimensionValue1": null,
@@ -478,7 +478,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.25
+                "value": 0.25431
               },
               {
                 "dimensionValue1": null,
@@ -489,7 +489,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.25
+                "value": 0.25975
               },
               {
                 "dimensionValue1": null,
@@ -500,7 +500,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 167.5
+                "value": 167.51
               },
               {
                 "dimensionValue1": null,
@@ -511,7 +511,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 9
+                "value": 9.01
               },
               {
                 "dimensionValue1": null,
@@ -522,7 +522,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2570
+                "value": 2570.82
               },
               {
                 "dimensionValue1": null,
@@ -533,7 +533,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3174
+                "value": 3174.92
               },
               {
                 "dimensionValue1": null,
@@ -544,7 +544,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1557
+                "value": 1557.13
               },
               {
                 "dimensionValue1": null,
@@ -555,7 +555,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2
+                "value": 2.06672
               },
               {
                 "dimensionValue1": null,
@@ -566,7 +566,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2339
+                "value": 2339.84
               },
               {
                 "dimensionValue1": null,
@@ -577,7 +577,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2540
+                "value": 2540.16
               },
               {
                 "dimensionValue1": null,
@@ -588,7 +588,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1.24
+                "value": 1.24314
               },
               {
                 "dimensionValue1": null,
@@ -599,7 +599,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2395
+                "value": 2395.28994
               },
               {
                 "dimensionValue1": null,
@@ -610,7 +610,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2225
+                "value": 2225.22448
               },
               {
                 "dimensionValue1": null,
@@ -621,7 +621,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3386
+                "value": 3386.57168
               },
               {
                 "dimensionValue1": null,
@@ -632,7 +632,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3087
+                "value": 3087.94462
               },
               {
                 "dimensionValue1": null,
@@ -643,7 +643,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3228
+                "value": 3228.89019
               },
               {
                 "dimensionValue1": null,
@@ -654,7 +654,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2939
+                "value": 2939.36095
               },
               {
                 "dimensionValue1": null,
@@ -665,7 +665,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2575
+                "value": 2575.46441
               },
               {
                 "dimensionValue1": null,
@@ -676,7 +676,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3154
+                "value": 3154.08213
               },
               {
                 "dimensionValue1": null,
@@ -687,7 +687,359 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3165
+                "value": 3165.04181
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/GJ",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 5.05961
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Bioetanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/GJ",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.42339
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.18822
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Bioetanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.01135
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Biogás"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.00022
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Carbón industrial"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.34223
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Carbón para electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.33944
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Coke"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.35887
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.26071
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Fuel oil"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.28523
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "GLP"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.23032
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.20199
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.25464
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.25975
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Biodiésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 167.51
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Bioetanol"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9.01
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2583.54
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Fuel oil"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3174.92
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "GLP"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1557.13
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2.02633
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2353.72
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2540.16
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Biogás"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.22851
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Carbón industrial"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2415.03994
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Carbón para electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2230.22448
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Coke"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3386.57168
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3104.16462
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Fuel oil"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3228.89019
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "GLP"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2939.36095
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2507.72441
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3154.08213
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones estacionarias_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3165.04181
               }
             ],
             "allowedMeasurementUnitsAbbreviations": [
@@ -994,7 +1346,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.23
+                "value": 0.23032
               },
               {
                 "dimensionValue1": null,
@@ -1005,7 +1357,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/kWh",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2
+                "value": 0.2027
               },
               {
                 "dimensionValue1": null,
@@ -1016,7 +1368,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2331
+                "value": 2331.16
               },
               {
                 "dimensionValue1": null,
@@ -1027,7 +1379,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2570
+                "value": 2570.82
               },
               {
                 "dimensionValue1": null,
@@ -1038,7 +1390,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3174
+                "value": 3174.92
               },
               {
                 "dimensionValue1": null,
@@ -1049,7 +1401,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1557
+                "value": 1557.13
               },
               {
                 "dimensionValue1": null,
@@ -1060,7 +1412,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2
+                "value": 2.06672
               },
               {
                 "dimensionValue1": null,
@@ -1071,7 +1423,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2339
+                "value": 2339.84
               },
               {
                 "dimensionValue1": null,
@@ -1082,7 +1434,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2540
+                "value": 2540.16
               },
               {
                 "dimensionValue1": null,
@@ -1093,7 +1445,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3228
+                "value": 3228.89019
               },
               {
                 "dimensionValue1": null,
@@ -1104,7 +1456,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2939
+                "value": 2939.36095
               },
               {
                 "dimensionValue1": null,
@@ -1115,7 +1467,150 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 2575
+                "value": 2575.46441
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Electricidad"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.13096
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.23032
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.20199
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Combustible de aviación"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2331.16
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2583.54
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3174.92
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1557.13
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2.02633
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gasolina/Nafta"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2353.72
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Queroseno"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2540.16
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Fuel oil / Petróleo pesado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3228.89019
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas licuado del petróleo"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2939.36095
+              },
+              {
+                "dimensionValue1": null,
+                "dimensionValue2": {
+                  "dimensionCode": "Combustiones móviles (flota propia)_Combustible",
+                  "valueName": "Gas natural"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 2507.72441
               }
             ],
             "allowedMeasurementUnitsAbbreviations": [
@@ -1643,6 +2138,369 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 16100
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Dióxido de carbono"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Hexafluoruro de azufre"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 23500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-125"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3170
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-134"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1120
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-134a"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-143"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 328
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-143a"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4800
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-152"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 16
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-152a"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 138
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-161"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-227ea"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3350
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-23"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 12400
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-236cb"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-236ea"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1330
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-236fa"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 8060
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-245ca"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 716
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-245fa"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 858
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-32"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 677
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-365mfc"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 804
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-41"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 116
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "HFC-43-10mee"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1650
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Metano"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 28
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Óxido nitroso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 265
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Perfluorociclopropano"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-116"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 11100
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-14"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 6630
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-218"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 8900
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-3-1-10"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-318"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9540
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-4-1-12"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 8550
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-5-1-14"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 7910
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "PFC-9-1-18"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 7190
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones fugitivas_Gas",
+                  "valueName": "Trifluoruro de nitrógeno"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 16100
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1720,7 +2578,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 1680
+                "value": 1568
               },
               {
                 "dimensionValue1": {
@@ -1731,7 +2589,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 589.2
+                "value": 549.92
               },
               {
                 "dimensionValue1": {
@@ -1742,7 +2600,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 155.1
+                "value": 144.76
               },
               {
                 "dimensionValue1": {
@@ -1753,7 +2611,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 240
+                "value": 224
               },
               {
                 "dimensionValue1": {
@@ -1764,7 +2622,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 600
+                "value": 560
               },
               {
                 "dimensionValue1": {
@@ -1775,7 +2633,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 0.6
+                "value": 0.56
               },
               {
                 "dimensionValue1": {
@@ -1786,7 +2644,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 327
+                "value": 305.2
               },
               {
                 "dimensionValue1": {
@@ -1797,7 +2655,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 154.5
+                "value": 144.2
               },
               {
                 "dimensionValue1": {
@@ -1808,7 +2666,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 60
+                "value": 56
               },
               {
                 "dimensionValue1": {
@@ -1819,7 +2677,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 1710
+                "value": 1596
               },
               {
                 "dimensionValue1": {
@@ -1830,7 +2688,128 @@
                 "rateMeasurementUnitAbbreviation": "kg/cant anim",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 2190
+                "value": 2044
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Búfalos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1568
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Caballos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 549.92
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Cabras"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 144.76
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Camélidos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 224
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Ciervos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 560
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Crianza de aves"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.56
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Mulas y burros"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 305.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Ovejas"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 144.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Porcinos"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 56
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Vacas de pastoreo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1596
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Ganadería_Tipo de animal",
+                  "valueName": "Vacas lecheras"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/cant anim",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 2044
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["cant anim"],
@@ -1884,6 +2863,28 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 6864
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima templado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ha",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 3432
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Agricultura_Tipo de cultivo",
+                  "valueName": "Cultivo general clima tropical"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ha",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 6864
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["ha"],
@@ -1923,9 +2924,9 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "Kool, A.",
+                "source": "IPCC",
                 "year": 2025,
-                "value": 0.54
+                "value": 0
               },
               {
                 "dimensionValue1": {
@@ -1934,9 +2935,9 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "Kool, A.",
+                "source": "IPCC",
                 "year": 2025,
-                "value": 3.53
+                "value": 5.5177
               },
               {
                 "dimensionValue1": {
@@ -1945,9 +2946,42 @@
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "Kool, A.",
+                "source": "IPCC",
                 "year": 2025,
-                "value": 0.61
+                "value": 0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Fósforo (P2O5)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Nitrógeno (N)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 5.5177
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Emisiones por uso de suelo - Aplicación de fertilizantes_Componente",
+                  "valueName": "Potasio (K2O)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2049,6 +3083,72 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 3.66
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1720
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Pirometalúrgico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 430
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Pirometalúrgico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.43
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Waelz Kiln"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 3660
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
+                  "valueName": "Waelz Kiln"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 3.66
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2097,6 +3197,28 @@
                 "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "IPCC",
                 "year": 2025,
+                "value": 0.52
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cemento_Material",
+                  "valueName": "Clinker"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 520
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cemento_Material",
+                  "valueName": "Clinker"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
                 "value": 0.52
               }
             ],
@@ -2329,6 +3451,182 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 0.1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores (Recipientes de color transparente)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores (Recipientes de color transparente)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (E-glass)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 190
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (E-glass)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.19
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (lana de aislación)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Fibra de vidrio (lana de aislación)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.25
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio general"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio general"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 210
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.21
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 100
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
+                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.1
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2456,6 +3754,94 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1.06
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno básico de oxígeno (BOF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1460
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno básico de oxígeno (BOF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.46
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de acero eléctrico (AEF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 80
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de acero eléctrico (AEF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.08
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de solera (OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1720
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Horno de solera (OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.72
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1060
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
+                  "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.06
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2472,9 +3858,18 @@
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  { "name": "Cal alta en calcio", "parentValue": null },
-                  { "name": "Cal dolomítica", "parentValue": null },
-                  { "name": "Cal hidráulica", "parentValue": null }
+                  {
+                    "name": "Cal alta en calcio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cal dolomítica",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Cal hidráulica",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -2543,6 +3938,72 @@
                 "rateMeasurementUnitAbbreviation": "kg/kg",
                 "source": "IPCC",
                 "year": 2025,
+                "value": 0.59
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal alta en calcio"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 750
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal alta en calcio"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.75
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal dolomítica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 770
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal dolomítica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.77
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal hidráulica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 590
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
+                  "valueName": "Cal hidráulica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
                 "value": 0.59
               }
             ],
@@ -2615,6 +4076,50 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Ánodo precocido (Prebake), solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Ánodo precocido (Prebake), solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Søderberg, solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1700
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
+                  "valueName": "Søderberg, solo CO₂ de ánodo"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.7
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2631,31 +4136,70 @@
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  { "name": "Amoníaco", "parentValue": null },
-                  { "name": "Ácido nítrico", "parentValue": null },
-                  { "name": "Ácido adípico", "parentValue": null },
+                  {
+                    "name": "Amoníaco",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ácido nítrico",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ácido adípico",
+                    "parentValue": null
+                  },
                   {
                     "name": "Caprolactama, glioxal y ácido glioxílico",
                     "parentValue": null
                   },
-                  { "name": "Carburo de calcio", "parentValue": null },
-                  { "name": "Carburo de silicio", "parentValue": null },
-                  { "name": "Dióxido de titanio", "parentValue": null },
+                  {
+                    "name": "Carburo de calcio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Carburo de silicio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Dióxido de titanio",
+                    "parentValue": null
+                  },
                   {
                     "name": "Carbonato de sodio (soda ash)",
                     "parentValue": null
                   },
-                  { "name": "Metanol", "parentValue": null },
-                  { "name": "Etileno", "parentValue": null },
+                  {
+                    "name": "Metanol",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Etileno",
+                    "parentValue": null
+                  },
                   {
                     "name": "Dicloroetano y monómero de cloruro de vinilo",
                     "parentValue": null
                   },
-                  { "name": "Óxido de etileno", "parentValue": null },
-                  { "name": "Acrilonitrilo", "parentValue": null },
-                  { "name": "Negro de humo", "parentValue": null },
-                  { "name": "Fluoroquímicos", "parentValue": null },
-                  { "name": "Otro", "parentValue": null }
+                  {
+                    "name": "Óxido de etileno",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Acrilonitrilo",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Negro de humo",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Fluoroquímicos",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -2674,14 +4218,38 @@
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  { "name": "Ferrosilicio 45% Si", "parentValue": null },
-                  { "name": "Ferrosilicio 65% Si", "parentValue": null },
-                  { "name": "Ferrosilicio 75% Si", "parentValue": null },
-                  { "name": "Ferrosilicio 90% Si", "parentValue": null },
-                  { "name": "Ferromanganeso (7% C)", "parentValue": null },
-                  { "name": "Ferromanganeso (1% C)", "parentValue": null },
-                  { "name": "Silicomanganeso", "parentValue": null },
-                  { "name": "Silicio metálico", "parentValue": null },
+                  {
+                    "name": "Ferrosilicio 45% Si",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferrosilicio 65% Si",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferrosilicio 75% Si",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferrosilicio 90% Si",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferromanganeso (7% C)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Ferromanganeso (1% C)",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Silicomanganeso",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Silicio metálico",
+                    "parentValue": null
+                  },
                   {
                     "name": "Ferrocromo (sin planta de sínter)",
                     "parentValue": null
@@ -2706,8 +4274,14 @@
                     "name": "Plomo, promedio por defecto (80% ISF, 20% DS)",
                     "parentValue": null
                   },
-                  { "name": "Magnesio", "parentValue": null },
-                  { "name": "Otro", "parentValue": null }
+                  {
+                    "name": "Magnesio",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -3019,6 +4593,314 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 0.52
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 45% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 2500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 45% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 2.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 65% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 3600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 65% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 3.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 75% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 4000
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 75% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 90% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 4800
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrosilicio 90% Si"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 4.8
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (7% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (7% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (1% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1500
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferromanganeso (1% C)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicomanganeso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1400
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicomanganeso"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicio metálico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 5000
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Silicio metálico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (sin planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1300
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (sin planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (con planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1600
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Ferrocromo (con planta de sínter)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 1.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, horno Imperial Smelting (ISF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 590
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, horno Imperial Smelting (ISF)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.59
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, fundición directa (DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 250
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, fundición directa (DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.25
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, materias primas secundarias"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 200
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, materias primas secundarias"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 520
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
+                  "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "source": "IPCC",
+                "year": 2026,
+                "value": 0.52
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -3035,13 +4917,22 @@
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  { "name": "Horno de cal de la planta", "parentValue": null },
-                  { "name": "Producción de pulpa", "parentValue": null },
+                  {
+                    "name": "Horno de cal de la planta",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Producción de pulpa",
+                    "parentValue": null
+                  },
                   {
                     "name": "Producción de papel y cartón",
                     "parentValue": null
                   },
-                  { "name": "Otro", "parentValue": null }
+                  {
+                    "name": "Otro",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -3076,7 +4967,10 @@
                     "name": "Producción de magnesia no metalúrgica",
                     "parentValue": null
                   },
-                  { "name": "Otro", "parentValue": null }
+                  {
+                    "name": "Otro",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -3095,15 +4989,30 @@
                 "position": 1,
                 "isRequired": true,
                 "values": [
-                  { "name": "Alimentos y bebidas", "parentValue": null },
+                  {
+                    "name": "Alimentos y bebidas",
+                    "parentValue": null
+                  },
                   {
                     "name": "Electrónica y semiconductores",
                     "parentValue": null
                   },
-                  { "name": "Uso de lubricantes", "parentValue": null },
-                  { "name": "Uso de ceras de parafina", "parentValue": null },
-                  { "name": "Uso de solventes", "parentValue": null },
-                  { "name": "Otro", "parentValue": null }
+                  {
+                    "name": "Uso de lubricantes",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Uso de ceras de parafina",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Uso de solventes",
+                    "parentValue": null
+                  },
+                  {
+                    "name": "Otro",
+                    "parentValue": null
+                  }
                 ]
               }
             ],
@@ -3159,6 +5068,17 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 0.177
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Electricidad_Sistema eléctrico",
+                  "valueName": "Sistema nacional"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/kWh",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.13096
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["kWh", "MWh"],
@@ -3287,7 +5207,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 5647
+                "value": 5647.94563
               },
               {
                 "dimensionValue1": {
@@ -3301,7 +5221,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 269
+                "value": 269.50416
               },
               {
                 "dimensionValue1": {
@@ -3315,7 +5235,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 38
+                "value": 38.54288
               },
               {
                 "dimensionValue1": {
@@ -3329,7 +5249,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 75
+                "value": 75.00675
               },
               {
                 "dimensionValue1": {
@@ -3343,7 +5263,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1525
+                "value": 1525.52488
               },
               {
                 "dimensionValue1": {
@@ -3357,7 +5277,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 5114
+                "value": 5114.62131
               },
               {
                 "dimensionValue1": {
@@ -3371,7 +5291,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1068
+                "value": 1068.77475
               },
               {
                 "dimensionValue1": {
@@ -3385,7 +5305,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1288
+                "value": 1288.50358
               },
               {
                 "dimensionValue1": {
@@ -3399,7 +5319,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 4633
+                "value": 4633.47826
               },
               {
                 "dimensionValue1": {
@@ -3427,7 +5347,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1575
+                "value": 1575.39106
               },
               {
                 "dimensionValue1": {
@@ -3441,7 +5361,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3172
+                "value": 3172.49932
               },
               {
                 "dimensionValue1": {
@@ -3469,7 +5389,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 152
+                "value": 152.25
               },
               {
                 "dimensionValue1": {
@@ -3483,7 +5403,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 3335
+                "value": 3335.5719
               },
               {
                 "dimensionValue1": {
@@ -3497,7 +5417,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 731
+                "value": 731.21789
               },
               {
                 "dimensionValue1": {
@@ -3511,7 +5431,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 823
+                "value": 823.18954
               },
               {
                 "dimensionValue1": {
@@ -3525,7 +5445,273 @@
                 "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 1402
+                "value": 1402.76667
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Items electrónicos grandes"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3267
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Items electrónicos pequeños (Máximo tamaño de una pelota de futbol)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 5647.94563
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 269.50416
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 38.54288
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 74.9958
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1523.50562
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 5112.30251
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Papel y cartón"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1067.28799
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Papel y cartón"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1287.01682
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Pilas, baterías de uso doméstico no recargables (AA, AAA, tipo botón y de tamaños similares)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4633.47826
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Pilas, baterías de uso doméstico recargables (AA, AAA, tipo botón y de tamaños similares)"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 28380
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1573.06661
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3170.5068
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 22310
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 152.25
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ruedas"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 3335.5719
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Ruedas"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Reutilizado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 731.21789
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Con material reciclado"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 823.18954
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Productos comprados_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Productos comprados_Destino",
+                  "valueName": "Primera mano"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1402.76667
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -3574,6 +5760,28 @@
                 "rateMeasurementUnitAbbreviation": "kg/m3",
                 "source": "DEFRA 2025",
                 "year": 2025,
+                "value": 0.1913
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
+                  "valueName": "Agua dispuesta en el alcantarillado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.17088
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Consumo de agua y tratamiento de aguas residuales_Fuente de suministro",
+                  "valueName": "Consumo de agua"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/m3",
+                "source": "DEFRA 2026",
+                "year": 2026,
                 "value": 0.1913
               }
             ],
@@ -3648,7 +5856,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2115
+                "value": 0.89121
               },
               {
                 "dimensionValue1": {
@@ -3659,7 +5867,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2482
+                "value": 1.04323
               },
               {
                 "dimensionValue1": {
@@ -3670,7 +5878,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.06183
+                "value": 0.2543
               },
               {
                 "dimensionValue1": {
@@ -3681,7 +5889,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.03758
+                "value": 0.06976
               },
               {
                 "dimensionValue1": {
@@ -3692,7 +5900,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1351
+                "value": 0.89939
               },
               {
                 "dimensionValue1": {
@@ -3703,7 +5911,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1351
+                "value": 0.89939
               },
               {
                 "dimensionValue1": {
@@ -3714,7 +5922,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2051
+                "value": 1.27835
               },
               {
                 "dimensionValue1": {
@@ -3748,6 +5956,116 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 0.02779
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Camión no refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89743
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Camión refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.05066
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Van con motor a combustión"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.25612
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Van eléctrica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.0468
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Long haul (<5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89939
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Medium haul (2500-5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89939
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Avión: Short haul (<2500km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.27835
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Contenedores por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.01612
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Granel por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.00353
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas arriba_Transporte",
+                  "valueName": "Tren de carga"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.02583
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"],
@@ -4223,6 +6541,398 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 8.98311
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Items electrónicos"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9.00687
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Madera"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 925.36725
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.01398
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Materiales de construcción"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.27043
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Metal"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9.00687
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Papel"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1164.51317
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Plástico"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9.00687
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos comerciales o industriales"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos comerciales o industriales"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 520.58023
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos general de la casa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Residuos general de la casa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 497.28993
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Ropa"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 496.80605
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Incineración"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Reciclaje"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.65358
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Disposición de residuos sólidos_Material",
+                  "valueName": "Vidrio"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Disposición de residuos sólidos_Destino",
+                  "valueName": "Relleno sanitario"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 9.00687
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -4296,7 +7006,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.173
+                "value": 0.16725
               },
               {
                 "dimensionValue1": {
@@ -4307,7 +7017,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.3165
+                "value": 0.31656
               },
               {
                 "dimensionValue1": {
@@ -4318,7 +7028,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1091
+                "value": 0.10916
               },
               {
                 "dimensionValue1": {
@@ -4340,7 +7050,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.117
+                "value": 0.11704
               },
               {
                 "dimensionValue1": {
@@ -4351,7 +7061,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1886
+                "value": 0.18863
               },
               {
                 "dimensionValue1": {
@@ -4362,7 +7072,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1257
+                "value": 0.12576
               },
               {
                 "dimensionValue1": {
@@ -4373,7 +7083,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1038
+                "value": 0.10385
               },
               {
                 "dimensionValue1": {
@@ -4384,7 +7094,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.0354
+                "value": 0.03546
               },
               {
                 "dimensionValue1": {
@@ -4395,7 +7105,117 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.148
+                "value": 0.14861
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en auto"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.16591
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Long haul (>6hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.31656
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Long haul (>6hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.10916
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Medium haul (3-6hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.3394
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Medium haul (3-6hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.11704
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Short haul (<3hrs) Business"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.18863
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en avión: Short haul (<3hrs) Economy"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.12576
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en Bus"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.10151
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en Tren"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.03092
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Traslado_Transporte",
+                  "valueName": "Transporte en Taxi"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.14861
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi"],
@@ -4730,6 +7550,237 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 38.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Alemania"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 13.2
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Australia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 35
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Brasil"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 8.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Chile"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 27.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "China"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 53.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Colombia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 14.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Costa Rica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 4.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "EEUU"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 16.1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "España"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Holanda"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 14.8
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Hong Kong"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 51.5
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "India"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 58.9
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Indonesia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 62.7
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Italia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 14.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Japón"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 39
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Mexico"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 19.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Otro país"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 106.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Otro país Latam"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 27.6
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Tailandia"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 43.4
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Turquía"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 32.1
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Viajes de negocios - Estadía_País",
+                  "valueName": "Vietnam"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/pieza arre",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 38.5
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["pieza arre"],
@@ -4834,7 +7885,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.173
+                "value": 0.16272
               },
               {
                 "dimensionValue1": {
@@ -4848,7 +7899,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.166
+                "value": 0.17304
               },
               {
                 "dimensionValue1": {
@@ -4862,7 +7913,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.047
+                "value": 0.04047
               },
               {
                 "dimensionValue1": {
@@ -4876,7 +7927,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.11
+                "value": 0.12825
               },
               {
                 "dimensionValue1": {
@@ -4890,7 +7941,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.114
+                "value": 0.11367
               },
               {
                 "dimensionValue1": {
@@ -4904,7 +7955,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.03
+                "value": 0.04047
               },
               {
                 "dimensionValue1": {
@@ -4918,7 +7969,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.117
+                "value": 0.12525
               },
               {
                 "dimensionValue1": {
@@ -4932,7 +7983,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.027
+                "value": 0.02776
               },
               {
                 "dimensionValue1": {
@@ -4946,7 +7997,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.041
+                "value": 0.0278
               },
               {
                 "dimensionValue1": {
@@ -4960,7 +8011,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.035
+                "value": 0.03546
               },
               {
                 "dimensionValue1": {
@@ -4974,7 +8025,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.035
+                "value": 0.03546
               },
               {
                 "dimensionValue1": {
@@ -4988,7 +8039,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.149
+                "value": 0.14861
               },
               {
                 "dimensionValue1": {
@@ -5002,7 +8053,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.06
+                "value": 0.04047
               },
               {
                 "dimensionValue1": {
@@ -5016,7 +8067,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.11
+                "value": 0.12825
               },
               {
                 "dimensionValue1": {
@@ -5030,7 +8081,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.0
+                "value": 0
               },
               {
                 "dimensionValue1": {
@@ -5044,7 +8095,231 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.0
+                "value": 0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.16152
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Diésel"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.17265
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.02951
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Auto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Híbrido"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.12961
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Moto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.11367
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Moto"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.02951
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bus urbano"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.12552
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bus interurbano"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.03948
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Metro"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.01549
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Tren cercanías"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.03092
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Tren larga distancia"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.03092
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Gasolina"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.14861
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Eléctrico"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.02951
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Taxi/Ride-share"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "Híbrido"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.12961
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Bici"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Tipo",
+                  "valueName": "Caminata"
+                },
+                "dimensionValue2": {
+                  "dimensionCode": "Desplazamiento diario de empleados_Combustible",
+                  "valueName": "No aplica"
+                },
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["km"],
@@ -5108,6 +8383,39 @@
                 "rateMeasurementUnitAbbreviation": "kg/h",
                 "source": "EcoAct 2020",
                 "year": 2025,
+                "value": 0.122
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Equipo de oficina"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "year": 2026,
+                "value": 0.057
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Calefacción"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "year": 2026,
+                "value": 0.3
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Trabajo remoto de empleados_Componente",
+                  "valueName": "Refrigeración"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/h",
+                "source": "EcoAct 2020",
+                "year": 2026,
                 "value": 0.122
               }
             ],
@@ -5182,7 +8490,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2115
+                "value": 0.89121
               },
               {
                 "dimensionValue1": {
@@ -5193,7 +8501,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2482
+                "value": 1.04323
               },
               {
                 "dimensionValue1": {
@@ -5204,7 +8512,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.06183
+                "value": 0.2543
               },
               {
                 "dimensionValue1": {
@@ -5215,7 +8523,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.03758
+                "value": 0.06976
               },
               {
                 "dimensionValue1": {
@@ -5226,7 +8534,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1351
+                "value": 0.89939
               },
               {
                 "dimensionValue1": {
@@ -5237,7 +8545,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.1351
+                "value": 0.89939
               },
               {
                 "dimensionValue1": {
@@ -5248,7 +8556,7 @@
                 "rateMeasurementUnitAbbreviation": "kg/km-ton",
                 "source": "DEFRA 2025",
                 "year": 2025,
-                "value": 0.2051
+                "value": 1.27835
               },
               {
                 "dimensionValue1": {
@@ -5282,6 +8590,116 @@
                 "source": "DEFRA 2025",
                 "year": 2025,
                 "value": 0.02779
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Camión no refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89743
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Camión refrigerado"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.05066
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Van con motor a combustión"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.25612
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Van eléctrica"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.0468
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Long haul (<5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89939
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Medium haul (2500-5000km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.89939
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Avión: Short haul (<2500km)"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 1.27835
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Contenedores por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.01612
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Granel por barco"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.00353
+              },
+              {
+                "dimensionValue1": {
+                  "dimensionCode": "Transporte y distribución de bienes aguas abajo_Transporte",
+                  "valueName": "Tren de carga"
+                },
+                "dimensionValue2": null,
+                "rateMeasurementUnitAbbreviation": "kg/km-ton",
+                "source": "DEFRA 2026",
+                "year": 2026,
+                "value": 0.02583
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["m", "km", "mi", "km-ton"],

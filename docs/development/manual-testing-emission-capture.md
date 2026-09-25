@@ -65,7 +65,7 @@ Locale is **es-ES** → `.` for thousands, `,` for decimals.
 
 - The **`Factor`** column targets **4 significant digits**, bounded by a floor of 2 and a ceiling of 6 decimals: `2,939` · `0,1709` · `0,01612`. The floor is a no-regression guarantee — no factor is ever shown with less precision than the flat 2 decimals used before — and it takes precedence over the significant-digit target, which is why `520,5327` still renders as `520,53` and not as `520,5`.
 - The **`Emisiones (tCO₂e)`** column is unchanged: at most **2 decimals**, dropping trailing zeros (`9,40` shows as `9,4`). Values under `0,01` widen to at most 6 decimals; under `0,000001` they render as `<0,000001`.
-- **The computation always uses the full factor, never the displayed one — but the screen now shows both.** When the display rounds a factor, the cell carries a dotted underline and reveals `Valor usado en el cálculo: <unrounded value>` on hover, keyboard focus or tap. Only three fixture rows qualify (`520,5327`, `4,68568`, `0,17088`); a factor that already fits, such as `0,057 kg/h`, shows no affordance at all, by design — a tooltip repeating the cell teaches users to ignore it.
+- **The computation always uses the full factor, never the displayed one — but the screen now shows both.** When the display rounds a factor, the cell carries a dotted underline and reveals `Valor usado en el cálculo: <unrounded value>` on hover, keyboard focus or tap. Twelve fixture rows qualify — the ones marked ⓘ in [Per line](#per-line), e.g. `2,57082` → `2,571` or `520,5327` → `520,53`; a factor that already fits, such as `0,057 kg/h`, shows no affordance at all, by design — a tooltip repeating the cell teaches users to ignore it.
 - Every **`Emisiones (tCO₂e)`** cell of a detailed line reveals the whole calculation chain the same way, with no operand rounded: `21.600 h × 0,057 kg/h = 1.231,2 kg = 1,2312 t`. This is the audit path when a very large quantity makes even the 4-significant-digit factor insufficient to reproduce the reported total.
 
 ---
@@ -198,40 +198,40 @@ Quantities below are written exactly as they must be typed — no thousand separ
 `Exact factor` is what the engine multiplies by; `Shown factor` is the value rendered in the `Factor` column.
 ⓘ marks the rows where the two differ, and where the cell therefore exposes the unrounded value on hover, focus or tap (`Valor usado en el cálculo: …`). On every other row the column already shows the exact factor.
 
-| Subcategory                | Line                                                    | Cantidad | Unidad              | Exact factor | Rate unit     | Source      | Shown factor | kg CO₂e     | `Emisiones (tCO₂e)` |
-| -------------------------- | ------------------------------------------------------- | -------- | ------------------- | ------------ | ------------- | ----------- | ------------ | ----------- | ------------------- |
-| Combustiones estacionarias | Caldera de vapor / Diésel                               | 12500    | litros              | 2.57         | kg/L          | DEFRA 2025  | 2,57         | 32 125      | **32,12** ⚠️        |
-| Combustiones estacionarias | Caldera de agua caliente / GLP                          | 3200     | kilógramos          | 2.939        | kg/kg         | DEFRA 2025  | 2,939        | 9 404.8     | **9,4**             |
-| Combustiones móviles       | Camión / Diésel                                         | 28400    | litros              | 2.57         | kg/L          | DEFRA 2025  | 2,57         | 72 988      | **72,99**           |
-| Combustiones móviles       | Camioneta / Gasolina-Nafta                              | 4600     | litros              | 2.339        | kg/L          | DEFRA 2025  | 2,339        | 10 759.4    | **10,76**           |
-| Emisiones fugitivas        | HFC-134a                                                | 45       | kilógramos          | 1 300        | kg/kg         | DEFRA 2025  | 1.300        | 58 500      | **58,5**            |
-| Emisiones fugitivas        | HFC-32                                                  | 18       | kilógramos          | 677          | kg/kg         | DEFRA 2025  | 677          | 12 186      | **12,19**           |
-| Electricidad               | Sistema nacional                                        | 1850     | megawatts hora      | 177          | kg/MWh        | DEFRA 2025  | 177          | 327 450     | **327,45**          |
-| Productos comprados        | Plástico / Primera mano                                 | 85       | toneladas           | 3 172        | kg/ton        | DEFRA 2025  | 3.172        | 269 620     | **269,62**          |
-| Productos comprados        | Papel y cartón / Con material reciclado                 | 140      | toneladas           | 1 068        | kg/ton        | DEFRA 2025  | 1.068        | 149 520     | **149,52**          |
-| Disposición de residuos    | Residuos comerciales o industriales / Relleno sanitario | 62       | toneladas           | 520.5327     | kg/ton        | DEFRA 2025  | 520,53 ⓘ     | 32 273.0274 | **32,27**           |
-| Disposición de residuos    | Plástico / Reciclaje                                    | 18       | toneladas           | 4.68568      | kg/ton        | DEFRA 2025  | 4,686 ⓘ      | 84.34224    | **0,08**            |
-| Consumo de agua            | Consumo de agua                                         | 46000    | metros cúbicos      | 0.1913       | kg/m3         | DEFRA 2025  | 0,1913       | 8 799.8     | **8,8**             |
-| Consumo de agua            | Agua dispuesta en el alcantarillado                     | 38000    | metros cúbicos      | 0.17088      | kg/m3         | DEFRA 2025  | 0,1709 ⓘ     | 6 493.44    | **6,49**            |
-| Desplazamiento diario      | Auto / Gasolina                                         | 264000   | kilómetros          | 0.173        | kg/km         | DEFRA 2025  | 0,173        | 45 672      | **45,67**           |
-| Desplazamiento diario      | Bus urbano / No aplica                                  | 118000   | kilómetros          | 0.117        | kg/km         | DEFRA 2025  | 0,117        | 13 806      | **13,81**           |
-| Trabajo remoto             | Equipo de oficina                                       | 21600    | horas               | 0.057        | kg/h          | EcoAct 2020 | 0,057        | 1 231.2     | **1,23**            |
-| Trabajo remoto             | Refrigeración                                           | 8400     | horas               | 0.122        | kg/h          | EcoAct 2020 | 0,122        | 1 024.8     | **1,02**            |
-| Viajes - Estadía           | Brasil                                                  | 46       | piezas arrendadas   | 8.7          | kg/pieza arre | DEFRA 2025  | 8,7          | 400.2       | **0,4**             |
-| Viajes - Estadía           | España                                                  | 22       | piezas arrendadas   | 7            | kg/pieza arre | DEFRA 2025  | 7            | 154         | **0,15**            |
-| Transporte aguas arriba    | Contenedores por barco                                  | 1240000  | kilómetros tonelada | 0.01612      | kg/km-ton     | DEFRA 2025  | 0,01612      | 19 988.8    | **19,99**           |
-| Transporte aguas arriba    | Camión refrigerado                                      | 96000    | kilómetros          | 0.2482       | kg/km         | DEFRA 2025  | 0,2482       | 23 827.2    | **23,83**           |
-
-⚠️ `32,12` is expected, not a defect — see [float64 vs Decimal](#float64-vs-decimal).
+| Subcategory                | Line                                                    | Cantidad | Unidad              | Exact factor | Rate unit     | Source      | Shown factor | kg CO₂e      | `Emisiones (tCO₂e)` |
+| -------------------------- | ------------------------------------------------------- | -------- | ------------------- | ------------ | ------------- | ----------- | ------------ | ------------ | ------------------- |
+| Combustiones estacionarias | Caldera de vapor / Diésel                               | 12500    | litros              | 2.57082      | kg/L          | DEFRA 2025  | 2,571 ⓘ      | 32 135.25    | **32,14**           |
+| Combustiones estacionarias | Caldera de agua caliente / GLP                          | 3200     | kilógramos          | 2.93936095   | kg/kg         | DEFRA 2025  | 2,939 ⓘ      | 9 405.95504  | **9,41**            |
+| Combustiones móviles       | Camión / Diésel                                         | 28400    | litros              | 2.57082      | kg/L          | DEFRA 2025  | 2,571 ⓘ      | 73 011.288   | **73,01**           |
+| Combustiones móviles       | Camioneta / Gasolina-Nafta                              | 4600     | litros              | 2.33984      | kg/L          | DEFRA 2025  | 2,34 ⓘ       | 10 763.264   | **10,76**           |
+| Emisiones fugitivas        | HFC-134a                                                | 45       | kilógramos          | 1 300        | kg/kg         | DEFRA 2025  | 1.300        | 58 500       | **58,5**            |
+| Emisiones fugitivas        | HFC-32                                                  | 18       | kilógramos          | 677          | kg/kg         | DEFRA 2025  | 677          | 12 186       | **12,19**           |
+| Electricidad               | Sistema nacional                                        | 1850     | megawatts hora      | 177          | kg/MWh        | DEFRA 2025  | 177          | 327 450      | **327,45**          |
+| Productos comprados        | Plástico / Primera mano                                 | 85       | toneladas           | 3 172.49932  | kg/ton        | DEFRA 2025  | 3.172,5 ⓘ    | 269 662.4422 | **269,66**          |
+| Productos comprados        | Papel y cartón / Con material reciclado                 | 140      | toneladas           | 1 068.77475  | kg/ton        | DEFRA 2025  | 1.068,77 ⓘ   | 149 628.465  | **149,63**          |
+| Disposición de residuos    | Residuos comerciales o industriales / Relleno sanitario | 62       | toneladas           | 520.5327     | kg/ton        | DEFRA 2025  | 520,53 ⓘ     | 32 273.0274  | **32,27**           |
+| Disposición de residuos    | Plástico / Reciclaje                                    | 18       | toneladas           | 4.68568      | kg/ton        | DEFRA 2025  | 4,686 ⓘ      | 84.34224     | **0,08**            |
+| Consumo de agua            | Consumo de agua                                         | 46000    | metros cúbicos      | 0.1913       | kg/m3         | DEFRA 2025  | 0,1913       | 8 799.8      | **8,8**             |
+| Consumo de agua            | Agua dispuesta en el alcantarillado                     | 38000    | metros cúbicos      | 0.17088      | kg/m3         | DEFRA 2025  | 0,1709 ⓘ     | 6 493.44     | **6,49**            |
+| Desplazamiento diario      | Auto / Gasolina                                         | 264000   | kilómetros          | 0.16272      | kg/km         | DEFRA 2025  | 0,1627 ⓘ     | 42 958.08    | **42,96**           |
+| Desplazamiento diario      | Bus urbano / No aplica                                  | 118000   | kilómetros          | 0.12525      | kg/km         | DEFRA 2025  | 0,1253 ⓘ     | 14 779.5     | **14,78**           |
+| Trabajo remoto             | Equipo de oficina                                       | 21600    | horas               | 0.057        | kg/h          | EcoAct 2020 | 0,057        | 1 231.2      | **1,23**            |
+| Trabajo remoto             | Refrigeración                                           | 8400     | horas               | 0.122        | kg/h          | EcoAct 2020 | 0,122        | 1 024.8      | **1,02**            |
+| Viajes - Estadía           | Brasil                                                  | 46       | piezas arrendadas   | 8.7          | kg/pieza arre | DEFRA 2025  | 8,7          | 400.2        | **0,4**             |
+| Viajes - Estadía           | España                                                  | 22       | piezas arrendadas   | 7            | kg/pieza arre | DEFRA 2025  | 7            | 154          | **0,15**            |
+| Transporte aguas arriba    | Contenedores por barco                                  | 1240000  | kilómetros tonelada | 0.01612      | kg/km-ton     | DEFRA 2025  | 0,01612      | 19 988.8     | **19,99**           |
+| Transporte aguas arriba    | Camión refrigerado                                      | 96000    | kilómetros          | 1.04323      | kg/km         | DEFRA 2025  | 1,043 ⓘ      | 100 150.08   | **100,15**          |
 
 The four factors that require conversion:
 
-| Stored factor                  | Unit picked    | Applied factor    | Derivation                |
-| ------------------------------ | -------------- | ----------------- | ------------------------- |
-| Diésel · 2 570 `kg/m3`         | litros         | **2.57** `kg/L`   | 2 570 × 1 / 1 000         |
-| Gasolina/Nafta · 2 339 `kg/m3` | litros         | **2.339** `kg/L`  | 2 339 × 1 / 1 000         |
-| GLP · 2 939 `kg/ton`           | kilógramos     | **2.939** `kg/kg` | 2 939 × 1 000 / 1 000 000 |
-| Electricidad · 0.177 `kg/kWh`  | megawatts hora | **177** `kg/MWh`  | 0.177 × 1 000 / 1         |
+| Stored factor                     | Unit picked    | Applied factor         | Derivation                      |
+| --------------------------------- | -------------- | ---------------------- | ------------------------------- |
+| Diésel · 2 570.82 `kg/m3`         | litros         | **2.57082** `kg/L`     | 2 570.82 × 1 / 1 000            |
+| Gasolina/Nafta · 2 339.84 `kg/m3` | litros         | **2.33984** `kg/L`     | 2 339.84 × 1 / 1 000            |
+| GLP · 2 939.36095 `kg/ton`        | kilógramos     | **2.93936095** `kg/kg` | 2 939.36095 × 1 000 / 1 000 000 |
+| Electricidad · 0.177 `kg/kWh`     | megawatts hora | **177** `kg/MWh`       | 0.177 × 1 000 / 1               |
+
+The API computes the GLP variant in float64 and sends `2.9393609499999993`; the audit tooltip shows `2,93936095` because it caps binary noise (see [float64 vs Decimal](#float64-vs-decimal)).
 
 ### Per subcategory
 
@@ -239,17 +239,17 @@ Shown in each subcategory header.
 
 | Subcategory                                       | kg CO₂e      | t CO₂e (exact) | Header shows     |
 | ------------------------------------------------- | ------------ | -------------- | ---------------- |
-| Combustiones estacionarias                        | 41 529.8     | 41.5298        | **41,53 tCO₂e**  |
-| Combustiones móviles (flota propia)               | 83 747.4     | 83.7474        | **83,75 tCO₂e**  |
+| Combustiones estacionarias                        | 41 541.20504 | 41.54120504    | **41,54 tCO₂e**  |
+| Combustiones móviles (flota propia)               | 83 774.552   | 83.774552      | **83,77 tCO₂e**  |
 | Emisiones fugitivas                               | 70 686       | 70.686         | **70,69 tCO₂e**  |
 | Electricidad                                      | 327 450      | 327.45         | **327,45 tCO₂e** |
-| Productos comprados                               | 419 140      | 419.14         | **419,14 tCO₂e** |
+| Productos comprados                               | 419 290.9072 | 419.2909072    | **419,29 tCO₂e** |
 | Disposición de residuos sólidos                   | 32 357.36964 | 32.35736964    | **32,36 tCO₂e**  |
 | Consumo de agua y tratamiento de aguas residuales | 15 293.24    | 15.29324       | **15,29 tCO₂e**  |
-| Desplazamiento diario de empleados                | 59 478       | 59.478         | **59,48 tCO₂e**  |
+| Desplazamiento diario de empleados                | 57 737.58    | 57.73758       | **57,74 tCO₂e**  |
 | Trabajo remoto de empleados                       | 2 256        | 2.256          | **2,26 tCO₂e**   |
 | Viajes de negocios - Estadía                      | 554.2        | 0.5542         | **0,55 tCO₂e**   |
-| Transporte y distribución de bienes aguas arriba  | 43 816       | 43.816         | **43,82 tCO₂e**  |
+| Transporte y distribución de bienes aguas arriba  | 120 138.88   | 120.13888      | **120,14 tCO₂e** |
 
 ### Per category and inventory total
 
@@ -257,12 +257,14 @@ Category totals appear in the `Total …` card at the top of each category tab.
 
 | Category                                         | kg CO₂e             | t CO₂e (exact)     | Card shows         |
 | ------------------------------------------------ | ------------------- | ------------------ | ------------------ |
-| 1 — Emisiones directas                           | 195 963.2           | 195.9632           | **195,96 tCO₂e**   |
+| 1 — Emisiones directas                           | 196 001.75704       | 196.00175704       | **196 tCO₂e**      |
 | 2 — Emisiones indirectas por energías importadas | 327 450             | 327.45             | **327,45 tCO₂e**   |
-| 3 — Otras emisiones indirectas                   | 572 894.80964       | 572.89480964       | **572,89 tCO₂e**   |
-| **TOTAL** (step 4 / step 5)                      | **1 096 308.00964** | **1 096.30800964** | **1.096,31 tCO₂e** |
+| 3 — Otras emisiones indirectas                   | 647 628.17684       | 647.62817684       | **647,63 tCO₂e**   |
+| **TOTAL** (step 4 / step 5)                      | **1 171 079.93388** | **1 171.07993388** | **1.171,08 tCO₂e** |
 
-Cross-checks: scope split ≈ 17.9 % / 29.9 % / 52.3 %; main-activity equivalence `1 096.30800964 / 18 500 000` = `0.00005925989…` tCO₂e per litre, which the adaptive mass unit renders as **59,26 gCO₂e/litros producidos** — in the step-4 caption and in the equivalence card of step 5 and the home screen. The raw tonne figure (`0,000059`) is never displayed; see [Display Precision](../architecture/emission-calculation.md#display-precision).
+Category 1 renders as `196` because the formatter drops trailing zeros (`196,00` → `196`).
+
+Cross-checks: scope split ≈ 16.7 % / 28.0 % / 55.3 %; main-activity equivalence `1 171.07993388 / 18 500 000` = `0.00006330161…` tCO₂e per litre, which the adaptive mass unit renders as **63,3 gCO₂e/litros producidos** — in the step-4 caption and in the equivalence card of step 5 and the home screen. The raw tonne figure (`0,000059`) is never displayed; see [Display Precision](../architecture/emission-calculation.md#display-precision).
 
 ---
 
@@ -291,21 +293,19 @@ If _Fuente factor_ / _Factor_ come up empty, the fields were filled in a differe
 
 ### float64 vs Decimal
 
-Step 3 multiplies in JavaScript `Number` (float64) in the browser; the API stores the product as a `Decimal`. For quantities whose product is not exactly representable in binary:
+Step 3 multiplies in JavaScript `Number` (float64) in the browser; the API stores the product as a `Decimal`. When a product is not exactly representable in binary and lands on a rounding boundary, the two can disagree by 0.01 t on a single line:
 
 ```
 12500 × 2.57 = 32124.999999999996   (not 32125)
 → / 1000      = 32.124999999999996
-→ 2 decimals  = 32,12
+→ 2 decimals  = 32,12               (step 4, reading the persisted 32125 kg, shows 32,13)
 ```
 
-So **step 3 shows `32,12` and step 4 shows `32,13` for the same line**, because step 4 reads the persisted `32125` kg. The gap is ±0.01 t on a single line; subtotals, category totals and the inventory total are identical either way in this fixture.
-
-To prove the conversion engine is not at fault, re-enter the same physical consumption in the other unit: `12,5 metros cúbicos × 2 570 kg/m3` is exact in float64 and displays `32,13`, with the subtotal (`41,53`) and category total (`195,96`) unchanged.
+No line of the current fixture hits a boundary: the GLP conversion does carry binary noise (`2.9393609499999993`), but not at a digit any display shows, so step 3 and step 4 agree everywhere. To see the artifact on purpose, add a line with _Fuente factor_ → **Otro**, factor `2,57 kg/L` and `12500 litros`: step 3 shows `32,12` and step 4 shows `32,13`.
 
 ### Rounded factor column (resolved)
 
-`Factor` used to render a flat 2 decimals, so `0,01612 kg/km-ton` read as `0,02` and `0,057 kg/h` as `0,06`, and the emissions those lines produce (`19,99` and `1,23`) were unreachable from the screen alone. Both now render in full, and on the three rows where the display still rounds the exact value is one hover, focus or tap away.
+`Factor` used to render a flat 2 decimals, so `0,01612 kg/km-ton` read as `0,02` and `0,057 kg/h` as `0,06`, and the emissions those lines produce (`19,99` and `1,23`) were unreachable from the screen alone. Both now render in full, and on the rows marked ⓘ, where the display still rounds, the exact value is one hover, focus or tap away.
 
 Recomputing a line from the screen is therefore expected to work. If it does not, that is a defect now, not a legibility trait — the one remaining exception being the float64 gap above.
 
@@ -321,21 +321,21 @@ Step 3, per subcategory:
 - [ ] Every line shows _Factor_ with the right rate unit (`kg/L`, `kg/MWh`, `kg/ton`, …).
 - [ ] Every line's _Emisiones (tCO₂e)_ matches [Per line](#per-line).
 - [ ] Each header subtotal matches [Per subcategory](#per-subcategory).
-- [ ] The three ⓘ rows reveal `Valor usado en el cálculo: …` on hover **and** on keyboard focus (Tab into the cell) — an audit trail reachable only with a mouse is no audit trail on a tablet.
+- [ ] The twelve ⓘ rows reveal `Valor usado en el cálculo: …` on hover **and** on keyboard focus (Tab into the cell) — an audit trail reachable only with a mouse is no audit trail on a tablet.
 - [ ] No other row shows a dotted underline in _Factor_: where the column already holds the exact value there must be no affordance.
 - [ ] Any detailed line's _Emisiones (tCO₂e)_ cell reveals its calculation chain, and the chain multiplies out — e.g. `21.600 h × 0,057 kg/h = 1.231,2 kg = 1,2312 t`.
 
 Step 3, category cards:
 
-- [ ] Total emisiones directas = **195,96 tCO₂e**
+- [ ] Total emisiones directas = **196 tCO₂e**
 - [ ] Total emisiones indirectas por energías importadas = **327,45 tCO₂e**
-- [ ] Total otras emisiones indirectas = **572,89 tCO₂e**
+- [ ] Total otras emisiones indirectas = **647,63 tCO₂e**
 
 Steps 4 and 5:
 
-- [ ] Inventory total = **1.096,31 tCO₂e**
-- [ ] Scope split ≈ 17.9 % / 29.9 % / 52.3 %
-- [ ] The step-4 caption and the step-5 equivalence card both read **59,26 gCO₂e/litros producidos** — a `0,000059 tCO₂e/…` here means the adaptive mass unit did not apply.
+- [ ] Inventory total = **1.171,08 tCO₂e**
+- [ ] Scope split ≈ 16.7 % / 28.0 % / 55.3 %
+- [ ] The step-4 caption and the step-5 equivalence card both read **63,3 gCO₂e/litros producidos** — a `0,000063 tCO₂e/…` here means the adaptive mass unit did not apply.
 - [ ] The _Factores utilizados_ table of step 4 carries the same ⓘ affordance as the capture grid; its per-gas breakdown lines inherit the precision but deliberately not the affordance.
 
 Robustness:
@@ -366,9 +366,9 @@ Expected:
 
 | cat | kg                 | ton          |
 | --- | ------------------ | ------------ |
-| 1   | 195 963.2000000000 | 195.96320000 |
+| 1   | 196 001.7570400000 | 196.00175704 |
 | 2   | 327 450.0000000000 | 327.45000000 |
-| 3   | 572 894.8096400000 | 572.89480964 |
+| 3   | 647 628.1768400000 | 647.62817684 |
 
 To inspect line by line (quantity, applied factor, rate unit, result):
 

@@ -2,7 +2,9 @@
 
 Esta categoría incluye las **emisiones derivadas de la aplicación de fertilizantes e insumos al suelo**, tales como **urea**, **nitrato de amonio**, **estiércol** u otros mejoradores de suelo.
 
-Las emisiones provienen principalmente del **nitrógeno (N)**, **fósforo (P)**, **potasio (K)** u otros componentes contenidos en estos productos, que al ser aplicados al suelo liberan gases como **óxido nitroso (N₂O)**.
+Las emisiones provienen del **nitrógeno (N)** contenido en estos productos: al aplicarlo, una parte se transforma en **óxido nitroso (N₂O)** directamente en el suelo y otra lo hace indirectamente, después de volatilizarse o de ser arrastrada por el agua. El **fósforo (P)** y el **potasio (K)** no generan emisiones al aplicarse, por eso su factor es 0.
+
+⚠️ Las emisiones de **fabricar** el fertilizante no se declaran aquí: corresponden a los bienes comprados (Alcance 3).
 
 ---
 
@@ -17,7 +19,7 @@ Las emisiones provienen principalmente del **nitrógeno (N)**, **fósforo (P)**,
 Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
 
 💡 **Tip importante:**  
-Si **no aplicas fertilizantes que contengan N, P u otros nutrientes relevantes**, probablemente **no debes declarar emisiones en esta sección**.
+Si **no aplicas fertilizantes que contengan nitrógeno (N)**, probablemente **no debes declarar emisiones en esta sección**.
 
 ---
 
@@ -104,18 +106,20 @@ Entonces:
 
 $1.000 \times 0,46$ = **460 kg de N aplicado**
 
-Y el factor de emisión es (ejemplo referencial):
+Y el factor de emisión es:
 
-- **Por cada kg de N aplicado, se generan 5,50 kg CO₂e**
+- **Por cada kg de N aplicado, se generan 5,52 kg CO₂e**
 
 Entonces el cálculo sería:
 
-> $CO₂e$ = $460\ kg \times 5,50\ kg\ CO₂e/kg$ = $2.530\ kg\ CO₂e$
+> $CO₂e$ = $460\ kg \times 5,5177\ kg\ CO₂e/kg$ = $2.538\ kg\ CO₂e$
+
+_(Factor 5,5177 kg CO₂e/kg N — valor ilustrativo; el factor real es gestionado por la plataforma según el componente y el año de tu huella)_
 
 Es decir, la aplicación de fertilizante habría generado:
 
-- **2.530 kg CO₂e en el año**
-- O lo mismo que **2,53 toneladas de CO₂e**
+- **2.538 kg CO₂e en el año**
+- O lo mismo que **2,54 toneladas de CO₂e**
 
 ⚠️ Es fundamental que la cantidad esté expresada en **kg del componente (N o P)**.
 
@@ -123,7 +127,7 @@ Es decir, la aplicación de fertilizante habría generado:
 
 ## 📝 Notas importantes
 
-> - Si no aplicas fertilizantes con **N o P**, no debes declarar esta sección
+> - Si no aplicas fertilizantes con **N**, no debes declarar esta sección
 > - Puedes asumir que el fertilizante comprado fue aplicado
 > - Revisa el **% del componente** en la ficha técnica del producto
 > - Guarda **facturas y respaldos técnicos** para auditorías o certificaciones

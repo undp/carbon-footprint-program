@@ -104,18 +104,20 @@ Supongamos que durante el año tu empresa tuvo en promedio:
 
 - **120 Vacas de pastoreo**
 
-Y el factor de emisión para Vacas de pastoreo (ejemplo referencial) es:
+Y el factor de emisión para Vacas de pastoreo es:
 
-- **Por cada vaca de pastoreo que tienes en tu campo, se generan 1.500 kg CO₂e al año**
+- **Por cada vaca de pastoreo que tienes en tu campo, se generan 1.596 kg CO₂e al año**
 
 Entonces el cálculo sería:
 
-> $CO₂e$ = $120\ Vacas\ de\ pastoreo \times 1.500\ kg\ CO₂e/animal$ = $180.000\ kg\ CO₂e$
+> $CO₂e$ = $120\ Vacas\ de\ pastoreo \times 1.596\ kg\ CO₂e/animal$ = $191.520\ kg\ CO₂e$
+
+_(Factor 1.596 kg CO₂e/animal — valor ilustrativo; el factor real es gestionado por la plataforma según el tipo de animal y el año de tu huella)_
 
 Es decir, la actividad ganadera habría generado:
 
-- **180.000 kg CO₂e en el año**
-- O lo mismo que **180 toneladas de CO₂e**
+- **191.520 kg CO₂e en el año**
+- O lo mismo que **191,52 toneladas de CO₂e**
 
 ⚠️ Es importante que el factor de emisión esté expresado en **kg CO₂e por animal por año**, y que la cantidad declarada corresponda al **promedio anual de animales**.
 
@@ -124,7 +126,7 @@ Es decir, la actividad ganadera habría generado:
 ## 📝 Notas importantes
 
 > - Si **no tienes animales**, probablemente **no tienes emisiones ganaderas**
-> - Las emisiones ganaderas incluyen **digestión y manejo de estiércol**
+> - Los factores cubren el **metano (CH₄)** de la **digestión** y del **manejo de estiércol**
 > - La ganadería es una fuente relevante de **metano (CH₄)**, un gas altamente contaminante
 > - Usa un **promedio anual** si el número de animales varía durante el año
 > - Guarda **registros productivos o inventarios** como respaldo para auditorías o certificaciones
