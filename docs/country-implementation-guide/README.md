@@ -3,7 +3,8 @@
 A country needs five phases (the fourth in two parts) to run Huella Latam in production, and the longest one is not the
 technical one: it is replacing the seed content. The seed shipped in the repository is a fictional
 country ("País Demo", code `PD`) with a "Metodología inicial" (initial methodology) of 30
-subcategories and 284 emission factors, taken mostly from DEFRA 2025 (United Kingdom) and the IPCC.
+subcategories and 284 emission factors per year (2025 and 2026), taken mostly from DEFRA (United
+Kingdom) and the IPCC.
 None of it is fit, as is, for a national carbon footprint program.
 
 This guide walks the whole path, from the institutional decision to the first real user. It

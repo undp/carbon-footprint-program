@@ -102,11 +102,12 @@ Restore procedures are in the [runbook](../operations/runbook.md#backup).
 
 ## Issues already seen in the field
 
-| Symptom                                         | Cause                                          | Fix                                                                                     |
-| ----------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Provisioning stops before anything is created   | No active subscription or payment method       | Confirm budget and payment before starting ([phase 1](./01-institutional-decisions.md)) |
-| `run-migrations.sh` cannot reach the database   | Your IP is not in the PostgreSQL firewall      | Add it before migrating ([`Migrations.md`](../infrastructure/Migrations.md))            |
-| Login fails with 401 behind a VPN or slow links | Node's connection-attempt timeout is too short | Fixed in the API (2.5 s per attempt); run a recent release                              |
+| Symptom                                                            | Cause                                                                | Fix                                                                                     |
+| ------------------------------------------------------------------ | -------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Provisioning stops before anything is created                      | No active subscription or payment method                             | Confirm budget and payment before starting ([phase 1](./01-institutional-decisions.md)) |
+| `run-migrations.sh` cannot reach the database                      | Your IP is not in the PostgreSQL firewall                            | Add it before migrating ([`Migrations.md`](../infrastructure/Migrations.md))            |
+| Migrate fails with `type "system_role" already exists`, then P3009 | The database ran the migration history from before its consolidation | One-time [migration history reset](../operations/migration-history-reset.md)            |
+| Login fails with 401 behind a VPN or slow links                    | Node's connection-attempt timeout is too short                       | Fixed in the API (2.5 s per attempt); run a recent release                              |
 
 ---
 

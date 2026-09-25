@@ -106,10 +106,14 @@ footprints already calculated
 
 The country branch keeps receiving security fixes and features from upstream. For each release:
 
-1. **Read the release notes and the migrations.** Migrations that match `iso_code = 'PD'` are
-   methodology corrections the country does not receive automatically if it uses its own code
+1. **Read the release notes and the seed-data changes.** Content corrections land in
+   `tools/seed/src/data/base/`, and the seed never runs again, so a country with its own code
+   receives none of them automatically
    ([phase 2](./02-seed-content.md#upfront-decision-keep-the-pd-code-or-use-your-own)); decide which
-   to apply by hand in the maintainer.
+   to apply by hand in the maintainer. The release notes also say when a release needs a one-time
+   operation before migrating, such as the
+   [migration history reset](../operations/migration-history-reset.md), which rebuilds the database
+   and keeps only the users: rehearse it in staging and plan it with the organizations first.
 2. **Merge the release tag** into the country branch. Conflicts should only appear in the files
    listed in [phase 3](./03-configuration-and-branding.md#keep-country-changes-easy-to-merge) and in
    the seed data.

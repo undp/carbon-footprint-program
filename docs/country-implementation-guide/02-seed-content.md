@@ -40,63 +40,74 @@ propose this order:
 
 ## Upfront decision: keep the `PD` code or use your own
 
-The upstream project fixes methodology content (guides, labels, dimensions, factors) with data
-migrations that only touch rows matching **both** the country code `PD` and the methodology name
-"Metodología inicial". This decision determines whether the country receives them.
+The upstream project corrects methodology content (guides, labels, dimensions, factors) in the seed
+data. A release may also ship a data migration that applies a correction to databases already
+seeded, and such a migration only touches rows matching **both** the country code `PD` and the
+methodology name "Metodología inicial". This decision determines whether the country receives
+those migrations.
 
-| Option                                                                    | Receives upstream corrections                                         | Risk                                                              |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Own ISO code (e.g. `DO`, `PE`) and own methodology name **(recommended)** | No: each correction is reviewed and applied by hand in the maintainer | Every release's migrations must be read as a changelog            |
-| Keep `PD` and "Metodología inicial"                                       | Yes, automatically on migrate                                         | An upstream correction can overwrite a national decision silently |
+| Option                                                                    | Receives upstream corrections                                         | Risk                                                                          |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Own ISO code (e.g. `DO`, `PE`) and own methodology name **(recommended)** | No: each correction is reviewed and applied by hand in the maintainer | Every release's seed-data changes must be read as a changelog                 |
+| Keep `PD` and "Metodología inicial"                                       | Only the ones that also ship as a data migration                      | A migration can overwrite a national decision silently; the rest never arrive |
 
 Changing either value (the code or the methodology name) stops the automatic corrections. The
 country name shown to users comes from the `name` field and can be the real name in both options.
 
-To list those migrations:
+Either way, the seed data is the complete record of upstream content changes. To review a release:
 
 ```bash
-grep -l "iso_code.*= 'PD'" packages/database/src/prisma/migrations/*/migration.sql
+git diff <previous-release>..<new-release> -- tools/seed/src/data/base/
 ```
+
+The details are in
+[`country-onboarding.md`](../development/country-onboarding.md#content-migrations-do-not-reach-your-methodology).
 
 ## Seed inventory
 
 Paths are relative to `tools/seed/src/data/base/` unless stated otherwise.
 
-| File or folder                                                             | What it holds today                                         | What the country must do                                                                                                                                          | Owner                 | Effort |
-| -------------------------------------------------------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------ |
-| `methodologies.json` — factors                                             | 284 factors: 195 DEFRA 2025, 83 IPCC, 6 from other sources  | Replace with official national factors; record `source` and `year` on each                                                                                        | Methodology           | High   |
-| `methodologies.json` — structure                                           | 3 categories, 30 subcategories, dimensions and their values | Fit to the national framework; rename, remove or add subcategories                                                                                                | Methodology           | Medium |
-| `explanations/subcategories/*.md`                                          | 30 guides, one per subcategory                              | Rewrite examples with local currency, prices and realities                                                                                                        | Methodology + content | High   |
-| `explanations/categories/*.md`                                             | 3 texts, one per category                                   | Review wording and regulatory references                                                                                                                          | Methodology           | Low    |
-| `explanations/standalone/*.md` + `standalone_explanations.json`            | 35 screen help texts ("i" icon)                             | Review tone and terms; adjust if a flow changes (e.g. `MANUAL` recognition)                                                                                       | Content               | Medium |
-| `country_sector_subsectors.json`                                           | 18 generic sectors with subsectors                          | Align with the official economic classification (national ISIC)                                                                                                   | Methodology           | Medium |
-| `subcategory_recommendations.json`                                         | Suggested subcategories per sector and subsector            | Redo after changing sectors or subcategories; names must match exactly                                                                                            | Methodology           | Medium |
-| `organization_main_activities.json`                                        | Intensity indicators, with amounts in CLP                   | Switch to local currency; add sector-specific indicators                                                                                                          | Methodology           | Low    |
-| `country_organization_size.json`                                           | 8 brackets by headcount                                     | Use the country's official MSME classification                                                                                                                    | Authority             | Low    |
-| `country_job_positions.json`                                               | Generic job titles                                          | Adapt to local naming; keep "Otro" (Other)                                                                                                                        | Content               | Low    |
-| `initiatives.json`                                                         | Reduction initiatives for 28 subcategories                  | Adapt to national programs and incentives; subcategory names must match                                                                                           | Methodology           | Medium |
-| `countries.json`                                                           | "País Demo" (`PD`)                                          | Country name and ISO 3166-1 alpha-2 code                                                                                                                          | Authority             | Low    |
-| `systemParameters.json`                                                    | `AUTOMATIC` recognition; `UNION` recommendation mode        | Reflect the decisions from [phase 1](./01-institutional-decisions.md)                                                                                             | Authority             | Low    |
-| `measurement_units.json`, `rate_measurement_units.json`, `magnitudes.json` | Global units (kg, L, kWh, km, ha…)                          | Usually nothing; add one only if a national factor needs a new unit                                                                                               | Methodology           | Low    |
-| `tools/seed/src/data/badges/*.svg`                                         | 4 generic badges                                            | Official artwork for the national badges                                                                                                                          | Authority + design    | Medium |
-| `tools/seed/src/data/legal/terms_conditions.pdf`                           | Generic terms                                               | Terms and conditions reviewed under national law, including the legal contacts ([phase 5](./05-validation-and-go-live.md#obligations-before-the-first-real-user)) | Legal                 | Medium |
-| [`corpus/`](../../corpus/) (repo root)                                     | GHG Protocol PDF + links to the explanations                | Add national guides and regulations if the chatbot is enabled; list them in `manifest.json`                                                                       | Methodology           | Low    |
+| File or folder                                                             | What it holds today                                                                                                  | What the country must do                                                                                                                                          | Owner                 | Effort |
+| -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------ |
+| `methodologies.json` — factors                                             | 568 factors: the same 284 for 2025 and for 2026 (per year: 195 DEFRA of that year's edition, 86 IPCC, 3 EcoAct 2020) | Replace with official national factors; record `source` and `year` on each                                                                                        | Methodology           | High   |
+| `methodologies.json` — structure                                           | 3 categories, 30 subcategories, dimensions and their values                                                          | Fit to the national framework; rename, remove or add subcategories                                                                                                | Methodology           | Medium |
+| `explanations/subcategories/*.md`                                          | 30 guides, one per subcategory                                                                                       | Rewrite examples with local currency, prices and realities                                                                                                        | Methodology + content | High   |
+| `explanations/categories/*.md`                                             | 3 texts, one per category                                                                                            | Review wording and regulatory references                                                                                                                          | Methodology           | Low    |
+| `explanations/standalone/*.md` + `standalone_explanations.json`            | 35 screen help texts ("i" icon)                                                                                      | Review tone and terms; adjust if a flow changes (e.g. `MANUAL` recognition)                                                                                       | Content               | Medium |
+| `country_sector_subsectors.json`                                           | 18 generic sectors with subsectors                                                                                   | Align with the official economic classification (national ISIC)                                                                                                   | Methodology           | Medium |
+| `subcategory_recommendations.json`                                         | Suggested subcategories per sector and subsector                                                                     | Redo after changing sectors or subcategories; names must match exactly                                                                                            | Methodology           | Medium |
+| `organization_main_activities.json`                                        | Intensity indicators, with amounts in CLP                                                                            | Switch to local currency; add sector-specific indicators                                                                                                          | Methodology           | Low    |
+| `country_organization_size.json`                                           | 8 brackets by headcount                                                                                              | Use the country's official MSME classification                                                                                                                    | Authority             | Low    |
+| `country_job_positions.json`                                               | Generic job titles                                                                                                   | Adapt to local naming; keep "Otro" (Other)                                                                                                                        | Content               | Low    |
+| `initiatives.json`                                                         | Reduction initiatives for 28 subcategories                                                                           | Adapt to national programs and incentives; subcategory names must match                                                                                           | Methodology           | Medium |
+| `countries.json`                                                           | "País Demo" (`PD`)                                                                                                   | Country name and ISO 3166-1 alpha-2 code                                                                                                                          | Authority             | Low    |
+| `systemParameters.json`                                                    | `AUTOMATIC` recognition; `UNION` recommendation mode                                                                 | Reflect the decisions from [phase 1](./01-institutional-decisions.md)                                                                                             | Authority             | Low    |
+| `measurement_units.json`, `rate_measurement_units.json`, `magnitudes.json` | Global units (kg, L, kWh, km, ha…)                                                                                   | Usually nothing; add one only if a national factor needs a new unit                                                                                               | Methodology           | Low    |
+| `tools/seed/src/data/badges/*.svg`                                         | 4 generic badges                                                                                                     | Official artwork for the national badges                                                                                                                          | Authority + design    | Medium |
+| `tools/seed/src/data/legal/terms_conditions.pdf`                           | Generic terms                                                                                                        | Terms and conditions reviewed under national law, including the legal contacts ([phase 5](./05-validation-and-go-live.md#obligations-before-the-first-real-user)) | Legal                 | Medium |
+| [`corpus/`](../../corpus/) (repo root)                                     | GHG Protocol PDF + links to the explanations                                                                         | Add national guides and regulations if the chatbot is enabled; list them in `manifest.json`                                                                       | Methodology           | Low    |
 
 ## The critical points in the catalogue
 
 1. **Grid electricity factor.** Electricity has a single dimension value, "Sistema nacional"
-   (national grid), at 0.177 kg CO₂e/kWh from DEFRA 2025: that is the UK grid. It is often the
-   largest source in an organization's footprint; it must be the country's official factor. If the
-   country has several grids, add one value per grid to the "Sistema eléctrico" dimension, each
-   with its own factor; users pick their grid when capturing electricity.
+   (national grid), at 0.177 kg CO₂e/kWh for 2025 (DEFRA 2025) and 0.131 for 2026 (DEFRA 2026):
+   that is the UK grid. It is often the largest source in an organization's footprint; it must be
+   the country's official factor. If the country has several grids, add one value per grid to the
+   "Sistema eléctrico" dimension, each with its own factor; users pick their grid when capturing
+   electricity.
 2. **Subcategories with no factors.** Química (chemicals), Papel y celulosa (pulp and paper),
    Cerámica y otros carbonatos (ceramics and other carbonates) and Procesos industriales - Otros
    (other industrial processes) have 0 factors. If they are kept empty, users can only enter a
    custom factor there. The country decides whether to fill or remove them.
 3. **Foreign factors by default.** Fuels, waste and transport come from DEFRA. Wherever a national
    factor exists (GHG inventory, energy balance), replace it. Factors are stored in CO₂e, so the
-   GWP set (AR5 or AR6) is whatever the source used: keep sources consistent with the national
-   inventory and name the edition in `source`.
+   GWP set (AR5 or AR6) is whatever the source used; the demo uses AR5 throughout. Keep sources
+   consistent with the national inventory and name the edition in `source`. All active factors of
+   one subcategory in one year must share the same `source` (the maintainer refuses a second one),
+   so replace a subcategory's factors for a year as a whole, not one row at a time. The
+   maintainer's source field suggests a fixed list (`SOURCE_OPTIONS` in
+   [`apps/web/src/screens/Maintainer/constants.ts`](../../apps/web/src/screens/Maintainer/constants.ts))
+   but accepts any text.
 4. **Business-travel accommodation.** The "País" (country) dimension lists 21 hotel countries;
    check that it includes the country itself and frequent destinations.
 5. **Unit abbreviations.** Each factor references its rate unit by abbreviation (`kg/kWh`, not
@@ -108,7 +119,9 @@ Paths are relative to `tools/seed/src/data/base/` unless stated otherwise.
 ## Factors are per year
 
 A factor is valid for exactly one footprint year: a 2025 footprint only offers 2025 factors. Factors
-do not carry forward.
+do not carry forward. The demo seed ships a full set for 2025 and another for 2026 (DEFRA factors
+from each year's edition; IPCC and EcoAct factors copied unchanged), so the national seed must also
+decide which years it covers.
 
 - The footprint year selector offers a year as soon as the methodology has **at least one** active
   factor for it.
@@ -207,9 +220,12 @@ Check these against the national framework (decision 2) before designing the cat
 - **The worked example ends at the number the user types into "Cantidad" (quantity),** not at the
   emissions the platform already computes. What declarants get wrong is the input, not the
   calculation.
+- **Do not copy factor values into the guides.** The capture form already shows each factor for the
+  footprint year, and a table in the text goes stale with the next year's factors. Where a worked
+  example needs a factor to reach its number, say that the value is illustrative.
 - **Localize.** Three guides currently use CLP amounts (Electricidad, Combustiones estacionarias,
-  Combustiones móviles) and several mention local services (Uber, Cabify, DiDi). Change currency,
-  prices and examples.
+  Combustiones móviles) and Viajes de negocios - traslado mentions local services (Uber, Cabify,
+  DiDi). Change currency, prices and examples.
 - **Keep the corpus in sync.** The `corpus/categories` and `corpus/subcategories` folders are links
   to these explanations: the chatbot answers with the same content the app shows.
 

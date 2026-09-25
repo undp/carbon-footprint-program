@@ -40,7 +40,7 @@ The seed ships with `AUTOMATIC`. `MANUAL` needs a staffed review team (decision 
   unless the methodology team will curate recommendations for every subsector: with `SPECIFIC`, a
   subsector without its own entries gets no suggestions at all.
 - **Country code**: keep `PD` or use the country's own ISO code. It determines whether the country
-  automatically receives upstream content corrections
+  automatically receives the upstream content corrections shipped as data migrations
   ([details in phase 2](./02-seed-content.md#upfront-decision-keep-the-pd-code-or-use-your-own)).
 
 ## Platform roles
