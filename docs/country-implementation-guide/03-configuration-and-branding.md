@@ -21,11 +21,21 @@ and it must be finished before the first production build
 | "Sobre la iniciativa" (About)                                  | [`apps/web/src/screens/About/constants.ts`](../../apps/web/src/screens/About/constants.ts)                                                    | Figures, challenge, pillars, alliance actors, roadmap                              |
 | "Material complementario" (Resources)                          | [`apps/web/src/screens/Resources/constants.ts`](../../apps/web/src/screens/Resources/constants.ts)                                            | Guides and courses; add national regulations and guides                            |
 | "Agradecimientos" (Acknowledgements)                           | [`apps/web/src/screens/Acknowledgements/participants.ts`](../../apps/web/src/screens/Acknowledgements/participants.ts) and `constants.ts`     | People and institutions that took part in the country                              |
-| Name, browser tab and icons                                    | [`apps/web/index.html`](../../apps/web/index.html), [`apps/web/public/`](../../apps/web/public/) (`favicon*`)                                 | Title and favicon, if the country uses its own brand                               |
+| Browser tab and icons                                          | [`apps/web/index.html`](../../apps/web/index.html), [`apps/web/public/`](../../apps/web/public/) (`favicon*`)                                 | Title and favicon, if the country uses its own brand                               |
 | Colors and typography                                          | [`apps/web/src/theme/palette.ts`](../../apps/web/src/theme/palette.ts), `typography.ts`                                                       | Only if the national brand requires it; check contrast                             |
 
 The guide [`../development/public-pages-content.md`](../development/public-pages-content.md)
 details every constant behind the public pages.
+
+**Renaming the platform is a code change.** The name "Huella Latam" and its logo
+([`HuellaLatamLogo.tsx`](../../apps/web/src/icons/HuellaLatamLogo.tsx)) are written directly into
+about 20 web files, with no central constant: among them the landing hero, the public and
+authenticated headers, the sidebar, the home welcome, the chatbot, the badge and verification
+dialogs, and the About and Acknowledgements texts. A country that rebrands (decision in
+[phase 1](./01-institutional-decisions.md#legal-footing)) needs a developer to find and change every
+occurrence (`grep -rn "Huella Latam" apps/web`), and those files then add to the merge conflicts of
+each upstream release. Keeping the name and showing the national institutions as partners avoids
+both.
 
 ## Per-country values
 
@@ -39,8 +49,12 @@ details every constant behind the public pages.
 | `CALCULATOR_YEARS_RANGE_FROM_CURRENT`             | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)             | 5                                   | The factor form offers years from the current year minus 4 to the current year plus 1, and expert mode offers the current year and the four before it even without factors. Raise it to load factors for older years or to widen the expert window |
 | `DASHBOARD_YEARS_RANGE_FROM_CURRENT`              | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)             | 10                                  | Years offered in the admin dashboard                                                                                                                                                                                                               |
 | `TRANSPARENCY_YEARS_RANGE_FROM_CURRENT`           | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)             | 5                                   | Years offered on the public transparency screen                                                                                                                                                                                                    |
-| `MEASURING_ORGANIZATIONS_YEAR_RANGE`              | [`apps/api/src/config/constants.ts`](../../apps/api/src/config/constants.ts)             | 2                                   | "Measuring organizations" window in the admin dashboard. Keep the default: changing it also needs a new database migration, outside the files listed here                                                                                          |
 | `CHATBOT_AI_DISCLAIMER`, `CHATBOT_PRIVACY_NOTICE` | [`apps/web/src/config/constants.ts`](../../apps/web/src/config/constants.ts)             | Generic text                        | Legal review if the chatbot is enabled                                                                                                                                                                                                             |
+
+The "measuring organizations" window of the admin dashboard (current year plus the previous one
+by default) is not a code constant: it is the `MEASURING_ORGANIZATIONS_YEAR_RANGE` system parameter,
+set in the seed ([phase 2](./02-seed-content.md#seed-inventory)) or later with SQL. The constant of
+the same name in `apps/api/src/config/constants.ts` is not used.
 
 ### Number formatting by locale
 

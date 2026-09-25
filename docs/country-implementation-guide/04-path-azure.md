@@ -66,10 +66,16 @@ passes, from the `infra/` folder of the country branch:
    ```bash
    export DATABASE_URL='postgresql://<db-user>:<url-encoded-password>@<db-host>:5432/<db-name>?schema=public&sslmode=require'
    export STORAGE_PROVIDER=azure_blob_storage
-   # plus AZURE_STORAGE_ACCOUNT_NAME, _CONTAINER_NAME, _TENANT_ID, _CLIENT_ID, _CLIENT_SECRET
+   export AZURE_STORAGE_ACCOUNT_NAME=<storage-account> AZURE_STORAGE_CONTAINER_NAME=<container>
+   az login
    pnpm install
    pnpm db:seed
    ```
+
+   This path creates no storage service principal, so the seed signs in to storage with your
+   `az login` session. Your user needs the Storage Blob Data Contributor role on the storage
+   account. `enableDevGroupStorageAccess` grants it to the developers group, but it stays `false` in
+   production: assign the role to yourself for the seed and remove it afterwards.
 
    `pnpm db:seed` builds the internal packages and the database client before seeding; calling
    the seed package directly on a fresh checkout fails because they are not built yet.
