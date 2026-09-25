@@ -7,10 +7,8 @@ import type { ChatbotMessage, ChatbotState } from "./types";
 
 // Byte-for-byte mirrors of the widget's standing notices. Duplicated here
 // deliberately so a copy change has to be made in two places on purpose.
-const DISCLAIMER =
-  "Respuestas generadas por IA. Pueden contener errores; verifica contra las fuentes citadas.";
-const PRIVACY_NOTICE =
-  "Guardamos tus conversaciones para responder y retomarlas. No compartas datos personales.";
+const DISCLAIMER = "Respuestas generadas por IA. Pueden contener errores.";
+const PRIVACY_NOTICE = "Guardamos el chat. No compartas datos personales.";
 const NEW_CONVERSATION_LABEL = "Nueva conversación";
 
 // Per-test inputs for the useChatStream stub, plus a spy for the reset call.
