@@ -32,7 +32,9 @@ Critical path: 1–2 + 6–10 + ~2 + 3–4 = 12–18 weeks.
 - [ ] Infrastructure path and data residency decided, with a confirmed budget.
 - [ ] Identity provider chosen.
 - [ ] Chatbot enabled or disabled.
-- [ ] Initial `SUPERADMIN` and system `ADMIN` users named.
+- [ ] Two `SUPERADMIN` users and the initial system `ADMIN` users named.
+- [ ] AGPL-3.0 obligations and use of the name reviewed by legal.
+- [ ] Decision on importing history from a previous program.
 - [ ] A developer assigned for phases 2 to 4.
 
 ### Phase 2 — Seed content
@@ -65,6 +67,7 @@ Critical path: 1–2 + 6–10 + ~2 + 3–4 = 12–18 weeks.
 - [ ] Server or subscription, database with pgvector, file store, IdP with SMTP provisioned.
 - [ ] Database users and default privileges configured.
 - [ ] Backups configured and a restore tested.
+- [ ] Staging with its own database, bucket and OIDC client.
 - [ ] Staging deployed.
 
 ### Phase 4B — Staging check and first production deploy
@@ -77,6 +80,8 @@ Critical path: 1–2 + 6–10 + ~2 + 3–4 = 12–18 weeks.
 ### Phase 5 — Validation and go-live
 
 - [ ] Legal contacts confirmed as published and monitored.
+- [ ] Procedure for data-subject requests, with a named developer.
+- [ ] How reviewers tell organizations about outcomes agreed; identity checks for accreditation defined.
 - [ ] Pilot completed in production.
 - [ ] Training delivered to the three audiences.
 - [ ] Public launch with the help desk running.

@@ -38,14 +38,14 @@ team (environmental authority, methodology specialists, content and IT), not onl
 for developers. One document per phase, from institutional decisions to go-live.
 Start at [`country-implementation-guide/README.md`](./country-implementation-guide/README.md).
 
-| Document                                                                                         | Content                                                                                    |
-| ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------ |
-| [1. Institutional decisions](./country-implementation-guide/01-institutional-decisions.md)       | The 10 upfront decisions: operator, methodology, emission factors, roles, hosting, login   |
-| [2. Seed content](./country-implementation-guide/02-seed-content.md)                             | Which seed files to replace, who owns each, critical points, factor years, validation gate |
-| [3. Configuration and branding](./country-implementation-guide/03-configuration-and-branding.md) | Partners, logos, public pages and per-country constants baked into the image               |
-| [4. Infrastructure](./country-implementation-guide/04-infrastructure.md)                         | Cloud vs on-premise, DBA and IdP setup, staging gate, first deploy on both paths, backups  |
-| [5. Validation and go-live](./country-implementation-guide/05-validation-and-go-live.md)         | Legal obligations, transparency, personal data, pilot, yearly cycle, upstream releases     |
-| [6. Master checklist and timeline](./country-implementation-guide/06-checklist-and-timeline.md)  | Deliverable, owner and reference duration per phase                                        |
+| Document                                                                                         | Content                                                                                         |
+| ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| [1. Institutional decisions](./country-implementation-guide/01-institutional-decisions.md)       | The 10 upfront decisions, roles, legal footing, budget and staffing                             |
+| [2. Seed content](./country-implementation-guide/02-seed-content.md)                             | Which seed files to replace, who owns each, critical points, factor years, validation gate      |
+| [3. Configuration and branding](./country-implementation-guide/03-configuration-and-branding.md) | Partners, logos, public pages and per-country constants baked into the image                    |
+| [4. Infrastructure](./country-implementation-guide/04-infrastructure.md)                         | Cloud vs on-premise, DBA and IdP setup, staging gate, first deploy on both paths, backups       |
+| [5. Validation and go-live](./country-implementation-guide/05-validation-and-go-live.md)         | Legal obligations, transparency, personal data, review process, yearly cycle, upstream releases |
+| [6. Master checklist and timeline](./country-implementation-guide/06-checklist-and-timeline.md)  | Deliverable, owner and reference duration per phase                                             |
 
 ## Architecture
 

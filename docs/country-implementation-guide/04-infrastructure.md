@@ -16,6 +16,12 @@ A staging environment can be deployed during 4A with a draft seed. Because the s
 empty database, staging is wiped and re-seeded each time the draft changes; production is seeded
 once, in 4B, only after staging has passed with exactly the same seed and images.
 
+Staging runs the same compose file (or Bicep stack) as production with its **own** database, file
+bucket and OIDC client (its redirect URLs point at the staging domain); it never shares them with
+production. Because staging is wiped whenever the seed changes, it is not a training environment:
+if organizations need somewhere to practise, run a separate training instance seeded from the same
+final version.
+
 ← [3. Configuration and branding](./03-configuration-and-branding.md) · [Index](./README.md) · Next: [5. Validation and go-live](./05-validation-and-go-live.md) →
 
 ---
@@ -31,7 +37,11 @@ once, in 4B, only after staging has passed with exactly the same seed and images
 | Images                        | Azure Container Registry                                 | Tarball built on another machine and loaded with `docker load` (works offline)                               | [Image delivery](../operations/production-deployment.md#image-delivery-build--save--load)                                                            |
 | Chatbot (optional)            | Azure OpenAI + embeddings                                | Needs egress to Azure OpenAI; without it, `CHATBOT_ENABLED=false`                                            | [`chatbot-ai-access-requirements.md`](../infrastructure/chatbot-ai-access-requirements.md)                                                           |
 
-Sizing and cost references: [`requirements.md`](../infrastructure/requirements.md),
+Sizing baseline: the reference production design assumes about 200 daily active users and a peak
+of about 20 requests per second, concentrated in working hours. The API is stateless and scales
+horizontally. The file store grows with the evidence organizations upload (up to 10 MB per file)
+and is kept permanently, so plan storage growth year over year. Details:
+[`requirements.md`](../infrastructure/requirements.md),
 [`app-usage-assumptions.md`](../infrastructure/app-usage-assumptions.md) and
 [`infra cost estimation.pdf`](<../infra cost estimation.pdf>).
 
@@ -55,8 +65,10 @@ Sizing and cost references: [`requirements.md`](../infrastructure/requirements.m
 ### What the DBA runs once
 
 pgvector is mandatory even with the chatbot disabled: one migration unconditionally creates a
-`vector` column, so a database without the extension cannot migrate at all. Creating it needs
-superuser, which the migration user must not have:
+`vector` column, so a database without the extension cannot migrate at all. On a self-managed
+server, install the OS package first (e.g. `postgresql-18-pgvector` on Debian/Ubuntu); on Azure the
+Bicep template already allows the extension. Creating it needs superuser, which the migration user
+must not have:
 
 ```sql
 CREATE EXTENSION IF NOT EXISTS vector;
@@ -237,8 +249,14 @@ the identity provider's user store.
 | On-premise | The DBA's standard PostgreSQL backups (dumps or point-in-time recovery) | Bucket versioning or scheduled copies       |
 
 If the database was set up without default privileges, re-apply the grants above after any
-restore. Azure procedures
-are in the [runbook](../operations/runbook.md#backup).
+restore. Azure procedures are in the [runbook](../operations/runbook.md#backup).
+
+### Rolling back a release
+
+Migrations only move forward; there is no down-migration. Before migrating production for a new
+release, take a database backup (and note the file-store state). If the release fails, restore
+that backup and start the previous release's images again. Rehearse every upgrade in staging
+first, on a copy of production-like data.
 
 ## Security and privacy references
 

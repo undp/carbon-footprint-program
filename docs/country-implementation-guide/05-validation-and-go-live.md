@@ -64,6 +64,25 @@ deletion and portability requests are fulfilled by a developer with direct datab
 privacy contact needs a documented internal procedure and a named developer behind it. Data stays
 where decision 7 put it: in the country on-premise, or in the chosen Azure region.
 
+## Running the review process
+
+- **Organizations are not notified.** The platform sends no email and has no in-app notifications.
+  When a reviewer approves, sends back or rejects a submission, the organization only sees it the
+  next time it opens the platform (status chips, the submission history and the reviewer's
+  comments). Agree how reviewers will tell organizations about outcomes, especially under
+  `MANUAL` recognition and for verification requests.
+- **Organization identity is checked by people, not the platform.** Anyone can create an
+  organization and becomes its organization `ADMIN`. The tax ID is free text: no per-country
+  format check and no uniqueness rule. Accreditation is where identity is verified: the
+  organization uploads supporting documents and a reviewer checks them. The review screen warns
+  when the legal name, trade name or tax ID matches another organization, but only on exact text
+  (`76.123.456-7` and `761234567` do not match), so reviewers should also search by hand.
+- **Look for custom factors.** Lines whose factor source is "Otro" were not taken from the
+  catalogue; ask for their justification before approving
+  ([phase 2](./02-seed-content.md#limits-of-the-catalogue-structure)).
+- **Staff the queue.** Review time grows with the number of organizations and with `MANUAL`
+  recognition; measure it during the pilot and size the review team from that.
+
 ## Pilot, training and launch
 
 1. **Closed pilot in production** with 3–5 organizations from different sectors, supported by the
@@ -101,6 +120,18 @@ The country branch keeps receiving security fixes and features from upstream. Fo
 
 The running version is reported by the API health endpoint (`APP_VERSION`); the versioning policy
 is in [`versioning.md`](../release/versioning.md).
+
+### Working with the upstream team
+
+- **Questions and bugs:** open an issue in the upstream GitHub repository
+  ([`CONTRIBUTING.md`](../../CONTRIBUTING.md)).
+- **Security vulnerabilities:** never in a public issue; use the private reporting route in
+  [`SECURITY.md`](../../SECURITY.md). Watch the repository's releases to learn about security
+  fixes.
+- **Contributing national improvements back:** pull requests are welcome under the same license,
+  which also keeps the country branch closer to upstream.
+- **Accessibility:** the repository has no accessibility conformance statement. If national rules
+  require one (for example WCAG 2.1 AA), audit the deployment before launch.
 
 ---
 

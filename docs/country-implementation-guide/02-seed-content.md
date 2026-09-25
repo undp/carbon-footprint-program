@@ -184,11 +184,22 @@ Check these against the national framework (decision 2) before designing the cat
 
 ## Rules for the explanations
 
-- **The file name binds the text to its category or subcategory:** `c{category position}_{name}.md`,
-  where the position is the category's `position` in `methodologies.json` (1, 2, 3…), and the same
-  pattern applies to category files. The name is matched after normalizing both sides: lowercase,
-  accents removed (ñ becomes n), and every run of spaces or punctuation collapsed into one `_`. So
-  `Procesos industriales - Otros` matches `c1_procesos_industriales_otros.md`.
+- **The file name binds the text to its category or subcategory.** Both use
+  `c{category position}_{name}.md`, where the position is the `position` of the category in
+  `methodologies.json` (1, 2, 3…):
+  - a category file uses the category's own position and name, e.g.
+    `categories/c1_emisiones_directas.md`;
+  - a subcategory file uses its **parent category's** position and the subcategory's name, e.g.
+    `subcategories/c1_procesos_industriales_otros.md` for "Procesos industriales - Otros".
+
+  Names are compared after normalizing both sides: lowercase, accents removed (ñ becomes n), and
+  every run of spaces or punctuation collapsed into one `_`. Reordering categories or renaming
+  anything in the seed therefore means renaming the matching files. The rule only applies to the
+  seed: after production is seeded, explanations live in the database and are edited in
+  `/admin/explanations`.
+
+- **Screen help texts** are `explanations/standalone/{slug}.md`, where the slug must also be listed
+  in `standalone_explanations.json`.
 - **A mismatch fails silently.** If a subcategory is renamed but its file is not, the seed only
   logs `No subcategory match` and the guide stays empty.
 - **They are end-user texts.** They render behind the "i" icon; do not include technical,
@@ -221,19 +232,26 @@ Production is seeded only after all of these pass:
 
 ## What can be changed after production is seeded
 
-| Content                                  | Maintainer screen                                                           | If there is no screen                                                                                                                           |
-| ---------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| Methodologies, categories, subcategories | `/admin/methodologies`, `/admin/categories`, `/admin/subcategories`         | —                                                                                                                                               |
-| Dimensions and emission factors          | `/admin/dimensions`, `/admin/emission-factors`                              | —                                                                                                                                               |
-| Explanations                             | `/admin/explanations`                                                       | —                                                                                                                                               |
-| Sectors, subsectors, recommendations     | `/admin/sectors`, `/admin/subsectors`, `/admin/subcategory-recommendations` | —                                                                                                                                               |
-| Organization sizes, main activities      | `/admin/organization-sizes`, `/admin/main-activities`                       | —                                                                                                                                               |
-| Units, rate units, magnitudes            | `/admin/units`, `/admin/rate-measurement-units`, `/admin/magnitudes`        | —                                                                                                                                               |
-| Reduction initiatives                    | `/admin/reduction-plan-initiatives`                                         | —                                                                                                                                               |
-| Badges                                   | `/admin/badges`                                                             | —                                                                                                                                               |
-| System parameters                        | `/admin/parameters` exists but does not edit yet                            | SQL, e.g. `UPDATE system_parameter SET value = 'MANUAL', updated_at = now() WHERE key = 'CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR';` |
-| Job positions, country                   | —                                                                           | SQL by a developer. Re-seeding is **not** an option: it requires an empty database                                                              |
-| Terms and conditions                     | —                                                                           | A developer uploads the new PDF through the API's legal-file upload endpoint                                                                    |
+| Content                                  | Maintainer screen                                                           | If there is no screen                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Methodologies, categories, subcategories | `/admin/methodologies`, `/admin/categories`, `/admin/subcategories`         | —                                                                                                                                                                                                                                                                                                      |
+| Dimensions and emission factors          | `/admin/dimensions`, `/admin/emission-factors`                              | —                                                                                                                                                                                                                                                                                                      |
+| Explanations                             | `/admin/explanations`                                                       | —                                                                                                                                                                                                                                                                                                      |
+| Sectors, subsectors, recommendations     | `/admin/sectors`, `/admin/subsectors`, `/admin/subcategory-recommendations` | —                                                                                                                                                                                                                                                                                                      |
+| Organization sizes, main activities      | `/admin/organization-sizes`, `/admin/main-activities`                       | —                                                                                                                                                                                                                                                                                                      |
+| Units, rate units, magnitudes            | `/admin/units`, `/admin/rate-measurement-units`, `/admin/magnitudes`        | —                                                                                                                                                                                                                                                                                                      |
+| Reduction initiatives                    | `/admin/reduction-plan-initiatives`                                         | —                                                                                                                                                                                                                                                                                                      |
+| Badges                                   | `/admin/badges`                                                             | —                                                                                                                                                                                                                                                                                                      |
+| System parameters                        | `/admin/parameters` exists but does not edit yet                            | SQL, e.g. `UPDATE system_parameter SET value = 'MANUAL', updated_at = now() WHERE key = 'CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR';`                                                                                                                                                        |
+| Job positions, country                   | —                                                                           | SQL by a developer, e.g. `INSERT INTO country_job_position (country_id, name) SELECT id, 'Gerente de Sostenibilidad' FROM country WHERE iso_code = 'DO';` or `UPDATE country SET name = 'República Dominicana' WHERE iso_code = 'DO';`. Re-seeding is **not** an option: it requires an empty database |
+| Terms and conditions                     | —                                                                           | A developer with a system `ADMIN` token calls `POST /api/files/legal/request-upload`, uploads the PDF to the returned URL, then calls `POST /api/files/legal/confirm-upload`; the previous version is retired                                                                                          |
+
+## Historical data from an existing program
+
+There is no import for organizations or footprints from a previous national program. Past years
+can only be entered by the organizations themselves, as footprints for those years (which requires
+loading those years' factors), or through a one-off database migration written by a developer.
+Decide early whether history matters for the launch.
 
 ## Helper tool for loading factors
 

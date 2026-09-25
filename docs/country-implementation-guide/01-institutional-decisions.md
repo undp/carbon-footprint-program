@@ -25,18 +25,20 @@ environmental authority and recorded in minutes.
 
 ### Measurement recognition options (decision 5)
 
-| Value       | What happens when an organization self-declares a footprint                                                 |
-| ----------- | ----------------------------------------------------------------------------------------------------------- |
-| `AUTOMATIC` | The platform approves the measurement immediately and awards the measurement badge. No admin action needed. |
-| `MANUAL`    | The organization submits the footprint for review; an admin approves, sends back or rejects it.             |
-| `HIDDEN`    | Measurement recognition is switched off; only verification submissions reach the admin queue.               |
+| Value       | What happens when an organization self-declares a footprint                                                                                            |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `AUTOMATIC` | The platform approves the measurement immediately and awards the measurement badge. No admin action needed.                                            |
+| `MANUAL`    | The organization submits the footprint for review; an admin approves, sends back or rejects it.                                                        |
+| `HIDDEN`    | Measurement recognition is switched off: no measurement badge exists. Organizations still measure and can apply for verification, which admins review. |
 
 The seed ships with `AUTOMATIC`. `MANUAL` needs a staffed review team (decision 4).
 
 ### Two decisions anticipated for phase 2
 
 - **Subcategory recommendation mode** (`SUBCATEGORY_RECOMMENDATION_MODE`): `UNION` combines sector
-  and subsector recommendations; `SPECIFIC` shows only the subsector's.
+  and subsector recommendations; `SPECIFIC` shows only the subsector's. Choose `UNION` (the default)
+  unless the methodology team will curate recommendations for every subsector: with `SPECIFIC`, a
+  subsector without its own entries gets no suggestions at all.
 - **Country code**: keep `PD` or use the country's own ISO code. It determines whether the country
   automatically receives upstream content corrections
   ([details in phase 2](./02-seed-content.md#upfront-decision-keep-the-pd-code-or-use-your-own)).
@@ -54,10 +56,22 @@ the system roles before launch.
 | `ADMIN` / `CONTRIBUTOR` / `VIEWER` (organization) | Organization | People from each company or public body | Manage, edit or view their organization's footprint                              |
 
 The platform requires at least one `SUPERADMIN` at all times and prevents anyone from changing
-their own role. The two `ADMIN` roles are unrelated: a system `ADMIN` administers the platform,
-while an organization `ADMIN` only manages their own organization. "Maintainers" in this guide are
-system `ADMIN` users who work on the methodology
-catalogue.
+their own role. Name two `SUPERADMIN` users: if the only one leaves, a new one can only be created
+with direct database access. The two `ADMIN` roles are unrelated: a system `ADMIN` administers the
+platform, while an organization `ADMIN` only manages their own organization. "Maintainers" in this
+guide are system `ADMIN` users who work on the methodology catalogue.
+
+## Legal footing
+
+- **License.** The platform is licensed under the
+  [GNU AGPL-3.0](../../LICENSE). Running a modified version as a public service obliges the operator
+  to offer its users the source code of that version, so plan to publish the country branch (for
+  example in a public repository) and have legal review the obligation.
+- **Name and brand.** The repository has no trademark policy for the "Huella Latam" name. Agree
+  with the upstream team whether the national instance keeps the name or rebrands
+  ([phase 3](./03-configuration-and-branding.md)).
+- **Agreements.** Any formal agreement with the upstream team (support, data processing, co-branding)
+  is outside the software and must be arranged directly with them.
 
 ## Budget and staffing
 
