@@ -341,16 +341,27 @@ content corrections**. `prod:deploy` will apply the migration and report success
 rows. Whoever owns the methodology has to decide whether each correction applies and re-enter it
 through the maintainer.
 
-So when you track an upstream release, read every migration that matches on the demo country —
-they rewrite guides and labels, but also add dimension values and subcategories and reorder the
-catalogue — and treat them as a changelog of content decisions to review, not as changes you have
-already received. They are the ones that filter on `iso_code = 'PD'`:
+So when you track an upstream release, review the content changes it made and treat them as a
+changelog of content decisions to review, not as changes you have already received. The seed data
+is the complete record — every correction lands there, whether or not a migration also carries it:
+
+```bash
+git diff <previous-release>..<new-release> -- tools/seed/src/data/base/
+```
+
+It covers guides and labels, but also added dimension values and subcategories and a reordered
+catalogue. The commit messages on those files state what changed and why.
+
+A release may also ship data migrations for already-populated environments; they are the ones that
+filter on `iso_code = 'PD'`:
 
 ```bash
 grep -l "iso_code.*= 'PD'" packages/database/src/prisma/migrations/*/migration.sql
 ```
 
-The migration headers state what changed and why.
+An empty result does not mean nothing changed: the content migrations shipped before the migration
+history was consolidated were removed, and their content now lives only in the seed data (see
+[Migration History Reset](../operations/migration-history-reset.md)).
 
 ---
 
