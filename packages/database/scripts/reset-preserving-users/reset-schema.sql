@@ -45,9 +45,17 @@ BEGIN
   END LOOP;
 END $$;
 
--- Must come back empty before running `migrate deploy`.
-SELECT c.relkind, c.relname
-FROM pg_class c
-WHERE c.relnamespace = 'public'::regnamespace
-  AND c.relkind IN ('r', 'p', 'v', 'S')
-  AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = c.oid AND d.deptype = 'e');
+-- Nothing may be left before `migrate deploy` runs.
+DO $$
+DECLARE
+  leftover text;
+BEGIN
+  SELECT string_agg(c.relname, ', ') INTO leftover
+  FROM pg_class c
+  WHERE c.relnamespace = 'public'::regnamespace
+    AND c.relkind IN ('r', 'p', 'v', 'S')
+    AND NOT EXISTS (SELECT 1 FROM pg_depend d WHERE d.objid = c.oid AND d.deptype = 'e');
+  IF leftover IS NOT NULL THEN
+    RAISE EXCEPTION 'public schema is not empty after the reset: %', leftover;
+  END IF;
+END $$;

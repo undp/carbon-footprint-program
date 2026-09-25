@@ -26,10 +26,32 @@ FROM u_in u WHERE t.id = u.id AND (u.created_by_id IS NOT NULL OR u.updated_by_i
 \copy user_role_audit (id, user_id, previous_role, new_role, changed_by_id, created_at) FROM 'user_role_audit.csv' WITH CSV HEADER
 \copy user_onboarding_completion (user_id, onboarding_key, completed_at) FROM 'user_onboarding_completion.csv' WITH CSV HEADER
 
+-- setval returns the new value; nothing to show.
+\o /dev/null
 SELECT setval(pg_get_serial_sequence('"user"', 'id'), GREATEST((SELECT max(id) FROM "user"), 1));
 SELECT setval(pg_get_serial_sequence('user_role_audit', 'id'), GREATEST((SELECT max(id) FROM user_role_audit), 1));
+\o
 
--- Report users whose job position no longer exists in the new catalogue (left NULL).
-SELECT u.id, u.email, u.job_country_iso, u.job_position_name AS unmatched_job_position
+SELECT
+  (SELECT count(*) FROM "user") AS users,
+  (SELECT count(*) FROM user_role_audit) AS role_changes,
+  (SELECT count(*) FROM user_onboarding_completion) AS onboarding,
+  (SELECT count(*) FROM u_in u JOIN "user" t ON t.id = u.id
+    WHERE u.job_position_name IS NOT NULL AND t.country_job_position_id IS NULL) AS unmatched
+\gset
+
+\echo '  Users restored:              ' :users
+\echo '  Role changes restored:       ' :role_changes
+\echo '  Onboarding records restored: ' :onboarding
+\echo '  Users without job position:  ' :unmatched
+
+-- A job position that no longer exists in the new catalogue is left empty.
+SELECT :unmatched > 0 AS has_unmatched \gset
+\if :has_unmatched
+\echo
+\echo 'These users kept everything except their job position, which is no longer in the catalogue:'
+SELECT u.id, u.email, u.job_country_iso AS country, u.job_position_name AS job_position
 FROM u_in u JOIN "user" t ON t.id = u.id
-WHERE u.job_position_name IS NOT NULL AND t.country_job_position_id IS NULL;
+WHERE u.job_position_name IS NOT NULL AND t.country_job_position_id IS NULL
+ORDER BY u.id;
+\endif
