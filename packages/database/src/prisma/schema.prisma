@@ -1137,7 +1137,7 @@ model ReductionProject {
 
   organization    Organization                       @relation(fields: [organizationId], references: [id])
   carbonInventory CarbonInventory                    @relation("reduction_project_carbon_inventory", fields: [carbonInventoryId], references: [id])
-  subcategory     Subcategory?                       @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id])
+  subcategory     Subcategory?                       @relation("reduction_project_subcategory", fields: [subcategoryId], references: [id], onDelete: Restrict)
   creator         User?                              @relation("reduction_project_created_by", fields: [createdById], references: [id])
   updater         User?                              @relation("reduction_project_updated_by", fields: [updatedById], references: [id])
   submission      SubmissionSubjectReductionProject?
