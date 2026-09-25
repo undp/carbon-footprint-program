@@ -837,10 +837,9 @@ model CarbonInventoryLineInput {
   factor                 CarbonInventoryLineFactor?
   result                 CarbonInventoryLineResult?
 
-  // Enforced via DB constraint: UNIQUE(line_id) WHERE is_active = true
-  // See migration: 20260101235319_add_unique_active_input_per_line_constraint
-  // Partial indexes: (selection_1_id) and (selection_2_id) WHERE is_active = true
-  // See migration: 20260924120000_add_dimension_value_usage_indexes
+  // Partial indexes declared in raw SQL in the migration (20260925000003_carbon_inventory):
+  // UNIQUE(line_id) WHERE is_active = true
+  // (selection_1_id) and (selection_2_id) WHERE is_active = true
   @@map("carbon_inventory_line_input")
 }
 

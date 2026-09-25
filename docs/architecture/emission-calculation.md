@@ -233,7 +233,7 @@ LEFT JOIN carbon_inventory_line_result r
 GROUP BY ci.id, s.category_id, l.subcategory_id;
 ```
 
-(See migration `20260202171505_add_carbon_inventory_subtotals_view`.)
+(See migration `20260925000005_reporting_views`.)
 
 ### Category totals and inventory totals
 
@@ -339,15 +339,15 @@ The API stores `3.50 × 1000 = 3500` kg in `CarbonInventoryLineResult.totalEmiss
 
 ## Related Files
 
-| Concern               | Path                                                                                                       |
-| --------------------- | ---------------------------------------------------------------------------------------------------------- |
-| Data model            | `packages/database/src/prisma/schema.prisma`                                                               |
-| Calculation helper    | `apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts`                               |
-| Unit conversion       | `packages/utils/src/number.ts` (`kgToTon`, `tonToKg`)                                                      |
-| Custom factor sources | `packages/utils/src/constants.ts`                                                                          |
-| Subtotals view        | `packages/database/src/prisma/migrations/20260202171505_add_carbon_inventory_subtotals_view/migration.sql` |
-| Display precision     | `apps/web/src/utils/formatting.ts` (`Formatter`), `apps/web/src/config/constants.ts`                       |
-| Number formatting API | [Number Formatting](../development/number-formatting.md)                                                   |
+| Concern               | Path                                                                                   |
+| --------------------- | -------------------------------------------------------------------------------------- |
+| Data model            | `packages/database/src/prisma/schema.prisma`                                           |
+| Calculation helper    | `apps/api/src/features/carbonInventories/syncCarbonInventoryLines/helper.ts`           |
+| Unit conversion       | `packages/utils/src/number.ts` (`kgToTon`, `tonToKg`)                                  |
+| Custom factor sources | `packages/utils/src/constants.ts`                                                      |
+| Subtotals view        | `packages/database/src/prisma/migrations/20260925000005_reporting_views/migration.sql` |
+| Display precision     | `apps/web/src/utils/formatting.ts` (`Formatter`), `apps/web/src/config/constants.ts`   |
+| Number formatting API | [Number Formatting](../development/number-formatting.md)                               |
 
 ---
 

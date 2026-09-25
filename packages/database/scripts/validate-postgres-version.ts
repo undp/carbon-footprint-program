@@ -81,9 +81,7 @@ async function validatePostgresVersion(): Promise<void> {
         `   This project uses the NULLS NOT DISTINCT syntax in database migrations,`
       );
       console.error(`   which was introduced in PostgreSQL 15.`);
-      console.error(
-        `   Migration: 20251215191534_create_organization_main_acitivty_unique_constraint\n`
-      );
+      console.error(`   Migration: 20260925000000_platform_base\n`);
       console.error(`📋 SOLUTION:`);
       console.error(
         `   - Upgrade your PostgreSQL server to version 15 or higher`

@@ -61,7 +61,7 @@ view SubmissionSummaryView {
 
 ## Underlying SQL
 
-The view is created in migration `20260415000000_add_submission_summary_view`. It uses a `UNION ALL` of three CTEs, one per subject type:
+The view is created in migration `20260925000005_reporting_views`. It uses a `UNION ALL` of three CTEs, one per subject type:
 
 ```sql
 CREATE VIEW submission_summary_view AS
