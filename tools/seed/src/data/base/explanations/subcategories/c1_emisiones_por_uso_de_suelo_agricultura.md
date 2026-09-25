@@ -1,31 +1,36 @@
 # 🌱 Emisiones por uso de suelo — Agricultura
 
-Esta categoría incluye las **emisiones asociadas a actividades agrícolas y manejo del suelo**, tales como **laboreo**, **cultivo de suelos** y **manejo agronómico**.
+Esta categoría incluye las **emisiones de óxido nitroso (N₂O) de suelos orgánicos drenados** que tu empresa usa para cultivo o pradera.
 
-Corresponde a emisiones generadas por el **cultivo con fines agrícolas**, incluyendo **plantaciones de frutas, verduras, cereales u otros cultivos**, bajo control operativo de la empresa.
+Los **suelos orgánicos** (turberas, bofedales, mallines u otros histosoles) son suelos oscuros, blandos y muy ricos en materia orgánica, típicos de humedales y zonas bajas. Cuando se **drenan** para cultivarlos, esa materia orgánica se descompone y libera **N₂O** año a año, aunque no se aplique ningún fertilizante.
 
-Estas emisiones pueden estar asociadas a la liberación de **óxido nitroso (N₂O)** y otros gases derivados del **manejo del suelo y descomposiciones**, los cuales tienen un **impacto relevante en el cambio climático**.
+⚠️ La mayoría de los suelos agrícolas son **minerales**. En ellos las emisiones no dependen de la superficie sino del nitrógeno que aplicas, y se declaran en _Emisiones por uso de suelo — Aplicación de fertilizantes_. **Si tu campo no está sobre suelo orgánico drenado, no declares aquí.**
 
 ---
 
 ## 📘 ¿Preguntas claves que te pueden ayudar a determinar si debes declarar emisiones en esta sub-categoría?
 
-- ¿Tu empresa cultiva suelos con fines agrícolas?
-- ¿Tienes plantaciones de frutas, verduras, cereales u otros cultivos?
-- ¿Realizas labores de preparación o manejo del suelo?
-- ¿Administras directamente terrenos productivos?
+- ¿Tu empresa cultiva o tiene praderas sobre **turberas, bofedales, mallines u otros suelos orgánicos**?
+- ¿Esos suelos fueron **drenados** (canales, zanjas o drenes para bajar el nivel del agua)?
+- ¿El estudio de suelos o el mapa de suelos de tu predio indica **suelos orgánicos (histosoles)**?
 
 💡 **Tip importante:**  
-Si la respuesta a **una o más de estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
+Si la respuesta a **todas estas preguntas es SÍ**, entonces tu empresa probablemente **debe medir y declarar emisiones en esta sub-categoría**.
+
+💡 **Tip importante:**  
+Si tus cultivos están sobre suelo mineral, **no declares aquí**: las emisiones de tus fertilizantes van en _Aplicación de fertilizantes_.
 
 ---
 
 ## ¿Cómo es el cálculo de emisiones?
 
-El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la superficie cultivada**.  
-El factor depende del **tipo de cultivo y zona climática**.
+El cálculo de emisiones corresponde a la multiplicación de un **factor de emisión por la superficie de suelo orgánico drenado**.  
+El factor depende de la **zona climática**, porque la materia orgánica se descompone más rápido con calor:
 
-> $CO₂e$ = $Superficie\ cultivada \times Factor\ de\ emisión$
+- **Clima tropical:** temperatura media anual sobre 18 °C
+- **Clima templado:** temperatura media anual de 18 °C o menos
+
+> $CO₂e$ = $Superficie\ de\ suelo\ orgánico\ drenado \times Factor\ de\ emisión$
 
 💡 **Al final de la página hay un ejemplo ilustrativo**
 
@@ -33,15 +38,12 @@ El factor depende del **tipo de cultivo y zona climática**.
 
 ## 🧭 Paso a paso para completar la información de esta sub-categoría
 
-### 1️⃣ Identifica las actividades agrícolas bajo tu control
+### 1️⃣ Identifica la superficie de suelo orgánico drenado bajo tu control
 
-Incluye:
+Considera solo la parte de tus predios que cumple las dos condiciones:
 
-- **Cultivos de frutas**
-- **Cultivos de hortalizas y verduras**
-- **Cultivos de cereales**
-- **Plantaciones agrícolas en general**
-- Superficies agrícolas en **clima templado o tropical**
+- El suelo es **orgánico** (turbera, bofedal, mallín u otro histosol)
+- Está **drenado o manejado** para cultivo o pradera
 
 ⚠️ Solo debes incluir **superficies bajo control o administración directa de tu empresa**
 
@@ -51,17 +53,15 @@ Incluye:
 
 Debes identificar:
 
-- **Tipo de cultivo**
-- **Superficie cultivada durante el año**
-- **Zona climática (si aplica)**
+- **Superficie de suelo orgánico drenado** durante el año
+- **Zona climática** del predio (templado o tropical)
 
 Puedes obtener esta información desde:
 
-- Registros agrícolas internos
+- Estudios de suelo del predio
+- Mapas o cartas de suelos oficiales de tu país
 - Planes de manejo predial
-- Declaraciones agrícolas
-- Inventarios de superficie sembrada
-- Sistemas de mapas satelitales (Google Maps)
+- Asesoría de un profesional agrónomo
 
 ⚠️ Si la superficie varía durante el año, puedes declarar **la mayor cantidad que se tuvo durante el año**
 
@@ -75,9 +75,9 @@ Puedes obtener esta información desde:
 
 _Ejemplo:_
 
-Si tu empresa cultiva **250.000 m²**:
+Si tu empresa tiene **250.000 m²** de suelo orgánico drenado:
 
-**Hectáreas cultivadas** = $\frac{250.000}{10.000}$ = **25 ha**
+**Hectáreas** = $\frac{250.000}{10.000}$ = **25 ha**
 
 ---
 
@@ -86,9 +86,9 @@ Si tu empresa cultiva **250.000 m²**:
 > **Superficie total** = $Cantidad\ de\ predios \times Tamaño\ promedio$
 
 _Ejemplo:_  
-Si tienes **3 predios** de **15 ha cada uno**:
+Si tienes **3 predios** con **15 ha de suelo orgánico drenado cada uno**:
 
-**Hectáreas cultivadas** = $3 \times 15$ = **45 ha cultivadas**
+**Hectáreas** = $3 \times 15$ = **45 ha**
 
 ---
 
@@ -96,38 +96,42 @@ Si tienes **3 predios** de **15 ha cada uno**:
 
 Debes completar los siguientes campos:
 
-| Campo           | Qué debes ingresar         |                                        Ejemplo |
-| :-------------- | :------------------------- | ---------------------------------------------: |
-| Tipo de cultivo | Categoría del cultivo      | General clima templado, General clima tropical |
-| Unidad          | Unidad declarada           |                                             ha |
-| Cantidad        | Superficie cultivada anual |                                          40 ha |
+| Campo         | Qué debes ingresar                      |                                 Ejemplo |
+| :------------ | :-------------------------------------- | --------------------------------------: |
+| Tipo de suelo | Suelo orgánico drenado y zona climática | Suelo orgánico drenado - clima templado |
+| Unidad        | Unidad declarada                        |                                      ha |
+| Cantidad      | Superficie de suelo orgánico drenado    |                                   40 ha |
 
-⚠️ Selecciona correctamente el **tipo de cultivo**, ya que el factor de emisión varía según categoría y zona climática
+⚠️ Selecciona correctamente la **zona climática**, ya que el factor de emisión en clima tropical es el doble que en clima templado
 
 ⚠️ El campo **"Fuente factor"** no debe modificarse salvo que utilices un **factor propio**
 
-⚠️ Si tu tipo de cultivo no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
+⚠️ Si tu tipo de suelo no está en la lista, selecciona **Otro** y declara tu propio factor de emisión en **"Fuente factor" → "Otro"**
 
 ---
 
 ### 📌 Ejemplo práctico
 
-Supongamos que durante el año tu empresa cultivó:
+Supongamos que tu empresa cultiva praderas sobre:
 
-- **40 hectáreas (ha) de cultivos en clima templado**
+- **40 hectáreas (ha) de turbera drenada en clima templado**
 
-Y el factor de emisión es (ejemplo referencial):
+Y el factor de emisión es:
 
-- **Por cada hectárea cultivada en clima templado, se generan 2.000 kg CO₂e al año**
+- **Por cada hectárea de suelo orgánico drenado en clima templado, se generan 3.331 kg CO₂e al año**
 
 Entonces el cálculo sería:
 
-> $CO₂e$ = $40\ ha \times 2.000\ kg\ CO₂e/ha$ = $80.000\ kg\ CO₂e$
+> $CO₂e$ = $40\ ha \times 3.331,43\ kg\ CO₂e/ha$ = $133.257\ kg\ CO₂e$
 
-Es decir, la actividad agrícola habría generado:
+_(Factor 3.331,43 kg CO₂e/ha — valor ilustrativo; el factor real es gestionado por la plataforma según el tipo de suelo y el año de tu huella)_
 
-- **80.000 kg CO₂e en el año**
-- O lo mismo que **80,00 toneladas de CO₂e**
+Es decir, el suelo drenado habría generado:
+
+- **133.257 kg CO₂e en el año**
+- O lo mismo que **133,26 toneladas de CO₂e**
+
+💡 Un suelo orgánico drenado emite mucho por hectárea. Por eso es importante declarar **solo** la superficie que realmente lo es.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en **kg CO₂e por hectárea**, la cantidad debe estar en **hectáreas (ha)**.
@@ -136,7 +140,9 @@ Si el factor está en **kg CO₂e por hectárea**, la cantidad debe estar en **h
 
 ## 📝 Notas importantes
 
-> - Incluye solo **superficies agrícolas bajo control directo**
+> - Incluye solo **suelos orgánicos drenados bajo control directo**
+> - Los cultivos sobre **suelo mineral** no se declaran aquí; el N₂O de los fertilizantes va en _Aplicación de fertilizantes_
+> - Si declaras ambas sub-categorías no hay doble conteo: esta cubre las emisiones del propio suelo y _Aplicación de fertilizantes_, las del nitrógeno que aplicas
 > - No incluyas actividades ganaderas (eso corresponde a **Ganadería**)
-> - Guarda **registros prediales y productivos** como respaldo ante auditorías o certificaciones
-> - Mejorar prácticas agrícolas puede reducir emisiones asociadas al suelo, como el buen manejo del agua
+> - Guarda **estudios de suelo y registros prediales** como respaldo ante auditorías o certificaciones
+> - Volver a humedecer una turbera drenada (subir el nivel del agua) reduce estas emisiones

@@ -42,20 +42,7 @@ Lo que ingresas en **Cantidad** depende del transporte, porque cada factor está
 
 En la plataforma, la unidad ton-km aparece como **km-ton**.
 
-| Transporte                       | Factor referencial     |
-| :------------------------------- | :--------------------- |
-| Camión no refrigerado            | 0,2115 kg CO₂e/km      |
-| Camión refrigerado               | 0,2482 kg CO₂e/km      |
-| Van con motor a combustión       | 0,06183 kg CO₂e/km     |
-| Van eléctrica                    | 0,03758 kg CO₂e/km     |
-| Tren de carga                    | 0,02779 kg CO₂e/ton-km |
-| Contenedores por barco           | 0,01612 kg CO₂e/ton-km |
-| Granel por barco                 | 0,00353 kg CO₂e/ton-km |
-| Avión: Short haul (<2500km)      | 0,2051 kg CO₂e/ton-km  |
-| Avión: Medium haul (2500-5000km) | 0,1351 kg CO₂e/ton-km  |
-| Avión: Long haul (<5000km)       | 0,1351 kg CO₂e/ton-km  |
-
-Fuente: DEFRA 2025. El valor que se aplica a tu huella aparece en el campo **"Factor kgCO₂e/unidad"** al elegir el transporte.
+El factor de cada transporte aparece en el campo **"Factor kgCO₂e/unidad"** al elegirlo, y corresponde al año de tu huella.
 
 ### 🔑 Las dudas que producen los errores más grandes
 
@@ -199,19 +186,21 @@ Primero la cantidad de cada ruta:
 
 Esas cantidades son las que escribes en el campo **Cantidad**, una línea por transporte. Después la plataforma calcula las emisiones:
 
-| Ruta              | Transporte                  |      Cantidad | Factor |     Emisiones |
-| :---------------- | :-------------------------- | ------------: | -----: | ------------: |
-| Clientes locales  | Camión no refrigerado       |     32.000 km | 0,2115 | 6.768 kg CO₂e |
-| Exportación aérea | Avión: Short haul (<2500km) | 30.000 km-ton | 0,2051 | 6.153 kg CO₂e |
+| Ruta              | Transporte                  |      Cantidad |  Factor |      Emisiones |
+| :---------------- | :-------------------------- | ------------: | ------: | -------------: |
+| Clientes locales  | Camión no refrigerado       |     32.000 km | 0,89743 | 28.718 kg CO₂e |
+| Exportación aérea | Avión: Short haul (<2500km) | 30.000 km-ton | 1,27835 | 38.351 kg CO₂e |
 
-**Total sub-categoría: ~12.921 kg CO₂e al año (~12,9 ton CO₂e)**
+_(Factores ilustrativos; el factor real es gestionado por la plataforma según el transporte y el año de tu huella)_
+
+**Total sub-categoría: ~67.069 kg CO₂e al año (~67,1 ton CO₂e)**
 
 > ⚠️ **Así se vería el error.**
 >
 > - **Avión:** sumar todos los pesos (6 × 2,5 = **15 ton**) y todas las distancias (6 × 2.000 = **12.000 km**) y multiplicarlos da **180.000 ton-km** frente a los 30.000 reales: **6 veces** la cantidad correcta. Cuantos más despachos, peor es.
 > - **Camión:** multiplicar los km por el peso (32.000 km × 5 ton = **160.000**) da **5 veces** la cantidad correcta, porque el factor ya cubre el camión completo.
 >
-> 💡 Las 15 toneladas aéreas emiten **casi lo mismo** que las 800 toneladas que viajan en camión. El modo pesa mucho más que el tonelaje.
+> 💡 Las 15 toneladas aéreas emiten **más** que las 800 toneladas que viajan en camión. El modo pesa mucho más que el tonelaje.
 
 ⚠️ Es importante que las **unidades coincidan**.  
 Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton en la plataforma). Si está en kg CO₂e/km, la cantidad debe estar en km.
@@ -225,7 +214,7 @@ Si el factor está en kg CO₂e/ton-km, la cantidad debe estar en ton-km (km-ton
 > - **Diferencia clave con Alcance 1:** si transportas con **flota propia o leasing operativo**, eso va en Alcance 1 (combustiones móviles), no aquí
 > - **Diferencia con upstream:** acá se reporta lo que **sale** de tu empresa hacia el cliente. Lo que **entra** desde proveedores se reporta en _Transporte y distribución aguas arriba_
 > - **Productos refrigerados** tienen factor mayor (cold chain) por consumo del equipo de refrigeración del transporte
-> - **Aéreo es el modo más intensivo por tonelada:** su factor es ~8 a 13 veces el del barco en contenedores. Reducir aéreo es la mayor palanca de mitigación
+> - **Aéreo es el modo más intensivo por tonelada:** su factor es ~55 a 80 veces el del barco en contenedores. Reducir aéreo es la mayor palanca de mitigación
 > - **Si vendes FOB (Free On Board):** técnicamente el cliente asume el transporte. Aún así, reportarlo voluntariamente da visibilidad de la huella total de tu cadena
 > - **Last mile (entrega a domicilio):** suele ser intensivo por uso de camionetas pequeñas — ojo si tienes mucho B2C
 > - Guarda **reportes de los proveedores logísticos**, **facturas** y **planillas internas** como respaldo
