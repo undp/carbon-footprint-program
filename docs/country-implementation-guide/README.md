@@ -13,45 +13,56 @@ every seed JSON file field by field.
 
 ## Who it is for
 
-| Team                                          | Contributes                                                 | Leads in phases |
-| --------------------------------------------- | ----------------------------------------------------------- | --------------- |
-| Environmental authority (institutional owner) | Scope, methodological framework, roles and legal contacts   | 1, 5            |
-| Methodology team (GHG specialists)            | Emission factors, categories, dimensions, explanatory texts | 2               |
-| Content / communications team                 | Public pages, partners, logos, terms and conditions         | 3               |
-| National IT team                              | Servers or cloud, database, file storage, identity provider | 4               |
-| Huella Latam team (upstream)                  | Guidance, seed review, technical support                    | All             |
+| Team                                          | Contributes                                                    | Leads in phases      |
+| --------------------------------------------- | -------------------------------------------------------------- | -------------------- |
+| Environmental authority (institutional owner) | Scope, methodological framework, roles and legal contacts      | 1, 5                 |
+| Methodology team (GHG specialists)            | Emission factors, categories, dimensions, explanatory texts    | 2                    |
+| Content / communications team                 | Copy for public pages, partner logos, terms and conditions     | 3 (with a developer) |
+| Developer (national or upstream)              | Runs seed validation, edits configuration files, builds images | 2 (support), 3, 4    |
+| National IT team                              | Servers or cloud, database, file storage, identity provider    | 4                    |
+| Huella Latam team (upstream)                  | Guidance, seed review, technical support                       | All                  |
 
-## Phases
+**A developer is required.** Seed validation runs `pnpm` commands, and phase 3 edits TypeScript
+files that are compiled into the web image. The methodology and content teams produce the content;
+a developer with Node.js and Docker puts it in place and runs the checks.
+
+## Phases and critical path
 
 ```mermaid
 flowchart LR
-  F1["1. Institutional<br/>decisions"] --> F2["2. Seed<br/>content"]
-  F1 --> F4["4. Infrastructure"]
-  F2 --> F3["3. Configuration<br/>and branding"]
-  F3 --> F5["5. Validation<br/>and go-live"]
-  F4 --> F5
+  F1["1. Institutional<br/>decisions"] --> F2["2. Seed content"]
+  F1 --> F3["3. Configuration<br/>and branding"]
+  F1 --> F4A["4A. Provision<br/>infrastructure"]
+  F2 --> F4B["4B. First production<br/>deploy and seed"]
+  F3 --> F4B
+  F4A --> F4B
+  F4B --> F5["5. Validation<br/>and go-live"]
 ```
 
-Phases 2 and 4 run in parallel: the methodology team prepares the seed while IT prepares the
-infrastructure. Both converge in phase 5.
+Phases 2, 3 and 4A run in parallel once phase 1 is closed. The first production deploy (4B) waits
+for all three: the images need the phase 3 configuration, and production is seeded only once, with
+the validated phase 2 content. The critical path is **1 → 2 → 4B → 5**, and its longest step is the
+emission factor catalogue.
 
 ## Contents
 
 | #   | Document                                                         | What it covers                                                                                           |
 | --- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
 | 1   | [Institutional decisions](./01-institutional-decisions.md)       | The 10 upfront decisions: operator, methodological framework, factors, roles, cloud vs on-premise, login |
-| 2   | [Seed content](./02-seed-content.md)                             | Which seed files to replace, who owns each, critical points and rules for the explanations               |
+| 2   | [Seed content](./02-seed-content.md)                             | Which seed files to replace, who owns each, critical points, explanation rules and the validation gate   |
 | 3   | [Configuration and branding](./03-configuration-and-branding.md) | Partners, logos, public pages and per-country values compiled into the image                             |
-| 4   | [Infrastructure](./04-infrastructure.md)                         | Cloud and on-premise paths, IT checklist, first-deploy sequence, known field issues                      |
-| 5   | [Validation and go-live](./05-validation-and-go-live.md)         | Seed and functional validation, legal obligations, pilot, training and operations                        |
+| 4   | [Infrastructure](./04-infrastructure.md)                         | Cloud and on-premise paths, IT checklist, first-deploy sequence, backups, known field issues             |
+| 5   | [Validation and go-live](./05-validation-and-go-live.md)         | Functional validation, legal obligations, pilot, training, yearly cycle and upstream releases            |
 | 6   | [Master checklist and timeline](./06-checklist-and-timeline.md)  | Deliverable, owner and reference duration for each phase                                                 |
 
-## Two rules worth knowing from day one
+## Rules worth knowing from day one
 
 - **One deployment serves one country.** The API takes the first seeded country as the default
   country ([`resolveDefaultCountryId.ts`](../../apps/api/src/helpers/resolveDefaultCountryId.ts)).
   Two countries mean two instances.
 - **The seed runs only once.** It is applied only to an empty database. After the first boot, the
   catalogue is maintained through the maintainer screens, not by editing JSON. That is why the
-  country content must be ready and validated before seeding production
-  ([phase 2](./02-seed-content.md)).
+  country content must be validated before production is seeded ([phase 2](./02-seed-content.md)).
+- **Calculated footprints do not change when a factor changes.** Every calculated line stores the
+  factor value it used, so editing or deleting a factor later only affects lines calculated
+  afterwards ([phase 2](./02-seed-content.md#factor-corrections-and-past-footprints)).
