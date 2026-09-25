@@ -33,7 +33,7 @@ Files already uploaded to object storage (submission attachments, line evidence)
 ## Prerequisites
 
 - A full `pg_dump` of the database, taken right before starting. It is the only rollback.
-- `psql` for the database. Without PostgreSQL client tools on the host, use the image: `docker run --rm -it -v "$PWD":/work -w /work postgres:18 psql "<connection>"`.
+- `psql` and `pg_dump` for the database. Without PostgreSQL client tools on the host, run every command below inside the image instead, from the scripts directory: `docker run --rm -it --user "$(id -u):$(id -g)" -v "$PWD":/work -w /work -e MIGRATION_DATABASE_URL postgres:18 <command>` (add `--network host` when the database runs on the same host).
 - The **migration user** credentials (the owner of the tables). On-premise deployments: also the application user name, to re-apply grants.
 - Object storage configured for the seed (the base dataset uploads the badges and the terms & conditions PDF — see [Production Deployment](./production-deployment.md#2-seed-reference-data-first-deploy-only)).
 - The pgvector extension present in the database. The reset keeps it; do **not** drop the schema by hand, because on a deployment where the DBA created the extension the migration user cannot create it again.
@@ -44,17 +44,23 @@ The scripts live in [`packages/database/scripts/reset-preserving-users/`](../../
 
 Stop the API first (`dcp stop api` on-premise), so no user signs in while the database is being rebuilt.
 
+Every step connects as the migration user. Set its connection string once, in the shell that runs the procedure (quote it: it may contain `&` or `?`):
+
+```bash
+export MIGRATION_DATABASE_URL='postgresql://<migration-user>:<password>@<host>:5432/<database>'
+cd packages/database/scripts/reset-preserving-users
+```
+
 ### 1. Back up
 
 ```bash
-pg_dump "<migration-user connection>" --format=custom --file huella-before-reset.dump
+pg_dump "$MIGRATION_DATABASE_URL" --format=custom --file huella-before-reset.dump
 ```
 
 ### 2. Export the users
 
 ```bash
-cd packages/database/scripts/reset-preserving-users
-PSQL='psql "<migration-user connection>"' ./export-users.sh ./users-export
+./export-users.sh ./users-export
 ```
 
 Check the row counts it prints against the application before going on. Keep `users-export/` private: it holds emails and IdP identifiers.
@@ -62,7 +68,7 @@ Check the row counts it prints against the application before going on. Keep `us
 ### 3. Empty the schema
 
 ```bash
-psql "<migration-user connection>" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
+psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
 ```
 
 It drops every view, table and enum type in `public` — including `_prisma_migrations` — and leaves extensions in place. The final query must return no rows.
@@ -81,7 +87,7 @@ From the directory holding the CSVs:
 
 ```bash
 cd users-export
-psql "<migration-user connection>" -v ON_ERROR_STOP=1 -1 -f ../import-users.sql
+psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f ../import-users.sql
 ```
 
 It fails as a whole — nothing written — if anything does not fit (for instance, a user the seed already created). The last result lists users whose job position was not found.

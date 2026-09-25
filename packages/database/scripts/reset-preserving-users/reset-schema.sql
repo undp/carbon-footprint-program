@@ -8,7 +8,7 @@
 -- enum types are dropped; extensions and their objects are left in place.
 --
 -- Run it as the MIGRATION user (the owner of the tables), in one transaction:
---   psql "<migration-user connection>" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
+--   psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f reset-schema.sql
 
 -- The CASCADE drops emit one NOTICE per dependent constraint; keep the output readable.
 SET client_min_messages = warning;

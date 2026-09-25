@@ -2,7 +2,7 @@
 -- just migrated and seeded. Part of docs/operations/migration-history-reset.md.
 --
 -- Run from the directory holding the CSVs, in one transaction:
---   psql "<connection>" -v ON_ERROR_STOP=1 -1 -f import-users.sql
+--   psql "$MIGRATION_DATABASE_URL" -v ON_ERROR_STOP=1 -1 -f import-users.sql
 --
 -- Ids are preserved so created_by/updated_by and the audit rows stay valid.
 -- The seed must not have created users (the base dataset creates none).
