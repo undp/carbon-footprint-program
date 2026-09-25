@@ -68,18 +68,21 @@ passes, from the `infra/` folder of the country branch:
    export STORAGE_PROVIDER=azure_blob_storage
    # plus AZURE_STORAGE_ACCOUNT_NAME, _CONTAINER_NAME, _TENANT_ID, _CLIENT_ID, _CLIENT_SECRET
    pnpm install
-   pnpm --filter @repo/seed seed
+   pnpm db:seed
    ```
 
-   It fails without writing anything if the storage account is unreachable, because it uploads the
+   `pnpm db:seed` builds the internal packages and the database client before seeding; calling
+   the seed package directly on a fresh checkout fails because they are not built yet.
+
+   The seed fails without writing anything if the storage account is unreachable, because it uploads the
    badges and the terms and conditions.
 
 4. **Deploy the API**: `./deploy-api.sh` builds the image, pushes it to the registry and updates
    App Service ([`ApiDeployment.md`](../infrastructure/ApiDeployment.md)).
 5. **Deploy the web app**: `./deploy-web.sh`
    ([`StaticWebAppDeployment.md`](../infrastructure/StaticWebAppDeployment.md)).
-6. **Create the first `SUPERADMIN`**: the person signs in once, then, with the same `DATABASE_URL`
-   exported:
+6. **Create the first `SUPERADMIN`**: the person signs in once, then, from the same checkout (the
+   database client was built in step 3) and with the same `DATABASE_URL` exported:
 
    ```bash
    pnpm db:promote-superadmin <admin-email>

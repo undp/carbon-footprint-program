@@ -95,10 +95,11 @@ Paths are relative to `tools/seed/src/data/base/` unless stated otherwise.
    the country's official factor. If the country has several grids, add one value per grid to the
    "Sistema eléctrico" dimension, each with its own factor; users pick their grid when capturing
    electricity.
-2. **Subcategories with no factors.** Química (chemicals), Papel y celulosa (pulp and paper),
-   Cerámica y otros carbonatos (ceramics and other carbonates) and Procesos industriales - Otros
-   (other industrial processes) have 0 factors. If they are kept empty, users can only enter a
-   custom factor there. The country decides whether to fill or remove them.
+2. **Subcategories with no factors.** Seven subcategories have 0 factors: four industrial
+   processes (Química, Papel y celulosa, Cerámica y otros carbonatos, Procesos industriales -
+   Otros), both "Emisiones provenientes de otras fuentes" (other sources, in categories 1 and 3)
+   and "Uso de productos de la organización" (use of sold products). If they are kept empty, users
+   can only enter a custom factor there. The country decides whether to fill or remove them.
 3. **Foreign factors by default.** Fuels, waste and transport come from DEFRA. Wherever a national
    factor exists (GHG inventory, energy balance), replace it. Factors are stored in CO₂e, so the
    GWP set (AR5 or AR6) is whatever the source used; the demo uses AR5 throughout. Keep sources
@@ -124,7 +125,8 @@ from each year's edition; IPCC and EcoAct factors copied unchanged), so the nati
 decide which years it covers.
 
 - The footprint year selector offers a year as soon as the methodology has **at least one** active
-  factor for it.
+  factor for it. Expert mode also offers the current year and the four before it, with or without
+  factors, and warns when the chosen year has none.
 - A subcategory with no factor for the chosen year offers no catalogue factor that year, only a
   custom one.
 - So every reporting year needs its own full set of factors. To accept reports for past years,

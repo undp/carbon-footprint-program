@@ -77,18 +77,19 @@ No real credentials go into documents, comments or the repository.
 It must set at least these. Values marked "build" require rebuilding the web image when they
 change.
 
-| Variable                                                                                                                              | Purpose                                                                       |
-| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `DATABASE_URL`                                                                                                                        | Application user's connection string (URL-encode special characters)          |
-| `MIGRATION_DATABASE_URL`                                                                                                              | Migration user's connection string; only the migrator needs it                |
-| `ALLOWED_ORIGIN`                                                                                                                      | Exact browser origin of the web app (scheme, host, port, no trailing slash)   |
-| `TRUST_PROXY`                                                                                                                         | The reverse proxy in front of the API, or `false` if there is none            |
-| `APP_VERSION`, `VITE_APP_VERSION` (build)                                                                                             | The release tag being deployed                                                |
-| `AUTH_PROVIDER=jwks`, `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`                                                                      | How the API validates tokens; production refuses to boot without them         |
-| `STORAGE_PROVIDER` + its block (`MINIO_*` or `AZURE_STORAGE_*`), `STORAGE_ORIGIN`                                                     | File store and the storage URL the browser reaches                            |
-| `VITE_API_BASE_URL`, `VITE_FRONT_BASE_URL` (build)                                                                                    | Browser-reachable API and web URLs                                            |
-| `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_SCOPES`, `VITE_OIDC_REDIRECT_URI`, `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (build) | The web app's OIDC client                                                     |
-| `CHATBOT_ENABLED`, `VITE_CHATBOT_ENABLED` (build)                                                                                     | `false` unless decision 9 enabled the chatbot, which then needs its own block |
+| Variable                                                                                                                              | Purpose                                                                                                                                                    |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                                                                        | Application user's connection string (URL-encode special characters)                                                                                       |
+| `MIGRATION_DATABASE_URL`                                                                                                              | Migration user's connection string; only the migrator needs it                                                                                             |
+| `ALLOWED_ORIGIN`                                                                                                                      | Exact browser origin of the web app (scheme, host, port, no trailing slash)                                                                                |
+| `TRUST_PROXY`                                                                                                                         | The reverse proxy in front of the API, or `false` if there is none                                                                                         |
+| `APP_VERSION`, `VITE_APP_VERSION` (build)                                                                                             | The release tag being deployed                                                                                                                             |
+| `AUTH_PROVIDER=jwks`, `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`                                                                      | How the API validates tokens; production refuses to boot without them                                                                                      |
+| `STORAGE_PROVIDER` + its block (`MINIO_*` or `AZURE_STORAGE_*`)                                                                       | File store the API uses                                                                                                                                    |
+| `STORAGE_ORIGIN` (build)                                                                                                              | Storage origin the browser reaches; baked into the web app's content security policy, so browser uploads and downloads are blocked if it is empty or wrong |
+| `VITE_API_BASE_URL` (build)                                                                                                           | Browser-reachable API URL                                                                                                                                  |
+| `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_SCOPES`, `VITE_OIDC_REDIRECT_URI`, `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (build) | The web app's OIDC client                                                                                                                                  |
+| `CHATBOT_ENABLED`, `VITE_CHATBOT_ENABLED` (build)                                                                                     | `false` unless decision 9 enabled the chatbot, which then needs its own block                                                                              |
 
 Compose stops at start-up if a required variable is missing, and the API refuses to boot if the
 selected storage provider's variables are incomplete. The template documents each variable next to
@@ -115,9 +116,13 @@ alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.docker
    ```
 
 2. **Transfer** three files to the deploy server: the image tarball, `docker-compose.prod.yml` and
-   the env file.
+   the env file. If Keycloak runs on the same server, also ship its compose, env and realm files, and its images if the server has no internet
+   access ([Keycloak production setup](../infrastructure/KeycloakSetup.md#bring-up--production)).
 3. **Load** on the deploy server: `docker load < huella-images-<tag>.tar.gz`.
-4. **Check** database connectivity: `docker run --rm postgres:18-alpine pg_isready -h <db-host> -p 5432`.
+4. **Check** database connectivity: `pg_isready -h <db-host> -p 5432`. If the server has no
+   PostgreSQL client tools, add `postgres:18-alpine` to the `docker save` in step 1 and run
+   `docker run --rm postgres:18-alpine pg_isready -h <db-host> -p 5432`; without internet access
+   Docker cannot pull it.
 5. **Migrate**: `dcp --profile migrate run --rm migrate`. Repeat on every release.
 6. **Seed once**: `dcp --profile seed run --rm seed`. It fails without writing anything if file
    storage is not configured or unreachable, because it uploads the badges and the terms and

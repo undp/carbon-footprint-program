@@ -97,7 +97,8 @@ where decision 7 put it: in the country on-premise, or in the chosen Azure regio
 
 Factors are valid for a single year ([phase 2](./02-seed-content.md#factors-are-per-year)), so
 before each reporting season the maintainers load the full set of factors for the new year. Until
-the first factor for a year exists, that year does not appear in the selector; subcategories left
+the first factor for a year exists, that year does not appear in the selector (except in expert
+mode, which offers the last five years regardless); subcategories left
 without a factor for it offer only custom factors. Corrections to existing factors do not change
 footprints already calculated
 ([phase 2](./02-seed-content.md#factor-corrections-and-past-footprints)).
