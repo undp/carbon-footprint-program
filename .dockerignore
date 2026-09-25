@@ -41,6 +41,10 @@
 .git
 .gitignore
 
+# pnpm db:restore:keep-users: full database backup + exported users (emails).
+# The build context is the repository root; never copy them into an image.
+huella-reset.*
+
 # Documentation
 **/*.md
 # ...except seed data markdown: explanation content read by @repo/seed at runtime

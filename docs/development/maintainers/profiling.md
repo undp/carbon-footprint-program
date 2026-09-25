@@ -48,7 +48,7 @@ The four catalogs use **partial unique indexes** scoped to `status = 'ACTIVE'`:
 CREATE UNIQUE INDEX … ON … WHERE "status" = 'ACTIVE';
 ```
 
-Prisma does not support partial indexes natively. The schema retains the columns but **omits the `@@unique(...)` attribute**; the partial index is declared in raw SQL inside the migration files (`20251211144312_base/migration.sql` for sector / subsector / size; `20251215191534_create_organization_main_activity_unique_constraint/migration.sql` for main activity).
+Prisma does not support partial indexes natively. The schema retains the columns but **omits the `@@unique(...)` attribute**; the partial index is declared in raw SQL inside the migration files (`20260925000000_platform_base/migration.sql` for sector / subsector / size / main activity).
 
 **Caveat:** any future migration that regenerates the unique constraint (e.g., via `prisma migrate dev` diffing against the schema) will silently recreate a full-table unique index, breaking the soft-delete invariant. When touching these tables:
 

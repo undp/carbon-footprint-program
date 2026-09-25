@@ -10,7 +10,7 @@ Este documento explica cómo ejecutar las migraciones de Prisma contra la base d
 
 **Versión actual en uso**: PostgreSQL 18
 
-**Razón técnica**: La migración `20251215191534_create_organization_main_acitivty_unique_constraint` utiliza la sintaxis `NULLS NOT DISTINCT` para índices únicos, que fue introducida en PostgreSQL 15. Esta sintaxis permite que múltiples valores NULL sean tratados como iguales en una restricción de unicidad.
+**Razón técnica**: La migración `20260925000000_platform_base` utiliza la sintaxis `NULLS NOT DISTINCT` para índices únicos, que fue introducida en PostgreSQL 15. Esta sintaxis permite que múltiples valores NULL sean tratados como iguales en una restricción de unicidad.
 
 **Impacto**:
 
