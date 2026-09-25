@@ -57,6 +57,25 @@ The platform requires at least one `SUPERADMIN` at all times and prevents anyone
 their own role. "Maintainers" in this guide are system `ADMIN` users who work on the methodology
 catalogue.
 
+## Budget and staffing
+
+This guide gives no cost figures: they depend on the path chosen in decision 7 and on local prices.
+The upstream team's Azure estimate is in
+[`infra cost estimation.pdf`](<../infra cost estimation.pdf>), and the sizing assumptions behind it
+(a production baseline of about 200 daily active users) are in
+[`app-usage-assumptions.md`](../infrastructure/app-usage-assumptions.md).
+
+Budget people as well as infrastructure. A national deployment needs these roles; one person can
+hold several in a small country:
+
+| Role                   | During rollout                                      | In operation                                                                         |
+| ---------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Methodology specialist | Builds the catalogue and the guides (phase 2)       | Yearly factor load, catalogue corrections, methodological questions                  |
+| Reviewer               | Tests the review flow                               | Reviews accreditation and verification submissions (and measurements under `MANUAL`) |
+| Developer              | Seed validation, configuration, builds (phases 2–4) | Upstream releases, fixes, SQL-only changes                                           |
+| System administrator   | Provisions infrastructure (phase 4)                 | Backups, monitoring, patching, identity provider                                     |
+| Help desk              | Supports the pilot                                  | Answers organizations on the support address                                         |
+
 ## Lesson from previous deployments
 
 Decision 7 must be closed early and with a confirmed budget. Assuming cloud hosting and discovering

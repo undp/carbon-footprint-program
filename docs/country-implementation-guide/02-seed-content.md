@@ -122,6 +122,62 @@ approved ones; only lines calculated afterwards use the new value. If a correcti
 footprints, the affected organizations have to re-enter those lines. Announce corrections before
 the reporting season, not during it.
 
+## Loading factors after launch
+
+There is no bulk import after the first seed. Once production is running, the maintainers add
+factors **one row at a time** in `/admin/emission-factors`; there is no spreadsheet upload and no
+"copy last year's factors" action. The seed tool cannot help either: it only runs on an empty
+database.
+
+Plan for it, because the yearly cycle needs a full set of factors every year (about 280 rows with
+the current catalogue):
+
+- Budget maintainer time for the yearly load, and have a second person check each value against
+  the source.
+- Keep the catalogue as small as the national framework allows: every factor is a row to restate
+  each year.
+- Duplicating a methodology copies all its factors but keeps their original years; it does not roll
+  a set forward to the next year.
+- A factor's year can be edited only while no claimed footprint uses it.
+- A bulk insert straight into the database is possible, but it bypasses the maintainer's validation
+  and must be done by a developer and a DBA, rehearsed in staging first.
+
+## Changing the structure after launch
+
+Footprints are pinned to the methodology version that was published when they were created. How a
+structural change in that version affects existing footprints depends on the change:
+
+| Change in the maintainer                          | Effect on existing footprints                                                                                                                                     |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Rename a category, subcategory or dimension value | The new name appears everywhere, including past and approved footprints: names are not snapshotted                                                                |
+| Delete a category or subcategory                  | Allowed even if footprints use it. Its factors are deleted too; past lines still count in totals but drop out of the capture screen and the admin dashboard chart |
+| Delete a dimension value or a whole dimension     | Refused while factors, footprints or initiatives use it                                                                                                           |
+| Delete a measurement unit                         | Refused while anything references it                                                                                                                              |
+| Edit or delete a factor                           | Calculated lines keep their stored value ([above](#factor-corrections-and-past-footprints))                                                                       |
+
+So, once organizations are reporting, **do not rename or delete structure in the published
+version**. Duplicate the methodology in `/admin/methodologies`, make the changes in the copy, and
+publish it. New footprints use the new version; existing ones stay on theirs.
+
+## Limits of the catalogue structure
+
+Check these against the national framework (decision 2) before designing the catalogue:
+
+- **Categories.** There is no limit on their number: ISO 14064-1's six categories are possible. Each
+  category needs an icon from a fixed list of 23 and a hex color. Charts, summaries and the Excel
+  export adapt to any number of categories.
+- **Two dimensions per subcategory.** A factor is defined by at most two dimension values (for
+  example fuel type × equipment).
+- **Emissions are reported in CO₂e only.** A factor can carry a per-gas breakdown (fossil CO₂, CH₄,
+  N₂O, HFC, PFC, SF₆, NF₃), which appears in the methodology export, but footprints and reports show
+  CO₂e totals only. There is no field for biogenic CO₂.
+- **Scope 2 is location-based only.** Electricity is an ordinary subcategory where the user picks a
+  grid. There is no market-based method (certificates, supplier-specific factors); a user who needs
+  one can only enter a custom factor.
+- **Custom factors are not flagged.** When a user enters their own factor, the only trace is the
+  source "Otro" in the summary and the Excel export. Reviewers should look for it when approving a
+  footprint.
+
 ## Rules for the explanations
 
 - **The file name binds the text to its category or subcategory:** `c{category position}_{name}.md`,

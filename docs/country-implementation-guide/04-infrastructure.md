@@ -77,6 +77,46 @@ Without default privileges, the DBA must run
 `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO <app-user>;` after every migration and
 every backup restore.
 
+### What the identity provider must provide
+
+Any OIDC provider works if it meets this contract:
+
+| Requirement   | Detail                                                                                 |
+| ------------- | -------------------------------------------------------------------------------------- |
+| Two clients   | A public SPA client (authorization code + PKCE) for the web, and an API audience       |
+| Email claim   | `email` (or `preferred_username`) in the access token; tokens without one are rejected |
+| Subject claim | `sub` (or `oid` on Entra): the stable user id                                          |
+| API scope     | A scope emitted in the token, `access_as_user` by default                              |
+| Audience      | The token's `aud` must equal the API's `JWKS_AUDIENCE`                                 |
+| Discovery     | A standard `/.well-known/openid-configuration` document and a JWKS endpoint            |
+
+Users are created on their first sign-in with the `USER` role and identified by the subject claim;
+the email must be unique. **Choose the IdP for the long term:** switching to another provider later
+gives every user a new subject, and existing accounts can no longer be matched. A government SSO or
+digital-ID provider can be used if it meets the contract above.
+
+### Minimum production environment variables
+
+The env file (`.env.prod.dockercompose` on-premise) must set at least these. Values marked
+"build" are baked into the web image, so changing them means rebuilding it.
+
+| Variable                                                                                                                              | Purpose                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| `DATABASE_URL`                                                                                                                        | Application user's connection string (URL-encode special characters)          |
+| `MIGRATION_DATABASE_URL`                                                                                                              | Migration user's connection string; only the migrator needs it                |
+| `ALLOWED_ORIGIN`                                                                                                                      | Exact browser origin of the web app (scheme, host, port, no trailing slash)   |
+| `TRUST_PROXY`                                                                                                                         | The reverse proxy in front of the API, or `false` if there is none            |
+| `APP_VERSION`, `VITE_APP_VERSION` (build)                                                                                             | The release tag being deployed                                                |
+| `AUTH_PROVIDER=jwks`, `JWKS_URI`, `JWKS_ISSUER`, `JWKS_AUDIENCE`                                                                      | How the API validates tokens; production refuses to boot without them         |
+| `STORAGE_PROVIDER` + its block (`AZURE_STORAGE_*` or `MINIO_*`), `STORAGE_ORIGIN`                                                     | File store and the storage URL the browser reaches                            |
+| `VITE_API_BASE_URL`, `VITE_FRONT_BASE_URL` (build)                                                                                    | Browser-reachable API and web URLs                                            |
+| `VITE_OIDC_ISSUER`, `VITE_OIDC_CLIENT_ID`, `VITE_OIDC_SCOPES`, `VITE_OIDC_REDIRECT_URI`, `VITE_OIDC_POST_LOGOUT_REDIRECT_URI` (build) | The web app's OIDC client                                                     |
+| `CHATBOT_ENABLED`, `VITE_CHATBOT_ENABLED` (build)                                                                                     | `false` unless decision 9 enabled the chatbot, which then needs its own block |
+
+Compose stops at start-up if a required variable is missing, and the API refuses to boot if the
+selected storage provider's variables are incomplete. The template file documents each variable
+next to its value.
+
 ## First production deploy sequence
 
 ### On-premise (Docker Compose)
@@ -108,13 +148,20 @@ alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.docker
    conditions.
 7. **Start**: `dcp up --no-build -d`, then `dcp ps` until both services are healthy.
 8. **Create the first `SUPERADMIN`**: the person signs in once through the IdP (which creates their
-   user), then the DBA runs:
+   user), then promote them with the bundled script:
+
+   ```bash
+   dcp --profile migrate run --rm migrate sh -c \
+     "pnpm --filter @repo/database promote-superadmin <admin-email>"
+   ```
+
+   Or, equivalently, the DBA runs:
 
    ```sql
    UPDATE "user" SET role = 'SUPERADMIN', updated_at = now() WHERE email = '<admin-email>';
    ```
 
-   This direct update bypasses the role audit trail; every later role change goes through the UI.
+   Both bypass the role audit trail; every later role change goes through the UI.
 
 9. **Create the other administrators**: each person signs in once, then the `SUPERADMIN` assigns
    `ADMIN` in `/admin/users`.

@@ -47,6 +47,38 @@ The operator must also set the breach-notification window (reference: 72 hours),
 retention and report response times. See [`PRIVACY.md`](../../PRIVACY.md) and
 [`CONTENT_MODERATION.md`](../../CONTENT_MODERATION.md).
 
+### What the public transparency screen publishes
+
+The transparency screen is public, with no sign-in. It lists every **accredited, active**
+organization that has at least one approved recognition for a year, showing:
+
+- the organization's name, sector and subsector;
+- the footprint year;
+- which recognitions it holds (accreditation, measurement, verification, reduction project).
+
+It never shows emission figures, footprint details, organization size, tax IDs, representatives'
+contact data, review comments or uploaded files. There is no per-organization opt-out: an
+organization enters the list by requesting accreditation, and leaves it only if an admin blocks it.
+The terms and conditions must therefore tell organizations, before they apply for accreditation,
+that their name and recognitions will be published. Legal should confirm this basis under national
+law.
+
+### Personal data and data-subject requests
+
+The platform stores this personal data:
+
+| Where                 | Data                                                                                           |
+| --------------------- | ---------------------------------------------------------------------------------------------- |
+| User accounts         | Email, first and last name, identity-provider subject; no passwords (the IdP holds them)       |
+| Organization profiles | Legal and trade name, tax ID, address; the representative's full name, tax ID, phone and email |
+| Activity records      | Who created or updated each footprint, submission and project                                  |
+| Logs                  | May contain user IDs or emails in error traces                                                 |
+
+There is no self-service or automated deletion, export or anonymization. Access, correction,
+deletion and portability requests are fulfilled by a developer with direct database access, so the
+privacy contact needs a documented internal procedure and a named developer behind it. Data stays
+where decision 7 put it: in the country on-premise, or in the chosen Azure region.
+
 ## Pilot, training and launch
 
 1. **Closed pilot in production** with 3–5 organizations from different sectors, supported by the
