@@ -4,12 +4,17 @@ import { getAllEmissionFactorsRoute } from "@/features/emissionFactors/getAllEmi
 import { createEmissionFactorRoute } from "@/features/emissionFactors/createEmissionFactor/route.js";
 import { updateEmissionFactorRoute } from "@/features/emissionFactors/updateEmissionFactor/route.js";
 import { deleteEmissionFactorRoute } from "@/features/emissionFactors/deleteEmissionFactor/route.js";
+import { SystemRole } from "@repo/types";
 
 export default function emissionFactorsRoutes(fastify: FastifyZodInstance) {
-  registerRoutes(fastify, [
-    getAllEmissionFactorsRoute,
-    createEmissionFactorRoute,
-    updateEmissionFactorRoute,
-    deleteEmissionFactorRoute,
-  ]);
+  registerRoutes(
+    fastify,
+    [
+      getAllEmissionFactorsRoute,
+      createEmissionFactorRoute,
+      updateEmissionFactorRoute,
+      deleteEmissionFactorRoute,
+    ],
+    { defaultSystemRoles: [SystemRole.SUPERADMIN, SystemRole.ADMIN] }
+  );
 }
