@@ -1,30 +1,14 @@
 # 5. Validation and go-live
 
-The platform goes live when the functional checks pass in staging, the legal contacts are
-published, and a closed pilot of 3–5 real organizations completes a footprint end to end in
-production. We estimate 3–4 weeks, including training. The seed itself is validated earlier, as the
-exit gate of [phase 2](./02-seed-content.md#validation-gate-before-seeding-production).
+The platform goes live when the legal contacts are confirmed as published and a closed pilot of
+3–5 real organizations completes a footprint end to end in production. We estimate 3–4 weeks,
+including training. The checks happen earlier: the seed at the end of
+[phase 2](./02-seed-content.md#validation-gate-before-seeding-production), and the functional
+checks in staging in [phase 4B](./04-infrastructure.md#staging-gate-before-production).
 
 ← [4. Infrastructure](./04-infrastructure.md) · [Index](./README.md) · Next: [6. Master checklist and timeline](./06-checklist-and-timeline.md) →
 
 ---
-
-## Functional validation (in staging)
-
-- [ ] Sign-up and sign-in with the country's identity provider, including password recovery by
-      email.
-- [ ] Create an organization, add members and assign organization roles.
-- [ ] Complete a footprint, attach evidence and download the ZIP with summary and methodology.
-- [ ] Recognition works as decided in phase 1. With `AUTOMATIC`, self-declaring awards the
-      measurement badge at once. With `MANUAL`, approve, send back and reject a submission from
-      `/admin/requests` ([admin guide](../operations/admin-guide.md)).
-- [ ] Approve, send back and reject a verification submission and a reduction-project submission,
-      which always go through admin review.
-- [ ] Create a reduction project and a neutralization plan.
-- [ ] Review the public transparency screen and the institutional pages.
-- [ ] If the chatbot is enabled: ingest the corpus with `pnpm chatbot:ingest-corpus`
-      ([runbook](../operations/runbook.md#chatbot-corpus-ingestion-and-activation)) and test
-      questions about the national methodology.
 
 ## Obligations before the first real user
 
@@ -38,10 +22,11 @@ contacts must be published and monitored **before the pilot starts**:
 | Content or abuse reports        | Illegal or prohibited files uploaded to the instance  |
 | Child safety                    | Escalation to the country's competent authority       |
 
-**Where to publish them.** The platform has no dedicated privacy screen. Put them in the terms and
-conditions PDF, which the landing page links to (seeded in
-[phase 2](./02-seed-content.md#seed-inventory)), and in the public pages, for example "Material
-complementario" ([phase 3](./03-configuration-and-branding.md)), or on the operator's own website.
+**Where to publish them.** The platform has no dedicated privacy screen. The contacts are written
+into the terms and conditions PDF during [phase 2](./02-seed-content.md#seed-inventory), because
+that PDF is seeded with production and the landing page links to it. They can also go on the
+"Sobre la iniciativa" page ([phase 3](./03-configuration-and-branding.md)) or the operator's own
+website. Before the pilot, confirm they are visible and that someone monitors each one.
 
 The operator must also set the breach-notification window (reference: 72 hours), personal-data
 retention and report response times. See [`PRIVACY.md`](../../PRIVACY.md) and

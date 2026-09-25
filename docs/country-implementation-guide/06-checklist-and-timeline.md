@@ -1,6 +1,6 @@
 # 6. Master checklist and timeline
 
-With dedicated teams, a country can be live in roughly 11–17 weeks. The critical path is
+With dedicated teams, a country can be live in roughly 12–18 weeks. The critical path is
 **1 → 2 → 4B → 5**, and its longest step is the emission factor catalogue, not the infrastructure.
 Durations are indicative: each country should adjust them to its teams' availability.
 
@@ -10,16 +10,16 @@ Durations are indicative: each country should adjust them to its teams' availabi
 
 ## Timeline by phase
 
-| Phase                                                                                  | Deliverable that closes it                                                              | Owner                   | Weeks (indicative)     |
-| -------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | ----------------------- | ---------------------- |
-| [1. Institutional decisions](./01-institutional-decisions.md)                          | Minutes with the 10 decisions and the administrators' names                             | Environmental authority | 1–2                    |
-| [2. Seed content](./02-seed-content.md)                                                | Country seed on its branch, passing the validation gate                                 | Methodology team        | 6–10                   |
-| [3. Configuration and branding](./03-configuration-and-branding.md)                    | Partners, logos, public pages, locale, tax identifier and email addresses in the branch | Content + developer     | 1–2 (parallel with 2)  |
-| [4A. Provision infrastructure](./04-infrastructure.md)                                 | Servers or subscription, database, file store, IdP and backups ready; staging deployed  | National IT             | 2–4 (parallel with 2)  |
-| [4B. First production deploy](./04-infrastructure.md#first-production-deploy-sequence) | Production built, migrated and seeded; first `SUPERADMIN` and administrators created    | National IT + developer | ~1 (after 2, 3 and 4A) |
-| [5. Validation and go-live](./05-validation-and-go-live.md)                            | Functional checks passed, legal contacts published, pilot completed, training delivered | Authority + methodology | 3–4                    |
+| Phase                                                                                                  | Deliverable that closes it                                                                                | Owner                   | Weeks (indicative)           |
+| ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------- | ----------------------- | ---------------------------- |
+| [1. Institutional decisions](./01-institutional-decisions.md)                                          | Minutes with the 10 decisions and the administrators' names                                               | Environmental authority | 1–2                          |
+| [2. Seed content](./02-seed-content.md)                                                                | Country seed on its branch, passing the validation gate                                                   | Methodology team        | 6–10                         |
+| [3. Configuration and branding](./03-configuration-and-branding.md)                                    | Partners, logos, public pages, locale, tax identifier and email addresses in the branch                   | Content + developer     | 1–2 (parallel with 2 and 4A) |
+| [4A. Provision infrastructure](./04-infrastructure.md)                                                 | Servers or subscription, database, file store, IdP and backups ready; staging deployed                    | National IT             | 2–4 (parallel with 2 and 3)  |
+| [4B. Staging check and first production deploy](./04-infrastructure.md#staging-gate-before-production) | Staging gate passed; production built, migrated and seeded; first `SUPERADMIN` and administrators created | National IT + developer | ~2 (after 2, 3 and 4A)       |
+| [5. Validation and go-live](./05-validation-and-go-live.md)                                            | Legal contacts confirmed, pilot completed, training delivered, public launch                              | Authority + methodology | 3–4                          |
 
-Critical path: 1–2 + 6–10 + ~1 + 3–4 = 11–17 weeks.
+Critical path: 1–2 + 6–10 + ~2 + 3–4 = 12–18 weeks.
 
 ## Master checklist
 
@@ -32,7 +32,7 @@ Critical path: 1–2 + 6–10 + ~1 + 3–4 = 11–17 weeks.
 - [ ] Infrastructure path and data residency decided, with a confirmed budget.
 - [ ] Identity provider chosen.
 - [ ] Chatbot enabled or disabled.
-- [ ] Initial `SUPERADMIN` and `ADMIN` users named.
+- [ ] Initial `SUPERADMIN` and system `ADMIN` users named.
 - [ ] A developer assigned for phases 2 to 4.
 
 ### Phase 2 — Seed content
@@ -67,16 +67,16 @@ Critical path: 1–2 + 6–10 + ~1 + 3–4 = 11–17 weeks.
 - [ ] Backups configured and a restore tested.
 - [ ] Staging deployed.
 
-### Phase 4B — First production deploy
+### Phase 4B — Staging check and first production deploy
 
-- [ ] Images built from the country branch.
+- [ ] Images built from the final country branch.
+- [ ] Staging re-seeded with the final seed and staging gate passed.
 - [ ] Production migrated and seeded once.
 - [ ] First `SUPERADMIN` and administrators created.
 
 ### Phase 5 — Validation and go-live
 
-- [ ] Functional validation passed in staging.
-- [ ] Legal contacts published and monitored.
+- [ ] Legal contacts confirmed as published and monitored.
 - [ ] Pilot completed in production.
 - [ ] Training delivered to the three audiences.
 - [ ] Public launch with the help desk running.

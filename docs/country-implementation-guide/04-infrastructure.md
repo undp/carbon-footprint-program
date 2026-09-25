@@ -1,18 +1,20 @@
 # 4. Infrastructure
 
-The platform runs as two containers (web and API) plus PostgreSQL, a file store and an OIDC identity
-provider. There are two documented paths; the choice follows from decision 7 in
+The platform is a web frontend and an API (two containers on-premise; an App Service and a Static
+Web App on Azure), plus PostgreSQL, a file store and an OIDC identity provider. There are two documented paths; the choice follows from decision 7 in
 [phase 1](./01-institutional-decisions.md). The phase has two parts:
 
 - **4A. Provision** the servers, database, storage and identity provider. Runs in parallel with
   phases 2 and 3; 2–4 weeks if the country already has servers and an available DBA.
-- **4B. First production deploy.** Build, migrate and seed production. Starts only when the seed
-  has passed its [validation gate](./02-seed-content.md#validation-gate-before-seeding-production)
-  and the [phase 3](./03-configuration-and-branding.md) configuration is final. About 1 week.
+- **4B. Staging check and first production deploy.** Re-seed staging with the final version, pass
+  the [staging gate](#staging-gate-before-production), then build, migrate and seed production.
+  Starts only when the seed has passed its
+  [validation gate](./02-seed-content.md#validation-gate-before-seeding-production) and the
+  [phase 3](./03-configuration-and-branding.md) configuration is final. About 2 weeks.
 
 A staging environment can be deployed during 4A with a draft seed. Because the seed only runs on an
 empty database, staging is wiped and re-seeded each time the draft changes; production is seeded
-once, in 4B.
+once, in 4B, only after staging has passed with exactly the same seed and images.
 
 ← [3. Configuration and branding](./03-configuration-and-branding.md) · [Index](./README.md) · Next: [5. Validation and go-live](./05-validation-and-go-live.md) →
 
@@ -61,7 +63,8 @@ CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
 Tables belong to whoever runs the migrations. Default privileges let the application user reach
-every table future migrations create, so grants never need re-applying:
+every table future migrations create, so grants never need re-applying. Run them **before the
+first migration**:
 
 ```sql
 GRANT CONNECT ON DATABASE <db-name> TO <app-user>;
@@ -72,10 +75,14 @@ ALTER DEFAULT PRIVILEGES FOR ROLE <migration-user> IN SCHEMA public
   GRANT USAGE, SELECT ON SEQUENCES TO <app-user>;
 ```
 
-Without default privileges, the DBA must run
-`GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO <app-user>;` and
-`GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO <app-user>;` after every migration and
-every backup restore.
+If migrations already ran before the default privileges were set, or if the DBA does not set them,
+the DBA runs these grants: once for the tables that already exist, and, without default
+privileges, again after every migration and every backup restore:
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO <app-user>;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO <app-user>;
+```
 
 ### What the identity provider must provide
 
@@ -116,6 +123,31 @@ The env file (`.env.prod.dockercompose` on-premise) must set at least these. Val
 Compose stops at start-up if a required variable is missing, and the API refuses to boot if the
 selected storage provider's variables are incomplete. The template file documents each variable
 next to its value.
+
+## Staging gate (before production)
+
+Production is seeded only once, so every functional check runs first in staging, on exactly what
+production will receive:
+
+1. Build the images from the final country branch and deploy them to staging.
+2. Wipe the staging database and seed it with the final seed (the version that passed the
+   [phase 2 gate](./02-seed-content.md#validation-gate-before-seeding-production)).
+3. Pass every check below. If one fails, fix the seed or the branch and start again from step 1.
+
+- [ ] Sign-up and sign-in with the country's identity provider, including password recovery by
+      email.
+- [ ] Create an organization, add members and assign organization roles.
+- [ ] Complete a footprint, attach evidence and download the ZIP with summary and methodology.
+- [ ] Recognition works as decided in phase 1. With `AUTOMATIC`, self-declaring awards the
+      measurement badge at once. With `MANUAL`, approve, send back and reject a submission from
+      `/admin/requests` ([admin guide](../operations/admin-guide.md)).
+- [ ] Approve, send back and reject a verification submission and a reduction-project submission,
+      which always go through admin review.
+- [ ] Create a reduction project and a neutralization plan.
+- [ ] Review the public transparency screen and the institutional pages.
+- [ ] If the chatbot is enabled: ingest the corpus with `pnpm chatbot:ingest-corpus`
+      ([runbook](../operations/runbook.md#chatbot-corpus-ingestion-and-activation)) and test
+      questions about the national methodology.
 
 ## First production deploy sequence
 
@@ -164,7 +196,7 @@ alias dcp='docker compose -f docker-compose.prod.yml --env-file .env.prod.docker
    Both bypass the role audit trail; every later role change goes through the UI.
 
 9. **Create the other administrators**: each person signs in once, then the `SUPERADMIN` assigns
-   `ADMIN` in `/admin/users`.
+   the system `ADMIN` role in `/admin/users`.
 
 Every variable is described in
 [`../development/environment-variables.md`](../development/environment-variables.md).
@@ -204,7 +236,8 @@ the identity provider's user store.
 | Azure      | Automated backups and point-in-time restore (30 days recommended)       | Geo-redundant storage plus blob soft delete |
 | On-premise | The DBA's standard PostgreSQL backups (dumps or point-in-time recovery) | Bucket versioning or scheduled copies       |
 
-After any database restore without default privileges, re-apply the grants above. Azure procedures
+If the database was set up without default privileges, re-apply the grants above after any
+restore. Azure procedures
 are in the [runbook](../operations/runbook.md#backup).
 
 ## Security and privacy references

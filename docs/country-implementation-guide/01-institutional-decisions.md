@@ -15,13 +15,13 @@ environmental authority and recorded in minutes.
 | 1   | Operator and data controller                | Ministry, attached agency, international organization acting on the country's behalf          | Privacy notice, mandatory contacts ([phase 5](./05-validation-and-go-live.md)), cloud contracts |
 | 2   | National methodological framework           | GHG Protocol, ISO 14064-1, an existing national footprint program                             | Category structure, names, badges                                                               |
 | 3   | Official source of emission factors         | National GHG inventory, official grid factor, IPCC 2006/2019, DEFRA as fallback               | The whole factor catalogue ([phase 2](./02-seed-content.md))                                    |
-| 4   | Who maintains the methodology over time     | Ministry technical team, consultancy, academia                                                | `ADMIN` users who run the catalogue; yearly factor update cycle                                 |
+| 4   | Who maintains the methodology over time     | Ministry technical team, consultancy, academia                                                | System `ADMIN` users who run the catalogue; yearly factor update cycle                          |
 | 5   | Measurement recognition                     | `AUTOMATIC`, `MANUAL` or `HIDDEN` (see below)                                                 | `CARBON_INVENTORIES_MEASUREMENT_RECOGNITION_BEHAVIOR` parameter and reviewer workload           |
 | 6   | Badges awarded                              | Measurement, verification, reduction, organization accreditation; own names and artwork       | Seed badges and the badges screen                                                               |
 | 7   | Where the platform runs, and data residency | Azure cloud (Bicep included) or on-premise with Docker Compose, even without internet access  | All of [phase 4](./04-infrastructure.md); where personal data is stored                         |
 | 8   | Identity provider (login)                   | Self-hosted Keycloak, Entra External ID, or another OIDC provider the government already uses | [Phase 4](./04-infrastructure.md); who administers accounts and password recovery               |
 | 9   | AI assistant (chatbot)                      | Enabled with Azure OpenAI, or disabled (`CHATBOT_ENABLED=false`, the default)                 | Cost, data residency (prompts leave the country), document corpus                               |
-| 10  | First administrators                        | Names of the initial `SUPERADMIN` and `ADMIN` users                                           | First-user creation ([phase 4](./04-infrastructure.md#first-production-deploy-sequence))        |
+| 10  | First administrators                        | Names of the initial `SUPERADMIN` and system `ADMIN` users                                    | First-user creation ([phase 4](./04-infrastructure.md#first-production-deploy-sequence))        |
 
 ### Measurement recognition options (decision 5)
 
@@ -46,15 +46,17 @@ The seed ships with `AUTOMATIC`. `MANUAL` needs a staffed review team (decision 
 The platform has two independent role dimensions. The national team must assign specific people to
 the system roles before launch.
 
-| Role                               | Dimension    | Who holds it in a country               | What it does                                                                     |
-| ---------------------------------- | ------------ | --------------------------------------- | -------------------------------------------------------------------------------- |
-| `SUPERADMIN`                       | System       | 1–2 people from the authority           | Everything, including changing other users' roles                                |
-| `ADMIN`                            | System       | Review team and methodology team        | Reviews submissions, blocks organizations, maintains the catalogue (maintainers) |
-| `USER`                             | System       | Anyone who signs in                     | Default role                                                                     |
-| `ADMIN` / `CONTRIBUTOR` / `VIEWER` | Organization | People from each company or public body | Manage, edit or view their organization's footprint                              |
+| Role                                              | Dimension    | Who holds it in a country               | What it does                                                                     |
+| ------------------------------------------------- | ------------ | --------------------------------------- | -------------------------------------------------------------------------------- |
+| `SUPERADMIN`                                      | System       | 1–2 people from the authority           | Everything, including changing other users' roles                                |
+| `ADMIN` (system)                                  | System       | Review team and methodology team        | Reviews submissions, blocks organizations, maintains the catalogue (maintainers) |
+| `USER`                                            | System       | Anyone who signs in                     | Default role                                                                     |
+| `ADMIN` / `CONTRIBUTOR` / `VIEWER` (organization) | Organization | People from each company or public body | Manage, edit or view their organization's footprint                              |
 
 The platform requires at least one `SUPERADMIN` at all times and prevents anyone from changing
-their own role. "Maintainers" in this guide are system `ADMIN` users who work on the methodology
+their own role. The two `ADMIN` roles are unrelated: a system `ADMIN` administers the platform,
+while an organization `ADMIN` only manages their own organization. "Maintainers" in this guide are
+system `ADMIN` users who work on the methodology
 catalogue.
 
 ## Budget and staffing

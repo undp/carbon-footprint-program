@@ -23,16 +23,20 @@ nothing and logs:
 Database already contains data — skipping seed for dataset 'base'.
 ```
 
-After the first boot, any adjustment is made through the platform's maintainer screens, not by
-editing JSON. So we propose this order:
+After production is seeded, most adjustments are made through the platform's maintainer screens
+(the admin screens where system administrators edit the catalogue), and a few need SQL. So we
+propose this order:
 
 1. Prepare the full country content in the seed, on the country's own branch or fork, reviewed like
    code.
 2. Validate it locally with `pnpm db:restore`, which resets a local database and re-seeds it every
-   time (see the [validation gate](#validation-gate-before-seeding-production)).
+   time (see the [validation gate](#validation-gate-before-seeding-production)). The seed uploads
+   the badges and the terms PDF, so local object storage must be running first: start MinIO with
+   `docker compose -f docker-compose.minio.yml up -d` and set `STORAGE_PROVIDER=minio` with its
+   `MINIO_*` variables.
 3. Seed production once, with the approved version ([phase 4B](./04-infrastructure.md#first-production-deploy-sequence)).
 4. From then on, maintain the catalogue through the maintainer screens (see
-   [what can be changed after the first boot](#what-can-be-changed-after-the-first-boot)).
+   [what can be changed after production is seeded](#what-can-be-changed-after-production-is-seeded)).
 
 ## Upfront decision: keep the `PD` code or use your own
 
@@ -211,8 +215,11 @@ Production is seeded only after all of these pass:
 - [ ] Every reporting year the country will accept has its full set of factors.
 - [ ] Sector recommendations show sensible subcategories for 3 test sectors.
 - [ ] No CLP amounts or "País Demo" references remain in visible texts.
+- [ ] The terms and conditions PDF is final: reviewed by legal, with the legal contacts and the
+      transparency notice ([phase 5](./05-validation-and-go-live.md#obligations-before-the-first-real-user)).
+      It is seeded with production; replacing it later needs a developer and the API.
 
-## What can be changed after the first boot
+## What can be changed after production is seeded
 
 | Content                                  | Maintainer screen                                                           | If there is no screen                                                                                                                           |
 | ---------------------------------------- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
