@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src"],
+  // Co-located unit tests are type-checked by the root `type-check` (tsconfig.json)
+  // and run by Vitest; they must never be emitted into the published `dist`.
+  "exclude": ["node_modules", "dist", ".turbo", "src/**/*.test.ts"],
   "compilerOptions": {
     "noEmit": false,
     "composite": false,

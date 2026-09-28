@@ -22,6 +22,19 @@ Azure infrastructure for the Huella Latam platform: service requirements, provis
 | [File Storage](./FileStorage.md)                   | Azure Blob Storage setup, container configuration, and SAS upload/download flow |
 | [Database Migrations](./Migrations.md)             | Running Prisma migrations against Azure PostgreSQL Flexible Server              |
 
+## Cloud-neutral deployment (non-Azure adopters)
+
+Azure Bicep (above) is the **supported reference deployment**. Adopters who must run on
+another cloud can start from the **Terraform examples** under
+[`infra/terraform/`](../../infra/terraform/), which mirror this Azure reference on AWS and
+GCP. They are adopter examples, not a replacement for the supported Azure path.
+
+| Document                                                       | Description                                                                        |
+| -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| [Terraform examples overview](../../infra/terraform/README.md) | Cloud-neutral rationale, Azure → AWS → GCP service mapping, shared prerequisites   |
+| [AWS stack](../../infra/terraform/aws/README.md)               | RDS, S3, ECS Fargate + ALB, CloudFront, ECR, Secrets Manager                       |
+| [GCP stack](../../infra/terraform/gcp/README.md)               | Cloud SQL, GCS, Cloud Run, HTTPS LB + Cloud CDN, Artifact Registry, Secret Manager |
+
 ## Authentication
 
 The app uses a generic OIDC client (`oidc-client-ts`) + JWKS token validation (`AUTH_PROVIDER=jwks`); any compliant OIDC provider works. Start with the contract, then the specific IdP guide.

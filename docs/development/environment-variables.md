@@ -43,8 +43,8 @@ for the full reference.
 | Variable                 | Required | Default     | Description                                                                                                                           |
 | ------------------------ | -------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | `MINIO_ENDPOINT`         | **Yes**  | —           | S3 endpoint URL. On the host: `http://localhost:9000`. Inside docker-compose: `http://minio:9000`.                                    |
-| `MINIO_ACCESS_KEY`       | **Yes**  | —           | Access key.                                                                                                                           |
-| `MINIO_SECRET_KEY`       | **Yes**  | —           | Secret key.                                                                                                                           |
+| `MINIO_ACCESS_KEY`       | Cond.    | —           | Access key. Both-or-neither with `MINIO_SECRET_KEY` — setting exactly one aborts boot. Required for MinIO, on-prem S3 and GCS (HMAC). |
+| `MINIO_SECRET_KEY`       | Cond.    | —           | Secret key. Leave **both** unset on AWS for keyless auth via the SDK default credential chain (ECS/EKS task role, instance profile).  |
 | `MINIO_BUCKET`           | No       | `files`     | Bucket name.                                                                                                                          |
 | `MINIO_REGION`           | No       | `us-east-1` | S3 region.                                                                                                                            |
 | `MINIO_FORCE_PATH_STYLE` | No       | `true`      | Use path-style addressing. Any value other than `false` (case-insensitive) resolves to `true`.                                        |

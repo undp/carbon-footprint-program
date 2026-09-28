@@ -1,0 +1,24 @@
+# Terraform working files — never commit state, provider plugins, or real vars.
+# These reference stacks are meant to be copied and run by each adopter.
+
+# Provider plugins / module cache, and lock files (adopters generate their own).
+**/.terraform/*
+**/.terraform.lock.hcl
+
+# State and plan artifacts (may contain secrets — DB passwords, keys).
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Real variable files. Only the committed *.tfvars.example is tracked.
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Editor/CLI overrides.
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
