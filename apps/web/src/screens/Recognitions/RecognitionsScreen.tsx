@@ -1,12 +1,7 @@
 import { FC, useState, useMemo } from "react";
 import { Box } from "@mui/material";
 import { ScreenEmptyState } from "@/components";
-import {
-  useMyOrganizations,
-  useOrganizationRecognitions,
-  useCarbonInventoriesMinimalData,
-} from "@/api/query";
-import { CarbonInventoryDisplayStatusEnum } from "@repo/types";
+import { useMyOrganizations, useOrganizationRecognitions } from "@/api/query";
 import { VOCAB } from "@/config/vocab";
 import { capitalize } from "lodash-es";
 import { useNavigate } from "@tanstack/react-router";
@@ -15,11 +10,7 @@ import { RecognitionsTable } from "./RecognitionsTable";
 import { RecognitionScreenHeader } from "./RecognitionScreenHeader";
 import { RecognitionsKpis } from "./RecognitionsKpis";
 import { RECOGNITION_SUBMISSION_TYPES } from "@/utils/recognitions";
-
-const APPROVED_STATUSES = [
-  CarbonInventoryDisplayStatusEnum.CALCULATION_APPROVED,
-  CarbonInventoryDisplayStatusEnum.VERIFICATION_APPROVED,
-];
+import { getRecognitionYears } from "./utils/recognitionYears";
 
 const RECOGNITIONS_EXPLANATION_SLUGS = {
   MAIN: "recognitions",
@@ -37,27 +28,32 @@ export const RecognitionsScreen: FC = () => {
   const defaultOrgId = organizations[0]?.id ?? "";
   const effectiveOrgId = selectedOrganizationId || defaultOrgId;
 
-  const { data: recognitions = [], isLoading: isLoadingRecognitions } =
-    useOrganizationRecognitions(
-      effectiveOrgId,
-      selectedYear || undefined,
-      RECOGNITION_SUBMISSION_TYPES
-    );
+  // Fetched once per organization across all years: the year selector and the
+  // empty state are derived from this list, and the year filter runs on it.
+  const { data: recognitions = [], isPending: isPendingRecognitions } =
+    useOrganizationRecognitions(effectiveOrgId, RECOGNITION_SUBMISSION_TYPES);
 
-  const {
-    data: approvedInventories = [],
-    isLoading: isLoadingApprovedInventories,
-  } = useCarbonInventoriesMinimalData(APPROVED_STATUSES);
+  const availableYears = useMemo(
+    () => getRecognitionYears(recognitions),
+    [recognitions]
+  );
 
-  const availableYears = useMemo(() => {
-    const orgInventories = approvedInventories.filter(
-      (inv) => inv.organizationId === effectiveOrgId
-    );
-    const years = new Set(
-      orgInventories.map((inv) => inv.year).filter((y) => y != null)
-    );
-    return Array.from(years).sort((a, b) => b - a);
-  }, [approvedInventories, effectiveOrgId]);
+  // A year the selected organization has no recognitions in falls back to all
+  // years. The selection itself is kept, so it comes back when switching to an
+  // organization that has it.
+  const effectiveYear = availableYears.includes(Number(selectedYear))
+    ? selectedYear
+    : "";
+
+  const visibleRecognitions = useMemo(
+    () =>
+      effectiveYear
+        ? recognitions.filter(
+            (r) => r.measurementYear === Number(effectiveYear)
+          )
+        : recognitions,
+    [recognitions, effectiveYear]
+  );
 
   if (!isLoadingOrgs && organizations.length === 0) {
     return (
@@ -72,18 +68,10 @@ export const RecognitionsScreen: FC = () => {
     );
   }
 
-  if (!isLoadingApprovedInventories && availableYears.length === 0) {
-    return (
-      <ScreenEmptyState
-        title="Aún no tienes huellas con reconocimientos"
-        description="Haz clic en el botón para gestionar tus huellas"
-        action={{
-          label: "Ir a Mis Huellas",
-          onClick: () => navigate({ to: Routes.CARBON_INVENTORIES }),
-        }}
-      />
-    );
-  }
+  // `isPending`, not `isLoading`: while the organizations load the query is
+  // disabled, and a disabled query reports `isLoading: false`.
+  const hasNoRecognitions =
+    !isLoadingOrgs && !isPendingRecognitions && recognitions.length === 0;
 
   return (
     <Box className="flex flex-1 flex-col gap-6">
@@ -93,17 +81,30 @@ export const RecognitionsScreen: FC = () => {
         selectedOrganizationId={effectiveOrgId}
         onOrganizationChange={setSelectedOrganizationId}
         availableYears={availableYears}
-        selectedYear={selectedYear}
+        selectedYear={effectiveYear}
         onYearChange={setSelectedYear}
       />
 
-      <RecognitionsKpis recognitions={recognitions} />
+      {hasNoRecognitions ? (
+        <ScreenEmptyState
+          title="Aún no tienes huellas con reconocimientos"
+          description="Haz clic en el botón para gestionar tus huellas"
+          action={{
+            label: "Ir a Mis Huellas",
+            onClick: () => navigate({ to: Routes.CARBON_INVENTORIES }),
+          }}
+        />
+      ) : (
+        <>
+          <RecognitionsKpis recognitions={visibleRecognitions} />
 
-      <RecognitionsTable
-        loading={isLoadingRecognitions}
-        rows={recognitions}
-        explanationSlug={RECOGNITIONS_EXPLANATION_SLUGS.MAIN}
-      />
+          <RecognitionsTable
+            loading={isPendingRecognitions}
+            rows={visibleRecognitions}
+            explanationSlug={RECOGNITIONS_EXPLANATION_SLUGS.MAIN}
+          />
+        </>
+      )}
     </Box>
   );
 };

@@ -26,16 +26,11 @@ export const organizationKeys = {
   updateUser: (id: string) => [...organizationKeys.addUser, id] as const,
   deleteUser: (id: string) =>
     [...organizationKeys.addUser, "delete", id] as const,
-  recognitions: (
-    organizationId: string,
-    year?: string,
-    submissionTypes?: string[]
-  ) =>
+  recognitions: (organizationId: string, submissionTypes?: string[]) =>
     [
       ...organizationKeys.detail(organizationId),
       "recognitions",
       CarbonInventoryQueryKey.StatusUpdateDependency,
-      year ?? null,
       submissionTypes ?? null,
     ] as const,
 };
