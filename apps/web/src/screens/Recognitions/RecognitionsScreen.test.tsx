@@ -219,20 +219,7 @@ describe("RecognitionsScreen", () => {
     expect(screen.getByTestId("kpis")).toHaveTextContent("1");
   });
 
-  it("falls back to all years when the new organization lacks the selected year, and restores it on the way back", () => {
-    render(<RecognitionsScreen />);
-    fireEvent.click(screen.getByText("year-2025"));
-
-    fireEvent.click(screen.getByText("org-2"));
-    expect(screen.getByTestId("selected-year")).toHaveTextContent("Todos");
-    expect(screen.getByTestId("rows")).toHaveTextContent("m-2026");
-
-    fireEvent.click(screen.getByText("org-1"));
-    expect(screen.getByTestId("selected-year")).toHaveTextContent("2025");
-    expect(screen.getByTestId("rows")).toHaveTextContent("v-2025,m-2025");
-  });
-
-  it("keeps the selected year when the new organization has it", () => {
+  it("resets the year to all years when switching organization", () => {
     state.recognitionsByOrg["2"] = [
       recognition("m-2026", 2026),
       recognition("o2-2025", 2025),
@@ -242,8 +229,27 @@ describe("RecognitionsScreen", () => {
     fireEvent.click(screen.getByText("year-2025"));
     fireEvent.click(screen.getByText("org-2"));
 
-    expect(screen.getByTestId("selected-year")).toHaveTextContent("2025");
-    expect(screen.getByTestId("rows")).toHaveTextContent("o2-2025");
-    expect(screen.getByTestId("rows")).not.toHaveTextContent("m-2026");
+    expect(screen.getByTestId("selected-year")).toHaveTextContent("Todos");
+    expect(screen.getByTestId("rows")).toHaveTextContent("m-2026,o2-2025");
+
+    fireEvent.click(screen.getByText("org-1"));
+    expect(screen.getByTestId("selected-year")).toHaveTextContent("Todos");
+    expect(screen.getByTestId("rows")).toHaveTextContent("v-2025,m-2025");
+  });
+
+  it("falls back to all years when a refetch no longer returns the selected year", () => {
+    state.recognitionsByOrg["1"] = [
+      recognition("m-2026", 2026),
+      recognition("m-2025", 2025),
+    ];
+
+    const { rerender } = render(<RecognitionsScreen />);
+    fireEvent.click(screen.getByText("year-2025"));
+
+    state.recognitionsByOrg["1"] = [recognition("m-2026", 2026)];
+    rerender(<RecognitionsScreen />);
+
+    expect(screen.getByTestId("selected-year")).toHaveTextContent("Todos");
+    expect(screen.getByTestId("rows")).toHaveTextContent("m-2026");
   });
 });

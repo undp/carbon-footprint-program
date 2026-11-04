@@ -51,9 +51,8 @@ export const RecognitionsScreen: FC = () => {
     [recognitions]
   );
 
-  // A year the selected organization has no recognitions in falls back to all
-  // years. The selection itself is kept, so it comes back when switching to an
-  // organization that has it.
+  // Guards against a selected year that a refetch no longer returns: the
+  // selector falls back to all years instead of showing a blank value.
   const effectiveYear = availableYears.includes(Number(selectedYear))
     ? selectedYear
     : "";
@@ -81,6 +80,12 @@ export const RecognitionsScreen: FC = () => {
     );
   }
 
+  // Switching organization starts again from all years.
+  const handleOrganizationChange = (organizationId: string) => {
+    setSelectedOrganizationId(organizationId);
+    setSelectedYear("");
+  };
+
   // `isPending`, not `isLoading`: while the organizations load the query is
   // disabled, and a disabled query reports `isLoading: false`. A failed request
   // is not "no recognitions": the snackbar reports it instead.
@@ -96,7 +101,7 @@ export const RecognitionsScreen: FC = () => {
         organizations={organizations}
         isLoadingOrgs={isLoadingOrgs}
         selectedOrganizationId={effectiveOrgId}
-        onOrganizationChange={setSelectedOrganizationId}
+        onOrganizationChange={handleOrganizationChange}
         availableYears={availableYears}
         selectedYear={effectiveYear}
         onYearChange={setSelectedYear}
