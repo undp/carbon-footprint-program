@@ -1,5 +1,6 @@
-import { FC, useState, useMemo } from "react";
+import { FC, useEffect, useState, useMemo } from "react";
 import { Box } from "@mui/material";
+import { useSnackbar } from "notistack";
 import { ScreenEmptyState } from "@/components";
 import { useMyOrganizations, useOrganizationRecognitions } from "@/api/query";
 import { VOCAB } from "@/config/vocab";
@@ -18,6 +19,7 @@ const RECOGNITIONS_EXPLANATION_SLUGS = {
 
 export const RecognitionsScreen: FC = () => {
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [selectedYear, setSelectedYear] = useState<string>("");
   const [selectedOrganizationId, setSelectedOrganizationId] =
     useState<string>("");
@@ -30,8 +32,19 @@ export const RecognitionsScreen: FC = () => {
 
   // Fetched once per organization across all years: the year selector and the
   // empty state are derived from this list, and the year filter runs on it.
-  const { data: recognitions = [], isPending: isPendingRecognitions } =
-    useOrganizationRecognitions(effectiveOrgId, RECOGNITION_SUBMISSION_TYPES);
+  const {
+    data: recognitions = [],
+    isPending: isPendingRecognitions,
+    isError: isErrorRecognitions,
+  } = useOrganizationRecognitions(effectiveOrgId, RECOGNITION_SUBMISSION_TYPES);
+
+  useEffect(() => {
+    if (isErrorRecognitions) {
+      enqueueSnackbar("Error al cargar los reconocimientos", {
+        variant: "error",
+      });
+    }
+  }, [isErrorRecognitions, enqueueSnackbar]);
 
   const availableYears = useMemo(
     () => getRecognitionYears(recognitions),
@@ -69,9 +82,13 @@ export const RecognitionsScreen: FC = () => {
   }
 
   // `isPending`, not `isLoading`: while the organizations load the query is
-  // disabled, and a disabled query reports `isLoading: false`.
+  // disabled, and a disabled query reports `isLoading: false`. A failed request
+  // is not "no recognitions": the snackbar reports it instead.
   const hasNoRecognitions =
-    !isLoadingOrgs && !isPendingRecognitions && recognitions.length === 0;
+    !isLoadingOrgs &&
+    !isPendingRecognitions &&
+    !isErrorRecognitions &&
+    recognitions.length === 0;
 
   return (
     <Box className="flex flex-1 flex-col gap-6">

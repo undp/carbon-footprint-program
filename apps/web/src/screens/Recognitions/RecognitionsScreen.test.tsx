@@ -13,6 +13,7 @@ interface ScreenState {
   isLoadingOrgs: boolean;
   recognitionsByOrg: Record<string, Recognition[]>;
   isPendingRecognitions: boolean;
+  isErrorRecognitions: boolean;
 }
 
 const state = vi.hoisted((): ScreenState => ({
@@ -20,6 +21,13 @@ const state = vi.hoisted((): ScreenState => ({
   isLoadingOrgs: false,
   recognitionsByOrg: {},
   isPendingRecognitions: false,
+  isErrorRecognitions: false,
+}));
+
+const enqueueSnackbar = vi.hoisted(() => vi.fn());
+
+vi.mock("notistack", () => ({
+  useSnackbar: () => ({ enqueueSnackbar }),
 }));
 
 vi.mock("@/api/query", () => ({
@@ -28,10 +36,12 @@ vi.mock("@/api/query", () => ({
     isLoading: state.isLoadingOrgs,
   }),
   useOrganizationRecognitions: (organizationId: string) => ({
-    data: state.isPendingRecognitions
-      ? undefined
-      : state.recognitionsByOrg[organizationId],
+    data:
+      state.isPendingRecognitions || state.isErrorRecognitions
+        ? undefined
+        : state.recognitionsByOrg[organizationId],
     isPending: state.isPendingRecognitions || !organizationId,
+    isError: state.isErrorRecognitions,
   }),
 }));
 
@@ -117,6 +127,8 @@ describe("RecognitionsScreen", () => {
     ];
     state.isLoadingOrgs = false;
     state.isPendingRecognitions = false;
+    state.isErrorRecognitions = false;
+    enqueueSnackbar.mockClear();
     state.recognitionsByOrg = {
       "1": [
         recognition(
@@ -175,6 +187,19 @@ describe("RecognitionsScreen", () => {
 
     expect(screen.queryByTestId("empty-state")).not.toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();
+  });
+
+  it("reports a failed request instead of showing the empty state", () => {
+    state.isErrorRecognitions = true;
+
+    render(<RecognitionsScreen />);
+
+    expect(screen.queryByTestId("empty-state")).not.toBeInTheDocument();
+    expect(screen.getByTestId("header")).toBeInTheDocument();
+    expect(enqueueSnackbar).toHaveBeenCalledWith(
+      "Error al cargar los reconocimientos",
+      { variant: "error" }
+    );
   });
 
   it("filters the rows by the selected year", () => {
