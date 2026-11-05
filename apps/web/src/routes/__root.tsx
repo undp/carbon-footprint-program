@@ -152,7 +152,7 @@ export const Route = createRootRoute({
               mb: 4,
             }}
           >
-            Debug: {error.message}
+            Debug: {error instanceof Error ? error.message : String(error)}
           </Typography>
         )}
         <Box sx={{ display: "flex", gap: 2 }}>

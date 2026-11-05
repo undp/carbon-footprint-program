@@ -34,7 +34,7 @@
     "@tailwindcss/typography": "^0.5.20",
     "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-query": "^5.101.4",
-    "@tanstack/react-router": "^1.170.18",
+    "@tanstack/react-router": "^1.170.46",
     "attr-accept": "^2.2.5",
     "client-zip": "^2.5.0",
     "date-fns": "^4.4.0",
@@ -69,8 +69,8 @@
     "@tanstack/devtools-vite": "^0.8.3",
     "@tanstack/react-devtools": "^0.10.9",
     "@tanstack/react-query-devtools": "^5.101.4",
-    "@tanstack/react-router-devtools": "^1.167.0",
-    "@tanstack/router-plugin": "^1.168.23",
+    "@tanstack/react-router-devtools": "^1.167.2",
+    "@tanstack/router-plugin": "^1.168.48",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "~6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -85,7 +85,7 @@
     "jsdom": "^29.1.1",
     "rimraf": "catalog:shared",
     "typescript": "catalog:shared",
-    "vite": "^8.2.0",
+    "vite": "^8.2.4",
     "vitest": "catalog:shared"
   }
 }
