@@ -69,7 +69,7 @@ Paths are relative to `tools/seed/src/data/base/` unless stated otherwise.
 
 | File or folder                                                             | What it holds today                                                                                                                                              | What the country must do                                                                                                                                          | Owner                 | Effort |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- | ------ |
-| `methodologies.json` — factors                                             | 568 factors: the same 284 for 2025 and for 2026 (per year: 195 DEFRA of that year's edition, 86 IPCC, 3 EcoAct 2020)                                             | Replace with official national factors; record `source` and `year` on each                                                                                        | Methodology           | High   |
+| `methodologies.json` — factors                                             | 498 factors: the same 249 for 2025 and for 2026 (per year: 195 DEFRA of that year's edition, 51 IPCC, 3 EcoAct 2020)                                             | Replace with official national factors; record `source` and `year` on each                                                                                        | Methodology           | High   |
 | `methodologies.json` — structure                                           | 3 categories, 30 subcategories, dimensions and their values                                                                                                      | Fit to the national framework; rename, remove or add subcategories                                                                                                | Methodology           | Medium |
 | `explanations/subcategories/*.md`                                          | 30 guides, one per subcategory                                                                                                                                   | Rewrite examples with local currency, prices and realities                                                                                                        | Methodology + content | High   |
 | `explanations/categories/*.md`                                             | 3 texts, one per category                                                                                                                                        | Review wording and regulatory references                                                                                                                          | Methodology           | Low    |
@@ -112,7 +112,11 @@ Paths are relative to `tools/seed/src/data/base/` unless stated otherwise.
 4. **Business-travel accommodation.** The "País" (country) dimension lists 21 hotel countries;
    check that it includes the country itself and frequent destinations.
 5. **Unit abbreviations.** Each factor references its rate unit by abbreviation (`kg/kWh`, not
-   `kg CO2e/kWh`). An abbreviation that does not exist in the seed breaks the load.
+   `kg CO2e/kWh`). An abbreviation that does not exist in the seed breaks the load. Load each
+   factor in a single rate unit: the platform derives the other units of the same magnitudes
+   (a `kg/ton` factor also serves declarations in `kg` and `g`). Loading the same factor twice,
+   for example in `kg/ton` and in `kg/kg`, leaves capture with two candidates, so it fills in
+   neither. The seed's tests reject such a pair.
 6. **Keep the "Otro" escape hatch.** A dimension value named "Otro" (or "Otros", "Otra", "Otras")
    lets users enter a custom factor when no catalogue value fits. Keep it in dimensions where the
    catalogue cannot be exhaustive.

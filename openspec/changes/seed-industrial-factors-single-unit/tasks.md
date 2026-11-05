@@ -24,10 +24,10 @@
 
 ## 3. Documentation (commit: `docs: …`)
 
-- [ ] 3.1 `docs/country-implementation-guide/README.md`: "284 emission factors per year" → 249.
-- [ ] 3.2 `docs/country-implementation-guide/02-seed-content.md:72`: "568 factors: the same 284 … 86 IPCC" → 498 / 249 / 51 IPCC.
-- [ ] 3.3 In point 5 of `02-seed-content.md` ("Unit abbreviations"), add the single-rate-unit rule (design Decision 5).
-- [ ] 3.4 Grep `docs/` and `openspec/specs/` for any other statement of factor counts or of "no unit conversion" in capture, and fix each one.
+- [x] 3.1 `docs/country-implementation-guide/README.md`: "284 emission factors per year" → 249.
+- [x] 3.2 `docs/country-implementation-guide/02-seed-content.md:72`: "568 factors: the same 284 … 86 IPCC" → 498 / 249 / 51 IPCC.
+- [x] 3.3 In point 5 of `02-seed-content.md` ("Unit abbreviations"), add the single-rate-unit rule (design Decision 5).
+- [x] 3.4 Grep `docs/` and `openspec/specs/` for any other statement of factor counts or of "no unit conversion" in capture, and fix each one.
 
 ## 4. Manual check in the app
 
