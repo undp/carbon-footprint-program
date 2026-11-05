@@ -49,7 +49,7 @@ catalogs:
 overrides:
   "exceljs>uuid": ^11.1.1
   "@hookform/devtools>uuid": ^11.1.1
-  # --- Transitive security patches (pnpm audit --prod, reviewed 2026-09-09) ---
+  # --- Transitive security patches (pnpm audit --prod, reviewed 2026-11-05) ---
   # Caret ranges only: a bare '>=' override value resolves to the global max
   # (e.g. brace-expansion 5.x, fast-uri 4.x) and would jump across majors.
   # Move the floor to the patched version even though the caret range already
@@ -64,25 +64,35 @@ overrides:
   # same package must keep its own resolution; breaking a lone vendor's exact pin
   # ('deepmerge-ts', 'mysql2') needs no scope, since nothing else in the tree wants
   # that package. No parent-scoped override survives today.
-  "@fastify/static": ^10.1.2 # GHSA-83w8-p2f5-377r + GHSA-8pvw-jcv7-9cmj (@fastify/swagger-ui>@fastify/static)
-  "brace-expansion@1": ^1.1.18 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver/unzipper)
-  "brace-expansion@2": ^2.1.4 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (exceljs>archiver>readdir-glob>minimatch)
-  "brace-expansion@5": ^5.0.9 # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 (@fastify/static>glob>minimatch)
+  "@fastify/busboy": ^3.2.2 # GHSA-xjh9-v7x6-24jw + GHSA-x8mw-p69m-v3mx + GHSA-gxm5-99cw-xjw9 (@fastify/multipart>@fastify/busboy)
+  # @fastify/static 10.1.10 also moves glob to ^14 (and through it minimatch to ^11),
+  # clearing GHSA-3g3m-2fjr-6pw4 (glob) and GHSA-g3hv-75wg-m249 (minimatch) with no
+  # override of their own.
+  "@fastify/static": ^10.1.10 # GHSA-83w8-p2f5-377r + GHSA-8pvw-jcv7-9cmj (@fastify/swagger-ui>@fastify/static)
+  "brace-expansion@1": ^1.1.21 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 + GHSA-6j4f-fj2g-mc7p + GHSA-qhr7-859c-m2p7 + GHSA-q2hr-2g5m-vwhr (exceljs>archiver/unzipper)
+  "brace-expansion@2": ^2.1.7 # GHSA-3jxr-9vmj-r5cp + GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 + GHSA-6j4f-fj2g-mc7p + GHSA-qhr7-859c-m2p7 + GHSA-q2hr-2g5m-vwhr (exceljs>archiver>readdir-glob>minimatch)
+  "brace-expansion@5": ^5.0.12 # GHSA-mh99-v99m-4gvg + GHSA-rgw5-rvv9-x895 + GHSA-6j4f-fj2g-mc7p + GHSA-qhr7-859c-m2p7 + GHSA-q2hr-2g5m-vwhr (@fastify/static>glob>minimatch)
   # deepmerge-ts: @prisma/config pins 7.1.5 exactly, so the floor has to be forced.
   # Upstream fix is still unreleased: tracked by
   # https://github.com/prisma/prisma/issues/30052 and fixed by
   # https://github.com/prisma/prisma/pull/30054 (open, community-authored, targets `v7`).
   # Drop this override once a published @prisma/config ships deepmerge-ts >= 8.
   "deepmerge-ts": ^8.0.1 # GHSA-ggr8-5vv4-36mx / CVE-2026-40345 (@prisma/client>prisma>@prisma/config)
-  "fast-uri@3": ^3.1.6 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 + GHSA-f65p-4m7j-42xc + GHSA-jqff-g426-hqxp + GHSA-fph4-wmhf-6fwf + GHSA-5jgf-p345-68v8 (fastify>ajv/fast-json-stringify; prisma>ajv; @fastify/swagger>json-schema-resolver)
+  "fast-uri@3": ^3.1.9 # GHSA-v2hh-gcrm-f6hx + GHSA-7p8r-x3mc-p8w7 + GHSA-f65p-4m7j-42xc + GHSA-jqff-g426-hqxp + GHSA-fph4-wmhf-6fwf + GHSA-5jgf-p345-68v8 + GHSA-hrr3-gc8f-f4qj + GHSA-w74x-v6f9-j3xg + GHSA-xhq7-xmqj-769h + GHSA-wjr9-j795-jxcr + GHSA-333x-w4r6-6crp (fastify>ajv/fast-json-stringify; prisma>ajv; @fastify/swagger>json-schema-resolver)
   "fast-xml-parser": ^5.10.1 # GHSA-8r6m-32jq-jx6q (@azure/storage-blob>@azure/core-xml)
   "find-my-way": ^9.7.0 # GHSA-c96f-x56v-gq3h (fastify>find-my-way)
+  "ip-address": ^10.7.4 # GHSA-rpw4-54j3-4h4q + GHSA-2vr4-cq9g-pvrc + GHSA-j6r3-76f7-8jcv + GHSA-h3mg-xc3c-68pw + GHSA-rxp7-6hxx-x8q5 (@fastify/rate-limit>ip-address)
   # mysql2 is dead weight here — the CLI only loads it for MySQL datasources and
   # this deployment is Postgres-only — but prisma pins it exactly (3.15.3), so it
   # ships in the api image and both `pnpm audit --prod` and the Trivy image scan
   # flag it. The floor has to be forced past the vendor pin.
   "mysql2": ^3.22.0 # GHSA-3f6p-5ww8-9rcr (@prisma/client>prisma>mysql2)
   "nanoid@3": ^3.3.18 # GHSA-2v37-7h3g-55p8 (@tailwindcss/vite>vite>postcss>nanoid)
+  # @tailwindcss/typography pins postcss-selector-parser 6.0.10 exactly (still true in
+  # its latest release, 0.5.20), so the floor has to be forced past the vendor pin.
+  # 6.1.x is a minor of the same major; the plugin only feeds the `prose` styles.
+  "postcss-selector-parser": ^6.1.5 # GHSA-rj75-hqrm-r3gf (@tailwindcss/typography>postcss-selector-parser)
+  "source-map-js": ^1.2.2 # GHSA-68fv-2mgg-jv7q (@tailwindcss/vite>@tailwindcss/node; vite>postcss; prisma>@prisma/config>c12>magicast)
   # Removed '@prisma/dev>@hono/node-server' pin: Prisma 7.9 (@prisma/dev 0.24.14)
   # drops @hono/node-server entirely, resolving GHSA-frvp-7c67-39w9.
   # Removed '@prisma/dev>valibot' pin: @prisma/dev 0.24.17 moved its exact pin from
