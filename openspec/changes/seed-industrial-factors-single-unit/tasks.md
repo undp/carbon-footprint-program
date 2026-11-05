@@ -35,8 +35,8 @@
 
 ## 5. Ship
 
-- [ ] 5.1 Run `pnpm format && pnpm lint && pnpm type-check`. Commit in this order: seed data → guard → docs, one Conventional Commit per section, no Co-Authored-By. Every commit stays green.
-- [ ] 5.2 Open the PR against `main` in English, titled `fix(seed): …`. The description must:
+- [x] 5.1 Run `pnpm format && pnpm lint && pnpm type-check`. Commit in this order: seed data → guard → docs, one Conventional Commit per section, no Co-Authored-By. Every commit stays green.
+- [x] 5.2 Open the PR against `main` in English, titled `fix(seed): …`. The description must:
   - explain that #619 was a regression built on a false premise, and reference #619;
   - include the 2.4 evidence;
   - state that installed databases need `pnpm db:restore:keep-users` (users kept; organizations, footprints, submissions, badges and reduction projects lost), or deletion of the 70 `kg/kg` rows from the emission-factor maintainer;
