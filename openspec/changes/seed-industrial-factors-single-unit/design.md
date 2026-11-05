@@ -23,7 +23,7 @@ Constraints:
 
 - The factor seed only inserts (`createMany({ skipDuplicates: true })` followed by a row-count check). It cannot remove rows from an installed database, and with NULL dimensions it would insert duplicates.
 - Upstream content migrations are scoped to the demo country (`country.iso_code = 'PD'`). Country deployments get content corrections by reviewing the seed diff (`docs/development/country-onboarding.md`, "Content migrations do not reach your methodology").
-- Since #666, installed databases are expected to be reset (`pnpm db:restore:keep-users`), and #667 corrected factor values through the seed alone.
+- #666 required every database to be reset once and shipped `pnpm db:restore:keep-users`. #667 then corrected factor values through the seed alone.
 
 ## Goals / Non-Goals
 
@@ -72,7 +72,7 @@ _Alternatives_:
 
 ### 4. Verification
 
-- The data test is checked against `main`'s data before it is trusted. With the two `methodologies.json` files from `main` checked out, it must report 70 pairs in `base` and 35 in `testing`, and that output is the PR's evidence.
+- The data test is checked against `main`'s data before it is trusted. With the two `methodologies.json` files from `origin/main` checked out, it must report 70 pairs in `base` and 35 in `testing`, and that output is the PR's evidence.
 - A manual check in the running app, on a database freshly restored from the corrected seed: the IPCC factor auto-fills in g, kg and ton for 2025 and 2026, and the unit menu in calculator mode still offers all three.
 
 ### 5. Documentation
