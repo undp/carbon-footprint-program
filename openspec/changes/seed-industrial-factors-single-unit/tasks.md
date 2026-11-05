@@ -7,20 +7,20 @@
 
 ## 2. Seed collision guard (commit: `test(seed): …`)
 
-- [ ] 2.1 Add a pure `findConversionCollisions` under `tools/seed/src/utils/` and export it from `utils/index.ts`.
+- [x] 2.1 Add a pure `findConversionCollisions` under `tools/seed/src/utils/` and export it from `utils/index.ts`.
   - Input: the flattened factors (subcategory path, both dimension values, rate-unit abbreviation, source, year) and a lookup from rate-unit abbreviation to numerator/denominator magnitude codes.
   - Output: every pair with the same subcategory, source, year and both magnitudes that matches on both dimensions. A dimension matches if the values are equal or either one is NULL (design Decision 3). Each pair carries its rate units.
-- [ ] 2.2 Unit-test the function on synthetic rows.
+- [x] 2.2 Unit-test the function on synthetic rows.
   - Reported: a `kg/ton` + `kg/kg` pair; a NULL-dimension factor and a specific one with the same source.
   - Not reported: `kg/L` + `kg/kWh` with the same key; the same key in 2025 and 2026; a NULL-dimension factor under another source.
   - The error message names subcategory, dimension values, source, year and rate units.
-- [ ] 2.3 Add a data test that loads `measurement_units.json`, `rate_measurement_units.json` and `methodologies.json` for `base` and `testing`, via `generateSeedDataPath` or a direct path. It resolves each rate unit's numerator and denominator by splitting the abbreviation on `/`, and asserts there are no collisions.
-- [ ] 2.4 Check the test against the old data, without `git stash`, since the stash stack is shared across worktrees:
+- [x] 2.3 Add a data test that loads `measurement_units.json`, `rate_measurement_units.json` and `methodologies.json` for `base` and `testing`, via `generateSeedDataPath` or a direct path. It resolves each rate unit's numerator and denominator by splitting the abbreviation on `/`, and asserts there are no collisions.
+- [x] 2.4 Check the test against the old data, without `git stash`, since the stash stack is shared across worktrees:
   1. `git checkout origin/main -- tools/seed/src/data/base/methodologies.json tools/seed/src/data/testing/methodologies.json`
   2. Run `pnpm test:seed`. It must fail with 70 pairs in `base` and 35 in `testing`. Keep that output as PR evidence.
   3. `git checkout HEAD -- <same files>`
   4. Run `pnpm test:seed` again. It must pass.
-- [ ] 2.5 Update the comment in `tools/seed/vitest.config.ts` that lists what the seed tests cover.
+- [x] 2.5 Update the comment in `tools/seed/vitest.config.ts` that lists what the seed tests cover.
 
 ## 3. Documentation (commit: `docs: …`)
 
