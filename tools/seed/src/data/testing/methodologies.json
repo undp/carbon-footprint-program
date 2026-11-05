@@ -1543,17 +1543,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Promedio por defecto (60% ISF, 40% Waelz Kiln)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.72
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
                   "valueName": "Pirometalúrgico"
                 },
                 "dimensionValue2": null,
@@ -1565,17 +1554,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Pirometalúrgico"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.43
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
                   "valueName": "Waelz Kiln"
                 },
                 "dimensionValue2": null,
@@ -1583,17 +1561,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 3660
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cinc_Proceso de producción",
-                  "valueName": "Waelz Kiln"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 3.66
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1628,17 +1595,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 520
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cemento_Material",
-                  "valueName": "Clinker"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.52
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1705,17 +1661,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Contenedores (Recipientes de color transparente)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.21
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Contenedores de color (Recipientes de color verde u otros)"
                 },
                 "dimensionValue2": null,
@@ -1723,17 +1668,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 210
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Contenedores de color (Recipientes de color verde u otros)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.21
               },
               {
                 "dimensionValue1": {
@@ -1749,17 +1683,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Fibra de vidrio (E-glass)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.19
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Fibra de vidrio (lana de aislación)"
                 },
                 "dimensionValue2": null,
@@ -1771,40 +1694,7 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Fibra de vidrio (lana de aislación)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.25
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/ton",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 200
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio de iluminación (Ampolletas, bombillas, etc)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.2
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio general"
                 },
                 "dimensionValue2": null,
                 "rateMeasurementUnitAbbreviation": "kg/ton",
@@ -1818,10 +1708,10 @@
                   "valueName": "Vidrio general"
                 },
                 "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
+                "rateMeasurementUnitAbbreviation": "kg/ton",
                 "source": "IPCC",
                 "year": 2025,
-                "value": 0.2
+                "value": 200
               },
               {
                 "dimensionValue1": {
@@ -1837,17 +1727,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrio plano (ventanas, mesas, etc)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.21
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
                   "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
                 },
                 "dimensionValue2": null,
@@ -1855,17 +1734,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 100
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Vidrio_Tipo de vidrio",
-                  "valueName": "Vidrios de vajilla (Vasos, copas, platos, etc)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.1
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -1920,17 +1788,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Horno básico de oxígeno (BOF)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.46
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
                   "valueName": "Horno de acero eléctrico (AEF)"
                 },
                 "dimensionValue2": null,
@@ -1938,17 +1795,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 80
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Horno de acero eléctrico (AEF)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.08
               },
               {
                 "dimensionValue1": {
@@ -1964,17 +1810,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Horno de solera (OHF)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.72
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
                   "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
                 },
                 "dimensionValue2": null,
@@ -1982,17 +1817,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1060
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Acero_Método de fabricación",
-                  "valueName": "Promedio mundial (65% BOF, 30% AEF, 5% OHF)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.06
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2030,17 +1854,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
-                  "valueName": "Cal alta en calcio"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.75
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
                   "valueName": "Cal dolomítica"
                 },
                 "dimensionValue2": null,
@@ -2052,17 +1865,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
-                  "valueName": "Cal dolomítica"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.77
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
                   "valueName": "Cal hidráulica"
                 },
                 "dimensionValue2": null,
@@ -2070,17 +1872,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 590
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Cal_Tipo de cal",
-                  "valueName": "Cal hidráulica"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.59
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2123,17 +1914,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
-                  "valueName": "Ánodo precocido (Prebake), solo CO₂ de ánodo"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.6
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
                   "valueName": "Søderberg, solo CO₂ de ánodo"
                 },
                 "dimensionValue2": null,
@@ -2141,17 +1921,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1700
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Aluminio_Tecnología de celda",
-                  "valueName": "Søderberg, solo CO₂ de ánodo"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.7
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],
@@ -2263,17 +2032,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrosilicio 45% Si"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 2.5
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrosilicio 65% Si"
                 },
                 "dimensionValue2": null,
@@ -2281,17 +2039,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 3600
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrosilicio 65% Si"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 3.6
               },
               {
                 "dimensionValue1": {
@@ -2307,17 +2054,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrosilicio 75% Si"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 4
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrosilicio 90% Si"
                 },
                 "dimensionValue2": null,
@@ -2329,17 +2065,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrosilicio 90% Si"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 4.8
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferromanganeso (7% C)"
                 },
                 "dimensionValue2": null,
@@ -2347,17 +2072,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1300
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferromanganeso (7% C)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.3
               },
               {
                 "dimensionValue1": {
@@ -2373,17 +2087,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferromanganeso (1% C)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.5
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Silicomanganeso"
                 },
                 "dimensionValue2": null,
@@ -2391,17 +2094,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1400
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Silicomanganeso"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.4
               },
               {
                 "dimensionValue1": {
@@ -2417,17 +2109,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Silicio metálico"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 5
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Ferrocromo (sin planta de sínter)"
                 },
                 "dimensionValue2": null,
@@ -2435,17 +2116,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 1300
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrocromo (sin planta de sínter)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.3
               },
               {
                 "dimensionValue1": {
@@ -2461,17 +2131,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Ferrocromo (con planta de sínter)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 1.6
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Plomo, horno Imperial Smelting (ISF)"
                 },
                 "dimensionValue2": null,
@@ -2479,17 +2138,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 590
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Plomo, horno Imperial Smelting (ISF)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.59
               },
               {
                 "dimensionValue1": {
@@ -2505,17 +2153,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Plomo, fundición directa (DS)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.25
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Plomo, materias primas secundarias"
                 },
                 "dimensionValue2": null,
@@ -2527,17 +2164,6 @@
               {
                 "dimensionValue1": {
                   "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Plomo, materias primas secundarias"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.2
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
                   "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
                 },
                 "dimensionValue2": null,
@@ -2545,17 +2171,6 @@
                 "source": "IPCC",
                 "year": 2025,
                 "value": 520
-              },
-              {
-                "dimensionValue1": {
-                  "dimensionCode": "Procesos industriales - Ferroaleaciones y otros metales_Producto o proceso",
-                  "valueName": "Plomo, promedio por defecto (80% ISF, 20% DS)"
-                },
-                "dimensionValue2": null,
-                "rateMeasurementUnitAbbreviation": "kg/kg",
-                "source": "IPCC",
-                "year": 2025,
-                "value": 0.52
               }
             ],
             "allowedMeasurementUnitsAbbreviations": ["g", "kg", "ton"],

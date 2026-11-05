@@ -1,9 +1,9 @@
 ## 1. Seed data (commit: `fix(seed): …`)
 
-- [ ] 1.1 Remove the 70 industrial-process `kg/kg` factors from `tools/seed/src/data/base/methodologies.json`: 35 for 2025 and 35 for 2026, across Cinc, Cemento, Vidrio, Acero, Cal, Aluminio and Ferroaleaciones y otros metales. Use a script with an exact predicate, not hand edits, and keep the file's formatting.
-- [ ] 1.2 Remove the 35 industrial-process `kg/kg` factors (2025) from `tools/seed/src/data/testing/methodologies.json`.
-- [ ] 1.3 Verify by script that the remaining `kg/ton` factors are identical to before (dimension value, source, year, value), and that `base` holds 498 factors: 249 per year, 51 of them IPCC per year.
-- [ ] 1.4 The API global setup seeds `testing` for the whole integration suite. Using the `test-check` skill first, run `pnpm test:api -- /carbonInventories --coverage=false`, `pnpm test:api -- /emissionFactors --coverage=false` and `pnpm test:api -- /methodologies --coverage=false`, and confirm that nothing depended on the removed rows.
+- [x] 1.1 Remove the 70 industrial-process `kg/kg` factors from `tools/seed/src/data/base/methodologies.json`: 35 for 2025 and 35 for 2026, across Cinc, Cemento, Vidrio, Acero, Cal, Aluminio and Ferroaleaciones y otros metales. Use a script with an exact predicate, not hand edits, and keep the file's formatting.
+- [x] 1.2 Remove the 35 industrial-process `kg/kg` factors (2025) from `tools/seed/src/data/testing/methodologies.json`.
+- [x] 1.3 Verify by script that the remaining `kg/ton` factors are identical to before (dimension value, source, year, value), and that `base` holds 498 factors: 249 per year, 51 of them IPCC per year.
+- [x] 1.4 The API global setup seeds `testing` for the whole integration suite. Using the `test-check` skill first, run `pnpm test:api -- /carbonInventories --coverage=false`, `pnpm test:api -- /emissionFactors --coverage=false` and `pnpm test:api -- /methodologies --coverage=false`, and confirm that nothing depended on the removed rows.
 
 ## 2. Seed collision guard (commit: `test(seed): …`)
 
