@@ -3,6 +3,7 @@
 - [ ] 1.1 Remove the 70 industrial-process `kg/kg` factors from `tools/seed/src/data/base/methodologies.json`: 35 for 2025 and 35 for 2026, across Cinc, Cemento, Vidrio, Acero, Cal, Aluminio and Ferroaleaciones y otros metales. Use a script with an exact predicate, not hand edits, and keep the file's formatting.
 - [ ] 1.2 Remove the 35 industrial-process `kg/kg` factors (2025) from `tools/seed/src/data/testing/methodologies.json`.
 - [ ] 1.3 Verify by script that the remaining `kg/ton` factors are identical to before (dimension value, source, year, value), and that `base` holds 498 factors: 249 per year, 51 of them IPCC per year.
+- [ ] 1.4 The API global setup seeds `testing` for the whole integration suite. Using the `test-check` skill first, run `pnpm test:api -- /carbonInventories --coverage=false`, `pnpm test:api -- /emissionFactors --coverage=false` and `pnpm test:api -- /methodologies --coverage=false`, and confirm that nothing depended on the removed rows.
 
 ## 2. Seed collision guard (commit: `test(seed): …`)
 
@@ -15,7 +16,7 @@
   - The error message names subcategory, dimension values, source, year and rate units.
 - [ ] 2.3 Add a data test that loads `measurement_units.json`, `rate_measurement_units.json` and `methodologies.json` for `base` and `testing`, via `generateSeedDataPath` or a direct path. It resolves each rate unit's numerator and denominator by splitting the abbreviation on `/`, and asserts there are no collisions.
 - [ ] 2.4 Check the test against the old data, without `git stash`, since the stash stack is shared across worktrees:
-  1. `git checkout main -- tools/seed/src/data/base/methodologies.json tools/seed/src/data/testing/methodologies.json`
+  1. `git checkout origin/main -- tools/seed/src/data/base/methodologies.json tools/seed/src/data/testing/methodologies.json`
   2. Run `pnpm test:seed`. It must fail with 70 pairs in `base` and 35 in `testing`. Keep that output as PR evidence.
   3. `git checkout HEAD -- <same files>`
   4. Run `pnpm test:seed` again. It must pass.
@@ -44,4 +45,4 @@
   Do not reference downstream tickets. Ask the user for the priority label.
 
 - [ ] 5.3 Draft the follow-up as a Jira subtask of RD-28 and show it to the user before creating it. Scope: in calculator mode, show every allowed unit for the 7 subcategories with no factors, and align the CASO 1 guides.
-- [ ] 5.4 After merge, reset the installed `PD` databases (dev, QA, demo) with `pnpm db:restore:keep-users`, following `docs/operations/migration-history-reset.md`.
+- [ ] 5.4 After merge, reset the installed `PD` databases (dev, QA, demo) with `pnpm db:restore:keep-users`, following `docs/operations/migration-history-reset.md`. Each reset wipes everything except users, so confirm each database with the user before running it. Never run it automatically during apply.
