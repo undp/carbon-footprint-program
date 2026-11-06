@@ -87,13 +87,9 @@ export const RecognitionsScreen: FC = () => {
   };
 
   // `isPending`, not `isLoading`: while the organizations load the query is
-  // disabled, and a disabled query reports `isLoading: false`. A failed request
-  // is not "no recognitions": the snackbar reports it instead.
+  // disabled, and a disabled query reports `isLoading: false`.
   const hasNoRecognitions =
-    !isLoadingOrgs &&
-    !isPendingRecognitions &&
-    !isErrorRecognitions &&
-    recognitions.length === 0;
+    !isLoadingOrgs && !isPendingRecognitions && recognitions.length === 0;
 
   return (
     <Box className="flex flex-1 flex-col gap-6">
@@ -107,26 +103,29 @@ export const RecognitionsScreen: FC = () => {
         onYearChange={setSelectedYear}
       />
 
-      {hasNoRecognitions ? (
-        <ScreenEmptyState
-          title="Aún no tienes huellas con reconocimientos"
-          description="Haz clic en el botón para gestionar tus huellas"
-          action={{
-            label: "Ir a Mis Huellas",
-            onClick: () => navigate({ to: Routes.CARBON_INVENTORIES }),
-          }}
-        />
-      ) : (
-        <>
-          <RecognitionsKpis recognitions={visibleRecognitions} />
-
-          <RecognitionsTable
-            loading={isPendingRecognitions}
-            rows={visibleRecognitions}
-            explanationSlug={RECOGNITIONS_EXPLANATION_SLUGS.MAIN}
+      {/* A failed request is not "no recognitions": the snackbar reports it,
+          and neither the empty state nor zeroed KPIs are shown. */}
+      {!isErrorRecognitions &&
+        (hasNoRecognitions ? (
+          <ScreenEmptyState
+            title="Aún no tienes huellas con reconocimientos"
+            description="Haz clic en el botón para gestionar tus huellas"
+            action={{
+              label: "Ir a Mis Huellas",
+              onClick: () => navigate({ to: Routes.CARBON_INVENTORIES }),
+            }}
           />
-        </>
-      )}
+        ) : (
+          <>
+            <RecognitionsKpis recognitions={visibleRecognitions} />
+
+            <RecognitionsTable
+              loading={isPendingRecognitions}
+              rows={visibleRecognitions}
+              explanationSlug={RECOGNITIONS_EXPLANATION_SLUGS.MAIN}
+            />
+          </>
+        ))}
     </Box>
   );
 };

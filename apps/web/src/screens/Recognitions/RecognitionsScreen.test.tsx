@@ -189,12 +189,14 @@ describe("RecognitionsScreen", () => {
     expect(screen.getByTestId("header")).toBeInTheDocument();
   });
 
-  it("reports a failed request instead of showing the empty state", () => {
+  it("reports a failed request instead of showing the empty state or zeroed KPIs", () => {
     state.isErrorRecognitions = true;
 
     render(<RecognitionsScreen />);
 
     expect(screen.queryByTestId("empty-state")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("kpis")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("rows")).not.toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(enqueueSnackbar).toHaveBeenCalledWith(
       "Error al cargar los reconocimientos",

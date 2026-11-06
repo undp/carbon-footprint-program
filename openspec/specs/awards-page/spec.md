@@ -46,7 +46,7 @@ Whether the organization has recognitions SHALL be decided from its earned recog
 #### Scenario: Recognitions request fails
 
 - **WHEN** the request for the selected organization's recognitions fails
-- **THEN** the screen does not show the no-recognitions empty state and shows the error snackbar "Error al cargar los reconocimientos"
+- **THEN** the screen shows neither the no-recognitions empty state nor the KPI cards and the table, and shows the error snackbar "Error al cargar los reconocimientos"
 
 #### Scenario: Only a self-declared footprint
 
