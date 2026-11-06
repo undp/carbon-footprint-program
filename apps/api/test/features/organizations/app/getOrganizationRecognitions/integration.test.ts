@@ -188,6 +188,49 @@ describe("GET /api/app/organizations/:id/recognitions - Integration Tests", () =
     ).toBe(true);
   });
 
+  describe("Automatically approved measurement recognitions", () => {
+    it("returns the measurement recognition of a self-declared inventory (APPROVED_AUTOMATICALLY)", async () => {
+      // Self-declaring creates a CALCULATION submission that is approved
+      // automatically, while the inventory's display status stays
+      // SELF_DECLARED. The recognitions endpoint must still list it: the web
+      // Recognitions screen derives its years and empty state from this list.
+      const organization = await createTestOrganization(prisma, {
+        status: OrganizationStatus.ACTIVE,
+      });
+      const inventory = await createCarbonInventory(prisma, {
+        organizationId: organization.id,
+        usageMode: "SIMPLIFIED",
+        status: InventoryStatus.ACTIVE,
+        year: 2026,
+        isSelfDeclared: true,
+      });
+      const { submission } = await createTestCarbonInventorySubmission(
+        prisma,
+        inventory.id,
+        SubmissionType.CARBON_INVENTORY_CALCULATION,
+        SubmissionStatus.APPROVED_AUTOMATICALLY,
+        testUserId
+      );
+
+      const response = await app.inject({
+        method: "GET",
+        url: `/api/app/organizations/${organization.id.toString()}/recognitions`,
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(
+        response.body
+      ) as GetOrganizationRecognitionsResponse;
+      expect(body).toEqual([
+        expect.objectContaining({
+          submissionId: submission.id.toString(),
+          submissionType: SubmissionType.CARBON_INVENTORY_CALCULATION,
+          measurementYear: 2026,
+        }),
+      ]);
+    });
+  });
+
   describe("Organization not found", () => {
     it("returns 404 when the organization id does not exist", async () => {
       const response = await app.inject({

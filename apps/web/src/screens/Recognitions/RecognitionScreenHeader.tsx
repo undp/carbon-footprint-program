@@ -41,10 +41,16 @@ export const RecognitionScreenHeader: FC<RecognitionScreenHeaderProps> = ({
       </Typography>
       <Box className="flex flex-wrap gap-3">
         <FormControl size="small" sx={{ minWidth: 140 }}>
-          <InputLabel id="year-select-label">Año</InputLabel>
+          <InputLabel id="year-select-label" shrink>
+            Año
+          </InputLabel>
+          {/* displayEmpty renders "Todos" for the empty value instead of a
+              blank field; the label stays shrunk so it doesn't overlap it. */}
           <Select
             labelId="year-select-label"
             label="Año"
+            displayEmpty
+            notched
             value={selectedYear}
             onChange={(e) => onYearChange(e.target.value)}
           >

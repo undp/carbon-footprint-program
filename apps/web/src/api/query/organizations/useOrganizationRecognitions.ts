@@ -9,22 +9,18 @@ import { organizationKeys } from "./keys";
 
 export const useOrganizationRecognitions = (
   organizationId: string | undefined,
-  year?: string,
   submissionTypes?: SubmissionType[]
 ) =>
   useQuery<GetOrganizationRecognitionsResponse>({
     queryKey: organizationKeys.recognitions(
       organizationId ?? "",
-      year,
       submissionTypes
     ),
     queryFn: async () =>
       apiClient
         .get(`app/organizations/${organizationId}/recognitions`, {
-          searchParams: [
-            ...(year ? [["year", year]] : []),
-            ...(submissionTypes?.map((t) => ["submissionTypes", t]) ?? []),
-          ],
+          searchParams:
+            submissionTypes?.map((t) => ["submissionTypes", t]) ?? [],
         })
         .json(),
     staleTime: STALE_TIME_MS,
