@@ -1,8 +1,9 @@
 ## 1. Branch and preconditions
 
-- [ ] 1.1 Bring this branch to the tip of `feat/mati/multiple-emission-factor-sources` once that branch is rebased on `main`. Check that the base has `main`'s maintainer decimal comma (`NumericInput` in `EditableNumberCell`, `FACTOR_INPUT_DECIMAL_SCALE`, the Spanish texts in `StylizedDataGrid`). Do not start the web tasks (section 7) before it does.
-- [ ] 1.2 Check what `getApiErrorMessage.ts` maps: `METHODOLOGY_NOT_FOUND` has no message today (task 7.9).
-- [ ] 1.3 Set up tests in `packages/utils` (design D10): `type-check` covers `*.test.ts`, `tsconfig.build.json` excludes them, and `pnpm --filter @repo/utils test` runs them. Confirm `apps/api` and `apps/web` resolve a new export after the build.
+- [x] 1.1 Base this branch on `main` with the several-sources change and the maintainer decimal comma (`NumericInput` in `EditableNumberCell`, `FACTOR_INPUT_DECIMAL_SCALE`, the Spanish texts in `StylizedDataGrid`).
+- [ ] 1.2 Check what `getApiErrorMessage.ts` maps: `METHODOLOGY_NOT_FOUND` has no message today (task 7.8).
+- [ ] 1.3 Set up tests in `packages/utils` (design D10): `tsconfig.build.json` excludes `*.test.ts`, `type-check` moves to `tsconfig.json` so it still covers them, and a root `test:utils` script runs them through turbo. Confirm `apps/api` and `apps/web` resolve a new export after the build.
+- [ ] 1.4 Add the `Utils Unit Tests` job to `.github/workflows/ci.yml`, a copy of `seed-test` running `pnpm test:utils`, gated on the `code` filter. After the PR's first run, mark it as a required check in the protection of `main` (repository admin).
 
 ## 2. Shared source comparison
 
@@ -39,7 +40,7 @@
 ## 5. API
 
 - [ ] 5.1 Add `EmissionFactorYearCopyInvalidError` (422, with `details: { violations }` through `attachDetails`) and `EmissionFactorYearCopyConflictError` (409, retryable) to `emissionFactors/errors.ts`.
-- [ ] 5.2 Move the listing's visibility filter into `emissionFactors/helpers.ts` and use it from `getAllEmissionFactors`. Its responses must stay the same; the existing listing tests prove it.
+- [ ] 5.2 Add `visibleEmissionFactorWhere` to `apps/api/src/helpers/` and replace the identical inline filters of `getAllEmissionFactors` and `cloneEmissionFactors` with it (design D6). Behaviour must stay the same; the existing listing and methodology duplication tests prove it. Commit as its own `refactor`.
 - [ ] 5.3 Extract the sum and tolerance of `validateGasDetailsSum` into a non-throwing predicate that `validateGasDetailsSum` itself uses.
 - [ ] 5.4 Add `duplicateEmissionFactorYear/service.ts` per design D6. It runs in one `$transaction`:
   - check the version: 404 when it is missing or DELETED; a published version is accepted (design D2);
@@ -47,7 +48,7 @@
   - map them to the planner's input and run `planEmissionFactorYearCopy`;
   - add a `GAS_DETAILS_MISMATCH` violation for each copied row whose breakdown sums above zero and does not match its value;
   - if there is any violation, answer one 422 with all of them in its details;
-  - `createMany` with every column listed by hand (`gasDetails` from the change or the source factor's stored JSON);
+  - `createMany` with every column listed by hand (`gasDetails` from the change or the source factor's stored JSON, `?? Prisma.JsonNull`; `updatedAt: null`);
   - map P2002 to `EmissionFactorYearCopyConflictError` through a small function in `helpers.ts`; leave other errors to the global handler.
 
   No explicit lock, no raw SQL.
@@ -101,9 +102,8 @@
 
 - [ ] 7.6 Guard unsent edits with `useBlocker` and `enableBeforeUnload`. On success, return to the grid with a snackbar summary. On 409 or 422, keep the edits, show the message, and map 422 details to their rows or groups.
 - [ ] 7.7 Add the «Copiar factores» button to `EmissionFactorsMaintainerScreen.tsx` (through `MaintainerScreenLayout` if it owns the toolbar). It is shown only in edit mode, disabled while a grid row is being edited, and links to the copy page.
-- [ ] 7.8 Resolve the conflict with `main`'s grid edits, if any, keeping `main`'s cells and texts.
-- [ ] 7.9 Add Spanish messages to `getApiErrorMessage.ts`, with cases in its test, for `EMISSION_FACTOR_YEAR_COPY_INVALID`, `EMISSION_FACTOR_YEAR_COPY_CONFLICT` and `METHODOLOGY_NOT_FOUND` (the version deleted by another admin while copying).
-- [ ] 7.10 Add component tests for the copy screen:
+- [ ] 7.8 Add Spanish messages to `getApiErrorMessage.ts`, with cases in its test, for `EMISSION_FACTOR_YEAR_COPY_INVALID`, `EMISSION_FACTOR_YEAR_COPY_CONFLICT` and `METHODOLOGY_NOT_FOUND` (the version deleted by another admin while copying).
+- [ ] 7.9 Add component tests for the copy screen:
   - filtering the subcategory column, with its dimension names as headers, and the quick search;
   - typing «1.000» posts 1000 and typing «0,207» posts 0.207; a stored 1000000 shows «1.000.000»;
   - an emptied value blocks;
@@ -131,7 +131,7 @@
   - copy again and see everything as already there;
   - give two alternatives of one row the same source and see the button disabled;
   - check that the page stays responsive with every row.
-- [ ] 9.2 Run `pnpm test:web` and `pnpm --filter @repo/utils test` (after `test-check`), then `pnpm format && pnpm lint && pnpm type-check`.
+- [ ] 9.2 Run `pnpm test:web` and `pnpm test:utils` (after `test-check`), then `pnpm format && pnpm lint && pnpm type-check`.
 - [ ] 9.3 Before pushing, check that no commit, file or PR text mentions another deployment by name.
-- [ ] 9.4 Write small Conventional Commits per area (utils refactor, types, utils planner, api, api tests, web, seed help text, docs, user manual). Open the PR in English, stacked on the several-sources PR (or against `main` once it is merged), with the screenshots, the upgrade note for deployments in production (help text), and a short review guide (the planner and D5 first). Ask for the priority label.
+- [ ] 9.4 Write small Conventional Commits per area (utils refactor, types, api helper refactor, ci, utils planner, api, api tests, web, seed help text, docs, user manual). Open the PR in English against `main`, with the screenshots, the upgrade note for deployments in production (help text), and a short review guide (the planner and D5 first). Ask for the priority label.
 - [ ] 9.5 Send the open questions of the design to the deployments' methodology teams, stating the implemented assumptions.

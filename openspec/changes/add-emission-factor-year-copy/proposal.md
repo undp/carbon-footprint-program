@@ -34,7 +34,8 @@ None. The copy relies on the per-year and per-source rules of `emission-factor-y
 - **API**:
   - A new feature folder `apps/api/src/features/emissionFactors/duplicateEmissionFactorYear/` (route, handler, service, helpers), registered in the `emission-factors` route group.
   - Two new errors: `EMISSION_FACTOR_YEAR_COPY_INVALID` (422, with per-factor details) and `EMISSION_FACTOR_YEAR_COPY_CONFLICT` (409, retryable). It reuses `METHODOLOGY_NOT_FOUND`.
-  - The listing's visibility filter moves into `emissionFactors/helpers.ts`, and the gas breakdown sum becomes a non-throwing predicate, so the copy reuses both.
+  - The «visible factor» filter, written identically in the listing and in methodology duplication (`cloneEmissionFactors`), becomes one shared helper in `apps/api/src/helpers/`, used by both and by the copy.
+  - The gas breakdown sum becomes a non-throwing predicate, so the copy reports every mismatch.
   - `checkDuplicateEmissionFactor` imports the source comparison from `packages/utils`.
 - **Types**: the request/response contract in `packages/types/src/emissionFactors/duplicateEmissionFactorYear/`.
 - **Utils**: `packages/utils/src/emissionFactorYearCopy.ts` (the pure planner) and the source comparison key, with the package's first unit tests; tests are type-checked and kept out of `dist`.
@@ -46,8 +47,9 @@ None. The copy relies on the per-year and per-source rules of `emission-factor-y
   - Spanish messages in `getApiErrorMessage.ts`;
   - the «Año» window moves into a shared util.
 - **Seed**: the maintainer help text only.
+- **CI**: a `Utils Unit Tests` job runs the `packages/utils` tests, marked as a required check on `main`.
 - **Docs**: `docs/country-implementation-guide/02-seed-content.md` and `user_manual/mantenedor_metodologia/` (slides, screenshots, PDF).
-- **Ordering**: it builds on the several-sources change (open pull request), and needs `main`'s maintainer decimal comma (`NumericInput` in the maintainer cells, Spanish texts in `StylizedDataGrid`) in its base.
+- **Ordering**: it builds on the several-sources change and the maintainer decimal comma (`NumericInput` in the maintainer cells, Spanish texts in `StylizedDataGrid`), both in `main`.
 - **Out of scope**, with the contract left open for each:
   - applying a source to many factors at once: the contract already takes a source per factor;
   - editing the gas breakdown on the copy page;

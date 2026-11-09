@@ -22,7 +22,7 @@ This change replaces "added", in both.
 - `EmissionFactorSourceSchema` (`packages/types`) stores the source trimmed with each whitespace run collapsed. The create and update requests, the maintainer form schema and the seed all use it. Letter case is stored as entered.
 - The partial unique index `emission_factor_unique_subcategory_dims_source` covers `(subcategory_id, dimension_value_1_id, dimension_value_2_id, source, year) WHERE status <> 'DELETED'`. PostgreSQL treats NULLs as distinct, so it only binds factors with both dimension values, and it compares `source` byte for byte. The status is `ACTIVE` or `DELETED`.
 - `validateGasDetailsSum` requires a gas breakdown whose sum is above zero to match the value within `EMISSION_FACTOR_GAS_DETAILS_TOLERANCE`; it throws a 400 on the first mismatch.
-- Deleting a subcategory, a category or a methodology soft-deletes their factors in the same transaction (`softDeleteSubcategoryDependents`). Removing a dimension value an ACTIVE factor uses is refused (`DimensionValueInUseError`). Deleting a whole dimension soft-deletes its factors when the dimension is required, and sets their reference to NULL when it is optional. Through the maintainer, an ACTIVE factor therefore never references deleted structure. The listing's visibility filter (`getAllEmissionFactors/service.ts`) only guards against data written outside it.
+- Deleting a subcategory, a category or a methodology soft-deletes their factors in the same transaction (`softDeleteSubcategoryDependents`). Removing a dimension value an ACTIVE factor uses is refused (`DimensionValueInUseError`). Deleting a whole dimension soft-deletes its factors when the dimension is required, and sets their reference to NULL when it is optional. Through the maintainer, an ACTIVE factor therefore never references deleted structure. The «visible factor» filter, written identically in the listing (`getAllEmissionFactors/service.ts`) and in methodology duplication (`cloneEmissionFactors`), only guards against data written outside it.
 - Creating and updating a factor accept any number as its value. The column is `Decimal(28, 10)`; the listing returns the value as a string.
 
 **Maintainer UI.**
@@ -80,7 +80,7 @@ A route of its own next to the grid: `/admin/emission-factors/copy`, as `routes/
 - **Years.** «Origen» offers the years with factors in the version. «Destino» offers the «Año» column's window minus the source year. The window (`YEAR_OPTIONS`) moves out of `useEmissionFactorColumns.tsx` into `screens/Maintainer/utils/emissionFactorYearOptions.ts`.
   - Changing «Origen» with edits asks for confirmation and discards them, because they belong to other factors.
   - Changing «Destino» keeps the edits and recomputes which rows already exist in the target year.
-  - The default years (the latest source year and the next one) are pinned on the first listing, so a listing read later with a newer year does not move them under the edits.
+  - The default years are the latest source year and the next one; when the next one is outside the window, the target defaults to the newest window year other than the source. They are pinned on the first listing, so a listing read later with a newer year does not move them under the edits.
 - **Table.** One `StylizedDataGrid`, virtualized, re-enabling sorting, the column filter and the quick search, with no row selection. It is not `MaintainerDataGrid`: there is no `useFieldArray` and no editing row to pin. Columns: subcategory, both dimension values (headed by the dimension names when the subcategory filter names exactly one subcategory), rate unit, source and target source, source and target value. A changed target value shows its variation as a chip beside the source value («+17 %», or «÷1000» in warning colour), with a tooltip that explains it without repeating the values («El valor 2027 cambia +17 % respecto al de 2026.»). The chip shows at most four digits; the tooltip has the whole number. Rows are keyed by source factor id, so filtering cannot land an edit on another row. The subcategory is a column, not a group row, because the community edition has no grouping.
 - **Numbers.** The target value cell is a `NumericInput` with `FACTOR_INPUT_DECIMAL_SCALE`, committed on blur, and every value on the page (source values, the target values of existing rows, chips and tooltips) is displayed with `formatter` in the app locale. Typing «1.000» therefore means one thousand, as it does in the grid. Edits hold a `number | null`, never text: an emptied cell is `null` and blocks (D4). A row counts as edited when its target value differs numerically from the source value, or its target source, normalized, differs from the stored source.
 - **Sources.** The target source is a free-text autocomplete with the sources already in the version as suggestions. It is normalized as `EmissionFactorSourceSchema` stores it (trimmed, whitespace runs collapsed), so a stray space neither blanks a source nor becomes a second one.
@@ -102,7 +102,7 @@ A route of its own next to the grid: `/admin/emission-factors/copy`, as `routes/
 
 ### D2. Any methodology version in edit mode, the published one included
 
-The page is offered wherever the factor grid writes. The API accepts every version that exists and is not `DELETED`, and refuses a missing or `DELETED` one with `METHODOLOGY_NOT_FOUND`, as the single-row endpoints do.
+The page is offered wherever the factor grid writes. The API accepts every version that exists and is not `DELETED`, and refuses a missing or `DELETED` one with `METHODOLOGY_NOT_FOUND` (`methodologies/errors.ts`). The single-row endpoints take no version, only a subcategory, and refuse none: the copy, which names the version, is the first factor write that checks it.
 
 It is safe over the published version for the same reason a grid edit is. The copy only creates factors: it never changes or deletes an existing one, so nothing a footprint depends on moves, and the usage guard applies to the copied factors as to any other. Footprints of other years are not affected, because capture filters factors by year. Footprints of the target year keep what they saved and are offered the new factors when they capture again. That is the point: an existing footprint stays bound to its version, so copying into the published version is the only way a footprint already in progress gets the new year.
 
@@ -205,12 +205,13 @@ $transaction:
 return summary
 ```
 
-- **Visibility filter.** The listing's, moved into `emissionFactors/helpers.ts` and reused: ACTIVE factor, and each dimension value NULL or ACTIVE under an ACTIVE dimension. A hidden factor is neither copied nor reported.
+- **Visibility filter.** One helper, `visibleEmissionFactorWhere`, in `apps/api/src/helpers/`: ACTIVE factor, and each dimension value NULL or ACTIVE under an ACTIVE dimension. The listing and `cloneEmissionFactors` replace their identical inline copies with it, and the copy uses it. It goes to the shared folder because two features use it, which the api-backend convention requires before promoting a helper. A hidden factor is neither copied nor reported.
+  - _Alternative_: share it only between the listing and the copy, inside `emissionFactors/helpers.ts`. Rejected: methodology duplication would keep its own definition, and the day one of them changes, duplicating a version and copying a year would disagree on which factors exist.
 - **Gas breakdown.** The sum and tolerance of `validateGasDetailsSum` are extracted as a non-throwing predicate that both use, so every mismatch is reported in the same 422 as the planner's violations instead of a 400 on the first one.
 - **`createMany`** lists every column by hand, as `cloneEmissionFactors` does:
   - `subcategoryId`, both dimension value ids and `rateMeasurementUnitId` from the source factor;
-  - `source` and `value` from the change or the source factor, and `gasDetails` from the change or the source factor's stored JSON;
-  - `year: targetYear`, `status: ACTIVE`, `createdById: user.id`.
+  - `source` and `value` from the change or the source factor, and `gasDetails` from the change or the source factor's stored JSON (`?? Prisma.JsonNull`, as `cloneEmissionFactors` writes it);
+  - `year: targetYear`, `status: ACTIVE`, `createdById: user.id` and `updatedAt: null`, as the single-row create and `cloneEmissionFactors` write it: the column is `@updatedAt`, and leaving it out would stamp every copied factor as edited at creation.
 
   A full year is about 250 rows, far below PostgreSQL's bind-parameter limit; Prisma splits larger inserts anyway.
 
@@ -244,7 +245,12 @@ The seed upserts standalone explanations by slug, so a new deployment gets the t
 
 ### D10. `packages/utils` gets its first tests
 
-The package already runs `vitest run --passWithNoTests` but has no test file, and `tsconfig.build.json` includes all of `src`. Its `type-check` covers the tests, and its build excludes `*.test.ts`, so `dist` ships no tests and `apps/api` and `apps/web` do not resolve them.
+The package already runs `vitest run --passWithNoTests` but has no test file. Today both its `build` and its `type-check` use `tsconfig.build.json`, which includes all of `src`. The change splits them: `tsconfig.build.json` excludes `*.test.ts`, so `dist` ships no tests, and `type-check` moves to `tsconfig.json`, so the tests are still type-checked.
+
+No CI job runs these tests today: CI runs the API, web and seed suites only. A `Utils Unit Tests` job, a copy of `Seed Unit Tests` gated on the same `code` filter, runs them through turbo (`pnpm test:utils`), and it is marked as a required check on `main`. Without it, the planner's rules, the ones the page and the API share, would be tested only locally.
+
+- _Alternative_: a step inside `Test (web)`, already required. Rejected: a planner failure would be reported under the web's name.
+- _Alternative_: a job that is not required, as `Seed Unit Tests` is. Rejected: a broken shared rule could merge green.
 
 ## Risks / Trade-offs
 
@@ -258,7 +264,6 @@ The package already runs `vitest run --passWithNoTests` but has no test file, an
 - **[Rows with a gas breakdown cannot change value on the page]** → Change them in the maintainer after copying. No seeded factor has a breakdown, so this only touches factors broken down by hand.
 - **[A target row with another source blocks the copied alternative]** → Intended: the copy completes a year and never adds alternatives.
 - **[Exact-row matching lets the target hold rows the single-row create refuses]** → Intended. It is the seed's shape (rate-unit variants), and that single-row limitation already exists.
-- **[Stacked on an open pull request]** The several-sources pull request must be rebased on `main` (decimal comma) before this branch builds on it, and merged before this one. → This branch follows that branch's tip; its own commits start after it.
 
 ## Migration Plan
 
