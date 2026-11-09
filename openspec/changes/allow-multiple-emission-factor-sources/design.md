@@ -61,7 +61,7 @@ Deleting `validateSourceConsistency` alone enables A, because the duplicate key 
 
 The update service passes the effective source and runs the check when the subcategory, a dimension value, the year **or the source** changes. Without the source trigger, renaming a factor's source onto another factor of the same key would pass.
 
-`EmissionFactorDuplicateError` keeps its code. Its web message names the source and the year: «Ya existe un factor de emisión con la misma sub-categoría, variables, fuente y año.»
+`EmissionFactorDuplicateError` keeps its code. Its web message names the source and the year, and says how sources compare (D3): «Ya existe un factor de emisión con la misma sub-categoría, variables, fuente y año. Las fuentes que solo difieren en mayúsculas o espacios cuentan como la misma.» Without the second sentence, an administrator who types `Defra 2025` next to `DEFRA 2025` gets a duplicate error for sources that look different.
 
 - _Alternative_: add the rate unit to the key at the same time. Rejected: the key leaves the rate unit out today, and changing that is a separate change.
 
@@ -123,7 +123,7 @@ The "no longer offered" row also covers a gap that exists today with one source:
 
 ### D8. Help text and user manual
 
-The «Fuente» row of `emission-factors-maintainer.md` states the duplicate rule with the source, and that a subcategory may use several sources in one year.
+The «Fuente» row of `emission-factors-maintainer.md` states that a subcategory may use several sources in one year, and the duplicate rule with the source, including that sources differing only in letter case or whitespace count as the same one (D3).
 
 The seed upserts standalone explanations by slug, so a new deployment gets the text. A deployment already in production does not re-run the seed: `seed.ts` runs the whole seed, and the upsert would overwrite any local edit of that help text. Its administrator replaces the «Fuente» row by hand in the explanations maintainer (`PATCH /api/admin/explanations/:slug`), with the text the pull request carries.
 
