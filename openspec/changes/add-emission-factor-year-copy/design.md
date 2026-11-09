@@ -262,6 +262,7 @@ No CI job runs these tests today: CI runs the API, web and seed suites only. A `
 - **[A new source edition is typed row by row]** Moving «DEFRA 2026» to «DEFRA 2027» means editing about 195 rows. → Accepted for now; a bulk "replace source" is the first follow-up, and the contract already takes it.
 - **[Precision]** Values travel as JSON numbers, as in the single-row create, into `Decimal(28, 10)`. `NumericInput` limits input to `FACTOR_INPUT_DECIMAL_SCALE` decimals. → Same behaviour as the grid.
 - **[Concurrent copies duplicate factors outside the index]** → Accepted. Admin-only and rare.
+- **[A value of 0 is copied]** The copy accepts any number, as the single-row API does, although the maintainer form refuses 0. → The base seed has real zero factors (walking and cycling commutes, two fertilizer components) that a yearly copy must carry; a value changed to 0 shows a «−100 %» warning.
 - **[Rows with a gas breakdown cannot change value on the page]** → Change them in the maintainer after copying. No seeded factor has a breakdown, so this only touches factors broken down by hand.
 - **[A target row with another source blocks the copied alternative]** → Intended: the copy completes a year and never adds alternatives.
 - **[Exact-row matching lets the target hold rows the single-row create refuses]** → Intended. It is the seed's shape (rate-unit variants), and that single-row limitation already exists.

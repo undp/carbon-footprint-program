@@ -46,6 +46,14 @@ describe("getCopyValueWarning", () => {
     expect(formatCopyValueVariation(variation!)).toBe("−200 %");
   });
 
+  // A copied 0 is accepted (the seed has real zeros: walking, cycling, some
+  // fertilizer components), so a typo to 0 is caught by this warning instead.
+  it("warns about a change to zero as −100 %", () => {
+    const variation = getCopyValueWarning(0.177, 0);
+    expect(variation).toMatchObject({ kind: "percent", isWarning: true });
+    expect(formatCopyValueVariation(variation!)).toBe("−100 %");
+  });
+
   it("warns about a change from zero", () => {
     expect(getCopyValueWarning(0, 1)).toEqual({
       kind: "fromZero",
