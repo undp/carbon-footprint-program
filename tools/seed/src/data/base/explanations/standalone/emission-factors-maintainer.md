@@ -45,6 +45,33 @@ La operación se realiza como eliminación lógica: el Factor queda marcado como
 
 Rige la misma regla que para editar: un Factor que alguna fuente de emisión vigente esté usando no puede eliminarse. Las fuentes de emisión de huellas anteriores que lo usaron y luego cambiaron a otro Factor no lo bloquean, porque ya no dependen de él.
 
+### Copiar factores de un año
+
+Carga el catálogo de un año nuevo a partir del de otro año, en una sola operación. Se abre con "Copiar factores" en el encabezado, sólo en modo edición, y trabaja sobre la versión de Metodología que se está editando.
+
+1. Elegir el año de **Origen** (los años que ya tienen Factores) y el de **Destino**.
+2. Revisar la tabla: hay una fila por cada Factor del año de origen. En cada una pueden corregirse la **Fuente** y el **Valor** que tendrá la copia; los números se escriben con coma decimal, como en la tabla de Factores. Un Factor que no corresponde copiar se quita con el ícono de eliminar y se recupera con la flecha circular.
+3. Hacer clic en "Copiar N factores a [año]".
+
+Se puede usar de dos maneras:
+
+- **En la Metodología activa.** Lo copiado queda disponible de inmediato para las huellas del año de destino, también para las que ya están en curso.
+- **En una versión duplicada**, que se publica después. Lo copiado sólo llega a las huellas creadas tras publicarla.
+
+Qué se copia y qué no:
+
+- Se copia cada Factor del año de origen con su Sub-categoría, Variables, Unidad y desglose GEI, y con la Fuente y el Valor de la fila.
+- Un Factor cuya fila ya existe en el año de destino (misma Sub-categoría, Variables y Unidad, con cualquier Fuente o Valor) no se copia ni se sobrescribe: aparece bloqueado. Así, copiar dos veces no duplica nada y copiar a un año a medio cargar sólo completa lo que falta.
+- El año de origen no cambia.
+
+Qué impide copiar y qué sólo avisa:
+
+- **Impide copiar:** una Fuente o un Valor vacíos, y dos Factores que quedarían en la misma fila con la misma Fuente (las Fuentes que sólo difieren en mayúsculas o espacios cuentan como la misma). La celda marcada explica el motivo.
+- **Sólo avisa:** un Valor que cambia más de un 25 % respecto del año de origen, o que es 10 veces mayor o menor (suele ser un error de unidad). La fila lo muestra junto al valor de origen y el pie cuenta las alertas.
+- Un Factor con desglose GEI se copia con su Valor; si cambia, se corrige después en esta tabla junto con el desglose.
+
+La copia es atómica: se crean todos los Factores o ninguno. Si otra persona carga Factores en el año de destino al mismo tiempo, la copia se rechaza sin escribir nada y basta con volver a intentarla.
+
 ## Consideraciones
 
 > ⚠️ **Impacto en datos existentes**
