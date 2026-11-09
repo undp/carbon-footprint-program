@@ -39,10 +39,10 @@
 
 ## 5. API
 
-- [ ] 5.1 Add `EmissionFactorYearCopyInvalidError` (422, with `details: { violations }` through `attachDetails`) and `EmissionFactorYearCopyConflictError` (409, retryable) to `emissionFactors/errors.ts`.
+- [x] 5.1 Add `EmissionFactorYearCopyInvalidError` (422, with `details: { violations }` through `attachDetails`) and `EmissionFactorYearCopyConflictError` (409, retryable) to `emissionFactors/errors.ts`.
 - [x] 5.2 Add `visibleEmissionFactorWhere` to `apps/api/src/helpers/` and replace the identical inline filters of `getAllEmissionFactors` and `cloneEmissionFactors` with it (design D6). Behaviour must stay the same; the existing listing and methodology duplication tests prove it. Commit as its own `refactor`.
-- [ ] 5.3 Extract the sum and tolerance of `validateGasDetailsSum` into a non-throwing predicate that `validateGasDetailsSum` itself uses.
-- [ ] 5.4 Add `duplicateEmissionFactorYear/service.ts` per design D6. It runs in one `$transaction`:
+- [x] 5.3 Extract the sum and tolerance of `validateGasDetailsSum` into a non-throwing predicate that `validateGasDetailsSum` itself uses.
+- [x] 5.4 Add `duplicateEmissionFactorYear/service.ts` per design D6. It runs in one `$transaction`:
   - check the version: 404 when it is missing or DELETED; a published version is accepted (design D2);
   - read both years with the visibility filter;
   - map them to the planner's input and run `planEmissionFactorYearCopy`;
@@ -53,11 +53,11 @@
 
   No explicit lock, no raw SQL.
 
-- [ ] 5.5 Add `route.ts` (`POST /duplicate-year`, 200/400/404/409/422) and `handler.ts` answering 200. Register the route in `apps/api/src/routes/api/emission-factors/index.ts`.
+- [x] 5.5 Add `route.ts` (`POST /duplicate-year`, 200/400/404/409/422) and `handler.ts` answering 200. Register the route in `apps/api/src/routes/api/emission-factors/index.ts`.
 
 ## 6. API tests
 
-- [ ] 6.1 Add `apps/api/test/features/emissionFactors/duplicateEmissionFactorYear/integration.test.ts`, covering the API scenarios of the spec:
+- [x] 6.1 Add `apps/api/test/features/emissionFactors/duplicateEmissionFactorYear/integration.test.ts`, covering the API scenarios of the spec:
   - authorization;
   - validation (including a blank source), the unknown and the deleted version;
   - a copy into the published version;
@@ -76,9 +76,9 @@
   - a copied factor edited and deleted;
   - a source factor locked by the usage guard still copied, and its copy editable;
   - the full testing catalogue in one call.
-- [ ] 6.2 Unit-test the P2002 → `EMISSION_FACTOR_YEAR_COPY_CONFLICT` mapping function. A real collision needs a concurrent write and would make the test flaky.
-- [ ] 6.3 Add the route to `apps/api/test/features/emissionFactors/authorization/integration.test.ts`.
-- [ ] 6.4 Run `test-check`, then `pnpm test:api -- /emissionFactors --coverage=false` and `pnpm test:api -- /methodologies --coverage=false`.
+- [x] 6.2 Unit-test the P2002 → `EMISSION_FACTOR_YEAR_COPY_CONFLICT` mapping function. A real collision needs a concurrent write and would make the test flaky.
+- [x] 6.3 Add the route to `apps/api/test/features/emissionFactors/authorization/integration.test.ts`.
+- [x] 6.4 Run `test-check`, then `pnpm test:api -- /emissionFactors --coverage=false` and `pnpm test:api -- /methodologies --coverage=false`.
 
 ## 7. Web
 
