@@ -40,7 +40,7 @@
 ## 5. API
 
 - [ ] 5.1 Add `EmissionFactorYearCopyInvalidError` (422, with `details: { violations }` through `attachDetails`) and `EmissionFactorYearCopyConflictError` (409, retryable) to `emissionFactors/errors.ts`.
-- [ ] 5.2 Add `visibleEmissionFactorWhere` to `apps/api/src/helpers/` and replace the identical inline filters of `getAllEmissionFactors` and `cloneEmissionFactors` with it (design D6). Behaviour must stay the same; the existing listing and methodology duplication tests prove it. Commit as its own `refactor`.
+- [x] 5.2 Add `visibleEmissionFactorWhere` to `apps/api/src/helpers/` and replace the identical inline filters of `getAllEmissionFactors` and `cloneEmissionFactors` with it (design D6). Behaviour must stay the same; the existing listing and methodology duplication tests prove it. Commit as its own `refactor`.
 - [ ] 5.3 Extract the sum and tolerance of `validateGasDetailsSum` into a non-throwing predicate that `validateGasDetailsSum` itself uses.
 - [ ] 5.4 Add `duplicateEmissionFactorYear/service.ts` per design D6. It runs in one `$transaction`:
   - check the version: 404 when it is missing or DELETED; a published version is accepted (design D2);

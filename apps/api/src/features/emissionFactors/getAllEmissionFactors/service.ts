@@ -1,12 +1,10 @@
 import type { Prisma, PrismaClient } from "@repo/database";
 import {
-  EmissionFactorDimensionStatus,
-  EmissionFactorDimensionValueStatus,
-  EmissionFactorStatus,
   User,
   type GetAllEmissionFactorsQuery,
   type GetAllEmissionFactorsResponse,
 } from "@repo/types";
+import { visibleEmissionFactorWhere } from "@/helpers/visibleEmissionFactorWhere.js";
 import { parseGasDetails } from "../mappers.js";
 import {
   activeLineReferenceWhere,
@@ -28,39 +26,7 @@ export const getAllEmissionFactorsService = async (
           },
         }
       : {}),
-    status: EmissionFactorStatus.ACTIVE,
-    AND: [
-      {
-        OR: [
-          { dimensionValue1Id: null },
-          {
-            dimensionValue1: {
-              is: {
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-                dimension: {
-                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                },
-              },
-            },
-          },
-        ],
-      },
-      {
-        OR: [
-          { dimensionValue2Id: null },
-          {
-            dimensionValue2: {
-              is: {
-                status: EmissionFactorDimensionValueStatus.ACTIVE,
-                dimension: {
-                  is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                },
-              },
-            },
-          },
-        ],
-      },
-    ],
+    ...visibleEmissionFactorWhere,
   };
 
   const emissionFactors = await prismaClient.emissionFactor.findMany({

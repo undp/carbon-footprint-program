@@ -8,6 +8,7 @@ import {
   SubcategoryRecommendationStatus,
   SubcategoryStatus,
 } from "@repo/types";
+import { visibleEmissionFactorWhere } from "@/helpers/visibleEmissionFactorWhere.js";
 
 // `createManyAndReturn` on PostgreSQL preserves input order, which is what
 // makes the `original[i].id → created[i].id` zip below safe.
@@ -227,44 +228,12 @@ export const cloneEmissionFactors = async (
     return;
   }
 
-  // Skip rows whose referenced dim value (or its parent dimension) is inactive,
-  // otherwise the clone would copy factors that point at deleted config.
+  // Only the factors the maintainer shows: a factor whose dimension value (or
+  // its dimension) is inactive would be cloned pointing at deleted config.
   const originalFactors = await tx.emissionFactor.findMany({
     where: {
       subcategoryId: { in: oldSubcategoryIds },
-      status: EmissionFactorStatus.ACTIVE,
-      AND: [
-        {
-          OR: [
-            { dimensionValue1Id: null },
-            {
-              dimensionValue1: {
-                is: {
-                  status: EmissionFactorDimensionValueStatus.ACTIVE,
-                  dimension: {
-                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                  },
-                },
-              },
-            },
-          ],
-        },
-        {
-          OR: [
-            { dimensionValue2Id: null },
-            {
-              dimensionValue2: {
-                is: {
-                  status: EmissionFactorDimensionValueStatus.ACTIVE,
-                  dimension: {
-                    is: { status: EmissionFactorDimensionStatus.ACTIVE },
-                  },
-                },
-              },
-            },
-          ],
-        },
-      ],
+      ...visibleEmissionFactorWhere,
     },
   });
 
