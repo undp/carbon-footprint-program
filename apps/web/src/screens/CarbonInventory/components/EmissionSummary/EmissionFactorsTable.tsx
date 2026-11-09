@@ -1,11 +1,17 @@
 import { FC, useMemo } from "react";
 import { Box, Skeleton, Typography } from "@mui/material";
-import { DataGrid } from "@mui/x-data-grid";
+import { DataGrid, type GridLocaleText } from "@mui/x-data-grid";
 import { esES } from "@mui/x-data-grid/locales";
 import type { GetEmissionFactorsResponse } from "@repo/types";
 import { useEmissionFactorsColumns } from "./useEmissionFactorsColumns";
 import { LoadingErrorStateMessage } from "../LoadingErrorStateMessage";
 import { EmptyStateMessage } from "../EmptyStateMessage";
+
+// A `localeText` prop replaces the theme's grid locale, so spread it first.
+const LOCALE_TEXT: Partial<GridLocaleText> = {
+  ...esES.components.MuiDataGrid.defaultProps.localeText,
+  noRowsLabel: "Sin factores",
+};
 
 interface EmissionFactorsTableProps {
   data: GetEmissionFactorsResponse | undefined;
@@ -62,11 +68,7 @@ export const EmissionFactorsTable: FC<EmissionFactorsTableProps> = ({
           disableColumnSelector
           disableRowSelectionOnClick
           checkboxSelection={false}
-          // A `localeText` prop replaces the theme's grid locale, so spread it first.
-          localeText={{
-            ...esES.components.MuiDataGrid.defaultProps.localeText,
-            noRowsLabel: "Sin factores",
-          }}
+          localeText={LOCALE_TEXT}
           sx={{
             borderRadius: "8px",
             border: "1px solid #d9d9d9",

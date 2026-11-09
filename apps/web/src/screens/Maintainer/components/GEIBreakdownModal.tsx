@@ -17,7 +17,7 @@ import {
 } from "@mui/material";
 import { Info as InfoIcon, Warning as WarningIcon } from "@mui/icons-material";
 import type { z } from "zod";
-import type { GasDetailsSchema } from "@repo/types";
+import { GasDetailsSchema } from "@repo/types";
 import { NumericInput } from "@/components";
 import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
 import { GEI_FORMULAS, GEI_NAMES } from "@/labels/gei";
@@ -36,23 +36,20 @@ interface GEIBreakdownModalProps {
   onClose: () => void;
 }
 
-/** Breakdown rows: fossil CO₂, then the other gases in the fixed GEI order. */
+/** Breakdown rows, one per gas of `GasDetailsSchema` in its key order. */
 const GAS_FIELDS: {
   key: keyof GasDetails;
   label: string;
   description: string;
-}[] = [
-  {
-    key: "CO2_FOSSIL",
-    label: `${GEI_FORMULAS.CO2} fósil`,
-    description: `${GEI_NAMES.CO2} de origen fósil`,
-  },
-  ...(["CH4", "N2O", "HFC", "PFC", "SF6", "NF3"] as const).map((key) => ({
-    key,
-    label: GEI_FORMULAS[key],
-    description: GEI_NAMES[key],
-  })),
-];
+}[] = GasDetailsSchema.keyof().options.map((key) =>
+  key === "CO2_FOSSIL"
+    ? {
+        key,
+        label: `${GEI_FORMULAS.CO2} fósil`,
+        description: `${GEI_NAMES.CO2} de origen fósil`,
+      }
+    : { key, label: GEI_FORMULAS[key], description: GEI_NAMES[key] }
+);
 
 const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   gasDetails,

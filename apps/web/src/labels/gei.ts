@@ -31,14 +31,12 @@ export const CONSIDERED_GEI_LABELS = Object.fromEntries(
   ])
 ) as Record<ConsideredGei, string>;
 
-export const getConsideredGeiLabel = (code: ConsideredGei): string =>
-  CONSIDERED_GEI_LABELS[code] ?? code;
-
 /**
  * Joins the labels of the given codes in the fixed order of
- * `REDUCTION_PROJECT_CONSIDERED_GEI`, whatever order they were stored in.
+ * `REDUCTION_PROJECT_CONSIDERED_GEI`, whatever order they were stored in. The
+ * API validates every stored code, so each one has a label.
  */
 export const formatConsideredGei = (codes: readonly ConsideredGei[]): string =>
   REDUCTION_PROJECT_CONSIDERED_GEI.filter((code) => codes.includes(code))
-    .map(getConsideredGeiLabel)
+    .map((code) => CONSIDERED_GEI_LABELS[code])
     .join(", ");

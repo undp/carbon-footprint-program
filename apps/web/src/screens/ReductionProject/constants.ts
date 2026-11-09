@@ -1,6 +1,6 @@
 import { REDUCTION_PROJECT_CONSIDERED_GEI } from "@repo/constants";
 import { GwpSourceEnum, type ConsideredGei, type GwpSource } from "@repo/types";
-import { getConsideredGeiLabel } from "@/labels/gei";
+import { CONSIDERED_GEI_LABELS } from "@/labels/gei";
 
 export const GWP_OPTIONS: { label: string; value: GwpSource }[] = [
   { label: "IPCC AR4", value: GwpSourceEnum.IPCC_AR4 },
@@ -10,7 +10,7 @@ export const GWP_OPTIONS: { label: string; value: GwpSource }[] = [
 
 export const GEI_ITEMS: { label: string; value: ConsideredGei }[] =
   REDUCTION_PROJECT_CONSIDERED_GEI.map((value) => ({
-    label: getConsideredGeiLabel(value),
+    label: CONSIDERED_GEI_LABELS[value],
     value,
   }));
 
