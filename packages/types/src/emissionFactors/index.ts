@@ -6,3 +6,5 @@ export * from "./updateEmissionFactor/schemas.js";
 export * from "./updateEmissionFactor/types.js";
 export * from "./deleteEmissionFactor/schemas.js";
 export * from "./deleteEmissionFactor/types.js";
+export * from "./duplicateEmissionFactorYear/schemas.js";
+export * from "./duplicateEmissionFactorYear/types.js";
