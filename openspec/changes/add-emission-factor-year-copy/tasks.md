@@ -118,8 +118,8 @@
 
 ## 8. Help text and docs
 
-- [ ] 8.1 Add the «Copiar factores de un año» action to `tools/seed/src/data/base/explanations/standalone/emission-factors-maintainer.md` (design D8). The testing seed has no help texts.
-- [ ] 8.2 Update «Loading factors after launch» in `docs/country-implementation-guide/02-seed-content.md` (design D9).
+- [x] 8.1 Add the «Copiar factores de un año» action to `tools/seed/src/data/base/explanations/standalone/emission-factors-maintainer.md` (design D8). The testing seed has no help texts.
+- [x] 8.2 Update «Loading factors after launch» in `docs/country-implementation-guide/02-seed-content.md` (design D9).
 - [ ] 8.3 Add the copy to `user_manual/mantenedor_metodologia/` with the `user-manual:manual-slides` skill: one or two slides in the factors section, a checklist line, annotated screenshots of the copy page from a local stack, and the PDF exported again.
 
 ## 9. Verification and PR
