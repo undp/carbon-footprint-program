@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { EmissionFactorSourceSchema } from "@repo/types";
 
 const HEX_RGB_REGEX = /^#[0-9A-Fa-f]{3}$/;
 const HEX_RGBA_REGEX = /^#[0-9A-Fa-f]{4}$/;
@@ -75,7 +76,9 @@ export const FullMethodologyDataSchema = z.array(
                     })
                     .nullable(),
                   rateMeasurementUnitAbbreviation: z.string().min(1),
-                  source: z.string().min(1),
+                  // Normalized as the API stores it, so a seeded source and one
+                  // typed in the maintainer are compared alike.
+                  source: EmissionFactorSourceSchema,
                   // The footprint year the factor is valid for. Required: the
                   // base catalogue is born dated, so no factor can be seeded
                   // without saying which year it serves.
