@@ -113,7 +113,7 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
     expect(body.source).toBe("IPCC 2024");
   });
 
-  it("should reject source update when another active factor in the same subcategory has a different source", async () => {
+  it("should accept a source-only change to a source the subcategory does not use", async () => {
     const methodology = await createEmptyMethodologyVersion(prisma, {
       name: "Test - Source Conflict EF",
     });
@@ -143,9 +143,172 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
       payload: { source: "Source B" },
     });
 
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
+    expect(body.source).toBe("Source B");
+    const sources = await prisma.emissionFactor.findMany({
+      where: {
+        subcategoryId: subcategory.id,
+        status: EmissionFactorStatus.ACTIVE,
+      },
+      select: { source: true },
+      orderBy: { source: "asc" },
+    });
+    expect(sources.map(({ source }) => source)).toEqual([
+      "Source A",
+      "Source B",
+    ]);
+  });
+
+  it("should return 409 when a source-only change lands on an existing key and source", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Source Rename Duplicate EF",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Source Rename Duplicate Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Source Rename Duplicate Subcategory",
+    });
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+      source: "DEFRA 2025",
+    });
+    const efToRename = await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Factor nacional" }
+    );
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/emission-factors/${efToRename.id.toString()}`,
+      payload: { source: "DEFRA 2025" },
+    });
+
     expect(response.statusCode).toBe(409);
-    const body = JSON.parse(response.body) as { code: string };
-    expect(body.code).toBe("EMISSION_FACTOR_SOURCE_CONFLICT");
+    expect((JSON.parse(response.body) as { code: string }).code).toBe(
+      "EMISSION_FACTOR_DUPLICATE"
+    );
+    const stored = await prisma.emissionFactor.findUniqueOrThrow({
+      where: { id: efToRename.id },
+      select: { source: true },
+    });
+    expect(stored.source).toBe("Factor nacional");
+  });
+
+  it("should return 409 when a source-only change lands on an existing source in other letter case", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Source Case Duplicate EF",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Source Case Duplicate Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Source Case Duplicate Subcategory",
+    });
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+      source: "DEFRA 2025",
+    });
+    const efToRename = await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Factor nacional" }
+    );
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/emission-factors/${efToRename.id.toString()}`,
+      payload: { source: "defra 2025" },
+    });
+
+    expect(response.statusCode).toBe(409);
+    expect((JSON.parse(response.body) as { code: string }).code).toBe(
+      "EMISSION_FACTOR_DUPLICATE"
+    );
+    const stored = await prisma.emissionFactor.findUniqueOrThrow({
+      where: { id: efToRename.id },
+      select: { source: true },
+    });
+    expect(stored.source).toBe("Factor nacional");
+  });
+
+  it("should store the updated source trimmed and with single spaces", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Source Normalize EF",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Source Normalize Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Source Normalize Subcategory",
+    });
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    const ef = await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Old Source" }
+    );
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/emission-factors/${ef.id.toString()}`,
+      payload: { source: "  IPCC   2006 " },
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(
+      (JSON.parse(response.body) as UpdateEmissionFactorResponse).source
+    ).toBe("IPCC 2006");
+    const stored = await prisma.emissionFactor.findUniqueOrThrow({
+      where: { id: ef.id },
+      select: { source: true },
+    });
+    expect(stored.source).toBe("IPCC 2006");
+  });
+
+  it("should return 400 for a whitespace-only source and change nothing", async () => {
+    const methodology = await createEmptyMethodologyVersion(prisma, {
+      name: "Test - Source Blank EF",
+    });
+    const category = await createTestCategory(prisma, methodology.id, {
+      name: "Test - Source Blank Category",
+      position: 1,
+    });
+    const subcategory = await createTestSubcategory(prisma, category.id, {
+      name: "Test - Source Blank Subcategory",
+    });
+    const rateUnitId = await getTestRateMeasurementUnitId(prisma);
+
+    const ef = await createTestEmissionFactor(
+      prisma,
+      subcategory.id,
+      rateUnitId,
+      { source: "Old Source" }
+    );
+
+    const response = await app.inject({
+      method: "PATCH",
+      url: `/api/emission-factors/${ef.id.toString()}`,
+      payload: { source: "   " },
+    });
+
+    expect(response.statusCode).toBe(400);
+    const stored = await prisma.emissionFactor.findUniqueOrThrow({
+      where: { id: ef.id },
+      select: { source: true },
+    });
+    expect(stored.source).toBe("Old Source");
   });
 
   it("should return 404 when emission factor does not exist", async () => {
@@ -205,10 +368,9 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
       expect(stored.year).toBe(2026);
     });
 
-    it("should return 409 when a year-only change lands on a year whose source differs", async () => {
-      const { subcategory, rateUnitId } = await buildBaseSubcategory(
-        "Year Source Conflict"
-      );
+    it("should accept a year-only change into a year whose factor has another source", async () => {
+      const { subcategory, rateUnitId } =
+        await buildBaseSubcategory("Year Other Source");
 
       await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
         source: "DEFRA 2025",
@@ -227,10 +389,10 @@ describe("PATCH /api/emission-factors/:id - Integration Tests", () => {
         payload: { year: 2025 },
       });
 
-      expect(response.statusCode).toBe(409);
-      expect((JSON.parse(response.body) as { code: string }).code).toBe(
-        "EMISSION_FACTOR_SOURCE_CONFLICT"
-      );
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body) as UpdateEmissionFactorResponse;
+      expect(body.year).toBe(2025);
+      expect(body.source).toBe("DEFRA 2026");
     });
 
     it("should return 409 when a year-only change collides with the key of that year", async () => {

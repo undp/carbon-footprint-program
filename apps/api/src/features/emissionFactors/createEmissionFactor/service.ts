@@ -16,7 +16,6 @@ import { UserNotFoundError } from "../../users/errors.js";
 import {
   findDimensionValue,
   checkDuplicateEmissionFactor,
-  validateSourceConsistency,
   validateGasDetailsSum,
 } from "../helpers.js";
 
@@ -46,13 +45,6 @@ export const createEmissionFactorService = async (
         throw new SubcategoryNotFoundForEmissionFactorError();
       }
 
-      await validateSourceConsistency(
-        tx,
-        subcategory.id,
-        data.source,
-        data.year
-      );
-
       // Find-or-create dimension values if provided
       let dimensionValue1Id: bigint | null = null;
       let dimensionValue2Id: bigint | null = null;
@@ -80,7 +72,8 @@ export const createEmissionFactorService = async (
         subcategory.id,
         dimensionValue1Id,
         dimensionValue2Id,
-        data.year
+        data.year,
+        data.source
       );
 
       const emissionFactor = await tx.emissionFactor.create({

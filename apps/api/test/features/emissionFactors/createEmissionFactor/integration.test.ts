@@ -13,6 +13,7 @@ import { createTestCategory } from "@test/factories/categoryFactory.js";
 import { createTestSubcategory } from "@test/factories/subcategoryFactory.js";
 import {
   getTestRateMeasurementUnitId,
+  createTestEmissionFactor,
   createTestEmissionFactorDimension,
   createTestEmissionFactorDimensionValue,
   TEST_EMISSION_FACTOR_YEAR,
@@ -447,8 +448,8 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       );
     });
 
-    it("should return 409 for a different source in the same subcategory and year", async () => {
-      const { payload } = await buildEmissionFactorPayload({
+    it("should accept the same activity with another source in the same year", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
         source: "DEFRA 2026",
         year: 2026,
       });
@@ -463,13 +464,136 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       const second = await app.inject({
         method: "POST",
         url: "/api/emission-factors/",
-        payload: { ...payload, source: "IPCC 2020" },
+        payload: { ...payload, source: "Factor nacional" },
+      });
+
+      expect(second.statusCode).toBe(201);
+      const stored = await prisma.emissionFactor.findMany({
+        where: {
+          subcategoryId: subcategory.id,
+          status: EmissionFactorStatus.ACTIVE,
+        },
+        select: { source: true },
+        orderBy: { source: "asc" },
+      });
+      expect(stored.map(({ source }) => source)).toEqual([
+        "DEFRA 2026",
+        "Factor nacional",
+      ]);
+    });
+
+    it("should accept different activities with different sources in the same year", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "SENI",
+        dimensionValue1Name: "Diésel",
+        year: 2026,
+      });
+
+      const dim1 = await createTestEmissionFactorDimension(
+        prisma,
+        subcategory.id,
+        { position: 1, isRequired: true }
+      );
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "Diésel",
+      });
+      await createTestEmissionFactorDimensionValue(prisma, dim1.id, {
+        value: "GLP",
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: {
+          ...payload,
+          dimensionValue1Name: "GLP",
+          source: "IPCC 2006",
+        },
+      });
+
+      expect(second.statusCode).toBe(201);
+      expect(
+        (JSON.parse(second.body) as CreateEmissionFactorResponse).source
+      ).toBe("IPCC 2006");
+    });
+
+    it("should return 409 for a source that differs only in letter case", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "DEFRA 2025",
+        year: 2026,
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, source: "defra 2025" },
       });
 
       expect(second.statusCode).toBe(409);
       expect((JSON.parse(second.body) as { code: string }).code).toBe(
-        "EMISSION_FACTOR_SOURCE_CONFLICT"
+        "EMISSION_FACTOR_DUPLICATE"
       );
+    });
+
+    it("should return 409 when a stored source differs only in whitespace", async () => {
+      const { payload, subcategory, rateUnitId } =
+        await buildEmissionFactorPayload({
+          source: "DEFRA 2025",
+          year: 2026,
+        });
+      // Written straight to the database: the API normalizes whitespace now,
+      // but rows stored before it did may still carry it.
+      await createTestEmissionFactor(prisma, subcategory.id, rateUnitId, {
+        source: " DEFRA  2025 ",
+        year: 2026,
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(409);
+      expect((JSON.parse(response.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_DUPLICATE"
+      );
+    });
+
+    it("should accept sources that differ only in an underscore and a hyphen", async () => {
+      const { payload } = await buildEmissionFactorPayload({
+        source: "IPCC-2006",
+        year: 2026,
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+      expect(first.statusCode).toBe(201);
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, source: "IPCC_2006" },
+      });
+
+      expect(second.statusCode).toBe(201);
     });
 
     it("should allow a different source in the same subcategory for another year", async () => {
@@ -511,6 +635,61 @@ describe("POST /api/emission-factors/ - Integration Tests", () => {
       expect(
         await prisma.emissionFactor.count({
           where: { subcategoryId: BigInt(payload.subcategoryId) },
+        })
+      ).toBe(0);
+    });
+  });
+
+  describe("Source normalization", () => {
+    it("should store the source trimmed and with single spaces", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "  DEFRA   2025 ",
+        year: 2026,
+      });
+
+      const first = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(first.statusCode).toBe(201);
+      expect(
+        (JSON.parse(first.body) as CreateEmissionFactorResponse).source
+      ).toBe("DEFRA 2025");
+      const stored = await prisma.emissionFactor.findFirstOrThrow({
+        where: { subcategoryId: subcategory.id },
+        select: { source: true },
+      });
+      expect(stored.source).toBe("DEFRA 2025");
+
+      const second = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload: { ...payload, source: "DEFRA 2025" },
+      });
+
+      expect(second.statusCode).toBe(409);
+      expect((JSON.parse(second.body) as { code: string }).code).toBe(
+        "EMISSION_FACTOR_DUPLICATE"
+      );
+    });
+
+    it("should return 400 for a whitespace-only source and write nothing", async () => {
+      const { payload, subcategory } = await buildEmissionFactorPayload({
+        source: "   ",
+      });
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/emission-factors/",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(400);
+      expect(
+        await prisma.emissionFactor.count({
+          where: { subcategoryId: subcategory.id },
         })
       ).toBe(0);
     });

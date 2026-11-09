@@ -449,9 +449,9 @@ describe("Emission factor usage guard - Integration Tests", () => {
     // The line's "Fuente factor" is a string frozen on the snapshot, and the
     // capture screen offers only the sources of the factors it was given. A
     // renamed source therefore strands the line exactly as a moved one does.
-    // Nothing upstream prevents the rename: `validateSourceConsistency` only
-    // rejects a source that disagrees with another active factor of the same
-    // subcategory and year, and this factor is alone in its own.
+    // Nothing upstream prevents the rename: the duplicate check only refuses a
+    // source that another active factor of the same key already uses, and this
+    // factor is alone in its own.
     it("detaches them when the source is renamed", async () => {
       const context = await createUnusedFactor("Update Source");
       const { input } = await referenceFactor(context, { claimed: false });

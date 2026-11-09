@@ -18,7 +18,6 @@ import {
   checkDuplicateEmissionFactor,
   countActiveLineReferences,
   detachFactorFromUnclaimedLines,
-  validateSourceConsistency,
   validateGasDetailsSum,
   validateSubcategoryChangeDimensions,
 } from "../helpers.js";
@@ -80,24 +79,6 @@ export const updateEmissionFactorService = async (
 
       const effectiveYear = data.year ?? existing.year;
       const effectiveSource = data.source ?? existing.source;
-
-      if (
-        data.source !== undefined ||
-        data.subcategoryId !== undefined ||
-        data.year !== undefined
-      ) {
-        const targetSubcategoryId =
-          data.subcategoryId !== undefined
-            ? BigInt(data.subcategoryId)
-            : existing.subcategoryId;
-        await validateSourceConsistency(
-          tx,
-          targetSubcategoryId,
-          effectiveSource,
-          effectiveYear,
-          emissionFactorId
-        );
-      }
 
       if (data.gasDetails !== undefined || data.value !== undefined) {
         const gd = data.gasDetails ?? parseGasDetails(existing.gasDetails, id);
@@ -166,6 +147,7 @@ export const updateEmissionFactorService = async (
       const dim1Changed = data.dimensionValue1Name !== undefined;
       const dim2Changed = data.dimensionValue2Name !== undefined;
       const yearChanged = data.year !== undefined;
+      const sourceChanged = data.source !== undefined;
 
       const effectiveSubcategoryId =
         updateData.subcategoryId != null
@@ -182,13 +164,20 @@ export const updateEmissionFactorService = async (
           ? BigInt(updateData.rateMeasurementUnitId as bigint)
           : existing.rateMeasurementUnitId;
 
-      if (subcategoryChanged || dim1Changed || dim2Changed || yearChanged) {
+      if (
+        subcategoryChanged ||
+        dim1Changed ||
+        dim2Changed ||
+        yearChanged ||
+        sourceChanged
+      ) {
         await checkDuplicateEmissionFactor(
           tx,
           effectiveSubcategoryId,
           effectiveDim1Id,
           effectiveDim2Id,
           effectiveYear,
+          effectiveSource,
           emissionFactorId
         );
       }
@@ -212,10 +201,9 @@ export const updateEmissionFactorService = async (
       // snapshot freezes the source string, and the capture screen builds the
       // "Fuente factor" options from the sources of the factors it is offered.
       // Rename the source and the line is left holding one that is no longer
-      // among them. `validateSourceConsistency` does not stand in the way,
-      // since it only rejects a source that disagrees with another active
-      // factor of the same subcategory and year -- a factor alone in its
-      // subcategory and year can be renamed freely.
+      // among them. Nothing stands in the way of a rename: a subcategory can
+      // hold several sources in a year, and the duplicate check only refuses
+      // a new source that another factor of the same key already uses.
       //
       // `value` is deliberately not in the list. A snapshot that keeps the old
       // value while the catalogue moves on is the whole point of freezing it.
