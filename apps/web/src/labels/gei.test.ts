@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { REDUCTION_PROJECT_CONSIDERED_GEI } from "@repo/constants";
-import { CONSIDERED_GEI_LABELS, formatConsideredGei } from "./consideredGei";
+import { CONSIDERED_GEI_LABELS, formatConsideredGei } from "./gei";
 
 describe("CONSIDERED_GEI_LABELS", () => {
   it("has a label for every considered GEI code", () => {

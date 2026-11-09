@@ -3,7 +3,7 @@ import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
 import { formatter } from "./formatting";
 import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
-import { formatConsideredGei } from "@/labels/consideredGei";
+import { formatConsideredGei } from "@/labels/gei";
 import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(

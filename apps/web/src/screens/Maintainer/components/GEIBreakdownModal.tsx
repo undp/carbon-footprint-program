@@ -20,6 +20,7 @@ import type { z } from "zod";
 import type { GasDetailsSchema } from "@repo/types";
 import { NumericInput } from "@/components";
 import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
+import { GEI_FORMULAS, GEI_NAMES } from "@/labels/gei";
 import { formatter } from "@/utils/formatting";
 
 type GasDetails = z.infer<typeof GasDetailsSchema>;
@@ -35,28 +36,23 @@ interface GEIBreakdownModalProps {
   onClose: () => void;
 }
 
-// TODO: build the gas list from a centralized source of truth
-const GAS_FIELDS = [
+/** Breakdown rows: fossil CO₂, then the other gases in the fixed GEI order. */
+const GAS_FIELDS: {
+  key: keyof GasDetails;
+  label: string;
+  description: string;
+}[] = [
   {
-    key: "CO2_FOSSIL" as const,
-    label: "CO\u2082 fósil",
-    description: "Dióxido de carbono de origen fósil",
+    key: "CO2_FOSSIL",
+    label: `${GEI_FORMULAS.CO2} fósil`,
+    description: `${GEI_NAMES.CO2} de origen fósil`,
   },
-  { key: "CH4" as const, label: "CH\u2084", description: "Metano" },
-  { key: "N2O" as const, label: "N\u2082O", description: "Óxido nitroso" },
-  { key: "HFC" as const, label: "HFC", description: "Hidrofluorocarbonos" },
-  { key: "PFC" as const, label: "PFC", description: "Perfluorocarbonos" },
-  {
-    key: "SF6" as const,
-    label: "SF\u2086",
-    description: "Hexafluoruro de azufre",
-  },
-  {
-    key: "NF3" as const,
-    label: "NF\u2083",
-    description: "Trifluoruro de nitrógeno",
-  },
-] as const;
+  ...(["CH4", "N2O", "HFC", "PFC", "SF6", "NF3"] as const).map((key) => ({
+    key,
+    label: GEI_FORMULAS[key],
+    description: GEI_NAMES[key],
+  })),
+];
 
 const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   gasDetails,

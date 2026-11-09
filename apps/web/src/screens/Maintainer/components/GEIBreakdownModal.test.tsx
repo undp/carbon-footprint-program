@@ -31,6 +31,30 @@ const saveButton = () =>
   screen.getByRole("button", { name: "Guardar desglose" });
 
 describe("GEIBreakdownModal", () => {
+  it("lists fossil CO₂ and then each gas by formula and name", () => {
+    renderModal(0);
+
+    const rows = screen
+      .getAllByRole("row")
+      .slice(1, 8)
+      .map((row) =>
+        Array.from(row.querySelectorAll("td"))
+          .slice(0, 2)
+          .map((cell) => cell.textContent)
+          .join(" · ")
+      );
+
+    expect(rows).toEqual([
+      "CO₂ fósil · Dióxido de carbono de origen fósil",
+      "CH₄ · Metano",
+      "N₂O · Óxido nitroso",
+      "HFC · Hidrofluorocarbonos",
+      "PFC · Perfluorocarbonos",
+      "SF₆ · Hexafluoruro de azufre",
+      "NF₃ · Trifluoruro de nitrógeno",
+    ]);
+  });
+
   it("keeps a decimal comma while typing", () => {
     const { co2Fossil } = renderModal(0);
 
