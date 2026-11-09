@@ -54,7 +54,7 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue1Name: z.string().nullable(),
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
-  source: z.string().min(1, "Fuente es requerida"),
+  source: EmissionFactorSourceSchema,
   // A new row is born without a year and the admin must choose one: guessing
   // the current year dated factors silently, and a factor valid for the wrong
   // year is offered to the wrong footprints. `null` is what an unchosen year
