@@ -22,7 +22,8 @@ A deployment that wants one source per subcategory keeps it by loading one sourc
   - With a single source for a line, the source is selected automatically, as today. With more than one, nothing is selected and the line needs the user's choice to be complete.
   - After a later edit (measurement unit, optional dimension), a line that holds a catalogue source re-resolves its factor against that source. Today it is left with the source and no factor, and choosing the same source again does nothing. A source no longer offered for the line is cleared.
 - **Maintainer:** the source lock (`emissionFactorSourceLock.ts`) and its write-back, tooltip and snackbar are removed. The «Fuente» cell is free text with the existing suggestions.
-- **Help text and messages:** `emission-factors-maintainer.md` no longer says that the factors of a subcategory share one source per year, and states the duplicate rule with the source. The duplicate error message names the source and the year.
+- **Help text and messages:** `emission-factors-maintainer.md` no longer says that the factors of a subcategory share one source per year, and states the duplicate rule with the source. The duplicate error message names the source and the year. Deployments already in production update that help text by hand in the explanations maintainer.
+- **User manual:** the methodology maintainer chapter no longer states the one-source rule, nor that capture always loads the factor alone. Its PDF is exported again.
 - **No migration:** the partial unique index `emission_factor_unique_subcategory_dims_source` already includes `source`.
 
 ## Capabilities
@@ -44,6 +45,7 @@ A deployment that wants one source per subcategory keeps it by loading one sourc
   - Capture: `useEmissionEditorForm.ts` and `emissionFactorService.ts` with its test.
   - `getApiErrorMessage.ts` and its test.
 - **Seed:** `tools/seed/src/data/base/explanations/standalone/emission-factors-maintainer.md`. The seeded catalogue has one source per subcategory and year, and no source with case or whitespace variants, so no seed data changes.
+- **User manual:** `user_manual/mantenedor_metodologia/mantenedor_metodologia.html` and its PDF. The calculator chapter already says that the factor loads alone with one source and that the user chooses with several.
 - **Unchanged, checked:**
   - Unit conversion: `getCarbonInventoryMethodology` keeps each factor's source, so overlaps between sources become options, not ambiguity.
   - The seed collision check (`emission-factor-unit-uniqueness`) already keys on the source.

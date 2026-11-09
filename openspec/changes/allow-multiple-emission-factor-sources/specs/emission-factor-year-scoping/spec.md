@@ -48,6 +48,12 @@ The partial unique index on `emission_factor` SHALL include the year as a plain 
 - **WHEN** an administrator changes only the source of the second factor to `"DEFRA 2025"`
 - **THEN** the request SHALL be rejected as a duplicate
 
+#### Scenario: Renaming the source onto an existing key in other letter case is a duplicate
+
+- **GIVEN** two ACTIVE factors of the same subcategory, dimension values and year, with sources `"DEFRA 2025"` and `"Factor nacional"`, and no line using the second
+- **WHEN** an administrator changes only the source of the second factor to `"defra 2025"`
+- **THEN** the request SHALL be rejected as a duplicate
+
 #### Scenario: Changing a factor's source to one its subcategory does not use is accepted
 
 - **GIVEN** two ACTIVE factors of a subcategory in the same year for different dimension values, both with `source = "DEFRA 2025"`, and no line using the second

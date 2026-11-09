@@ -73,7 +73,7 @@ The set it reads is the factors of one activity in one year: a handful of rows, 
 
 Normalizing the stored side too covers rows written before D4, which the maintainer may have stored with stray whitespace.
 
-- _Alternative_: `source: { equals, mode: "insensitive" }` in the `where`. It has precedent in the codebase (`organizationIdentityCollision.ts`). Rejected: Prisma 7 compiles insensitive filters on PostgreSQL to `ILIKE`, where `_` and `%` are wildcards, so `"IPCC_2006"` would be a duplicate of `"IPCC-2006"`. Escaping the pattern works but buries the rule in an escaping detail. It still would not fold internal whitespace on rows stored before D4.
+- _Alternative_: `source: { equals, mode: "insensitive" }` in the `where`. It has precedent in the codebase (`organizationIdentityCollision.ts`). Rejected: Prisma 7's PostgreSQL query compiler builds insensitive filters with `ILIKE` (it carries `ILIKE` and no `LOWER(`), where `_` and `%` are wildcards, so `"IPCC_2006"` would likely be a duplicate of `"IPCC-2006"`. Even if `equals` escaped them, it would not fold internal whitespace on rows stored before D4. The application comparison avoids both questions.
 - _Alternative_: let letter case distinguish sources, as PostgreSQL does. Rejected: the one-source rule used to catch `"Defra 2025"` next to `"DEFRA 2025"` as a conflict. Without the rule and without this check, the typo becomes a second option in capture, which the user cannot tell apart.
 - _Alternative_: a unique index on `lower(source)`. Rejected: it needs a migration, still leaves factors with a missing dimension value uncovered, and the application check is the one that blocks anyway.
 
@@ -121,9 +121,18 @@ The "no longer offered" row also covers a gap that exists today with one source:
 - **Line synchronization** freezes the source the client sends, without checking it against the referenced factor. That is the same trust it gives the value today, and the usage guard keeps a used factor's source from changing.
 - **Footprint duplication and methodology duplication** copy factors and lines as they are.
 
-### D8. Help text through the seed
+### D8. Help text and user manual
 
-The «Fuente» row of `emission-factors-maintainer.md` states the duplicate rule with the source, and that a subcategory may use several sources in one year. The per-subcategory texts that say «El campo "Fuente factor" no debes modificarlo» stay true while each activity has one source, and they change with the data that gives an activity a second one.
+The «Fuente» row of `emission-factors-maintainer.md` states the duplicate rule with the source, and that a subcategory may use several sources in one year.
+
+The seed upserts standalone explanations by slug, so a new deployment gets the text. A deployment already in production does not re-run the seed: `seed.ts` runs the whole seed, and the upsert would overwrite any local edit of that help text. Its administrator replaces the «Fuente» row by hand in the explanations maintainer (`PATCH /api/admin/explanations/:slug`), with the text the pull request carries.
+
+- _Alternative_: re-run the seed. Rejected: it runs every seed step over live data and overwrites local edits.
+- _Alternative_: a data migration that rewrites the text. Rejected: it also overwrites local edits, and puts per-deployment content into schema migrations.
+
+The methodology maintainer chapter of the user manual (`user_manual/mantenedor_metodologia/`) states the one-source rule (the «desglose por gas» note) and says that capture loads the factor alone. Both sentences change, and the chapter's PDF is exported again with the `user-manual:manual-slides` export. The export also picks up an earlier HTML-only edit of that chapter («Factor Propio» removed). The calculator chapter already describes the choice with several sources.
+
+The per-subcategory texts that say «El campo "Fuente factor" no debes modificarlo» stay true while each activity has one source, and they change with the data that gives an activity a second one.
 
 ### D9. Specs and archive order
 
@@ -139,7 +148,12 @@ The year-scoping delta modifies "Uniqueness accounts for the year across all enf
 
 ## Migration Plan
 
-No schema change and no migration. The help text ships through the seed. Rollback: revert the pull request (see the rollback risk).
+No schema change and no migration.
+
+- New deployments get the help text through the seed.
+- Deployments already in production: after upgrading, an administrator replaces the «Fuente» row of the «Mantenedor de factores de emisión» help in the explanations maintainer, with the text in the pull request (D8).
+
+Rollback: revert the pull request (see the rollback risk), and restore the previous help text the same way.
 
 ## Open Questions
 
