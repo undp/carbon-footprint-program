@@ -7,6 +7,7 @@ import {
   EmissionFactorDimensionValueBaseSchema,
   RateMeasurementUnitBaseSchema,
   EmissionFactorDimensionBaseSchema,
+  EmissionFactorSourceSchema,
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
@@ -21,7 +22,7 @@ export const CreateEmissionFactorRequestSchema = z.strictObject({
     .nullable()
     .describe("Name for dimension value 2 (find-or-create)"),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
-  source: z.string().min(1, "Fuente es requerida"),
+  source: EmissionFactorSourceSchema,
   year: EmissionFactorBaseSchema.shape.year,
   gasDetails: GasDetailsSchema,
   value: z.number(),

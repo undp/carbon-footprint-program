@@ -6,6 +6,7 @@ import {
   RateMeasurementUnitBaseSchema,
   EmissionFactorBaseSchema,
   EmissionFactorDimensionBaseSchema,
+  EmissionFactorSourceSchema,
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
@@ -23,7 +24,7 @@ export const UpdateEmissionFactorRequestSchema = z
     dimensionValue2Name:
       EmissionFactorDimensionBaseSchema.shape.name.nullable(),
     rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
-    source: z.string().min(1),
+    source: EmissionFactorSourceSchema,
     year: EmissionFactorBaseSchema.shape.year,
     gasDetails: GasDetailsSchema,
     value: z.number(),
