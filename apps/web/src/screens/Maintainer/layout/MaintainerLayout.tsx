@@ -6,8 +6,6 @@ import { sidebarTransition } from "@/theme";
 import {
   DashboardOutlined,
   MenuBookOutlined,
-  TuneOutlined,
-  HistoryOutlined,
   ScienceOutlined,
   AccountTreeOutlined,
   Co2Outlined,
@@ -128,12 +126,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     ],
   },
   {
-    text: "Parámetros",
-    icon: <TuneOutlined />,
-    path: Routes.ADMIN_PARAMETERS,
-    requiredRoles: [SystemRole.SUPERADMIN],
-  },
-  {
     text: capitalize(VOCAB.organization.noun.plural),
     icon: <BusinessOutlined />,
     path: Routes.ADMIN_ORGANIZATIONS,
@@ -163,11 +155,6 @@ const SIDEBAR_DEFS: SidebarDef[] = [
     text: "Explicaciones",
     icon: <InfoOutlined />,
     path: Routes.ADMIN_EXPLANATIONS,
-  },
-  {
-    text: "Historial de cambios",
-    icon: <HistoryOutlined />,
-    path: Routes.ADMIN_CHANGE_HISTORY,
   },
 ];
 
