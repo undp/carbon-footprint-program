@@ -80,11 +80,11 @@
 - [x] 7.1 Check that `rg -n "validateSourceConsistency|SOURCE_CONFLICT|SourceConflict|SQL Server|collation" apps packages tools` returns nothing related to this change.
 - [x] 7.2 `pnpm format && pnpm lint && pnpm type-check`, with no warnings.
 - [x] 7.3 Small Conventional Commits, one per area: openspec change, types, api (with its tests), web maintainer, web capture, seed help and web messages, user manual. No tracker references.
-- [ ] 7.4 Pull request against `main`, title and description in English. The description states:
+- [x] 7.4 Pull request against `main`, title and description in English. The description states:
   - cases A and B, and the methodology costs (proposal);
   - that a deployment keeping one source loads one source;
   - the case-insensitive duplicate check, and why it runs in the application;
   - no migration;
   - the upgrade step for deployments already in production: replace the «Fuente» row of the help text in the explanations maintainer, with the new Spanish text quoted for copying (design D8);
   - the archive order after `add-emission-factor-year` (design D9).
-- [ ] 7.5 Labels: `priority: medium`, `type: feature`, `area: api`, `area: web`, `area: packages`, `area: database`, `area: docs`.
+- [x] 7.5 Labels: `priority: medium`, `type: feature`, `area: api`, `area: web`, `area: packages`, `area: database`, `area: docs`.
