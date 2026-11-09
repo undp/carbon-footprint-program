@@ -182,3 +182,34 @@ The reduction-project list SHALL offer a "Postular a reconocimiento de reducció
 
 - **WHEN** the list renders a DRAFT project
 - **THEN** a delete action is available for it, and it is absent for non-draft projects
+
+### Requirement: Considered GEI cover the seven Kyoto gases
+
+A reduction project's considered GEI SHALL be chosen from these codes, in this order: `CO2`, `CH4`, `N2O`, `HFC`, `PFC`, `SF6`, `NF3`. The API SHALL accept and return `N2O` like the other codes. Stored codes SHALL stay unchanged. The form, the detail and the Excel export SHALL show each gas as name + formula:
+
+| Code  | Label                          |
+| ----- | ------------------------------ |
+| `CO2` | Dióxido de carbono (CO₂)       |
+| `CH4` | Metano (CH₄)                   |
+| `N2O` | Óxido nitroso (N₂O)            |
+| `HFC` | Hidrofluorocarbonos (HFC)      |
+| `PFC` | Perfluorocarbonos (PFC)        |
+| `SF6` | Hexafluoruro de azufre (SF₆)   |
+| `NF3` | Trifluoruro de nitrógeno (NF₃) |
+
+The Excel export SHALL list the selected gases in the order of the table, whatever order they were ticked or stored in.
+
+#### Scenario: Ticking N₂O
+
+- **WHEN** a user ticks «Óxido nitroso (N₂O)» on a reduction project and saves
+- **THEN** the project stores `N2O` among its considered GEI, and the detail shows «Óxido nitroso (N₂O)» ticked
+
+#### Scenario: API accepts N₂O
+
+- **WHEN** a create or update request sends `consideredGei: ["CO2", "N2O"]`
+- **THEN** the request succeeds, the project stores `["CO2", "N2O"]`, and its detail (`GET /reduction-projects/:id`) returns `consideredGei: ["CO2", "N2O"]`
+
+#### Scenario: Export order
+
+- **WHEN** a project's considered GEI are stored as `["SF6", "N2O", "CO2"]` and the user exports it
+- **THEN** the «GEI Considerados» row reads «Dióxido de carbono (CO₂), Óxido nitroso (N₂O), Hexafluoruro de azufre (SF₆)»
