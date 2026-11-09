@@ -370,7 +370,14 @@ export const useEmissionEditorForm = ({
         !!formLine.factorSource &&
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
-      if (isOwnFactorSelected || !areAllRequiredFieldsSelected) return;
+      // Until the rate units load, no source looks offered, and the line
+      // would lose a source it keeps once they arrive.
+      if (
+        isOwnFactorSelected ||
+        !areAllRequiredFieldsSelected ||
+        !rateMeasurementUnits
+      )
+        return;
 
       const resolution = resolveFactorSource(
         getOfferedFactorSources(formLine),
@@ -384,6 +391,7 @@ export const useEmissionEditorForm = ({
     [
       subcategory,
       getValues,
+      rateMeasurementUnits,
       getOfferedFactorSources,
       handleFactorSourceChange,
       resetFactorRelatedFields,
