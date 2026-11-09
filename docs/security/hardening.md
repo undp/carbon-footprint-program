@@ -485,8 +485,9 @@ ship are frozen until Dependabot bumps the digest — and the upstream images
 (`node:26-alpine`, `nginxinc/nginx-unprivileged`) are rebuilt on their own
 cadence, days after Alpine publishes a patched package. To keep that lag from
 shipping a known-vulnerable library, each runtime stage upgrades the affected
-Alpine packages explicitly (currently `libcrypto3` / `libssl3`, for
-CVE-2026-14456). The upgrade is scoped to named packages rather than a blanket
+Alpine packages explicitly (currently `libcrypto3` / `libssl3` for
+CVE-2026-14456, `musl` / `musl-utils` for CVE-2026-107891 and `zlib` for
+CVE-2026-85091). The upgrade is scoped to named packages rather than a blanket
 `apk upgrade`, so it cannot move anything the digest pin is meant to hold still
 — notably nginx's 1.30.x stable branch.
 
