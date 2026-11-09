@@ -8,6 +8,8 @@ import type {
   CreateEmissionFactorResponse,
   UpdateEmissionFactorRequest,
   UpdateEmissionFactorResponse,
+  DuplicateEmissionFactorYearRequest,
+  DuplicateEmissionFactorYearResponse,
 } from "@repo/types";
 
 export const useEmissionFactors = (methodologyVersionId?: string) =>
@@ -76,6 +78,27 @@ export const useDeleteEmissionFactor = () => {
     mutationFn: async (emissionFactorId) => {
       await apiClient.delete(`emission-factors/${emissionFactorId}`);
     },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        predicate: (query) =>
+          query.queryKey.includes(
+            MaintainerQueryKey.EmissionFactorsUpdateDependency
+          ),
+      });
+    },
+  });
+};
+
+/** Copies the factors of one year into another; see the year copy page. */
+export const useDuplicateEmissionFactorYear = () => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    DuplicateEmissionFactorYearResponse,
+    Error,
+    DuplicateEmissionFactorYearRequest
+  >({
+    mutationFn: (data) =>
+      apiClient.post("emission-factors/duplicate-year", { json: data }).json(),
     onSuccess: () => {
       void queryClient.invalidateQueries({
         predicate: (query) =>

@@ -53,3 +53,24 @@ export const SubcategoryChangeMissingDimensionsError = createError(
   "When changing subcategoryId, dimensionValue1Name and dimensionValue2Name must be explicitly provided",
   400
 );
+
+/**
+ * The year copy would break a factor rule. Every violation found is listed in
+ * `details.violations` (attached with `attachDetails`), each with its reason
+ * and source factor, so the copy page can mark the rows. Nothing is written.
+ */
+export const EmissionFactorYearCopyInvalidError = createError(
+  "EMISSION_FACTOR_YEAR_COPY_INVALID",
+  "The copy would break the emission factor rules; see details.violations",
+  422
+);
+
+/**
+ * A concurrent write created a factor with the same unique index key while the
+ * copy ran. Nothing was written, and a retry recomputes the copy.
+ */
+export const EmissionFactorYearCopyConflictError = createError(
+  "EMISSION_FACTOR_YEAR_COPY_CONFLICT",
+  "Another write created a factor of the target year while copying; retry",
+  409
+);

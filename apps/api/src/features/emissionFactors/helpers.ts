@@ -6,6 +6,7 @@ import {
   EmissionFactorStatus,
   InventoryStatus,
 } from "@repo/types";
+import { emissionFactorSourceKey } from "@repo/utils";
 import { EMISSION_FACTOR_GAS_DETAILS_TOLERANCE } from "@/config/constants.js";
 import {
   DimensionNotConfiguredError,
@@ -68,7 +69,9 @@ export async function findDimensionValue(
  * them. Two sources are the same source when they are equal after trimming,
  * collapsing each whitespace run to one space and ignoring letter case, so
  * `"defra 2025"` duplicates `"DEFRA 2025"`; otherwise a typo would reach
- * capture as a second option nobody can tell apart.
+ * capture as a second option nobody can tell apart. That rule is
+ * `emissionFactorSourceKey` (`@repo/utils`), shared with the year copy so both
+ * agree on what a second source is.
  *
  * That comparison runs here rather than in the `where`: PostgreSQL compares
  * `text` exactly, and comparing normalized strings does not depend on how
@@ -121,19 +124,14 @@ export async function checkDuplicateEmissionFactor(
     select: { source: true },
   });
 
-  const incomingSource = normalizeSourceForComparison(source);
+  const incomingSource = emissionFactorSourceKey(source);
   const isDuplicate = sameKeyFactors.some(
-    (factor) => normalizeSourceForComparison(factor.source) === incomingSource
+    (factor) => emissionFactorSourceKey(factor.source) === incomingSource
   );
 
   if (isDuplicate) {
     throw new EmissionFactorDuplicateError();
   }
-}
-
-/** The form two sources are compared in by `checkDuplicateEmissionFactor`. */
-function normalizeSourceForComparison(source: string): string {
-  return source.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /**
@@ -315,6 +313,27 @@ export async function detachFactorFromUnclaimedLines(
 }
 
 /**
+ * Whether a gas breakdown matches the declared value: a breakdown summing to
+ * zero (none given) always does, any other must sum to the value within
+ * `EMISSION_FACTOR_GAS_DETAILS_TOLERANCE`. The year copy calls it per factor to
+ * report every mismatch at once; `validateGasDetailsSum` throws on it.
+ */
+export function gasDetailsMatchValue(
+  gasDetails: Record<string, number>,
+  declaredValue: number
+): boolean {
+  const gasSum = sumGasDetails(gasDetails);
+  return (
+    gasSum <= 0 ||
+    Math.abs(gasSum - declaredValue) <= EMISSION_FACTOR_GAS_DETAILS_TOLERANCE
+  );
+}
+
+function sumGasDetails(gasDetails: Record<string, number>): number {
+  return Object.values(gasDetails).reduce((sum, v) => sum + v, 0);
+}
+
+/**
  * Validates that the gas details breakdown sums to the declared value.
  * Skips validation when the breakdown sums to zero.
  */
@@ -322,13 +341,9 @@ export function validateGasDetailsSum(
   gasDetails: Record<string, number>,
   declaredValue: number
 ): void {
-  const gasSum = Object.values(gasDetails).reduce((sum, v) => sum + v, 0);
-  if (
-    gasSum > 0 &&
-    Math.abs(gasSum - declaredValue) > EMISSION_FACTOR_GAS_DETAILS_TOLERANCE
-  ) {
+  if (!gasDetailsMatchValue(gasDetails, declaredValue)) {
     throw new EmissionFactorGasDetailsMismatchError(
-      gasSum.toFixed(4),
+      sumGasDetails(gasDetails).toFixed(4),
       declaredValue.toFixed(4)
     );
   }

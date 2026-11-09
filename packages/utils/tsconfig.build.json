@@ -1,6 +1,7 @@
 {
   "extends": "./tsconfig.json",
   "include": ["src"],
+  "exclude": ["node_modules", "dist", ".turbo", "src/**/*.test.ts"],
   "compilerOptions": {
     "noEmit": false,
     "composite": false,

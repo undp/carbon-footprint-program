@@ -243,6 +243,19 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   ],
   ["METHODOLOGY_IS_DELETED", "La metodología ya fue eliminada."],
+  [
+    "METHODOLOGY_NOT_FOUND",
+    "La metodología no fue encontrada. Puede que otra persona la haya eliminado.",
+  ],
+  // Emission factor year copy
+  [
+    "EMISSION_FACTOR_YEAR_COPY_INVALID",
+    "La copia no cumple las reglas de los factores de emisión y no se copió nada. Revisa las filas marcadas.",
+  ],
+  [
+    "EMISSION_FACTOR_YEAR_COPY_CONFLICT",
+    "Otra persona creó factores en el año de destino mientras copiabas. No se copió nada: vuelve a intentarlo.",
+  ],
   // Profiling catalogs (static strings only)
   [
     "SECTOR_SUBSECTOR_MISMATCH",

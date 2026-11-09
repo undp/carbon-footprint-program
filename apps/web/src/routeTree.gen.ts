@@ -45,6 +45,7 @@ import { Route as AppFullscreenRouteImport } from './routes/app/_fullscreen'
 import { Route as AppShellRouteImport } from './routes/app/_shell'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as CarbonInventoryIndexRouteImport } from './routes/carbon-inventory/index'
+import { Route as AdminEmissionFactorsCopyRouteImport } from './routes/admin/emission-factors_.copy'
 import { Route as AppShellIndexRouteImport } from './routes/app/_shell/index'
 import { Route as AppShellCarbonInventoriesRouteImport } from './routes/app/_shell/carbon-inventories'
 import { Route as AppShellHomeRouteImport } from './routes/app/_shell/home'
@@ -246,6 +247,12 @@ const CarbonInventoryIndexRoute = CarbonInventoryIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CarbonInventoryRoute,
 } as any)
+const AdminEmissionFactorsCopyRoute =
+  AdminEmissionFactorsCopyRouteImport.update({
+    id: '/emission-factors_/copy',
+    path: '/emission-factors/copy',
+    getParentRoute: () => AdminRoute,
+  } as any)
 const AppShellIndexRoute = AppShellIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -390,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
+  '/admin/emission-factors/copy': typeof AdminEmissionFactorsCopyRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
   '/app/home': typeof AppShellHomeRoute
   '/app/my-organization': typeof AppShellMyOrganizationRoute
@@ -443,6 +451,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin': typeof AdminIndexRoute
   '/carbon-inventory': typeof CarbonInventoryIndexRoute
+  '/admin/emission-factors/copy': typeof AdminEmissionFactorsCopyRoute
   '/app/carbon-inventories': typeof AppShellCarbonInventoriesRoute
   '/app/home': typeof AppShellHomeRoute
   '/app/my-organization': typeof AppShellMyOrganizationRoute
@@ -499,6 +508,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/admin/': typeof AdminIndexRoute
   '/carbon-inventory/': typeof CarbonInventoryIndexRoute
+  '/admin/emission-factors_/copy': typeof AdminEmissionFactorsCopyRoute
   '/app/_shell/carbon-inventories': typeof AppShellCarbonInventoriesRoute
   '/app/_shell/home': typeof AppShellHomeRoute
   '/app/_shell/my-organization': typeof AppShellMyOrganizationRoute
@@ -556,6 +566,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
+    | '/admin/emission-factors/copy'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -609,6 +620,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin'
     | '/carbon-inventory'
+    | '/admin/emission-factors/copy'
     | '/app/carbon-inventories'
     | '/app/home'
     | '/app/my-organization'
@@ -664,6 +676,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/admin/'
     | '/carbon-inventory/'
+    | '/admin/emission-factors_/copy'
     | '/app/_shell/carbon-inventories'
     | '/app/_shell/home'
     | '/app/_shell/my-organization'
@@ -952,6 +965,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CarbonInventoryIndexRouteImport
       parentRoute: typeof CarbonInventoryRoute
     }
+    '/admin/emission-factors_/copy': {
+      id: '/admin/emission-factors_/copy'
+      path: '/emission-factors/copy'
+      fullPath: '/admin/emission-factors/copy'
+      preLoaderRoute: typeof AdminEmissionFactorsCopyRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/app/_shell/': {
       id: '/app/_shell/'
       path: '/'
@@ -1112,6 +1132,7 @@ interface AdminRouteChildren {
   AdminUnitsRoute: typeof AdminUnitsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminEmissionFactorsCopyRoute: typeof AdminEmissionFactorsCopyRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
@@ -1138,6 +1159,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminUnitsRoute: AdminUnitsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminEmissionFactorsCopyRoute: AdminEmissionFactorsCopyRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

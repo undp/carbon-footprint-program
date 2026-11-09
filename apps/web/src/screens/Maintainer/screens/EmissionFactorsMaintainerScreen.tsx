@@ -1,5 +1,8 @@
 import { FC, useCallback, useMemo, useState } from "react";
-import { useBlocker } from "@tanstack/react-router";
+import { useBlocker, useNavigate } from "@tanstack/react-router";
+import { Button, Tooltip } from "@mui/material";
+import { ContentCopyOutlined } from "@mui/icons-material";
+import { Routes } from "@/interfaces/routes";
 import { useSnackbar } from "notistack";
 import {
   useSubcategories,
@@ -83,6 +86,7 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
   const scope = useMaintainerMethodologyScope();
   const { methodologyVersionId, isMethodologiesError } = scope;
   const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
 
   // --- Data fetching ---
   const {
@@ -645,6 +649,34 @@ export const EmissionFactorsMaintainerScreen: FC = () => {
       onAddRow={handleAddRow}
       addDisabled={editingRowId !== null || !isDataReady}
       canEdit={scope.canEditEmissionFactors}
+      headerActions={
+        scope.canEditEmissionFactors && methodologyVersionId ? (
+          <Tooltip
+            title={
+              editingRowId !== null
+                ? "Guarda o cancela la fila en edición antes de copiar."
+                : "Copia los factores de un año a otro, corrigiendo valores y fuentes."
+            }
+          >
+            <span>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<ContentCopyOutlined />}
+                disabled={editingRowId !== null || !isDataReady}
+                onClick={() =>
+                  void navigate({
+                    to: Routes.ADMIN_EMISSION_FACTORS_COPY,
+                    search: { methodologyVersionId },
+                  })
+                }
+              >
+                Copiar factores
+              </Button>
+            </span>
+          </Tooltip>
+        ) : undefined
+      }
       editModeNote={
         scope.targetMethodology?.status === MethodologyVersionStatus.PUBLISHED
           ? "Metodología activa: lo que guardes queda disponible de inmediato para las huellas de ese año."

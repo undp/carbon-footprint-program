@@ -42,8 +42,14 @@ export const Group: FC<SidebarGroupProps> = ({
   const location = useLocation();
 
   const isActive = location.pathname === path;
-  const activeChildPath = children.find(
-    (child) => location.pathname === child.path
+  // A child's sub-pages (the emission factor year copy under the factor grid)
+  // keep the child selected.
+  const isChildPath = (childPath: string | undefined) =>
+    childPath !== undefined &&
+    (location.pathname === childPath ||
+      location.pathname.startsWith(`${childPath}/`));
+  const activeChildPath = children.find((child) =>
+    isChildPath(child.path)
   )?.path;
   const isChildActive = activeChildPath !== undefined;
 
@@ -169,7 +175,7 @@ export const Group: FC<SidebarGroupProps> = ({
               icon={child.icon}
               text={child.text}
               path={child.path}
-              selected={location.pathname === child.path}
+              selected={isChildPath(child.path)}
               disabled={child.disabled}
               isChild
               isExpanded={isExpanded}

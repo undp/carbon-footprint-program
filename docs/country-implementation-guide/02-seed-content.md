@@ -147,21 +147,29 @@ the reporting season, not during it.
 
 ## Loading factors after launch
 
-There is no bulk import after the first seed. Once production is running, the maintainers add
-factors **one row at a time** in `/admin/emission-factors`; there is no spreadsheet upload and no
-"copy last year's factors" action. The seed tool cannot help either: it only runs on an empty
-database.
+There is no bulk import after the first seed: the seed tool only runs on an empty database. Once
+production is running, a new year is loaded in `/admin/emission-factors` with **«Copiar
+factores»**, which copies one year's factors into another within the methodology version in edit
+mode. Every factor of the source year is listed in one grid, where the maintainer corrects the
+target value and source of each factor before copying, or leaves a factor out. The copy never
+overwrites a factor the target year already has and never changes the source year.
 
-Plan for it, because the yearly cycle needs a full set of factors every year (about 280 rows with
-the current catalogue):
+The yearly load (249 rows with the current catalogue) becomes "copy and correct":
 
-- Budget maintainer time for the yearly load, and have a second person check each value against
-  the source.
-- Keep the catalogue as small as the national framework allows: every factor is a row to restate
+- Copy into the **published** version for the year's factors to reach footprints already in
+  progress at once; copy into a duplicated version for them to reach only the footprints created
+  after it is published.
+- Correct what changed: a new edition of a source (for example DEFRA) is a new source text on each
+  of its rows, and an updated national grid factor is a new value.
+- Have a second person review the edited rows and the warnings before copying. The page warns,
+  without blocking, about a value more than 25 % away from its source value or 10 times larger or
+  smaller (a likely unit error), and blocks only what the API would refuse: an empty source or
+  value, or two copied factors that end on the same row with the same source.
+- Keep the catalogue as small as the national framework allows: every factor is a row to review
   each year.
 - Duplicating a methodology copies all its factors but keeps their original years; it does not roll
-  a set forward to the next year.
-- A factor's year can be edited only while no claimed footprint uses it.
+  a set forward to the next year. The year copy does.
+- A copied factor can be corrected in the grid until a claimed footprint uses it.
 - A bulk insert straight into the database is possible, but it bypasses the maintainer's validation
   and must be done by a developer and a DBA, rehearsed in staging first.
 

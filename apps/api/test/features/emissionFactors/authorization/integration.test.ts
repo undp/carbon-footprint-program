@@ -56,6 +56,19 @@ const ROUTES: Array<{ name: string; request: InjectOptions }> = [
     name: "DELETE /api/emission-factors/:id",
     request: { method: "DELETE", url: `/api/emission-factors/${MISSING_ID}` },
   },
+  {
+    name: "POST /api/emission-factors/duplicate-year",
+    request: {
+      method: "POST",
+      url: "/api/emission-factors/duplicate-year",
+      payload: {
+        methodologyVersionId: MISSING_ID,
+        sourceYear: TEST_EMISSION_FACTOR_YEAR,
+        targetYear: TEST_EMISSION_FACTOR_YEAR + 1,
+        changes: [],
+      },
+    },
+  },
 ];
 
 describe("Emission factor routes - Authorization", () => {

@@ -202,6 +202,21 @@ export const DB_DECIMAL_SCALE = 10;
 export const FACTOR_INPUT_DECIMAL_SCALE = DB_DECIMAL_SCALE;
 
 /**
+ * When the year copy page warns about a changed value: more than this many
+ * percent away from the source year's value. Warnings never block the copy;
+ * they point at a likely typo before it reaches the target year's footprints.
+ * An assumption to confirm with each deployment's methodology team.
+ */
+export const EMISSION_FACTOR_COPY_WARNING_PERCENT = 25;
+
+/**
+ * When the year copy page reads a changed value as a likely unit error: this
+ * many times larger or smaller than the source year's value (a kg/t mix-up is a
+ * factor of 1000). Shown as «×1000» or «÷1000» instead of a percentage.
+ */
+export const EMISSION_FACTOR_COPY_WARNING_RATIO = 10;
+
+/**
  * Display precision of an emission factor: the formatter targets
  * `FACTOR_DISPLAY_SIGNIFICANT_DIGITS` significant digits, bounded by a floor
  * and a ceiling of decimal places.
