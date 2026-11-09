@@ -111,7 +111,7 @@ CREATE DATABASE "t_<sha256(testFilePath)[:16]>" TEMPLATE "testdb"
 ## Running Tests
 
 ```bash
-# Run every test suite (API storage legs + web + seed)
+# Run every test suite (API storage legs + web + seed + utils)
 pnpm test
 
 # Run all API tests (all three Vitest projects), merge coverage, apply the gate
@@ -127,6 +127,9 @@ pnpm test:web
 
 # Run the tools/seed unit tests
 pnpm test:seed
+
+# Run the packages/utils unit tests (the shared pure helpers)
+pnpm test:utils
 
 # Run a single API test file
 pnpm test --filter=api -- /createUser/integration.test.ts --coverage=false
