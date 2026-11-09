@@ -13,14 +13,18 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import { Info as InfoIcon, Warning as WarningIcon } from "@mui/icons-material";
 import type { z } from "zod";
 import type { GasDetailsSchema } from "@repo/types";
+import { NumericInput } from "@/components";
+import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
+import { formatter } from "@/utils/formatting";
 
 type GasDetails = z.infer<typeof GasDetailsSchema>;
+/** While editing, an emptied field holds `null` so it shows empty, not `0`. */
+type EditableGasDetails = Record<keyof GasDetails, number | null>;
 
 interface GEIBreakdownModalProps {
   open: boolean;
@@ -61,13 +65,14 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   onSave,
   onClose,
 }) => {
-  const [breakdown, setBreakdown] = useState<GasDetails>(gasDetails);
+  const [breakdown, setBreakdown] = useState<EditableGasDetails>(gasDetails);
 
   const totalNum = useMemo(
     () => GAS_FIELDS.reduce((sum, { key }) => sum + (breakdown[key] ?? 0), 0),
     [breakdown]
   );
-  const total = totalNum.toFixed(4);
+  const total = formatter.exact(totalNum);
+  const declared = formatter.exact(declaredValue);
 
   const hasBreakdown = totalNum > 0;
   const mismatch =
@@ -75,13 +80,15 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
     Number.isFinite(declaredValue) &&
     Math.abs(totalNum - declaredValue) > 1e-4;
 
-  const handleChange = (key: keyof GasDetails, raw: string) => {
-    const value = parseFloat(raw) || 0;
+  const handleChange = (key: keyof GasDetails, value: number | null) => {
     setBreakdown((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
-    onSave(breakdown);
+    const saved = Object.fromEntries(
+      GAS_FIELDS.map(({ key }) => [key, breakdown[key] ?? 0])
+    ) as GasDetails;
+    onSave(saved);
     onClose();
   };
 
@@ -134,17 +141,12 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <TextField
-                      size="small"
-                      type="number"
-                      slotProps={{
-                        htmlInput: {
-                          step: "0.0001",
-                          style: { textAlign: "right" },
-                        },
-                      }}
-                      value={breakdown[key] ?? 0}
-                      onChange={(e) => handleChange(key, e.target.value)}
+                    <NumericInput
+                      value={breakdown[key]}
+                      onChange={(value) => handleChange(key, value)}
+                      min={0}
+                      decimalScale={FACTOR_INPUT_DECIMAL_SCALE}
+                      fullWidth={false}
                       disabled={readOnly}
                       sx={{ width: 140 }}
                     />
@@ -160,8 +162,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                 <TableCell>
                   {declaredValue > 0 && (
                     <Typography variant="body2" color="text.secondary">
-                      Valor declarado:{" "}
-                      <strong>{declaredValue.toFixed(4)}</strong>
+                      Valor declarado: <strong>{declared}</strong>
                     </Typography>
                   )}
                 </TableCell>
@@ -189,7 +190,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
         {mismatch && (
           <Alert severity="error" icon={<WarningIcon />} sx={{ mt: 2 }}>
             La suma del desglose ({total}) no coincide con el valor declarado (
-            {declaredValue.toFixed(4)}). Ajusta los valores para poder guardar.
+            {declared}). Ajusta los valores para poder guardar.
           </Alert>
         )}
       </DialogContent>

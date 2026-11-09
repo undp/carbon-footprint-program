@@ -5,7 +5,10 @@ import {
   useFormContext,
   type FieldError,
 } from "react-hook-form";
-import { TextField, Typography } from "@mui/material";
+import { Typography } from "@mui/material";
+import { NumericInput } from "@/components";
+import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
+import { formatter } from "@/utils/formatting";
 import { getNestedError } from "./cellUtils";
 
 interface EditableNumberCellProps {
@@ -30,29 +33,21 @@ const EditingNumberField: FC<EditingNumberFieldProps> = ({
   onChange,
   fieldError,
 }) => {
-  const [localValue, setLocalValue] = useState<string>(
-    initialValue === null ? "" : String(initialValue)
-  );
+  // Committed on blur, so the grid does not re-render on every keystroke.
+  const [localValue, setLocalValue] = useState<number | null>(initialValue);
 
   return (
-    <TextField
-      fullWidth
-      size="small"
-      type="text"
+    <NumericInput
       value={localValue}
-      onChange={(e) => setLocalValue(e.target.value)}
-      onBlur={() => {
-        if (localValue === "") {
-          onChange(null);
-          return;
-        }
-        const parsed = Number(localValue);
-        onChange(Number.isNaN(parsed) ? null : parsed);
-      }}
+      onChange={setLocalValue}
+      onBlur={() => onChange(localValue)}
+      decimalScale={FACTOR_INPUT_DECIMAL_SCALE}
+      placeholder=""
+      // Stop every key, not only the arrows, so the DataGrid does not react
+      // to Space or Enter while the cell is being edited.
       onKeyDown={(e) => e.stopPropagation()}
       error={!!fieldError}
       label={fieldError?.message ?? ""}
-      inputProps={{ style: { textAlign: "right" } }}
       sx={{
         "& .MuiOutlinedInput-root": { backgroundColor: "white" },
       }}
@@ -89,7 +84,7 @@ export const EditableNumberCell: FC<EditableNumberCellProps> = ({
           "&:hover": onClick ? { backgroundColor: "grey.100" } : {},
         }}
       >
-        {formValue ?? ""}
+        {formatter.exact(formValue, { ifEmpty: "" })}
       </Typography>
     );
   }
