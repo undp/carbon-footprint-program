@@ -20,3 +20,4 @@ export {
 export type { ReductionProjectCompletenessFields } from "./reductionProject.js";
 export { arraysEqualUnordered } from "./arrays.js";
 export { sanitizeForFilename } from "./sanitize.js";
+export { emissionFactorSourceKey } from "./emissionFactorSource.js";

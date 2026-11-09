@@ -1,15 +1,15 @@
 ## 1. Branch and preconditions
 
 - [x] 1.1 Base this branch on `main` with the several-sources change and the maintainer decimal comma (`NumericInput` in `EditableNumberCell`, `FACTOR_INPUT_DECIMAL_SCALE`, the Spanish texts in `StylizedDataGrid`).
-- [ ] 1.2 Check what `getApiErrorMessage.ts` maps: `METHODOLOGY_NOT_FOUND` has no message today (task 7.8).
-- [ ] 1.3 Set up tests in `packages/utils` (design D10): `tsconfig.build.json` excludes `*.test.ts`, `type-check` moves to `tsconfig.json` so it still covers them, and a root `test:utils` script runs them through turbo. Confirm `apps/api` and `apps/web` resolve a new export after the build.
-- [ ] 1.4 Add the `Utils Unit Tests` job to `.github/workflows/ci.yml`, a copy of `seed-test` running `pnpm test:utils`, gated on the `code` filter. After the PR's first run, mark it as a required check in the protection of `main` (repository admin).
+- [x] 1.2 Check what `getApiErrorMessage.ts` maps: `METHODOLOGY_NOT_FOUND` has no message today (task 7.8).
+- [x] 1.3 Set up tests in `packages/utils` (design D10): `tsconfig.build.json` excludes `*.test.ts`, `type-check` moves to `tsconfig.json` so it still covers them, and a root `test:utils` script runs them through turbo. Confirm `apps/api` and `apps/web` resolve a new export after the build.
+- [x] 1.4 Add the `Utils Unit Tests` job to `.github/workflows/ci.yml`, a copy of `seed-test` running `pnpm test:utils`, gated on the `code` filter. After the PR's first run, mark it as a required check in the protection of `main` (repository admin).
 
 ## 2. Shared source comparison
 
-- [ ] 2.1 Move `normalizeSourceForComparison` out of `apps/api/src/features/emissionFactors/helpers.ts` into `packages/utils` as `emissionFactorSourceKey` (design D7), export it, and import it in `checkDuplicateEmissionFactor`.
-- [ ] 2.2 Unit-test it: case, inner and outer whitespace, and that the key of a source equals the key of `EmissionFactorSourceSchema.parse` of it.
-- [ ] 2.3 Run the create and update factor integration tests unchanged (after `test-check`). Commit as its own `refactor`.
+- [x] 2.1 Move `normalizeSourceForComparison` out of `apps/api/src/features/emissionFactors/helpers.ts` into `packages/utils` as `emissionFactorSourceKey` (design D7), export it, and import it in `checkDuplicateEmissionFactor`.
+- [x] 2.2 Unit-test it: case, inner and outer whitespace, and that the key of a source equals the key of `EmissionFactorSourceSchema.parse` of it.
+- [x] 2.3 Run the create and update factor integration tests unchanged (after `test-check`). Commit as its own `refactor`.
 
 ## 3. Types
 
