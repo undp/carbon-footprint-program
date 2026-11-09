@@ -13,18 +13,18 @@
 
 ## 3. Types
 
-- [ ] 3.1 Add `packages/types/src/emissionFactors/duplicateEmissionFactorYear/` (`schemas.ts`, `types.ts`) per design D3:
+- [x] 3.1 Add `packages/types/src/emissionFactors/duplicateEmissionFactorYear/` (`schemas.ts`, `types.ts`) per design D3:
   - the request, with years bounded and refined so they differ, and `changes[]` (at most 2000 entries) with the optional `value` (any number, as the create schema), `source` (`EmissionFactorSourceSchema`), `gasDetails` (the create schema's gas details) and `exclude`;
   - the 200 response (`copiedCount`, `editedCount`, `excludedCount`, `skipped.existingCount`).
 
   Export both from `emissionFactors/index.ts`.
 
-- [ ] 3.2 Add the violation reason enum (`DUPLICATE_TARGET_FACTOR`, `EMPTY_SOURCE`, `EMPTY_VALUE`, `GAS_DETAILS_MISMATCH`, `UNKNOWN_SOURCE_FACTOR`, `DUPLICATE_CHANGE`) and the details shape the 422 carries. Every reason carries `sourceFactorId`. Document on the enum which reasons are page-only and which is API-only, as the table in design D4 shows.
+- [x] 3.2 Add the violation reason enum (`DUPLICATE_TARGET_FACTOR`, `EMPTY_SOURCE`, `EMPTY_VALUE`, `GAS_DETAILS_MISMATCH`, `UNKNOWN_SOURCE_FACTOR`, `DUPLICATE_CHANGE`) and the details shape the 422 carries. Every reason carries `sourceFactorId`. Document on the enum which reasons are page-only and which is API-only, as the table in design D4 shows.
 
 ## 4. Shared planner
 
-- [ ] 4.1 Add `packages/utils/src/emissionFactorYearCopy.ts` with `emissionFactorRowKey`, `indexYearCopyTargetRows` and `planEmissionFactorYearCopy`, over plain data with ids and values as strings (design D4, D5). Sources compare through `emissionFactorSourceKey`; a changed source is normalized as `EmissionFactorSourceSchema` stores it. Export it from `packages/utils/src/index.ts`.
-- [ ] 4.2 Add `emissionFactorYearCopy.test.ts`, covering:
+- [x] 4.1 Add `packages/utils/src/emissionFactorYearCopy.ts` with `emissionFactorRowKey`, `indexYearCopyTargetRows` and `planEmissionFactorYearCopy`, over plain data with ids and values as strings (design D4, D5). Sources compare through `emissionFactorSourceKey`; a changed source is normalized as `EmissionFactorSourceSchema` stores it. Export it from `packages/utils/src/index.ts`.
+- [x] 4.2 Add `emissionFactorYearCopy.test.ts`, covering:
   - exact-row matching with NULL dimensions;
   - the three Biodiésel rate units;
   - the both-dimension index case;
