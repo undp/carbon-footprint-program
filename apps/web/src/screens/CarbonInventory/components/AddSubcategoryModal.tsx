@@ -142,7 +142,7 @@ export const AddSubcategoryModal: FC<AddSubcategoryModalProps> = ({
       },
       {
         field: "select",
-        headerName: "Incluída",
+        headerName: "Incluida",
         width: 80,
         align: "center",
         headerAlign: "center",

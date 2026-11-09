@@ -59,7 +59,7 @@ export const GeiConsideredSection: FC<Props> = ({
               </TableCell>
               <TableCell align="center">
                 <Typography variant="body2" fontWeight={500}>
-                  Incluído
+                  Incluido
                 </Typography>
               </TableCell>
             </TableRow>

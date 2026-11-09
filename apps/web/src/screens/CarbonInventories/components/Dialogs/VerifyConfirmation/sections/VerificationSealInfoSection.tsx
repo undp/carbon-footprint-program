@@ -76,8 +76,8 @@ export const VerificationSealInfoSection: FC = () => {
                   sx={{ color: theme.palette.primary.dark }}
                 >
                   <strong>Reconocimiento público</strong> como{" "}
-                  {VOCAB.organization.noun.singular}
-                  comprometida con la transparencia climática
+                  {VOCAB.organization.noun.singular} comprometida con la
+                  transparencia climática
                 </Typography>
               </Box>
             </Box>
