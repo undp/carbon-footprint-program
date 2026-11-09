@@ -308,6 +308,26 @@ describe("EmissionFactorYearCopyScreen", () => {
     expect(screen.getByText(/1 ya existe/)).toBeInTheDocument();
   });
 
+  // The MIT grid caps a page at 100 rows unless the page size is MUI X's
+  // documented "all results" (-1). If a release stops honouring it, the grid
+  // falls back to pages and this fails on the upgrade, not in production.
+  // jsdom has no layout, so the grid cannot virtualize here and mounts every
+  // row: slow, hence the explicit timeout and just over 100 rows.
+  it("puts more than 100 factors on one page", { timeout: 30_000 }, () => {
+    state.factors = Array.from({ length: 110 }, (_, index) =>
+      factor({
+        rateMeasurementUnitId: String(1000 + index),
+        rateMeasurementUnitName: `u${index}`,
+      })
+    );
+    render(<EmissionFactorYearCopyScreen />);
+
+    expect(screen.getByText("1-110 de 110")).toBeInTheDocument();
+    expect(copyButton()).toHaveTextContent(
+      `Copiar 110 factores a ${TARGET_YEAR}`
+    );
+  });
+
   it("disables the copy when nothing would be copied", () => {
     state.factors = [
       electricity(),
