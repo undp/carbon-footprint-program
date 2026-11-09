@@ -18,7 +18,10 @@ import {
   buildCreateReductionProjectPayload,
   cleanupReductionProjectTestData,
 } from "@test/factories/reductionProjectSeeder.js";
-import type { CreateReductionProjectResponse } from "@repo/types";
+import type {
+  CreateReductionProjectResponse,
+  GetReductionProjectByIdResponse,
+} from "@repo/types";
 import { InventoryStatus } from "@repo/types";
 import { OrganizationRole } from "@repo/database/enums";
 import type { FastifyInstance } from "fastify";
@@ -122,6 +125,42 @@ describe("POST /api/reduction-projects - Integration Tests", () => {
       expect(Number(project?.baselineScenario)).toBe(1000);
       expect(Number(project?.projectScenario)).toBe(800);
       expect(project?.consideredGei).toEqual(["CO2"]);
+    });
+
+    it("should accept N2O among the considered GEI and return it in the detail", async () => {
+      const { organization, carbonInventory } =
+        await setupReductionProjectPrerequisites(prisma, testUserId);
+
+      const payload = buildCreateReductionProjectPayload(
+        organization.id.toString(),
+        carbonInventory.id.toString(),
+        { consideredGei: ["CO2", "N2O"] }
+      );
+
+      const response = await app.inject({
+        method: "POST",
+        url: "/api/reduction-projects",
+        payload,
+      });
+
+      expect(response.statusCode).toBe(201);
+      const body = JSON.parse(response.body) as CreateReductionProjectResponse;
+
+      const project = await prisma.reductionProject.findUnique({
+        where: { id: BigInt(body.id) },
+      });
+      expect(project?.consideredGei).toEqual(["CO2", "N2O"]);
+
+      const detailResponse = await app.inject({
+        method: "GET",
+        url: `/api/reduction-projects/${body.id}`,
+      });
+
+      expect(detailResponse.statusCode).toBe(200);
+      const detail = JSON.parse(
+        detailResponse.body
+      ) as GetReductionProjectByIdResponse;
+      expect(detail.consideredGei).toEqual(["CO2", "N2O"]);
     });
 
     it("should not create any REDUCTION_PROJECT_VERIFICATION submission on create", async () => {

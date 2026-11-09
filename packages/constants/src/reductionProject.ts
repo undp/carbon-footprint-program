@@ -6,6 +6,7 @@ export const REDUCTION_PROJECT_DESCRIPTION_MAX_LENGTH = 5000;
 export const REDUCTION_PROJECT_CONSIDERED_GEI = [
   "CO2",
   "CH4",
+  "N2O",
   "HFC",
   "PFC",
   "SF6",

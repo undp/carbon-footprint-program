@@ -3,6 +3,7 @@ import type { GetReductionProjectByIdResponse } from "@repo/types";
 import { downloadWorkbook, sanitizeFilenamePart } from "@/services/excel";
 import { formatter } from "./formatting";
 import { REDUCTION_PROJECT_STATUS_CONFIG } from "@/labels/chips/reductionProject";
+import { formatConsideredGei } from "@/labels/consideredGei";
 import { VOCAB } from "@/config/vocab";
 
 export async function exportReductionProjectToExcel(
@@ -42,7 +43,7 @@ export async function exportReductionProjectToExcel(
     ["Escenario Proyecto (tCO₂e)", project.projectScenario ?? "—"],
     ["Reducción (tCO₂e)", totalReduction],
     ["PCG Utilizado", project.gwpUsed ?? "—"],
-    ["GEI Considerados", project.consideredGei.join(", ") || "—"],
+    ["GEI Considerados", formatConsideredGei(project.consideredGei) || "—"],
     ["Reportado en Otra Iniciativa", project.reportedElsewhere ? "Sí" : "No"],
     ["Detalle Reporte Externo", project.reportedElsewhereDescription ?? "—"],
     ["Estado", REDUCTION_PROJECT_STATUS_CONFIG[project.status].label],
