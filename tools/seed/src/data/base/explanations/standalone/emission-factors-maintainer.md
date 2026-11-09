@@ -62,13 +62,13 @@ Qué se copia y qué no:
 
 - Se copia cada Factor del año de origen con su Sub-categoría, Variables, Unidad y desglose GEI, y con la Fuente y el Valor de la fila.
 - Un Factor cuya fila ya existe en el año de destino (misma Sub-categoría, Variables y Unidad, con cualquier Fuente o Valor) no se copia ni se sobrescribe: aparece bloqueado. Así, copiar dos veces no duplica nada y copiar a un año a medio cargar sólo completa lo que falta.
+- Un Factor con desglose GEI se copia con su Valor, que no puede cambiarse en la copia: si cambia, se corrige después en la tabla de Factores junto con el desglose.
 - El año de origen no cambia.
 
 Qué impide copiar y qué sólo avisa:
 
 - **Impide copiar:** una Fuente o un Valor vacíos, y dos Factores que quedarían en la misma fila con la misma Fuente (las Fuentes que sólo difieren en mayúsculas o espacios cuentan como la misma). La celda marcada explica el motivo.
 - **Sólo avisa:** un Valor que cambia más de un 25 % respecto del año de origen, o que es 10 veces mayor o menor (suele ser un error de unidad). La fila lo muestra junto al valor de origen y el pie cuenta las alertas.
-- Un Factor con desglose GEI se copia con su Valor; si cambia, se corrige después en esta tabla junto con el desglose.
 
 La copia es atómica: se crean todos los Factores o ninguno. Si otra persona carga Factores en el año de destino al mismo tiempo, la copia se rechaza sin escribir nada y basta con volver a intentarla.
 
