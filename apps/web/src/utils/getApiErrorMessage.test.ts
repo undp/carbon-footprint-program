@@ -173,7 +173,7 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   ],
   [
     "EMISSION_FACTOR_DUPLICATE",
-    "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
+    "Ya existe un factor de emisión con la misma sub-categoría, variables, fuente y año. Las fuentes que solo difieren en mayúsculas o espacios cuentan como la misma.",
   ],
   [
     "SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR",
@@ -182,10 +182,6 @@ const STATIC_MESSAGES: ReadonlyArray<readonly [string, string]> = [
   [
     "RATE_MEASUREMENT_UNIT_NOT_FOUND",
     "La unidad de tasa seleccionada no fue encontrada.",
-  ],
-  [
-    "EMISSION_FACTOR_SOURCE_CONFLICT",
-    "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   ],
   [
     "EMISSION_FACTOR_GAS_DETAILS_MISMATCH",

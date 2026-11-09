@@ -84,13 +84,11 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   INVALID_EMISSION_FACTOR_REFERENCE:
     "El catálogo de factores cambió mientras editabas. Recarga la página para ver los factores disponibles.",
   EMISSION_FACTOR_DUPLICATE:
-    "Ya existe un factor de emisión con la misma sub-categoría, variables y fuente.",
+    "Ya existe un factor de emisión con la misma sub-categoría, variables, fuente y año. Las fuentes que solo difieren en mayúsculas o espacios cuentan como la misma.",
   SUBCATEGORY_NOT_FOUND_FOR_EMISSION_FACTOR:
     "La sub-categoría asociada no fue encontrada.",
   RATE_MEASUREMENT_UNIT_NOT_FOUND:
     "La unidad de tasa seleccionada no fue encontrada.",
-  EMISSION_FACTOR_SOURCE_CONFLICT:
-    "Todos los factores de emisión activos de una sub-categoría deben usar la misma fuente dentro de un mismo año.",
   EMISSION_FACTOR_GAS_DETAILS_MISMATCH:
     "La suma del desglose GEI debe coincidir con el valor declarado.",
   // The grid already leaves a factor in use inert, with the number of lines in
