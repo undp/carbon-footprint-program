@@ -1,6 +1,7 @@
 import { FC, useMemo } from "react";
 import { Box, Typography, alpha } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
+import { esES } from "@mui/x-data-grid/locales";
 import type { GetEmissionsDetailedSummaryResponse } from "@repo/types";
 import { getColorPalette } from "@/utils/categoryColors";
 import { EmissionPercentageBadge } from "@/components/EmissionResults";
@@ -48,7 +49,11 @@ export const SubcategoryLinesTable: FC<SubcategoryLinesTableProps> = ({
           disableColumnSelector
           disableRowSelectionOnClick
           checkboxSelection={false}
-          localeText={{ noRowsLabel: "Sin líneas de emisión" }}
+          // A `localeText` prop replaces the theme's grid locale, so spread it first.
+          localeText={{
+            ...esES.components.MuiDataGrid.defaultProps.localeText,
+            noRowsLabel: "Sin líneas de emisión",
+          }}
           sx={{
             flex: 1,
             maxWidth: "75%",

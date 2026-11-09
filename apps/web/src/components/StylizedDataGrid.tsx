@@ -1,4 +1,5 @@
 import { DataGrid, DataGridProps } from "@mui/x-data-grid";
+import { esES } from "@mui/x-data-grid/locales";
 import { SxProps, Theme } from "@mui/material";
 
 export interface StylizedDataGridProps extends Omit<DataGridProps, "sx"> {
@@ -78,7 +79,10 @@ export const StylizedDataGrid = ({
         ...(slotProps || {}),
       }}
       ignoreDiacritics
+      // A `localeText` prop replaces the theme's instead of merging with it, so
+      // the Spanish grid locale is layered here: locale, own texts, caller.
       localeText={{
+        ...esES.components.MuiDataGrid.defaultProps.localeText,
         noRowsLabel: "No hay filas para mostrar",
         paginationRowsPerPage: "Filas por página",
         paginationDisplayedRows: ({ from, to, count }) =>

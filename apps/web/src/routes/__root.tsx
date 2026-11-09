@@ -34,8 +34,8 @@ function onSigninCallback() {
 
 function RootComponent() {
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
-      <ThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
+      <LocalizationProvider dateAdapter={AdapterDateFns} adapterLocale={es}>
         <CssBaseline />
         <SnackbarProvider preventDuplicate autoHideDuration={4000}>
           <OidcAuthProvider
@@ -101,8 +101,8 @@ function RootComponent() {
             </QueryClientProvider>
           </OidcAuthProvider>
         </SnackbarProvider>
-      </ThemeProvider>
-    </LocalizationProvider>
+      </LocalizationProvider>
+    </ThemeProvider>
   );
 }
 
