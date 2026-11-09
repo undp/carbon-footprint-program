@@ -3,7 +3,8 @@
 - [x] 1.1 Base this branch on `main` with the several-sources change and the maintainer decimal comma (`NumericInput` in `EditableNumberCell`, `FACTOR_INPUT_DECIMAL_SCALE`, the Spanish texts in `StylizedDataGrid`).
 - [x] 1.2 Check what `getApiErrorMessage.ts` maps: `METHODOLOGY_NOT_FOUND` has no message today (task 7.8).
 - [x] 1.3 Set up tests in `packages/utils` (design D10): `tsconfig.build.json` excludes `*.test.ts`, `type-check` moves to `tsconfig.json` so it still covers them, and a root `test:utils` script runs them through turbo. Confirm `apps/api` and `apps/web` resolve a new export after the build.
-- [x] 1.4 Add the `Utils Unit Tests` job to `.github/workflows/ci.yml`, a copy of `seed-test` running `pnpm test:utils`, gated on the `code` filter. After the PR's first run, mark it as a required check in the protection of `main` (repository admin).
+- [x] 1.4 Add the `Utils Unit Tests` job to `.github/workflows/ci.yml`, a copy of `seed-test` running `pnpm test:utils`, gated on the `code` filter.
+- [ ] 1.5 After the PR's first run, mark `Utils Unit Tests` as a required check in the protection of `main` (repository admin).
 
 ## 2. Shared source comparison
 
