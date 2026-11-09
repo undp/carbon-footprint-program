@@ -118,7 +118,7 @@ Quantities below are written exactly as they must be typed — no thousand separ
 | Tipo                     | Combustible | Unidad     | Cantidad |
 | ------------------------ | ----------- | ---------- | -------- |
 | Caldera de vapor         | Diésel      | litros     | 12500    |
-| Caldera de agua caliente | GLP         | kilógramos | 3200     |
+| Caldera de agua caliente | GLP         | kilogramos | 3200     |
 
 **Combustiones móviles (flota propia)**
 
@@ -131,8 +131,8 @@ Quantities below are written exactly as they must be typed — no thousand separ
 
 | Gas      | Unidad     | Cantidad |
 | -------- | ---------- | -------- |
-| HFC-134a | kilógramos | 45       |
-| HFC-32   | kilógramos | 18       |
+| HFC-134a | kilogramos | 45       |
+| HFC-32   | kilogramos | 18       |
 
 **Electricidad**
 
@@ -201,11 +201,11 @@ Quantities below are written exactly as they must be typed — no thousand separ
 | Subcategory                | Line                                                    | Cantidad | Unidad              | Exact factor | Rate unit     | Source      | Shown factor | kg CO₂e      | `Emisiones (tCO₂e)` |
 | -------------------------- | ------------------------------------------------------- | -------- | ------------------- | ------------ | ------------- | ----------- | ------------ | ------------ | ------------------- |
 | Combustiones estacionarias | Caldera de vapor / Diésel                               | 12500    | litros              | 2.57082      | kg/L          | DEFRA 2025  | 2,571 ⓘ      | 32 135.25    | **32,14**           |
-| Combustiones estacionarias | Caldera de agua caliente / GLP                          | 3200     | kilógramos          | 2.93936095   | kg/kg         | DEFRA 2025  | 2,939 ⓘ      | 9 405.95504  | **9,41**            |
+| Combustiones estacionarias | Caldera de agua caliente / GLP                          | 3200     | kilogramos          | 2.93936095   | kg/kg         | DEFRA 2025  | 2,939 ⓘ      | 9 405.95504  | **9,41**            |
 | Combustiones móviles       | Camión / Diésel                                         | 28400    | litros              | 2.57082      | kg/L          | DEFRA 2025  | 2,571 ⓘ      | 73 011.288   | **73,01**           |
 | Combustiones móviles       | Camioneta / Gasolina-Nafta                              | 4600     | litros              | 2.33984      | kg/L          | DEFRA 2025  | 2,34 ⓘ       | 10 763.264   | **10,76**           |
-| Emisiones fugitivas        | HFC-134a                                                | 45       | kilógramos          | 1 300        | kg/kg         | DEFRA 2025  | 1.300        | 58 500       | **58,5**            |
-| Emisiones fugitivas        | HFC-32                                                  | 18       | kilógramos          | 677          | kg/kg         | DEFRA 2025  | 677          | 12 186       | **12,19**           |
+| Emisiones fugitivas        | HFC-134a                                                | 45       | kilogramos          | 1 300        | kg/kg         | DEFRA 2025  | 1.300        | 58 500       | **58,5**            |
+| Emisiones fugitivas        | HFC-32                                                  | 18       | kilogramos          | 677          | kg/kg         | DEFRA 2025  | 677          | 12 186       | **12,19**           |
 | Electricidad               | Sistema nacional                                        | 1850     | megawatts hora      | 177          | kg/MWh        | DEFRA 2025  | 177          | 327 450      | **327,45**          |
 | Productos comprados        | Plástico / Primera mano                                 | 85       | toneladas           | 3 172.49932  | kg/ton        | DEFRA 2025  | 3.172,5 ⓘ    | 269 662.4422 | **269,66**          |
 | Productos comprados        | Papel y cartón / Con material reciclado                 | 140      | toneladas           | 1 068.77475  | kg/ton        | DEFRA 2025  | 1.068,77 ⓘ   | 149 628.465  | **149,63**          |
@@ -228,7 +228,7 @@ The four factors that require conversion:
 | --------------------------------- | -------------- | ---------------------- | ------------------------------- |
 | Diésel · 2 570.82 `kg/m3`         | litros         | **2.57082** `kg/L`     | 2 570.82 × 1 / 1 000            |
 | Gasolina/Nafta · 2 339.84 `kg/m3` | litros         | **2.33984** `kg/L`     | 2 339.84 × 1 / 1 000            |
-| GLP · 2 939.36095 `kg/ton`        | kilógramos     | **2.93936095** `kg/kg` | 2 939.36095 × 1 000 / 1 000 000 |
+| GLP · 2 939.36095 `kg/ton`        | kilogramos     | **2.93936095** `kg/kg` | 2 939.36095 × 1 000 / 1 000 000 |
 | Electricidad · 0.177 `kg/kWh`     | megawatts hora | **177** `kg/MWh`       | 0.177 × 1 000 / 1               |
 
 The API computes the GLP variant in float64 and sends `2.9393609499999993`; the audit tooltip shows `2,93936095` because it caps binary noise (see [float64 vs Decimal](#float64-vs-decimal)).

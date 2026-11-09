@@ -7,7 +7,7 @@
     "isBase": true
   },
   {
-    "name": "kilógramos",
+    "name": "kilogramos",
     "magnitudeCode": "mass",
     "abbreviation": "kg",
     "baseFactor": 1000.0,

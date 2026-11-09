@@ -13,14 +13,19 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
   Typography,
 } from "@mui/material";
 import { Info as InfoIcon, Warning as WarningIcon } from "@mui/icons-material";
 import type { z } from "zod";
-import type { GasDetailsSchema } from "@repo/types";
+import { GasDetailsSchema } from "@repo/types";
+import { NumericInput } from "@/components";
+import { FACTOR_INPUT_DECIMAL_SCALE } from "@/config/constants";
+import { GEI_FORMULAS, GEI_NAMES } from "@/labels/gei";
+import { formatter } from "@/utils/formatting";
 
 type GasDetails = z.infer<typeof GasDetailsSchema>;
+/** While editing, an emptied field holds `null` so it shows empty, not `0`. */
+type EditableGasDetails = Record<keyof GasDetails, number | null>;
 
 interface GEIBreakdownModalProps {
   open: boolean;
@@ -31,28 +36,20 @@ interface GEIBreakdownModalProps {
   onClose: () => void;
 }
 
-// TODO: build the gas list from a centralized source of truth
-const GAS_FIELDS = [
-  {
-    key: "CO2_FOSSIL" as const,
-    label: "CO\u2082 fósil",
-    description: "Dióxido de carbono de origen fósil",
-  },
-  { key: "CH4" as const, label: "CH\u2084", description: "Metano" },
-  { key: "N2O" as const, label: "N\u2082O", description: "Óxido nitroso" },
-  { key: "HFC" as const, label: "HFC", description: "Hidrofluorocarbonos" },
-  { key: "PFC" as const, label: "PFC", description: "Perfluorocarbonos" },
-  {
-    key: "SF6" as const,
-    label: "SF\u2086",
-    description: "Hexafluoruro de azufre",
-  },
-  {
-    key: "NF3" as const,
-    label: "NF\u2083",
-    description: "Trifluoruro de nitrógeno",
-  },
-] as const;
+/** Breakdown rows, one per gas of `GasDetailsSchema` in its key order. */
+const GAS_FIELDS: {
+  key: keyof GasDetails;
+  label: string;
+  description: string;
+}[] = GasDetailsSchema.keyof().options.map((key) =>
+  key === "CO2_FOSSIL"
+    ? {
+        key,
+        label: `${GEI_FORMULAS.CO2} fósil`,
+        description: `${GEI_NAMES.CO2} de origen fósil`,
+      }
+    : { key, label: GEI_FORMULAS[key], description: GEI_NAMES[key] }
+);
 
 const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   gasDetails,
@@ -61,13 +58,14 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
   onSave,
   onClose,
 }) => {
-  const [breakdown, setBreakdown] = useState<GasDetails>(gasDetails);
+  const [breakdown, setBreakdown] = useState<EditableGasDetails>(gasDetails);
 
   const totalNum = useMemo(
     () => GAS_FIELDS.reduce((sum, { key }) => sum + (breakdown[key] ?? 0), 0),
     [breakdown]
   );
-  const total = totalNum.toFixed(4);
+  const total = formatter.exact(totalNum);
+  const declared = formatter.exact(declaredValue);
 
   const hasBreakdown = totalNum > 0;
   const mismatch =
@@ -75,13 +73,15 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
     Number.isFinite(declaredValue) &&
     Math.abs(totalNum - declaredValue) > 1e-4;
 
-  const handleChange = (key: keyof GasDetails, raw: string) => {
-    const value = parseFloat(raw) || 0;
+  const handleChange = (key: keyof GasDetails, value: number | null) => {
     setBreakdown((prev) => ({ ...prev, [key]: value }));
   };
 
   const handleSave = () => {
-    onSave(breakdown);
+    const saved = Object.fromEntries(
+      GAS_FIELDS.map(({ key }) => [key, breakdown[key] ?? 0])
+    ) as GasDetails;
+    onSave(saved);
     onClose();
   };
 
@@ -134,17 +134,12 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <TextField
-                      size="small"
-                      type="number"
-                      slotProps={{
-                        htmlInput: {
-                          step: "0.0001",
-                          style: { textAlign: "right" },
-                        },
-                      }}
-                      value={breakdown[key] ?? 0}
-                      onChange={(e) => handleChange(key, e.target.value)}
+                    <NumericInput
+                      value={breakdown[key]}
+                      onChange={(value) => handleChange(key, value)}
+                      min={0}
+                      decimalScale={FACTOR_INPUT_DECIMAL_SCALE}
+                      fullWidth={false}
                       disabled={readOnly}
                       sx={{ width: 140 }}
                     />
@@ -160,8 +155,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
                 <TableCell>
                   {declaredValue > 0 && (
                     <Typography variant="body2" color="text.secondary">
-                      Valor declarado:{" "}
-                      <strong>{declaredValue.toFixed(4)}</strong>
+                      Valor declarado: <strong>{declared}</strong>
                     </Typography>
                   )}
                 </TableCell>
@@ -189,7 +183,7 @@ const GEIBreakdownContent: FC<Omit<GEIBreakdownModalProps, "open">> = ({
         {mismatch && (
           <Alert severity="error" icon={<WarningIcon />} sx={{ mt: 2 }}>
             La suma del desglose ({total}) no coincide con el valor declarado (
-            {declaredValue.toFixed(4)}). Ajusta los valores para poder guardar.
+            {declared}). Ajusta los valores para poder guardar.
           </Alert>
         )}
       </DialogContent>

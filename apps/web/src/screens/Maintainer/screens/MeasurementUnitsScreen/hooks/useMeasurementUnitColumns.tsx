@@ -2,6 +2,7 @@ import { useMemo, useCallback } from "react";
 import { Box, Tooltip, Typography } from "@mui/material";
 import { LockOutlined } from "@mui/icons-material";
 import type { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { formatter } from "@/utils/formatting";
 import {
   EditableTextCell,
   EditableNumberCell,
@@ -218,7 +219,7 @@ export const useMeasurementUnitColumns = ({
                 >
                   <LockOutlined sx={{ fontSize: 14 }} />
                   <Typography variant="body2">
-                    {params.row.baseFactor}
+                    {formatter.exact(params.row.baseFactor, { ifEmpty: "" })}
                   </Typography>
                 </Box>
               </Tooltip>

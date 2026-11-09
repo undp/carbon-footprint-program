@@ -1,5 +1,42 @@
-import { DataGrid, DataGridProps } from "@mui/x-data-grid";
+import { DataGrid, DataGridProps, type GridLocaleText } from "@mui/x-data-grid";
+import { esES } from "@mui/x-data-grid/locales";
 import { SxProps, Theme } from "@mui/material";
+
+/**
+ * A `localeText` prop replaces the theme's instead of merging with it, so the
+ * Spanish grid locale is layered here (locale, then own texts) and a caller's
+ * `localeText` goes on top.
+ */
+const LOCALE_TEXT: Partial<GridLocaleText> = {
+  ...esES.components.MuiDataGrid.defaultProps.localeText,
+  noRowsLabel: "No hay filas para mostrar",
+  paginationRowsPerPage: "Filas por página",
+  paginationDisplayedRows: ({ from, to, count }) => `${from}-${to} de ${count}`,
+  columnMenuSortAsc: "Ordenar ascendente",
+  columnMenuSortDesc: "Ordenar descendente",
+  columnMenuFilter: "Filtrar",
+  columnMenuUnsort: "Quitar orden",
+  toolbarFilters: "Filtros",
+  toolbarExport: "Exportar",
+  toolbarExportPrint: "Imprimir",
+  toolbarExportCSV: "Descargar como CSV",
+  toolbarQuickFilterLabel: "Buscar",
+  toolbarQuickFilterPlaceholder: "Buscar...",
+  toolbarQuickFilterDeleteIconLabel: "Borrar",
+  filterPanelColumn: "Columnas",
+  filterPanelOperator: "Operadores",
+  filterPanelInputLabel: "Valor",
+  filterPanelInputPlaceholder: "Valor de filtro",
+  filterOperatorContains: "contiene",
+  filterOperatorEquals: "es igual a",
+  filterOperatorStartsWith: "empieza con",
+  filterOperatorEndsWith: "termina con",
+  filterOperatorIsEmpty: "está vacío",
+  filterOperatorIsNotEmpty: "no está vacío",
+  filterOperatorDoesNotContain: "no contiene",
+  filterOperatorDoesNotEqual: "no es igual a",
+  filterOperatorIsAnyOf: "es cualquiera de",
+};
 
 export interface StylizedDataGridProps extends Omit<DataGridProps, "sx"> {
   /**
@@ -78,37 +115,7 @@ export const StylizedDataGrid = ({
         ...(slotProps || {}),
       }}
       ignoreDiacritics
-      localeText={{
-        noRowsLabel: "No hay filas para mostrar",
-        paginationRowsPerPage: "Filas por página",
-        paginationDisplayedRows: ({ from, to, count }) =>
-          `${from}-${to} de ${count}`,
-        columnMenuSortAsc: "Ordenar ascendente",
-        columnMenuSortDesc: "Ordenar descendente",
-        columnMenuFilter: "Filtrar",
-        columnMenuUnsort: "Quitar orden",
-        toolbarFilters: "Filtros",
-        toolbarExport: "Exportar",
-        toolbarExportPrint: "Imprimir",
-        toolbarExportCSV: "Descargar como CSV",
-        toolbarQuickFilterLabel: "Buscar",
-        toolbarQuickFilterPlaceholder: "Buscar...",
-        toolbarQuickFilterDeleteIconLabel: "Borrar",
-        filterPanelColumn: "Columnas",
-        filterPanelOperator: "Operadores",
-        filterPanelInputLabel: "Valor",
-        filterPanelInputPlaceholder: "Valor de filtro",
-        filterOperatorContains: "contiene",
-        filterOperatorEquals: "es igual a",
-        filterOperatorStartsWith: "empieza con",
-        filterOperatorEndsWith: "termina con",
-        filterOperatorIsEmpty: "está vacío",
-        filterOperatorIsNotEmpty: "no está vacío",
-        filterOperatorDoesNotContain: "no contiene",
-        filterOperatorDoesNotEqual: "no es igual a",
-        filterOperatorIsAnyOf: "es cualquiera de",
-        ...(localeText || {}),
-      }}
+      localeText={localeText ? { ...LOCALE_TEXT, ...localeText } : LOCALE_TEXT}
       {...props}
     />
   );

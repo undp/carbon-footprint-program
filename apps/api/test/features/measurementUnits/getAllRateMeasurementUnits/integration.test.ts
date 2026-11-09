@@ -134,7 +134,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       // Check kg por L has correct nested units
       const kgPerLiter = body.find((ru) => ru.name === "kg por L");
       expect(kgPerLiter).toBeDefined();
-      expect(kgPerLiter!.numeratorUnit.name).toBe("kilógramos");
+      expect(kgPerLiter!.numeratorUnit.name).toBe("kilogramos");
       expect(kgPerLiter!.numeratorUnit.magnitude.code).toBe("mass");
       expect(kgPerLiter!.denominatorUnit.name).toBe("litros");
       expect(kgPerLiter!.denominatorUnit.magnitude.code).toBe("volume");
@@ -142,7 +142,7 @@ describe("GET /api/measurement-units/rates - Integration Tests", () => {
       // Check kg por h has correct nested units
       const kgPerHour = body.find((ru) => ru.name === "kg por h");
       expect(kgPerHour).toBeDefined();
-      expect(kgPerHour!.numeratorUnit.name).toBe("kilógramos");
+      expect(kgPerHour!.numeratorUnit.name).toBe("kilogramos");
       expect(kgPerHour!.numeratorUnit.magnitude.code).toBe("mass");
       expect(kgPerHour!.denominatorUnit.name).toBe("horas");
       expect(kgPerHour!.denominatorUnit.magnitude.code).toBe("time");
