@@ -96,6 +96,14 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   // started using the factor after the last read.
   EMISSION_FACTOR_IN_USE:
     "Este factor de emisión está siendo usado por fuentes de emisión de huellas y no se puede modificar ni eliminar.",
+  // The copy page marks each violation on its row from the error's details;
+  // this is the sentence above them.
+  EMISSION_FACTOR_YEAR_COPY_INVALID:
+    "La copia no cumple las reglas de los factores de emisión y no se copió nada. Revisa las filas marcadas.",
+  // Nothing was written and a retry recomputes the copy, so the way out is to
+  // press the button again.
+  EMISSION_FACTOR_YEAR_COPY_CONFLICT:
+    "Otra persona creó factores en el año de destino mientras copiabas. No se copió nada: vuelve a intentarlo.",
 
   // Emission factor dimensions
   EMISSION_FACTOR_DIMENSION_NOT_FOUND: "La dimensión no fue encontrada.",
@@ -139,6 +147,8 @@ const ERROR_MESSAGES: Record<string, string | DetailsAwareMessage> = {
   METHODOLOGY_HAS_ACTIVE_INVENTORIES:
     "No se puede eliminar la metodología porque tiene inventarios de carbono activos.",
   METHODOLOGY_IS_DELETED: "La metodología ya fue eliminada.",
+  METHODOLOGY_NOT_FOUND:
+    "La metodología no fue encontrada. Puede que otra persona la haya eliminado.",
 
   // Profiling catalogs (sectors / subsectors / main activities / sizes).
   // The API attaches structured `details` (e.g. resourceType, parentType, parentName)

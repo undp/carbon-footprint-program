@@ -16,10 +16,6 @@ import type {
 } from "@repo/types";
 
 import {
-  CALCULATOR_YEARS_RANGE_FROM_CURRENT,
-  EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT,
-} from "@/config/constants";
-import {
   EditableNumberCell,
   EmissionFactorSourceCell,
   SubcategoryGroupedSelectCell,
@@ -27,6 +23,7 @@ import {
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
 import type { EmissionFactorFormRow } from "./useEmissionFactorsForm";
+import { EMISSION_FACTOR_YEAR_OPTIONS } from "../utils/emissionFactorYearOptions";
 import {
   resolveEmissionFactorDeleteMessage,
   type EmissionFactorRowLock,
@@ -83,22 +80,6 @@ interface UseEmissionFactorColumnsParams {
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
 }
 
-// `[currentYear - 4 .. currentYear + 1]`, newest first: the same lower bound as
-// the footprint year selector plus one year of forward slack. Computed at module
-// load like the footprint selector's own list — the window only slides on
-// 1 January.
-const YEAR_OPTIONS = Array.from(
-  {
-    length:
-      CALCULATOR_YEARS_RANGE_FROM_CURRENT +
-      EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT,
-  },
-  (_, index) =>
-    new Date().getFullYear() +
-    EMISSION_FACTOR_YEARS_RANGE_AHEAD_OF_CURRENT -
-    index
-);
-
 /**
  * Explains why a cell does not respond. Every cell of a locked row loses its
  * click handler, its pointer cursor and its hover, so each has to be able to
@@ -148,7 +129,7 @@ const YearEditSelect: FC<{
       label={fieldError?.message ?? ""}
       sx={{ "& .MuiOutlinedInput-root": { backgroundColor: "white" } }}
     >
-      {YEAR_OPTIONS.map((year) => (
+      {EMISSION_FACTOR_YEAR_OPTIONS.map((year) => (
         <MenuItem key={year} value={year}>
           {year}
         </MenuItem>

@@ -27,6 +27,8 @@ interface MaintainerScreenLayoutProps {
    * depends on it, while the other three screens stay read-only over it.
    */
   canEdit?: boolean;
+  /** Extra header actions next to the methodology selector. */
+  headerActions?: ReactNode;
   /** Qualifies the edit-mode toolbar, e.g. over the published methodology. */
   editModeNote?: string;
   onExitEditMode: () => void;
@@ -53,6 +55,7 @@ export const MaintainerScreenLayout = ({
   onAddRow,
   addDisabled,
   canEdit: canEditOverride,
+  headerActions,
   editModeNote,
   onExitEditMode,
   exitEditModeOpen,
@@ -115,7 +118,12 @@ export const MaintainerScreenLayout = ({
         onAddRow={canEdit ? onAddRow : undefined}
         addDisabled={addDisabled}
         addLabel={addLabel}
-        extra={methodologySelector}
+        extra={
+          <>
+            {methodologySelector}
+            {headerActions}
+          </>
+        }
         explanationSlug={explanationSlug}
       />
       <Box

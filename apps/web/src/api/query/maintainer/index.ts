@@ -26,6 +26,7 @@ export {
   useAddEmissionFactor,
   useUpdateEmissionFactor,
   useDeleteEmissionFactor,
+  useDuplicateEmissionFactorYear,
 } from "./useEmissionFactors";
 export {
   useEmissionFactorDimensions,

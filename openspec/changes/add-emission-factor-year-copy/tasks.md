@@ -82,11 +82,11 @@
 
 ## 7. Web
 
-- [ ] 7.1 Move the «Año» window (`YEAR_OPTIONS`) out of `useEmissionFactorColumns.tsx` into `screens/Maintainer/utils/emissionFactorYearOptions.ts`, used by the column and the copy page, with a unit test.
-- [ ] 7.2 Add `EMISSION_FACTOR_COPY_WARNING_PERCENT = 25` and `EMISSION_FACTOR_COPY_WARNING_RATIO = 10` to `apps/web/src/config/constants.ts`, and a pure `getCopyValueWarning(sourceValue, targetValue)` util with a unit test.
-- [ ] 7.3 Add `useDuplicateEmissionFactorYear` to `apps/web/src/api/query/maintainer/useEmissionFactors.ts`. It posts to `emission-factors/duplicate-year` and invalidates `MaintainerQueryKey.EmissionFactorsUpdateDependency`.
-- [ ] 7.4 Add the route `/admin/emission-factors/copy` as `routes/admin/emission-factors_.copy.tsx` (plus `routes.const.ts` and the generated route tree), with `requireRole([SUPERADMIN])` and the methodology version as a search parameter. It returns to the grid when that version is not the one in edit mode.
-- [ ] 7.5 Add `screens/Maintainer/screens/EmissionFactorYearCopyScreen.tsx` and its components under `screens/Maintainer/components/emissionFactorYearCopy/` (one component per file), per design D1:
+- [x] 7.1 Move the «Año» window (`YEAR_OPTIONS`) out of `useEmissionFactorColumns.tsx` into `screens/Maintainer/utils/emissionFactorYearOptions.ts`, used by the column and the copy page, with a unit test.
+- [x] 7.2 Add `EMISSION_FACTOR_COPY_WARNING_PERCENT = 25` and `EMISSION_FACTOR_COPY_WARNING_RATIO = 10` to `apps/web/src/config/constants.ts`, and a pure `getCopyValueWarning(sourceValue, targetValue)` util with a unit test.
+- [x] 7.3 Add `useDuplicateEmissionFactorYear` to `apps/web/src/api/query/maintainer/useEmissionFactors.ts`. It posts to `emission-factors/duplicate-year` and invalidates `MaintainerQueryKey.EmissionFactorsUpdateDependency`.
+- [x] 7.4 Add the route `/admin/emission-factors/copy` as `routes/admin/emission-factors_.copy.tsx` (plus `routes.const.ts` and the generated route tree), with `requireRole([SUPERADMIN])` and the methodology version as a search parameter. It returns to the grid when that version is not the one in edit mode.
+- [x] 7.5 Add `screens/Maintainer/screens/EmissionFactorYearCopyScreen.tsx` and its components under `screens/Maintainer/components/emissionFactorYearCopy/` (one component per file), per design D1:
   - the header with the locked methodology selector and, over the published version, the "live at once" note;
   - the year selects: changing «Origen» with edits asks and discards, changing «Destino» keeps the edits and recomputes the rows already in the target;
   - a `StylizedDataGrid` with sorting, column filter and quick search re-enabled, no row selection, and a subcategory column;
@@ -100,10 +100,10 @@
 
   State lives in a reducer keyed by source factor id, and the blockers come from `planEmissionFactorYearCopy`.
 
-- [ ] 7.6 Guard unsent edits with `useBlocker` and `enableBeforeUnload`. On success, return to the grid with a snackbar summary. On 409 or 422, keep the edits, show the message, and map 422 details to their rows or groups.
-- [ ] 7.7 Add the «Copiar factores» button to `EmissionFactorsMaintainerScreen.tsx` (through `MaintainerScreenLayout` if it owns the toolbar). It is shown only in edit mode, disabled while a grid row is being edited, and links to the copy page.
-- [ ] 7.8 Add Spanish messages to `getApiErrorMessage.ts`, with cases in its test, for `EMISSION_FACTOR_YEAR_COPY_INVALID`, `EMISSION_FACTOR_YEAR_COPY_CONFLICT` and `METHODOLOGY_NOT_FOUND` (the version deleted by another admin while copying).
-- [ ] 7.9 Add component tests for the copy screen:
+- [x] 7.6 Guard unsent edits with `useBlocker` and `enableBeforeUnload`. On success, return to the grid with a snackbar summary. On 409 or 422, keep the edits, show the message, and map 422 details to their rows or groups.
+- [x] 7.7 Add the «Copiar factores» button to `EmissionFactorsMaintainerScreen.tsx` (through `MaintainerScreenLayout` if it owns the toolbar). It is shown only in edit mode, disabled while a grid row is being edited, and links to the copy page.
+- [x] 7.8 Add Spanish messages to `getApiErrorMessage.ts`, with cases in its test, for `EMISSION_FACTOR_YEAR_COPY_INVALID`, `EMISSION_FACTOR_YEAR_COPY_CONFLICT` and `METHODOLOGY_NOT_FOUND` (the version deleted by another admin while copying).
+- [x] 7.9 Add component tests for the copy screen:
   - filtering the subcategory column, with its dimension names as headers, and the quick search;
   - typing «1.000» posts 1000 and typing «0,207» posts 0.207; a stored 1000000 shows «1.000.000»;
   - an emptied value blocks;
