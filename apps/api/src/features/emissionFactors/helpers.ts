@@ -11,7 +11,6 @@ import {
   DimensionNotConfiguredError,
   DimensionValueNotFoundError,
   EmissionFactorDuplicateError,
-  EmissionFactorSourceConflictError,
   EmissionFactorGasDetailsMismatchError,
   SubcategoryChangeMissingDimensionsError,
 } from "./errors.js";
@@ -57,14 +56,28 @@ export async function findDimensionValue(
 
 /**
  * Checks that no other ACTIVE emission factor exists with the same
- * uniqueness key for the given subcategory and year.
+ * uniqueness key.
  *
- * The uniqueness key is always subcategoryId and year, plus each dimension
- * value whose dimension is marked as required for that subcategory. Optional
- * dimensions are not part of the key — multiple factors may coexist with
- * different (or null) optional dimension values. `source` is not part of it
- * either, which makes this check stricter than the database index and the one
- * that actually blocks.
+ * The uniqueness key is always subcategoryId, year and source, plus each
+ * dimension value whose dimension is marked as required for that subcategory.
+ * Optional dimensions are not part of the key — multiple factors may coexist
+ * with different (or null) optional dimension values. Neither is the rate unit.
+ *
+ * The source is in the key so one activity can carry alternative factors from
+ * different sources, and the person capturing a footprint chooses between
+ * them. Two sources are the same source when they are equal after trimming,
+ * collapsing each whitespace run to one space and ignoring letter case, so
+ * `"defra 2025"` duplicates `"DEFRA 2025"`; otherwise a typo would reach
+ * capture as a second option nobody can tell apart.
+ *
+ * That comparison runs here rather than in the `where`: PostgreSQL compares
+ * `text` exactly, and comparing normalized strings does not depend on how
+ * Prisma builds an insensitive filter. The query reads the factors of the key
+ * without the source -- one activity in one year, a handful of rows -- and
+ * normalizes the stored side too, which covers rows written before the request
+ * schema normalized whitespace. The unique index covers only factors with both
+ * dimension values and compares sources byte for byte, which makes this the
+ * check that actually blocks.
  *
  * The year is in the key so a catalogue loaded for a new year can restate the
  * same subcategory and dimensions without colliding with the previous year's.
@@ -75,6 +88,7 @@ export async function checkDuplicateEmissionFactor(
   dimensionValue1Id: bigint | null,
   dimensionValue2Id: bigint | null,
   year: number,
+  source: string,
   excludeId?: bigint
 ): Promise<void> {
   const requiredDimensions = await tx.emissionFactorDimension.findMany({
@@ -102,49 +116,24 @@ export async function checkDuplicateEmissionFactor(
     where.dimensionValue2Id = dimensionValue2Id ?? null;
   }
 
-  const duplicate = await tx.emissionFactor.findFirst({
+  const sameKeyFactors = await tx.emissionFactor.findMany({
     where,
-    select: { id: true },
+    select: { source: true },
   });
 
-  if (duplicate) {
+  const incomingSource = normalizeSourceForComparison(source);
+  const isDuplicate = sameKeyFactors.some(
+    (factor) => normalizeSourceForComparison(factor.source) === incomingSource
+  );
+
+  if (isDuplicate) {
     throw new EmissionFactorDuplicateError();
   }
 }
 
-/**
- * Enforces that all active emission factors for a subcategory and year share
- * the same source, so a catalogue loaded for a new year can carry its own
- * citation without conflicting with the previous year's.
- *
- * TODO: more than one source per (subcategory, year) was deliberately deferred.
- * It is a product decision, not a compliance requirement — neither the GHG
- * Protocol nor ISO forbids several sources, but the capture dropdown would then
- * present real options and a non-expert user would be making an undocumented
- * methodological choice. Lifting it means deleting this function and adding
- * `source` to the key in `checkDuplicateEmissionFactor`: validation only, no
- * migration and no data change.
- */
-export async function validateSourceConsistency(
-  tx: Prisma.TransactionClient,
-  subcategoryId: bigint,
-  source: string,
-  year: number,
-  excludeId?: bigint
-): Promise<void> {
-  const existingSource = await tx.emissionFactor.findFirst({
-    where: {
-      subcategoryId,
-      year,
-      status: EmissionFactorStatus.ACTIVE,
-      ...(excludeId != null ? { id: { not: excludeId } } : {}),
-    },
-    select: { source: true },
-  });
-
-  if (existingSource && existingSource.source !== source) {
-    throw new EmissionFactorSourceConflictError(existingSource.source);
-  }
+/** The form two sources are compared in by `checkDuplicateEmissionFactor`. */
+function normalizeSourceForComparison(source: string): string {
+  return source.trim().replace(/\s+/g, " ").toLowerCase();
 }
 
 /**

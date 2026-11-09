@@ -512,7 +512,7 @@ describe("POST /api/methodologies/:id/duplicate - Integration Tests", () => {
       value: "Vacas",
     });
 
-    // Create emission factors using same source (trigger enforces single source per subcategory)
+    // Create emission factors for two dimension values of one subcategory
     const factor1 = await createTestEmissionFactor(prisma, sub.id, rateUnitId, {
       dimensionValue1Id: val1.id,
       source: "IPCC",

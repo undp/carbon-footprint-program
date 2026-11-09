@@ -7,6 +7,7 @@ import {
   EmissionFactorDimensionValueBaseSchema,
   RateMeasurementUnitBaseSchema,
   EmissionFactorDimensionBaseSchema,
+  EmissionFactorSourceSchema,
 } from "../../baseSchemas/index.js";
 import { GasDetailsSchema } from "../../baseSchemas/gasDetails.js";
 
@@ -21,7 +22,7 @@ export const CreateEmissionFactorRequestSchema = z.strictObject({
     .nullable()
     .describe("Name for dimension value 2 (find-or-create)"),
   rateMeasurementUnitId: RateMeasurementUnitBaseSchema.shape.id,
-  source: z.string().min(1, "Fuente es requerida"),
+  source: EmissionFactorSourceSchema,
   year: EmissionFactorBaseSchema.shape.year,
   gasDetails: GasDetailsSchema,
   value: z.number(),
@@ -53,7 +54,7 @@ export const EmissionFactorFormSchema = z.object({
   dimensionValue1Name: z.string().nullable(),
   dimensionValue2Name: z.string().nullable(),
   rateMeasurementUnitId: z.string().min(1, "Unidad es requerida"),
-  source: z.string().min(1, "Fuente es requerida"),
+  source: EmissionFactorSourceSchema,
   // A new row is born without a year and the admin must choose one: guessing
   // the current year dated factors silently, and a factor valid for the wrong
   // year is offered to the wrong footprints. `null` is what an unchosen year

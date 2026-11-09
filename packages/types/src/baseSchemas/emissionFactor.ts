@@ -17,6 +17,20 @@ export const EmissionFactorStatusSchema = z
 export const EMISSION_FACTOR_YEAR_MIN = 1990;
 export const EMISSION_FACTOR_YEAR_MAX = 2100;
 
+/**
+ * The source a create or update request stores: trimmed, with each whitespace
+ * run collapsed to one space. A subcategory can hold several sources in a year,
+ * so `"DEFRA  2025"` next to `"DEFRA 2025"` would otherwise reach capture as a
+ * second option. Letter case is stored as entered; the duplicate check compares
+ * sources without it.
+ */
+export const EmissionFactorSourceSchema = z
+  .string()
+  .trim()
+  .overwrite((source) => source.replace(/\s+/g, " "))
+  .min(1, "Fuente es requerida")
+  .describe("The source of the emission factor");
+
 export const EmissionFactorBaseSchema = z.object({
   id: IdSchema.describe("The ID of the emission factor"),
   subcategoryId: IdSchema.describe("The ID of the subcategory"),

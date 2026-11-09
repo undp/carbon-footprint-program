@@ -69,6 +69,41 @@ export const getAvailableSources = (
   return [...new Set(availableFactors.map((f) => f.source))];
 };
 
+export type FactorSourceResolution =
+  | { action: "select"; source: string }
+  | { action: "clear" }
+  | { action: "none" };
+
+/**
+ * What the editor does with a line's «Fuente factor» after an edit, given the
+ * catalogue sources offered to the line and the source it holds. The first
+ * rule that matches wins:
+ *
+ * 1. Exactly one source offered: select it, even over another one the line
+ *    held.
+ * 2. Several offered and the line holds one of them: select it again, so its
+ *    factor is resolved for the line's current dimension values and unit. A
+ *    unit change clears the factor and keeps the source, and re-picking the
+ *    same option in the selector fires no change, so nothing else would.
+ * 3. The line holds a source that is no longer offered: clear it.
+ * 4. Otherwise (several offered and none held, or none offered and none
+ *    held): nothing. With several, the user chooses.
+ *
+ * Own-factor lines («Otro») never reach this: their source is not a catalogue
+ * source and the editor returns before asking.
+ */
+export const resolveFactorSource = (
+  offeredSources: string[],
+  currentSource: string | null | undefined
+): FactorSourceResolution => {
+  if (offeredSources.length === 1)
+    return { action: "select", source: offeredSources[0] };
+  if (currentSource && offeredSources.includes(currentSource))
+    return { action: "select", source: currentSource };
+  if (currentSource) return { action: "clear" };
+  return { action: "none" };
+};
+
 /**
  * Keeps every value in EMISSION_FACTOR_DIMENSION_OTHER_VALUES at the bottom of
  * a dimension dropdown. The API returns dimension values alphabetically, which
