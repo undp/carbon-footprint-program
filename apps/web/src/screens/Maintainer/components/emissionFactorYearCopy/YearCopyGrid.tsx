@@ -69,6 +69,8 @@ export const YearCopyGrid: FC<Props> = ({
       sx={(theme) => ({
         width: "100%",
         "& .MuiDataGrid-columnHeaders": { backgroundColor: "grey.100" },
+        // Text cells and input cells share a row: center them all.
+        "& .MuiDataGrid-cell": { display: "flex", alignItems: "center" },
         "& .row--edited": {
           backgroundColor: alpha(theme.palette.primary.main, 0.06),
           boxShadow: `inset 3px 0 0 ${theme.palette.primary.main}`,
