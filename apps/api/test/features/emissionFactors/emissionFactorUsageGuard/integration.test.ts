@@ -508,6 +508,38 @@ describe("Emission factor usage guard - Integration Tests", () => {
       expect(await countSnapshots(context.factor.id)).toBe(1);
       expect(await countResults(input.id)).toBe(1);
     });
+
+    // Before the API normalized sources, one could be stored with stray
+    // whitespace. The maintainer sends the whole row on every save, so a
+    // value-only edit carries that source back normalized; it must not count
+    // as a rename.
+    it("leaves them attached when the source differs only in whitespace", async () => {
+      const context = await createUnusedFactor("Update Spaced Source");
+      await prisma.emissionFactor.update({
+        where: { id: context.factor.id },
+        data: { source: " Update  Spaced Source " },
+      });
+      const { input } = await referenceFactor(
+        {
+          ...context,
+          factor: await readFactor(context.factor),
+        },
+        { claimed: false }
+      );
+
+      const response = await app.inject({
+        method: "PATCH",
+        url: `/api/emission-factors/${context.factor.id.toString()}`,
+        payload: { source: "Update Spaced Source", value: 3.25 },
+      });
+
+      expect(response.statusCode).toBe(200);
+      const updated = await readFactor(context.factor);
+      expect(updated.source).toBe(" Update  Spaced Source ");
+      expect(updated.value.toString()).toBe("3.25");
+      expect(await countSnapshots(context.factor.id)).toBe(1);
+      expect(await countResults(input.id)).toBe(1);
+    });
   });
 
   describe("delete", () => {

@@ -1,5 +1,6 @@
 import { type PrismaClient, Prisma } from "@repo/database";
 import {
+  EmissionFactorSourceSchema,
   EmissionFactorStatus,
   User,
   type UpdateEmissionFactorRequest,
@@ -78,7 +79,18 @@ export const updateEmissionFactorService = async (
       }
 
       const effectiveYear = data.year ?? existing.year;
-      const effectiveSource = data.source ?? existing.source;
+      // A source stored before the API normalized it ("DEFRA 2025 ") comes
+      // back normalized on every save of its row, since the maintainer sends
+      // the whole row. That is not a change: rewriting it would rename the
+      // factor and detach the lines that froze the stored spelling, on an edit
+      // that only touched the value.
+      const source =
+        data.source !== undefined &&
+        data.source !==
+          EmissionFactorSourceSchema.safeParse(existing.source).data
+          ? data.source
+          : undefined;
+      const effectiveSource = source ?? existing.source;
 
       if (data.gasDetails !== undefined || data.value !== undefined) {
         const gd = data.gasDetails ?? parseGasDetails(existing.gasDetails, id);
@@ -100,7 +112,7 @@ export const updateEmissionFactorService = async (
         updateData.subcategoryId = BigInt(data.subcategoryId);
       if (data.rateMeasurementUnitId !== undefined)
         updateData.rateMeasurementUnitId = BigInt(data.rateMeasurementUnitId);
-      if (data.source !== undefined) updateData.source = data.source;
+      if (source !== undefined) updateData.source = source;
       if (data.year !== undefined) updateData.year = data.year;
       if (data.gasDetails !== undefined)
         updateData.gasDetails = data.gasDetails;
@@ -147,7 +159,7 @@ export const updateEmissionFactorService = async (
       const dim1Changed = data.dimensionValue1Name !== undefined;
       const dim2Changed = data.dimensionValue2Name !== undefined;
       const yearChanged = data.year !== undefined;
-      const sourceChanged = data.source !== undefined;
+      const sourceChanged = source !== undefined;
 
       const effectiveSubcategoryId =
         updateData.subcategoryId != null
