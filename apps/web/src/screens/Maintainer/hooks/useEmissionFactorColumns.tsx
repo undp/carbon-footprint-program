@@ -26,7 +26,6 @@ import {
 } from "../components/cells";
 import { getNestedError } from "../components/cells/cellUtils";
 import { ActionButtons } from "../components/ActionButtons";
-import { resolveLockedSource } from "../utils/emissionFactorSourceLock";
 import type { EmissionFactorFormRow } from "./useEmissionFactorsForm";
 import {
   resolveEmissionFactorDeleteMessage,
@@ -79,11 +78,6 @@ interface UseEmissionFactorColumnsParams {
   onDelete: (row: EmissionFactorFormRow) => void;
   onOpenGEIBreakdown: (rowIndex: number) => void;
   getValues: () => EmissionFactorFormRow[];
-  /**
-   * The factors as the server holds them. The source lock reads these, never
-   * the form, so an unsaved edit of one row cannot move the lock of another.
-   */
-  getPersistedRows: () => EmissionFactorForm[];
   subcategories: SubcategoryOption[];
   rateUnits: RateMeasurementUnit[];
   dimensionOptionsMap: Record<string, SubcategoryDimensions>;
@@ -256,7 +250,6 @@ export const useEmissionFactorColumns = ({
   onDelete,
   onOpenGEIBreakdown,
   getValues,
-  getPersistedRows,
   subcategories,
   rateUnits,
   dimensionOptionsMap,
@@ -615,14 +608,11 @@ export const useEmissionFactorColumns = ({
         flex: 0.15,
         minWidth: 150,
         renderCell: (params: GridRenderCellParams<EmissionFactor>) => {
-          const { index: rowIndex, row: formRow } = getFormRow(params.row.id);
+          const { index: rowIndex } = getFormRow(params.row.id);
           const editing = isEditing(params.row.id);
           const { canEdit: rowEditable, reason: lockReason } = getRowLock(
             params.row.id
           );
-
-          const lockedSource = resolveLockedSource(getPersistedRows(), formRow);
-          const isSourceLocked = lockedSource !== undefined;
 
           return (
             <LockedCellTooltip reason={lockReason}>
@@ -635,8 +625,6 @@ export const useEmissionFactorColumns = ({
                     ? () => onStartEditRow(params.row.id)
                     : undefined
                 }
-                isSourceLocked={isSourceLocked}
-                lockedSource={lockedSource}
               />
             </LockedCellTooltip>
           );
@@ -727,7 +715,6 @@ export const useEmissionFactorColumns = ({
       canEdit,
       getRowLock,
       getFormRow,
-      getPersistedRows,
       isEditing,
       onCellChange,
       onStartEditRow,
