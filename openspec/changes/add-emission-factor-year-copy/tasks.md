@@ -133,5 +133,5 @@
   - check that the page stays responsive with every row on one page, and that the grid mounts only the rows in view.
 - [x] 9.2 Run `pnpm test:web` and `pnpm test:utils` (after `test-check`), then `pnpm format && pnpm lint && pnpm type-check`.
 - [x] 9.3 Before pushing, check that no commit, file or PR text mentions another deployment by name.
-- [ ] 9.4 Write small Conventional Commits per area (utils refactor, types, api helper refactor, ci, utils planner, api, api tests, web, seed help text, docs, user manual). Open the PR in English against `main`, with the screenshots, the upgrade note for deployments in production (help text), and a short review guide (the planner and D5 first). Ask for the priority label.
+- [x] 9.4 Write small Conventional Commits per area (utils refactor, types, api helper refactor, ci, utils planner, api, api tests, web, seed help text, docs, user manual). Open the PR in English against `main`, with the screenshots, the upgrade note for deployments in production (help text), and a short review guide (the planner and D5 first). Ask for the priority label.
 - [ ] 9.5 Send the open questions of the design to the deployments' methodology teams, stating the implemented assumptions.
