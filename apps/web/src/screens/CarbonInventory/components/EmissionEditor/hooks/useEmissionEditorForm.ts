@@ -15,6 +15,7 @@ import {
   getAvailableFactors,
   getAvailableSources,
   isSelectedFactorAvailable,
+  resolveFactorSource,
 } from "../services/emissionFactorService";
 import { useToggleManualTotalEmissions } from "@/api/query/carbonInventories/subcategories/useToggleManualTotalEmissions";
 import { useEmissionCaptureState } from "../../../hooks/useEmissionCaptureState";
@@ -326,27 +327,20 @@ export const useEmissionEditorForm = ({
     ]
   );
 
-  const determineAutoLoadFactorSource = useCallback(
-    (line: EmissionCaptureFormLine): string | null => {
-      // 1. Get compatible rate unit
+  /** The catalogue sources the selector offers to a line in its context. */
+  const getOfferedFactorSources = useCallback(
+    (line: EmissionCaptureFormLine): string[] => {
       const compatibleRateUnitId = getCompatibleRateUnitId(
         line.measurementUnitId,
         rateMeasurementUnits
       );
-
-      // 2. Get available factors for this context (dimensions + rate unit)
       const availableFactors = getAvailableFactors(
         emissionFactors,
         line.dimensionValue1Id,
         line.dimensionValue2Id,
         compatibleRateUnitId
       );
-
-      // 3. Get unique sources
-      const factorSources = getAvailableSources(availableFactors);
-
-      if (factorSources.length === 1) return factorSources[0];
-      return null;
+      return getAvailableSources(availableFactors);
     },
     [emissionFactors, rateMeasurementUnits]
   );
@@ -376,17 +370,23 @@ export const useEmissionEditorForm = ({
         !!formLine.factorSource &&
         CUSTOM_FACTOR_SOURCES.includes(formLine.factorSource);
 
-      if (!isOwnFactorSelected && areAllRequiredFieldsSelected) {
-        const autoLoadedFactorSource = determineAutoLoadFactorSource(formLine);
-        if (autoLoadedFactorSource)
-          handleFactorSourceChange(lineId, autoLoadedFactorSource);
-      }
+      if (isOwnFactorSelected || !areAllRequiredFieldsSelected) return;
+
+      const resolution = resolveFactorSource(
+        getOfferedFactorSources(formLine),
+        formLine.factorSource
+      );
+      if (resolution.action === "select")
+        handleFactorSourceChange(lineId, resolution.source);
+      if (resolution.action === "clear")
+        resetFactorRelatedFields(subcategoryId, lineId);
     },
     [
       subcategory,
       getValues,
-      determineAutoLoadFactorSource,
+      getOfferedFactorSources,
       handleFactorSourceChange,
+      resetFactorRelatedFields,
     ]
   );
 

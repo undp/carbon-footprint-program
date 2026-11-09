@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   isSelectedFactorAvailable,
+  resolveFactorSource,
   sortDimensionValuesWithOtherLast,
 } from "./emissionFactorService";
 
@@ -115,5 +116,47 @@ describe("isSelectedFactorAvailable", () => {
 
   it("treats a line with no factor as nothing to keep", () => {
     expect(isSelectedFactorAvailable([factor("10", null)], null)).toBe(false);
+  });
+});
+
+describe("resolveFactorSource", () => {
+  it("selects the only source offered to a line that holds none", () => {
+    expect(resolveFactorSource(["DEFRA 2025"], null)).toEqual({
+      action: "select",
+      source: "DEFRA 2025",
+    });
+  });
+
+  it("selects the only source offered over another one the line held", () => {
+    expect(resolveFactorSource(["DEFRA 2025"], "Factor nacional")).toEqual({
+      action: "select",
+      source: "DEFRA 2025",
+    });
+  });
+
+  it("selects again the source the line holds when several are offered", () => {
+    expect(
+      resolveFactorSource(["DEFRA 2025", "Factor nacional"], "Factor nacional")
+    ).toEqual({ action: "select", source: "Factor nacional" });
+  });
+
+  it("clears a source that is no longer offered among several", () => {
+    expect(
+      resolveFactorSource(["DEFRA 2025", "Factor nacional"], "IPCC 2006")
+    ).toEqual({ action: "clear" });
+  });
+
+  it("clears a source when no catalogue source is offered", () => {
+    expect(resolveFactorSource([], "DEFRA 2025")).toEqual({ action: "clear" });
+  });
+
+  it("selects nothing when several are offered and the line holds none", () => {
+    expect(
+      resolveFactorSource(["DEFRA 2025", "Factor nacional"], null)
+    ).toEqual({ action: "none" });
+  });
+
+  it("does nothing when no source is offered and the line holds none", () => {
+    expect(resolveFactorSource([], null)).toEqual({ action: "none" });
   });
 });
