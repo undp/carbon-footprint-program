@@ -65,6 +65,8 @@ const SourceInput: FC<SourceInputProps> = ({
         onChange={(_, next) => setLocalValue(next ?? "")}
         onInputChange={(_, next) => setLocalValue(next)}
         onBlur={() => onCommit(localValue)}
+        // Flex, so the inline-flex field sits on no line box and stays centered.
+        sx={{ display: "flex" }}
         renderInput={(params) => (
           <TextField
             {...params}

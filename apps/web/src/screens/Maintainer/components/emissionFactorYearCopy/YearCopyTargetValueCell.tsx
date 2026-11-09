@@ -49,7 +49,8 @@ const ValueInput: FC<ValueInputProps> = ({
   const [localValue, setLocalValue] = useState(initialValue);
   return (
     <Tooltip title={error ?? ""} arrow placement="top">
-      <Box sx={{ width: "100%" }}>
+      {/* Flex, so the inline-flex input sits on no line box and stays centered. */}
+      <Box sx={{ width: "100%", display: "flex" }}>
         <NumericInput
           value={localValue}
           onChange={setLocalValue}
