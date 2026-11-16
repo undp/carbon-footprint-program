@@ -57,7 +57,7 @@ export const LandingFooter: FC = () => {
           color: theme.palette.common.white,
         }}
       >
-        {`Bien público digital · ¿Te interesa implementarlo en tu país? Contacta al PNUD (${REPLICATION_CONTACT_EMAIL})`}
+        {`Software de código abierto · ¿Te interesa implementarlo en tu país? Contacta al PNUD (${REPLICATION_CONTACT_EMAIL})`}
       </Typography>
       <Box className="flex items-center gap-6">{renderTermsLink()}</Box>
     </Box>

@@ -16,7 +16,7 @@ export const RoadmapSection: FC = () => (
           gridTemplateColumns: {
             xs: "1fr",
             sm: "repeat(2, 1fr)",
-            lg: "repeat(5, 1fr)",
+            lg: `repeat(${ROADMAP_MILESTONES.length}, 1fr)`,
           },
           rowGap: 4,
         }}

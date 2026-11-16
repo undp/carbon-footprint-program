@@ -129,8 +129,8 @@ export const PLATFORM_PILLARS: readonly PlatformPillar[] = [
   {
     step: "03",
     Icon: CodeOutlined,
-    title: "Bien público digital",
-    body: "Software de código abierto alineado con los estándares de la Digital Public Goods Alliance y adaptable a cada país de la región.",
+    title: "Software de código abierto",
+    body: "Software libre y adaptable a cada país de la región.",
     tags: [],
     callout: "¿Te interesa implementarlo en tu país? Contacta al PNUD",
   },
@@ -250,14 +250,6 @@ export const ROADMAP_MILESTONES: readonly RoadmapMilestone[] = [
       "La plataforma está probando el ciclo completo de medición, verificación y reconocimiento en condiciones reales junto a contrapartes nacionales.",
     isInProgress: true,
   },
-  {
-    period: "2026",
-    stage: "Validación DPG · En curso",
-    title: "Validación como Bien Público Digital",
-    description:
-      "La solución está siendo validada como Bien Público Digital (DPG), asegurando que se mantenga abierta, reutilizable y valiosa para toda la región. Si te interesa implementarla en tu país, contacta al PNUD.",
-    isInProgress: true,
-  },
 ];
 
 /**
@@ -278,7 +270,7 @@ export const FUNDING_HIGHLIGHT = {
   projectName:
     "Innovación para las Finanzas Verdes en América Latina y el Caribe",
   bodyAfterProject:
-    ", que busca acelerar la implementación de las Contribuciones Determinadas a Nivel Nacional (NDC). El apoyo de Suecia hace posible que esta plataforma sea un bien público digital, gratuito y abierto para toda la región.",
+    ", que busca acelerar la implementación de las Contribuciones Determinadas a Nivel Nacional (NDC). El apoyo de Suecia hace posible que esta plataforma sea un software de código abierto y gratuito para toda la región.",
 } as const;
 
 export interface OrganizationProfile {
@@ -322,7 +314,7 @@ export const ABOUT_DISCLAIMER =
   "Esta iniciativa es financiada por Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional e implementada por el Programa de las Naciones Unidas para el Desarrollo (PNUD). Los contenidos de esta plataforma son responsabilidad exclusiva de sus autores y no reflejan necesariamente el punto de vista de sus socios.";
 
 export const ABOUT_HERO = {
-  badge: "Bien público digital · América Latina y el Caribe",
+  badge: "Software de código abierto · América Latina y el Caribe",
   title: "Sobre la iniciativa",
   lead: "Huella Latam es un software de código abierto impulsado por el Programa de Naciones Unidas para el Desarrollo (PNUD) para apoyar los Programas Nacionales de Huella de Carbono en América Latina y el Caribe, en el marco de la iniciativa Innovación para las Finanzas Verdes en América Latina y el Caribe (IFV LAC), con el apoyo de Suecia a través de la Agencia Sueca de Cooperación para el Desarrollo Internacional (ASDI). Permite que organizaciones de todos los tamaños midan sus emisiones de gases de efecto invernadero, gestionen sus huellas y sometan sus mediciones a evaluación para obtener reconocimientos oficiales.",
 } as const;
