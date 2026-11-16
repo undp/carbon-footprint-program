@@ -154,16 +154,16 @@ When V5 introduces tools that read the authenticated user's own data, a per-user
 - Add SSE support to the shared `apiClient` — rejected because `ky` does not expose `ReadableStream` and SSE conflicts with `ky`'s response parsing model. A separate streaming function is cleaner than forking the shared client.
 - Mount the widget only inside `apps/web/src/routes/app.tsx` — rejected because it loses the anonymous landing case explicitly required by the custom-widget decision (see §Background Context, D5).
 
-### 8. Optional AI feature gated by `CHATBOT_ENABLED` (DPG optionality)
+### 8. Optional AI feature gated by `CHATBOT_ENABLED` (optionality)
 
 **Decision**: The entire chatbot is gated behind a single `CHATBOT_ENABLED` environment flag, default **off** (opt-in). When disabled: the `routes/api/chatbot` group registers nothing (endpoints 404), the `LLM_PROVIDER` / Azure / `COOKIE_SECRET` boot guards are skipped, and the frontend widget is not mounted (mirrored by `VITE_CHATBOT_ENABLED`). A do-nothing deployment therefore runs the full platform with no AI code path and no cloud dependency. When enabled in production the existing guards apply — a real `azure-openai` provider plus its config are required. The test suite sets `CHATBOT_ENABLED=true` in `globalSetup` so the chatbot integration tests run.
 
-**Rationale**: As a Digital Public Good, the platform must work correctly without the optional AI features — a country deployment decides whether to connect the cloud LLM. Gating the feature in-process (rather than splitting it into a separate service) keeps the single-artifact deployment story and reuses the core auth / identity / DB / SSE machinery the chatbot depends on; the `LLMProvider` seam keeps a later extraction to a standalone service cheap if scale ever demands it.
+**Rationale**: As open-source software adopted per country, the platform must work correctly without the optional AI features — a country deployment decides whether to connect the cloud LLM. Gating the feature in-process (rather than splitting it into a separate service) keeps the single-artifact deployment story and reuses the core auth / identity / DB / SSE machinery the chatbot depends on; the `LLMProvider` seam keeps a later extraction to a standalone service cheap if scale ever demands it.
 
 **Alternatives considered**:
 
 - Ship the chatbot as a separate backend service on its own port — rejected for foundation: it would duplicate auth/cookie/session sharing and DB access across a network boundary and raise the self-hosting bar for every deployment, for isolation benefits not needed until AI compute scales (RAG embeddings, vector search).
-- Always-on with no flag — rejected: contradicts the DPG optionality principle and forced `LLM_PROVIDER=azure-openai` at boot in production.
+- Always-on with no flag — rejected: contradicts the optionality principle and forced `LLM_PROVIDER=azure-openai` at boot in production.
 
 ## Risks / Trade-offs
 
