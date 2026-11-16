@@ -46,7 +46,7 @@ Closes #
       deployments, or a deprecation path and migration note are
       documented in this PR.
 
-## DPG checklist
+## Open-source checklist
 
 - [ ] Documentation under `docs/` was updated where relevant.
 - [ ] No new platform-specific dependency was added without an

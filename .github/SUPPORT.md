@@ -1,6 +1,6 @@
 # Getting Support
 
-Huella Latam is a Digital Public Good developed by the United Nations
+Huella Latam is open-source software developed by the United Nations
 Development Programme (UNDP) under Project 01000983. This document
 routes you to the right channel for your question or report.
 
@@ -12,8 +12,8 @@ the platform, start with the documentation:
 - <https://github.com/undp/carbon-footprint-program/tree/main/docs>
 
 Please **do not** file GitHub issues for questions. Issues are used for
-confirmed bugs, feature requests, DPG-compliance gaps, and the
-maintainer team's own task tracking.
+confirmed bugs, feature requests, and the maintainer team's own task
+tracking.
 
 ## Where to report bugs
 
@@ -43,14 +43,6 @@ See [`PRIVACY.md`](../PRIVACY.md). For issues with the upstream
 codebase use the upstream contact listed there. For issues with a
 specific country deployment, contact that deployment's data-protection
 officer — each adopting government publishes its own contact.
-
-## Where to report DPG-compliance gaps
-
-Use the **DPG compliance report** issue template. We track these
-issues against the DPGA Standard v1.1.6 indicators and use them to
-maintain the public self-assessment at
-[`../dpg-assessment.json`](../dpg-assessment.json) and
-[`../GOVERNANCE.md`](../GOVERNANCE.md).
 
 ## Country-deployment support
 

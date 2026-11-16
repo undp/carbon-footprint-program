@@ -3,7 +3,7 @@ name: Scorecard
 # OpenSSF Scorecard — automated supply-chain / best-practices posture analysis
 # (branch protection, pinned dependencies, token permissions, dangerous
 # workflows, etc.). Complements CodeQL (code SAST) and feeds the project's
-# OpenSSF / DPG self-assessment. Results are uploaded to GitHub code scanning
+# OpenSSF self-assessment. Results are uploaded to GitHub code scanning
 # (free for public repositories) and published to the public Scorecard API so
 # the repo can display a score badge.
 on:

@@ -1,4 +1,4 @@
-# Dependabot configuration — keeps dependencies current (DPG Indicator 8 / OpenSSF
+# Dependabot configuration — keeps dependencies current (OpenSSF
 # "Dependency-Update-Tool"). Version updates work on private repos without GitHub
 # Advanced Security. To also receive security-vulnerability updates, enable Dependabot
 # alerts/security updates in Settings → Code security and analysis.

@@ -1,6 +1,6 @@
 name: CodeQL
 
-# Static analysis (SAST) for OpenSSF Scorecard / DPG Indicator 8. CodeQL uploads results to
+# Static analysis (SAST) for OpenSSF Scorecard. CodeQL uploads results to
 # GitHub code scanning, which is free for public repositories.
 on:
   push:

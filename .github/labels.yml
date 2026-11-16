@@ -48,9 +48,6 @@
 - name: "type: docs"
   color: "1d76db"
   description: "documentation only"
-- name: "type: dpg"
-  color: "1d76db"
-  description: "Digital Public Goods Alliance standard / compliance"
 
 # Area — which part of the monorepo
 - name: "area: web"

@@ -13,7 +13,6 @@ body:
         Pick a different template if it fits better:
         - A reproducible defect with observable wrong behaviour → **Bug report**.
         - A new user-facing capability or enhancement → **Feature request**.
-        - A gap against the DPGA Standard → **DPG compliance report**.
 
   - type: dropdown
     id: kind
