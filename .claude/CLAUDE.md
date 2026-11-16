@@ -1,6 +1,6 @@
 # Huella Latam
 
-A platform (digital public good for Latin America) for measuring, managing, and reducing carbon footprints.
+An open-source platform for Latin America for measuring, managing, and reducing carbon footprints.
 
 Monorepo (pnpm + Turborepo): `apps/api` (Fastify + Prisma), `apps/web` (React + MUI v7 + Tailwind + TanStack), `packages/*` (`types`, `constants`, `utils`, `database`, `storage`, eslint/ts config), `tools/seed`. All user-facing text is Spanish (no i18n).
 

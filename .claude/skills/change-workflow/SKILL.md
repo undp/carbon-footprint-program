@@ -15,7 +15,7 @@ Use the **Conventional Commits** format — `<type>(<scope>): <short description
 
 Apply the repo's **namespaced** labels when opening a PR — never bare/legacy ones — to drive triage and filtering alongside the Conventional-Commit title. The source of truth is `.github/labels.yml` (managed as code and synced to the repo; a label removed there is removed from the repo).
 
-- `type:` — the kind of change: `bug` / `feature` / `refactor` / `tech-debt` / `performance` / `chore` / `security` / `docs` / `dpg`. This taxonomy is broader than the commit types, so pick the closest match and align it with the PR's "Type of change" checkbox.
+- `type:` — the kind of change: `bug` / `feature` / `refactor` / `tech-debt` / `performance` / `chore` / `security` / `docs`. This taxonomy is broader than the commit types, so pick the closest match and align it with the PR's "Type of change" checkbox.
 - `area:` — the part of the monorepo touched (mirrors the commit scope): `web` / `api` / `database` / `packages` / `infra` / `ci` / `docs`. Add more than one for cross-cutting PRs.
 - `priority:` — `critical` / `high` / `medium` / `low`. Always **ask the user** which priority level applies before opening the PR, and apply the matching label; never guess it.
 - Leave `status:` labels (`triage` / `blocked` / `needs-repro` / `duplicate` / `wontfix`) to triage; only add one if it genuinely applies (e.g. `blocked`).
