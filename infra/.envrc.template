@@ -108,8 +108,8 @@ export FRONTEND_CUSTOM_DOMAIN=""
 # ============================================================================
 #
 # Off by default, and that default is deliberate: the platform must stay
-# fully usable with no AI and no cloud AI dependency. A deployment leaving this off provisions no Azure OpenAI resource
-# and runs no AI code path.
+# fully usable with no AI and no cloud AI dependency. A deployment leaving this
+# off provisions no Azure OpenAI resource and runs no AI code path.
 #
 # ⚠️ TWO FLAGS, TWO PLACES, NOTHING CROSS-CHECKS THEM.
 #
