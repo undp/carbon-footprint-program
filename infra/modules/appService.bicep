@@ -68,7 +68,7 @@ param azureAuthTenantType string = 'external'
 @description('Azure tenant subdomain (required for external/CIAM tenants)')
 param azureAuthTenantSubdomain string = ''
 
-@description('Enable the AI chatbot. When false the API boots with no AI code path, no Azure OpenAI dependency, and the widget stays hidden — the DPG optionality guarantee.')
+@description('Enable the AI chatbot. When false the API boots with no AI code path, no Azure OpenAI dependency, and the widget stays hidden, so the AI feature stays optional.')
 param enableChatbot bool = false
 
 @description('Azure OpenAI endpoint URL (required when enableChatbot is true)')

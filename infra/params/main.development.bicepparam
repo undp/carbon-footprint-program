@@ -301,8 +301,8 @@ param frontDoorRateLimitThreshold = 100
 // ============================================
 
 // Master switch for the AI assistant. Off by default, and that default is
-// deliberate: the platform is a digital public good and must stay fully usable
-// with no AI and no cloud AI dependency, so a deployer opts in rather than out.
+// deliberate: the platform must stay fully usable with no AI and no cloud AI
+// dependency, so a deployer opts in rather than out.
 //
 // Setting this to true provisions an Azure OpenAI account, a chat deployment and
 // an embedding deployment, and grants the App Service inference access via

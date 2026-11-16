@@ -5,7 +5,7 @@ import { deleteMyConversationRoute } from "@/features/chatbot/deleteMyConversati
 import { getCurrentConversationRoute } from "@/features/chatbot/getCurrentConversation/route.js";
 
 export default function chatbotRoutes(fastify: FastifyZodInstance) {
-  // Chatbot is an optional AI feature (DPG optionality). When disabled, its
+  // Chatbot is an optional AI feature. When disabled, its
   // routes are not registered at all — the endpoints 404 and no LLM/cloud code
   // path is reachable.
   if (!CHATBOT_ENABLED) return;

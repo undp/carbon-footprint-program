@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { FastifyZodInstance } from "@/types/fastify.js";
 
-// The chatbot route group registers only when CHATBOT_ENABLED is true (DPG
-// optionality — a deployment can run the platform with no AI). CHATBOT_ENABLED
+// The chatbot route group registers only when CHATBOT_ENABLED is true (the AI
+// feature is optional — a deployment can run the platform with no AI). CHATBOT_ENABLED
 // is read once at module load in config/environment.ts, so each case stubs that
 // module and imports the route module fresh.
 

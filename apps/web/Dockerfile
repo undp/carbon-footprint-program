@@ -34,7 +34,7 @@ ARG VITE_IS_DEMO_APP="false"
 ARG VITE_APP_VERSION="dev"
 ARG VITE_LOCAL_BYPASS_REQUIRED_FIELDS="false"
 # Mounts the chatbot widget. Defaults to "false" so an image built without it
-# behaves as the platform does with no AI — the DPG optionality guarantee. Must
+# behaves as the platform does with no AI — the AI feature stays optional. Must
 # agree with the API's CHATBOT_ENABLED: widget on with the API off mounts a
 # widget whose every request 404s.
 ARG VITE_CHATBOT_ENABLED="false"

@@ -239,9 +239,8 @@ param azureAuthFrontAppId string = ''
 
 // --------- Chatbot (optional AI feature) ---------
 //
-// Off by default, and the default is load-bearing: the platform is a digital
-// public good that must remain fully usable with no AI and no cloud AI
-// dependency. Enabling this provisions an Azure OpenAI account with two model
+// Off by default, and the default is load-bearing: the platform must remain
+// fully usable with no AI and no cloud AI dependency. Enabling this provisions an Azure OpenAI account with two model
 // deployments and grants the App Service inference access.
 //
 // Before setting this to true, read

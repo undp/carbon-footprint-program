@@ -1,7 +1,7 @@
 # Chatbot LLM providers
 
 The chatbot talks to its language model through **one interface**, so the cloud
-LLM is a swappable, per-deployment choice (DPG cloud-agnosticism). Nothing in
+LLM is a swappable, per-deployment choice (cloud-agnosticism). Nothing in
 the SSE handler, identity model, persistence layer, timeouts, or degraded logic
 is vendor-specific — they all consume `LLMProvider`, never a vendor SDK.
 

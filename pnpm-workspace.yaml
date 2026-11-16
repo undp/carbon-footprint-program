@@ -13,7 +13,7 @@ minimumReleaseAge: 1440
 engineStrict: true
 
 # The settings below are pnpm v11 defaults, pinned explicitly for auditability
-# (DPG supply-chain review) so a future default change can't silently weaken them.
+# (supply-chain review) so a future default change can't silently weaken them.
 # Fail the install if any dependency ships an unreviewed build script.
 strictDepBuilds: true
 # Never auto-run dependency build/install scripts — only those listed in allowBuilds.

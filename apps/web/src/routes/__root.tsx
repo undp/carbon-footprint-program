@@ -92,7 +92,7 @@ function RootComponent() {
               <AuthProvider>
                 <ExplanationProvider>
                   <Outlet />
-                  {/* Optional AI feature (DPG optionality) — only mounted when
+                  {/* Optional AI feature — only mounted when
                       the deployment enables it. Minimum-viable placement;
                       design review may relocate. */}
                   {IS_CHATBOT_ENABLED && <ChatbotWidget />}

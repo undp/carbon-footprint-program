@@ -98,11 +98,11 @@ services:
       # false/unset → the browser hits MinIO directly (historical default).
       - MINIO_RELAY_ENABLED=${MINIO_RELAY_ENABLED:-false}
       # --- Chatbot (optional AI feature) ---
-      # Off by default: this platform is a digital public good and must stay
-      # fully usable with no AI and no cloud AI dependency, so an operator opts
-      # in. As with TRUST_PROXY above, this service enumerates its environment
-      # explicitly (no env_file) — a variable missing from this list is only
-      # ever used for ${...} interpolation and never reaches the container.
+      # Off by default: the platform must stay fully usable with no AI and no
+      # cloud AI dependency, so an operator opts in. As with TRUST_PROXY above,
+      # this service enumerates its environment explicitly (no env_file) — a
+      # variable missing from this list is only ever used for ${...}
+      # interpolation and never reaches the container.
       - CHATBOT_ENABLED=${CHATBOT_ENABLED:-false}
       - LLM_PROVIDER=${LLM_PROVIDER:-mock}
       - EMBEDDING_PROVIDER=${EMBEDDING_PROVIDER:-mock}

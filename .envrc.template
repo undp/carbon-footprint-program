@@ -80,7 +80,7 @@ export JWT_SECRET="dev-only-dummy-secret-change-me"
 # export JWKS_AUDIENCE="huella-api"                                                     # needs the realm audience mapper
 # export JWKS_REQUIRED_SCOPE="access_as_user"                                           # realm grants it as a default scope
 
-# Chatbot (optional AI feature — DPG optionality). Off by default platform-wide;
+# Chatbot (optional AI feature). Off by default platform-wide;
 # enabled here for local dev with the built-in mock provider (no cloud). For
 # real AI set LLM_PROVIDER="azure-openai" + AZURE_OPENAI_ENDPOINT +
 # AZURE_OPENAI_DEPLOYMENT_NAME + COOKIE_SECRET (see .envrc.azure.example).

@@ -107,9 +107,8 @@ export FRONTEND_CUSTOM_DOMAIN=""
 # 5. Chatbot (optional AI feature)
 # ============================================================================
 #
-# Off by default, and that default is deliberate: the platform is a digital
-# public good that must stay fully usable with no AI and no cloud AI
-# dependency. A deployment leaving this off provisions no Azure OpenAI resource
+# Off by default, and that default is deliberate: the platform must stay
+# fully usable with no AI and no cloud AI dependency. A deployment leaving this off provisions no Azure OpenAI resource
 # and runs no AI code path.
 #
 # ⚠️ TWO FLAGS, TWO PLACES, NOTHING CROSS-CHECKS THEM.

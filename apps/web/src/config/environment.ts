@@ -16,7 +16,7 @@ export const IS_DEVELOPMENT = import.meta.env.DEV;
 
 /**
  * Whether the optional AI chatbot widget is mounted. Mirrors the API's
- * `CHATBOT_ENABLED` per the DPG optionality principle — a deployment that does
+ * `CHATBOT_ENABLED`: the AI feature is optional, so a deployment that does
  * not connect the AI cloud services leaves this unset and the widget never
  * renders. Build-time flag (Vite); default off (opt-in).
  */

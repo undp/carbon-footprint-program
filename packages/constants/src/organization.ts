@@ -1,6 +1,6 @@
 /**
- * Label for `OrganizationData.taxId`. The platform is a Latin-America-wide
- * public good and the column holds a generic tax identifier (RUT in Chile, RUC
+ * Label for `OrganizationData.taxId`. The platform is used across Latin
+ * America and the column holds a generic tax identifier (RUT in Chile, RUC
  * in Perú/Paraguay, RFC in México, …), so the wording is a per-deployment
  * constant instead of a literal repeated across screens and API copy.
  */

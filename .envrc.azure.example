@@ -70,7 +70,7 @@ export LOG_LEVEL=""     # Options: debug, info, warn, error
 export NODE_ENV=""      # Options: development, production, test
 # export SUPERADMIN_EMAIL=""   # Email promoted via `pnpm db:promote-superadmin`
 
-# ── Chatbot (optional AI feature — DPG optionality) ──────────────────────────
+# ── Chatbot (optional AI feature) ─────────────────────────────────────────────
 # Off by default platform-wide. This Azure example enables it end-to-end. To
 # run without AI, set CHATBOT_ENABLED="false" and leave the rest blank.
 export CHATBOT_ENABLED="true"
