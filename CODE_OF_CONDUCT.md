@@ -170,8 +170,6 @@ For answers to common questions about this code of conduct, see the FAQ at
 
 ---
 
-<!-- DPG Standard Indicator 9C additions: end-user harassment protection + underage safety. -->
-
 ## Protecting users from harassment (end users)
 
 Huella Latam is an organization-facing carbon-reporting platform. It does **not**
@@ -216,4 +214,4 @@ Where interaction does occur:
 
 ---
 
-_References: [Contributor Covenant 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html); [DPG Standard](https://www.digitalpublicgoods.net/standard) Indicator 9C._
+_Reference: [Contributor Covenant 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct.html)._

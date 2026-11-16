@@ -1,14 +1,14 @@
 # Governance and Licensing
 
-This document describes the governance model for the Huella Latam platform as a digital public good, the licensing considerations for distribution and country-level adoption, and the contribution acceptance process.
+This document describes the governance model for the Huella Latam platform as open-source software, the licensing considerations for distribution and country-level adoption, and the contribution acceptance process.
 
 ---
 
-## Digital Public Good Status
+## Distribution Model
 
-Huella Latam is designed and maintained as a **digital public good**: a country-agnostic platform intended for adoption by any Latin American country (and potentially beyond) to support their carbon footprint measurement and transparency commitments.
+Huella Latam is designed and maintained as **open-source software**: a country-agnostic platform intended for adoption by any Latin American country (and potentially beyond) to support their carbon footprint measurement and transparency commitments.
 
-Practical consequences of this status:
+Practical consequences of this model:
 
 - The codebase is **centrally maintained** but **independently deployed** by each adopting country.
 - Each country **operates its own deployment** on its own Azure infrastructure, with its own data sovereignty.
@@ -106,7 +106,7 @@ Security vulnerabilities should be reported **privately** to the maintainer team
 
 ## Recommended Root-Level Files
 
-For a mature open-source digital public good, the repository root should contain:
+For a mature open-source project, the repository root should contain:
 
 | File                            | Purpose                                                            | Currently present?                     |
 | ------------------------------- | ------------------------------------------------------------------ | -------------------------------------- |
@@ -117,8 +117,6 @@ For a mature open-source digital public good, the repository root should contain
 | `SECURITY.md`                   | Security reporting process                                         | ✅ Present at root                     |
 | `CODEOWNERS`                    | PR review assignments                                              | ✅ Present (`.github/CODEOWNERS`)      |
 | `CHANGELOG.md` or release notes | Version history                                                    | ❌ Missing (releases in Git tags only) |
-
-Adding these files is a prerequisite for acceptance into the [Digital Public Goods Alliance](https://digitalpublicgoods.net/) registry, if that is a goal for the project.
 
 ---
 

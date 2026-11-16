@@ -1,6 +1,6 @@
 # Contributing to Huella Latam
 
-Thank you for your interest in contributing! Huella Latam is a digital public good
+Thank you for your interest in contributing! Huella Latam is open-source software
 maintained by the United Nations Development Programme (UNDP). Contributions of all
 kinds — bug reports, documentation, and code — are welcome.
 

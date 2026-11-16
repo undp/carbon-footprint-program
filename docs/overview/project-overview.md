@@ -2,7 +2,7 @@
 
 ## Goal
 
-Huella Latam is a **digital public good for Latin America**: a country-agnostic platform for measuring, managing, and reducing organizational carbon footprints.
+Huella Latam is an **open-source platform for Latin America**: a country-agnostic platform for measuring, managing, and reducing organizational carbon footprints.
 
 The system is designed to be centrally developed but independently deployed by each participating country on its own infrastructure. Each national deployment can adapt the platform to its local regulatory frameworks, emission factor methodologies, and business logic through configuration and extension—without modifying the shared core.
 

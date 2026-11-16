@@ -4,7 +4,7 @@ This project uses [MUI X DataGrid](https://mui.com/x/react-data-grid/) for tabul
 
 ## We use the Community (free) tier
 
-We use `@mui/x-data-grid` — the open-source build. We deliberately do **not** depend on `@mui/x-data-grid-pro` or `@mui/x-data-grid-premium`, because Huella Latam is a digital public good distributed to country deployments and we cannot require commercial licenses from adopters.
+We use `@mui/x-data-grid` — the open-source build. We deliberately do **not** depend on `@mui/x-data-grid-pro` or `@mui/x-data-grid-premium`, because Huella Latam is open-source software distributed to country deployments and we cannot require commercial licenses from adopters.
 
 Practical consequences:
 

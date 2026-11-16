@@ -2,7 +2,7 @@
 
 **Project:** Huella Latam
 
-Huella Latam is a digital public good for measuring, managing, and reducing carbon
+Huella Latam is open-source software for measuring, managing, and reducing carbon
 footprints, intended for adoption by Latin American countries. This document defines who
 owns the project and how decisions are made. For licensing and country-level deployment
 details, see [`docs/governance.md`](./docs/governance.md).
@@ -73,8 +73,3 @@ however, the **deployment operator is the data controller** — not this team, w
 to any deployment's data and cannot service a data-subject request against it. See
 [`PRIVACY.md`](./PRIVACY.md) for that split and
 [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md) for the technical detail.
-_(Supports DPG Indicators 7 and 9A–9C.)_
-
----
-
-_Reference: [DPG Standard](https://www.digitalpublicgoods.net/standard) Indicator 3 (Clear Ownership)._

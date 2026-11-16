@@ -1,6 +1,6 @@
 # Security Policy
 
-Huella Latam is a digital public good that stores organizational and personal data
+Huella Latam is open-source software that stores organizational and personal data
 (see [`docs/security/sensitive-data.md`](./docs/security/sensitive-data.md)). We take
 security seriously and appreciate responsible disclosure.
 
@@ -82,7 +82,3 @@ infrastructure hardening, and audit logging.
 - ✅ Secret scanning with push protection enabled (free for this public repository).
 - ✅ Dependabot security alerts and security updates enabled.
 - ✅ CodeQL (SAST) scanning via [`.github/workflows/codeql.yml`](./.github/workflows/codeql.yml), running on pull requests, pushes to `main`, and on a weekly schedule. See the "Standards & Best Practices" section of the README.
-
----
-
-_Reference: [DPG Standard](https://www.digitalpublicgoods.net/standard) Indicators 8 & 9A._

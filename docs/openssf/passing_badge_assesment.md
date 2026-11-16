@@ -5,7 +5,7 @@
 
 **Legend:** ✅ Met · ⚠️ Partial / needs verification · ❌ Missing · ➖ Not applicable
 
-**Summary:** The Passing level is now **effectively met**. Since the previous assessment the repository was **made public**, **GitHub Releases** with human-readable notes were published, **`SECURITY.md`** and **GitHub private vulnerability reporting** were added/enabled, and the whole DPG-readiness artifact set (`CODE_OF_CONDUCT.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, `SUPPORT.md`, issue/PR templates, CODEOWNERS) merged (PR #407). Branch protection, secret scanning + push protection, and a CodeQL SAST workflow are live. The former hard blockers — LICENSE, release notes, vulnerability-reporting policy, and repo-public — are all resolved. What remains are a couple of maintainer **self-assertions/verifications** and small hardening touches; then the project can **register the badge** at bestpractices.dev.
+**Summary:** The Passing level is now **effectively met**. Since the previous assessment the repository was **made public**, **GitHub Releases** with human-readable notes were published, **`SECURITY.md`** and **GitHub private vulnerability reporting** were added/enabled, and the whole community/governance artifact set (`CODE_OF_CONDUCT.md`, `GOVERNANCE.md`, `CONTRIBUTING.md`, `SUPPORT.md`, issue/PR templates, CODEOWNERS) merged (PR #407). Branch protection, secret scanning + push protection, and a CodeQL SAST workflow are live. The former hard blockers — LICENSE, release notes, vulnerability-reporting policy, and repo-public — are all resolved. What remains are a couple of maintainer **self-assertions/verifications** and small hardening touches; then the project can **register the badge** at bestpractices.dev.
 
 ## Basics
 
@@ -16,7 +16,7 @@
 | `contribution`              | MUST      | ✅     | `CONTRIBUTING.md` + `docs/development/contributing.md`: GitHub Flow, PRs, Conventional Commits.              |
 | `contribution_requirements` | SHOULD    | ✅     | `CONTRIBUTING.md` "Contribution acceptance criteria" + branch/commit conventions and a "definition of done". |
 | `floss_license`             | MUST      | ✅     | AGPL-3.0-only declared in every `package.json` and root `LICENSE` — an OSI/FLOSS license.                    |
-| `floss_license_osi`         | SUGGESTED | ✅     | AGPL-3.0 is OSI-approved (and DPGA-approved).                                                                |
+| `floss_license_osi`         | SUGGESTED | ✅     | AGPL-3.0 is OSI-approved.                                                                                    |
 | `license_location`          | MUST      | ✅     | Root `LICENSE` file with full AGPL-3.0 text; GitHub detects the license as `AGPL-3.0`.                       |
 | `documentation_basics`      | MUST      | ✅     | Extensive `docs/` (architecture, development, operations, security, data-model, infrastructure).             |
 | `documentation_interface`   | MUST      | ✅     | API documented via `@fastify/swagger` (OpenAPI) + `docs/development/api-conventions.md`.                     |

@@ -7,8 +7,8 @@
 > user-supplied content is (a) structured data entered into carbon inventories and
 > organizational profiles, and (b) **supporting evidence files** uploaded to substantiate
 > emissions data. This content is **private to an authenticated organization workspace** and
-> its authorized verifier — it is not broadcast or made publicly discoverable. Under the DPG
-> Standard this places Indicator 9B at the low-risk end, but because file uploads exist, this
+> its authorized verifier — it is not broadcast or made publicly discoverable. This places the
+> platform at the low-risk end for content moderation, but because file uploads exist, this
 > policy documents the platform's acceptable-use expectations and removal process.
 
 ## Scope
@@ -117,7 +117,3 @@ open a normal GitHub issue.
 
 See also [`SECURITY.md`](./SECURITY.md) and [`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md) —
 conduct between community members is handled under the latter.
-
----
-
-_Reference: [DPG Standard](https://www.digitalpublicgoods.net/standard) Indicator 9B._

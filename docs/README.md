@@ -145,10 +145,10 @@ Start at [`country-implementation-guide/README.md`](./country-implementation-gui
 
 ## Reference
 
-| Document                                    | Description                                                                               |
-| ------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| [Glossary](./glossary.md)                   | Domain terminology reference (carbon accounting, platform workflow, technical terms)      |
-| [Governance and Licensing](./governance.md) | Digital public good status, license, contribution model, and recommended root-level files |
+| Document                                    | Description                                                                          |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [Glossary](./glossary.md)                   | Domain terminology reference (carbon accounting, platform workflow, technical terms) |
+| [Governance and Licensing](./governance.md) | Distribution model, license, contribution model, and recommended root-level files    |
 
 ## Other
 

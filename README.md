@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml/badge.svg)](https://github.com/undp/carbon-footprint-program/actions/workflows/ci.yml) [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13873/badge)](https://www.bestpractices.dev/projects/13873) [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/undp/carbon-footprint-program/badge)](https://securityscorecards.dev/viewer/?uri=github.com/undp/carbon-footprint-program) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 
-A platform — a **digital public good for Latin America** — for measuring, managing, and reducing carbon footprints.
+An **open-source platform for Latin America** for measuring, managing, and reducing carbon footprints.
 
 Monorepo (pnpm + Turborepo): a Fastify + Prisma API (`apps/api`), a React + Vite + MUI web app (`apps/web`), shared libraries (`packages/*`), and Azure Bicep infrastructure (`infra/`).
 
@@ -51,7 +51,7 @@ See [`docs/development/contributing.md`](./docs/development/contributing.md). In
 
 ## 🌍 Relevance to the Sustainable Development Goals
 
-Huella Latam is a digital public good that helps organizations and Latin American countries
+Huella Latam is open-source software that helps organizations and Latin American countries
 measure, report, and reduce greenhouse-gas emissions. It advances the following UN
 Sustainable Development Goals:
 
@@ -89,7 +89,7 @@ and recognized software best practices:
   (`http://localhost:8080/api/docs`), and data export in XLSX (Office Open XML) format (see
   [`docs/development/data-export.md`](./docs/development/data-export.md)).
 - **Reuse & open source:** built on open-source components; provider-agnostic storage;
-  AGPL-3.0 licensed for the public good.
+  AGPL-3.0 licensed.
 - **Privacy & security by design:** RBAC, OIDC, secrets in a vault, encryption at rest/in
   transit, and audit logging — see [`docs/security/`](./docs/security/) and
   [`PRIVACY.md`](./PRIVACY.md).
@@ -122,7 +122,7 @@ AGPL-3.0 is a strong (network) copyleft license: if you run a modified version o
 
 Copyright © 2026 United Nations Development Programme (UNDP).
 
-Huella Latam is owned and maintained by the **United Nations Development Programme (UNDP)** as a digital public good. Contributions are accepted under the project's AGPL-3.0 license; see [`GOVERNANCE.md`](./GOVERNANCE.md) for the governance and contribution model and [`docs/governance.md`](./docs/governance.md) for licensing and country-level deployment details.
+Huella Latam is owned and maintained by the **United Nations Development Programme (UNDP)** as open-source software. Contributions are accepted under the project's AGPL-3.0 license; see [`GOVERNANCE.md`](./GOVERNANCE.md) for the governance and contribution model and [`docs/governance.md`](./docs/governance.md) for licensing and country-level deployment details.
 
 ## 👥 Team
 

@@ -24,8 +24,6 @@ GDPR Art. 9 special-category data.
 
 ## 1. Data minimization
 
-_(EPF requirement 1)_
-
 - **PII collected — Users:** `email`, `firstName`, `lastName`, `idpUserId`, `idpName`. These
   originate from identity-provider (e.g. Microsoft Entra ID) token claims at first login.
 - **PII collected — Organization representatives:** `legalName`, `tradeName`, `taxId`,
@@ -38,8 +36,6 @@ _(EPF requirement 1)_
 
 ## 2. User consent
 
-_(EPF requirement 2)_
-
 - Authentication and account creation are delegated to the deployment's identity provider;
   organizational data is entered by the users themselves.
 - **Gap (deployment responsibility):** the platform does **not** ship a consent banner or a
@@ -49,8 +45,6 @@ _(EPF requirement 2)_
        or document that each deployment handles consent externally. -->
 
 ## 3. Transparency in data usage
-
-_(EPF requirement 3)_
 
 - **Use:** PII is used only to identify users, manage organizational affiliation, and attribute
   records. It is **not** used for marketing, profiling, or any secondary purpose.
@@ -68,8 +62,6 @@ _(EPF requirement 3)_
 
 ## 4. Privacy by design — deletion
 
-_(EPF requirement 4)_
-
 - Records support administrative deletion via the database and application layer.
 - **Gap (deployment responsibility):** there is currently **no automated data-subject-request
   (DSAR) workflow**. Access, deletion, and portability requests must be fulfilled **manually**
@@ -78,8 +70,6 @@ _(EPF requirement 4)_
        manual runbook each deployment's administrators will follow. -->
 
 ## 5. Data retention
-
-_(EPF requirement 5)_
 
 The platform's default retention posture (see `docs/security/sensitive-data.md`):
 
@@ -100,8 +90,6 @@ The platform's default retention posture (see `docs/security/sensitive-data.md`)
        deployment may strengthen but should not silently drop. Tracked in https://github.com/undp/carbon-footprint-program/issues/460 (§4). -->
 
 ## 6. Data governance, security & access controls
-
-_(EPF requirement 6 — also Indicator 9A)_
 
 - **Access controls:** role-based authorization; PII limited to same-organization users and
   ADMIN/SUPERADMIN. Authentication delegated to the identity provider (no password storage).
@@ -177,7 +165,3 @@ UNDP-run demonstration deployment (see
      https://github.com/undp/carbon-footprint-program/issues/460 (§1). The deployment-level
      contacts are deliberately NOT listed here — they are per-country and gated at
      onboarding. -->
-
----
-
-_References: [DPG Standard](https://www.digitalpublicgoods.net/standard) Indicators 7 & 9A; [DPGA Enhanced Privacy Framework](https://www.digitalpublicgoods.net/dpg-privacy-report)._
